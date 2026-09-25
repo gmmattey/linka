@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 #if canImport(DeviceCheck) && os(iOS)
@@ -62,8 +63,9 @@ public actor NetscopeSystemAppAttestationProvider {
     }
 
     /// Obtém ou cria a referência local e produz o objeto de atestação para o
-    /// challenge exclusivo de registro. O challenge já deve ser o hash de
-    /// 32 bytes esperado pela API Apple; não há serialização alternativa.
+    /// challenge exclusivo de registro. O contrato V2 entrega os 32 bytes
+    /// aleatórios do nonce; a API Apple exige o SHA-256 desses bytes como
+    /// clientDataHash. Nunca trate o nonce como se ele já fosse o hash.
     public func makeRegistrationProof(
         for challenge: NetscopeRegistrationChallenge
     ) async throws -> NetscopeRegistrationProof {
@@ -71,7 +73,8 @@ public actor NetscopeSystemAppAttestationProvider {
         guard challenge.value.count == 32 else { throw NetscopeSystemAppAttestationError.invalidChallenge }
 
         let keyID = try await existingOrNewKeyID()
-        let attestation = try await service.attestKey(keyID, clientDataHash: challenge.value)
+        let clientDataHash = Data(SHA256.hash(data: challenge.value))
+        let attestation = try await service.attestKey(keyID, clientDataHash: clientDataHash)
         guard !attestation.isEmpty else { throw NetscopeSystemAppAttestationError.malformedAppleResponse }
         return .init(keyID: keyID, attestation: attestation)
     }

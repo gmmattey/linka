@@ -19,7 +19,9 @@ final class NetscopeSystemAppAttestationProviderTests: XCTestCase {
         XCTAssertEqual(first.attestation, Data("apple-attestation".utf8))
         XCTAssertEqual(service.generatedKeyCount, 1)
         XCTAssertEqual(service.attestedKeyIDs, [first.keyID, first.keyID])
-        XCTAssertEqual(service.attestationHashes, [challenge.value, challenge.value])
+        let expectedHash = Data(SHA256.hash(data: challenge.value))
+        XCTAssertEqual(service.attestationHashes, [expectedHash, expectedHash])
+        XCTAssertNotEqual(service.attestationHashes, [challenge.value, challenge.value])
         XCTAssertEqual(try store.readKeyID(), first.keyID)
     }
 
