@@ -107,6 +107,7 @@
 		77B9D8D29C7DF8B583994B6E /* LinkaWidgetShared in Frameworks */ = {isa = PBXBuildFile; productRef = 6C16385D59C93FAD8555D2E3 /* LinkaWidgetShared */; };
 		794A78D7FBF87B7C55A2026C /* 07-status-servicos-source.png in Resources */ = {isa = PBXBuildFile; fileRef = 7ADE23556FD3F834BC11EDE7 /* 07-status-servicos-source.png */; };
 		796DD515901A1A63513D17B1 /* Simulator Screenshot - iPhone 17 Pro - 2026-09-04 at 00.08.51.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B98EA5D29714616A7E9B981 /* Simulator Screenshot - iPhone 17 Pro - 2026-09-04 at 00.08.51.png */; };
+		797CD8831456BA7E870B227C /* NetscopeAppAttestDeviceCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE21FDA144F99E52D1F999C7 /* NetscopeAppAttestDeviceCaptureTests.swift */; };
 		7B3C6E7F7B33417E8A723F32 /* ConnectivityTriageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE87CDDD63F493ADD2C14B84 /* ConnectivityTriageView.swift */; };
 		7C80510290141EF10AA29DC8 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C60A040FE4E49231CD858102 /* MainView.swift */; };
 		7CF7BA9E1214806740848A59 /* Simulator Screenshot - iPhone 17 Pro - 2026-09-04 at 00.07.40.png in Resources */ = {isa = PBXBuildFile; fileRef = 9B78B9DAB08F95A0C65F5E3F /* Simulator Screenshot - iPhone 17 Pro - 2026-09-04 at 00.07.40.png */; };
@@ -398,6 +399,7 @@
 		F959B2CBD5E8F278F7B85F54 /* 06-historico.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "06-historico.png"; sourceTree = "<group>"; };
 		FB32ED976CC4BE668BB83D5C /* SpeedTestViewModelResultTimingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedTestViewModelResultTimingTests.swift; sourceTree = "<group>"; };
 		FC264CF05674D25561146FCA /* NetworkConnectivityTriage */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NetworkConnectivityTriage; path = NetworkConnectivityTriage; sourceTree = SOURCE_ROOT; };
+		FE21FDA144F99E52D1F999C7 /* NetscopeAppAttestDeviceCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetscopeAppAttestDeviceCaptureTests.swift; sourceTree = "<group>"; };
 		FF31BBF6EC2AF20CE0A20E62 /* es-419 */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "es-419"; path = "es-419.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -546,6 +548,7 @@
 				352DD4E485299EF5A4AD38B5 /* LinkaHealthCheckTests.swift */,
 				AEFE04BB75BFA7E561692BEE /* LinkaHistoryAdSessionGateTests.swift */,
 				DC0D225A60C99915789B9319 /* NetscopeAnalysisPresentationModelTests.swift */,
+				FE21FDA144F99E52D1F999C7 /* NetscopeAppAttestDeviceCaptureTests.swift */,
 				5E03F3D02E4F5A54E54C94A7 /* NetworkStabilityPatternsViewModelTests.swift */,
 				46F4505095861E3713A028A2 /* SettingsProductionStateTests.swift */,
 				FB32ED976CC4BE668BB83D5C /* SpeedTestViewModelResultTimingTests.swift */,
@@ -1191,6 +1194,7 @@
 				1D8B410D80FB10FB140914B6 /* LinkaHealthCheckTests.swift in Sources */,
 				38D0EA65ECE11E0AA69DD308 /* LinkaHistoryAdSessionGateTests.swift in Sources */,
 				464DA5721AB6BCDEFECB264A /* NetscopeAnalysisPresentationModelTests.swift in Sources */,
+				797CD8831456BA7E870B227C /* NetscopeAppAttestDeviceCaptureTests.swift in Sources */,
 				32D65FC106F2219188A8CFEF /* NetworkStabilityPatternsViewModelTests.swift in Sources */,
 				07FA5BACD537ACDC5E210496 /* SettingsProductionStateTests.swift in Sources */,
 				5B0458DD58805571D30AC3EC /* SpeedTestViewModelResultTimingTests.swift in Sources */,
