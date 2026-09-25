@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import NetscopeEvidence
 @testable import NetscopeTransport
@@ -123,6 +124,33 @@ final class NetscopeAttestedAnalysisClientTests: XCTestCase {
         ))
     }
 
+    func testV2GoldenFrameAndPayloadHashUseExactBytesAndUnpaddedBase64URL() {
+        let body = Data("{\"x\":1}".utf8)
+        let frame = NetscopeAttestationAssertionInput.framedRequestBytes(
+            method: "POST",
+            path: "/v1/linka/analysis",
+            exactBody: body,
+            nonce: "AQID",
+            timestampUnixMilliseconds: 1_720_000_000_123
+        )
+        XCTAssertEqual(frame.map { String(format: "%02x", $0) }.joined(), "0000000000000004504f535400000000000000122f76312f6c696e6b612f616e616c7973697300000000000000077b2278223a317d000000000000000441514944000000000000000d31373230303030303030313233")
+        XCTAssertEqual(Data(SHA256.hash(data: frame)).map { String(format: "%02x", $0) }.joined(), "0d774c33ec491a254fa611a9fed1ef17f395266f9fc58ce1280956d2fd127f75")
+        XCTAssertEqual(NetscopeAnalysisAssertionBinding(exactBody: body).payloadSHA256Base64URL, "UEG_H3E98gR4Q1PoL2pKU1kxy2Tx9LSlrq_8tyCRiyI")
+    }
+
+    func testUnsafeChallengeTimestampFailsBeforeAssertionOrHTTP() async throws {
+        let attestation = RecordingAttestation(analysisChallengeTimestamp: 9_007_199_254_740_992)
+        let transport = RecordingTransport(response: completedHTTPResponse)
+        let outcome = await client(attestation: attestation, transport: transport).analyze(
+            input: input, locale: "pt-BR", app: app, configuration: configuration
+        )
+        XCTAssertEqual(outcome, .unavailable)
+        let calls = await attestation.calls()
+        let requestCount = await transport.requestCount()
+        XCTAssertEqual(calls, [.registrationChallenge, .register, .analysisChallenge])
+        XCTAssertEqual(requestCount, 0)
+    }
+
     func testAttestationFailureDoesNotReachHTTP() async throws {
         let attestation = RecordingAttestation(failure: .assertion)
         let transport = RecordingTransport(response: completedHTTPResponse)
@@ -214,12 +242,14 @@ private actor RecordingAttestation: NetscopeAttestationProviding {
     enum Call: Equatable { case registrationChallenge, register, analysisChallenge, assertion }
 
     private let failure: FailurePoint?
+    private let analysisChallengeTimestamp: Int64
     private var recordedCalls: [Call] = []
     private var recordedBinding: NetscopeAnalysisAssertionBinding?
     private var recordedAssertionChallenge: NetscopeAnalysisAssertionChallenge?
 
-    init(failure: FailurePoint? = nil) {
+    init(failure: FailurePoint? = nil, analysisChallengeTimestamp: Int64 = 1_700_000_000_000) {
         self.failure = failure
+        self.analysisChallengeTimestamp = analysisChallengeTimestamp
     }
 
     func requestRegistrationChallenge() throws -> NetscopeRegistrationChallenge {
@@ -237,7 +267,7 @@ private actor RecordingAttestation: NetscopeAttestationProviding {
         recordedCalls.append(.analysisChallenge)
         recordedBinding = binding
         if failure == .analysisChallenge { throw TransportFailure.timedOut }
-        return .init(nonce: "single-use-nonce", timestampUnixMilliseconds: 1_700_000_000_000)
+        return .init(nonce: "single-use-nonce", timestampUnixMilliseconds: analysisChallengeTimestamp)
     }
 
     func makeAssertion(

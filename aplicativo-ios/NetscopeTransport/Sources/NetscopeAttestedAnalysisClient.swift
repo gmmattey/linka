@@ -74,6 +74,15 @@ public struct NetscopeAnalysisAssertionBinding: Equatable, Sendable {
     public func binds(exactBody: Data) -> Bool {
         payloadSHA256 == Data(SHA256.hash(data: exactBody))
     }
+
+    /// Wire spelling required by Netscope V2: SHA-256 in unpadded base64url.
+    /// This is a value codec only; it does not create an HTTP request.
+    public var payloadSHA256Base64URL: String {
+        payloadSHA256.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+    }
 }
 
 /// Challenge de uso único emitido pelo servidor depois de receber o binding da
@@ -87,7 +96,9 @@ public struct NetscopeAnalysisAssertionChallenge: Equatable, Sendable {
         self.timestampUnixMilliseconds = timestampUnixMilliseconds
     }
 
-    fileprivate var isUsable: Bool { !nonce.isEmpty && timestampUnixMilliseconds > 0 }
+    fileprivate var isUsable: Bool {
+        !nonce.isEmpty && timestampUnixMilliseconds > 0 && timestampUnixMilliseconds <= 9_007_199_254_740_991
+    }
 }
 
 /// Material que a assertion deve assinar. O binding já foi aceito pelo
@@ -140,13 +151,30 @@ public struct NetscopeAttestationAssertionInput: Equatable, Sendable {
         nonce: String,
         timestampUnixMilliseconds: Int64
     ) -> Data {
+        Data(SHA256.hash(data: framedRequestBytes(
+            method: method,
+            path: path,
+            exactBody: exactBody,
+            nonce: nonce,
+            timestampUnixMilliseconds: timestampUnixMilliseconds
+        )))
+    }
+
+    /// Exact shared V2 frame: UInt64 big-endian length then UTF-8/raw bytes.
+    static func framedRequestBytes(
+        method: String,
+        path: String,
+        exactBody: Data,
+        nonce: String,
+        timestampUnixMilliseconds: Int64
+    ) -> Data {
         var material = Data()
         [Data(method.utf8), Data(path.utf8), exactBody, Data(nonce.utf8), Data(String(timestampUnixMilliseconds).utf8)].forEach {
             var length = UInt64($0.count).bigEndian
             withUnsafeBytes(of: &length) { material.append(contentsOf: $0) }
             material.append($0)
         }
-        return Data(SHA256.hash(data: material))
+        return material
     }
 }
 
