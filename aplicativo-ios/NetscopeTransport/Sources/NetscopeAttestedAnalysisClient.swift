@@ -107,6 +107,8 @@ public struct NetscopeAnalysisAssertionChallenge: Equatable, Sendable {
 /// sem serialização JSON implícita. O payload bruto não é armazenado aqui.
 public struct NetscopeAttestationAssertionInput: Equatable, Sendable {
     public let binding: NetscopeAnalysisAssertionBinding
+    public let nonce: String
+    public let timestampUnixMilliseconds: Int64
     public let signedRequestSHA256: Data
 
     public init(
@@ -115,6 +117,8 @@ public struct NetscopeAttestationAssertionInput: Equatable, Sendable {
         challenge: NetscopeAnalysisAssertionChallenge
     ) {
         self.binding = binding
+        nonce = challenge.nonce
+        timestampUnixMilliseconds = challenge.timestampUnixMilliseconds
         signedRequestSHA256 = Self.signedRequestSHA256(
             method: binding.method,
             path: binding.path,
@@ -134,7 +138,8 @@ public struct NetscopeAttestationAssertionInput: Equatable, Sendable {
         nonce: String,
         timestampUnixMilliseconds: Int64
     ) -> Bool {
-        binding.method == method && binding.path == path && binding.binds(exactBody: exactBody) &&
+        self.nonce == nonce && self.timestampUnixMilliseconds == timestampUnixMilliseconds &&
+            binding.method == method && binding.path == path && binding.binds(exactBody: exactBody) &&
             signedRequestSHA256 == Self.signedRequestSHA256(
                 method: method,
                 path: path,

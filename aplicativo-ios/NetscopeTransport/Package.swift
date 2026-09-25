@@ -17,7 +17,11 @@ let package = Package(
         .target(
             name: "NetscopeTransport",
             dependencies: ["NetscopeEvidence"],
-            path: "Sources"
+            path: "Sources",
+            linkerSettings: [
+                .linkedFramework("DeviceCheck", .when(platforms: [.iOS])),
+                .linkedFramework("Security", .when(platforms: [.iOS]))
+            ]
         ),
         .testTarget(
             name: "NetscopeTransportTests",
