@@ -180,6 +180,9 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+      configs:
+        Debug:
+          DEVELOPMENT_TEAM: 2Z4T8228GR
     deploymentTarget: 16.0
     dependencies:
       - target: LinkaApp
@@ -201,6 +204,9 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+      configs:
+        Debug:
+          DEVELOPMENT_TEAM: 2Z4T8228GR
     sources:
       - path: LinkaApp/Tests
     dependencies:
