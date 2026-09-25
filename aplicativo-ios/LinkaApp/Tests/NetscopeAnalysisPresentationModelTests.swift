@@ -5,12 +5,36 @@ import NetscopeEvidence
 
 @MainActor
 final class NetscopeAnalysisPresentationModelTests: XCTestCase {
-    func test_disabledReaderFailsClosedAsUnavailable() async {
+    func test_defaultCompositionFailsClosedAsUnavailable() async {
         let model = NetscopeAnalysisPresentationModel()
 
         await model.load()
 
         XCTAssertEqual(model.state, .reading(.unavailable))
+    }
+
+    func test_injectedCompositionForwardsTheSameInputWithoutStartingMeasurement() async {
+        let input = NetscopeAnalysisInput(
+            observedEvidence: NetscopeMeasurementEvidence(
+                downloadMbps: 100,
+                uploadMbps: 20,
+                latencyMs: 12,
+                jitterMs: 1,
+                packetLossPercent: nil,
+                connectionKind: .wifi,
+                wifiDetails: nil
+            ),
+            declaredContext: NetscopeDeclaredContext(objective: .gaming)
+        )
+        let reader = NetscopeAnalysisCompositionReader { received in
+            guard received == input else { return .unavailable }
+            return .inconclusive
+        }
+        let model = NetscopeAnalysisPresentationModel(reader: reader, input: input)
+
+        await model.load()
+
+        XCTAssertEqual(model.state, .reading(.inconclusive))
     }
 
     func test_injectedReaderPresentsEveryContractState() async {

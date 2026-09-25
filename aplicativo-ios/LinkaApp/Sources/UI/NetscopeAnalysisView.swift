@@ -1,6 +1,9 @@
 import SwiftUI
 import NetworkCore
 import NetscopeEvidence
+#if canImport(NetscopeTransport)
+import NetscopeTransport
+#endif
 
 /// A apresentação recebe o contrato local canônico. Ela não serializa nem
 /// transmite esse valor: o reader padrão continua deliberadamente desligado.
@@ -75,18 +78,113 @@ enum NetscopeAnalysisReading: Equatable, Sendable {
     case outOfScope
 }
 
-/// Única porta da apresentação. L-03 recebe a dependência, mas o app entrega
-/// somente a implementação desligada abaixo: sem URLSession, endpoint, DNS,
-/// chave ou egress. L-02 será a camada autorizada a substituir essa porta.
+/// Única porta da apresentação. A View não conhece HTTP, App Attest, host ou
+/// segredo; recebe somente uma leitura já limitada ao contrato local.
 protocol NetscopeAnalysisReadingProviding: Sendable {
     func read(_ input: NetscopeAnalysisInput) async -> NetscopeAnalysisReading
 }
 
+/// Composição local do leitor. Sem uma dependência explicitamente injetada, a
+/// análise fica indisponível. Assim, adicionar esta camada à UI não cria URL,
+/// DNS, sessão HTTP, segredo ou egress por acidente.
+struct NetscopeAnalysisCompositionReader: NetscopeAnalysisReadingProviding {
+    private let reading: @Sendable (NetscopeAnalysisInput) async -> NetscopeAnalysisReading
+
+    init() {
+        reading = { _ in .unavailable }
+    }
+
+    init(reading: @escaping @Sendable (NetscopeAnalysisInput) async -> NetscopeAnalysisReading) {
+        self.reading = reading
+    }
+
+    func read(_ input: NetscopeAnalysisInput) async -> NetscopeAnalysisReading {
+        await reading(input)
+    }
+}
+
+/// Compatibilidade temporária para consumidores que ainda constroem o reader
+/// desligado diretamente. A composição padrão acima é a usada pela UI.
 struct DisabledNetscopeAnalysisReader: NetscopeAnalysisReadingProviding {
     func read(_ input: NetscopeAnalysisInput) async -> NetscopeAnalysisReading {
         .unavailable
     }
 }
+
+#if canImport(NetscopeTransport)
+extension NetscopeAnalysisCompositionReader {
+    /// Liga a UI apenas a um cliente e a uma configuração já injetados pela
+    /// composição de produto. Não aceita string de host, URL, segredo ou uma
+    /// implementação concreta de HTTP nesta camada.
+    init(
+        client: NetscopeAttestedAnalysisClient,
+        locale: String,
+        app: NetscopeV1Codec.AppDescriptor,
+        configuration: NetscopeServiceConfiguration
+    ) {
+        self.init { input in
+            let outcome = await client.analyze(
+                input: input,
+                locale: locale,
+                app: app,
+                configuration: configuration
+            )
+            return Self.reading(from: outcome)
+        }
+    }
+
+    private static func reading(from outcome: NetscopeAttestedAnalysisOutcome) -> NetscopeAnalysisReading {
+        guard case .response(let response) = outcome else { return .unavailable }
+
+        switch response.status {
+        case .completed:
+            guard let assessment = response.assessment,
+                  let evidence = response.evidenceUsed,
+                  Set(evidence.map { $0.metric.rawValue }).count == evidence.count else {
+                return .unavailable
+            }
+            return .completed(NetscopeAnalysisPresentation(
+                summary: assessment.summary,
+                observedEvidence: evidence.map(NetscopePresentationItem.init),
+                limitations: response.limitations,
+                declaredContext: response.declaredContext.map {
+                    [NetscopePresentationItem(label: "Objetivo", value: $0.objective.rawValue)]
+                } ?? []
+            ))
+        case .inconclusive:
+            return .inconclusive
+        case .unavailable:
+            return .unavailable
+        case .outOfScope:
+            return .outOfScope
+        }
+    }
+}
+
+private extension NetscopePresentationItem {
+    init(_ evidence: NetscopeV1Codec.AnalysisResponse.EvidenceUsed) {
+        label = switch evidence.metric {
+        case .downloadMbps: "Download"
+        case .uploadMbps: "Upload"
+        case .latencyMs: "Latência"
+        case .jitterMs: "Jitter"
+        case .packetLossPercent: "Perda de pacotes"
+        case .loadedLatencyDownloadMs: "Latência sob download"
+        case .loadedLatencyUploadMs: "Latência sob upload"
+        case .dnsResolutionMs: "Resolução DNS"
+        case .connectionKind: "Conexão"
+        case .wifiFrequencyMHz: "Frequência Wi‑Fi"
+        case .wifiBand: "Banda Wi‑Fi"
+        case .wifiChannel: "Canal Wi‑Fi"
+        case .wifiLinkSpeedMbps: "Velocidade do link Wi‑Fi"
+        }
+        value = switch evidence.value {
+        case .number(let number): String(number)
+        case .string(let string): string
+        }
+    }
+}
+#endif
 
 @MainActor
 final class NetscopeAnalysisPresentationModel: ObservableObject {
@@ -102,7 +200,7 @@ final class NetscopeAnalysisPresentationModel: ObservableObject {
     private let input: NetscopeAnalysisInput
 
     init(
-        reader: any NetscopeAnalysisReadingProviding = DisabledNetscopeAnalysisReader(),
+        reader: any NetscopeAnalysisReadingProviding = NetscopeAnalysisCompositionReader(),
         input: NetscopeAnalysisInput = .empty
     ) {
         self.reader = reader
@@ -123,7 +221,7 @@ struct NetscopeAnalysisView: View {
     @StateObject private var model: NetscopeAnalysisPresentationModel
 
     init(
-        reader: any NetscopeAnalysisReadingProviding = DisabledNetscopeAnalysisReader(),
+        reader: any NetscopeAnalysisReadingProviding = NetscopeAnalysisCompositionReader(),
         input: NetscopeAnalysisInput = .empty
     ) {
         _model = StateObject(wrappedValue: NetscopeAnalysisPresentationModel(reader: reader, input: input))
