@@ -30,7 +30,10 @@ final class NetscopeAttestedAnalysisClientTests: XCTestCase {
     #endif
 
     func testUnsupportedPlatformsFailBeforeChallengeOrHTTP() async throws {
-        for platform in [NetscopeClientPlatform.simulator, .macOS, .unsupported] {
+        // iPad is recognized, real hardware — but Netscope is iPhone-only by
+        // product decision until there is physical iPad proof, so it must
+        // fail closed exactly like macOS, the simulator, or an unknown platform.
+        for platform in [NetscopeClientPlatform.simulator, .macOS, .unsupported, .iPadPhysical] {
             let attestation = RecordingAttestation()
             let transport = RecordingTransport(response: unavailableHTTPResponse)
             let outcome = await client(platform: platform, attestation: attestation, transport: transport).analyze(
@@ -48,8 +51,8 @@ final class NetscopeAttestedAnalysisClientTests: XCTestCase {
         }
     }
 
-    func testPhysicalIOSAndIPadRunChallengeRegisterAssertionAndOneRequestInOrder() async throws {
-        for platform in [NetscopeClientPlatform.iPhonePhysical, .iPadPhysical] {
+    func testPhysicalIPhoneRunsChallengeRegisterAssertionAndOneRequestInOrder() async throws {
+        for platform in [NetscopeClientPlatform.iPhonePhysical] {
             let attestation = RecordingAttestation()
             let transport = RecordingTransport(response: completedHTTPResponse)
 

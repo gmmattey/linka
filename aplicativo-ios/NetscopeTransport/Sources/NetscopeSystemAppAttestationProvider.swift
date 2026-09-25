@@ -46,9 +46,11 @@ public protocol NetscopeAppleAppAttestServicing: Sendable {
     func generateAssertion(_ keyID: String, clientDataHash: Data) async throws -> Data
 }
 
-/// Ponte de App Attest sem rede. Ela só existe em iPhone/iPad reais com o
-/// framework da Apple disponível; simulador, Mac e qualquer erro ficam
-/// indisponíveis. A criação/atestado de chave e a assertion seguem separados
+/// Ponte de App Attest sem rede. Esta camada por si só só sabe falar com o
+/// framework da Apple, disponível em iPhone e iPad reais; simulador, Mac e
+/// qualquer erro ficam indisponíveis. Netscope é iPhone-only por decisão de
+/// produto — quem decide isso é `NetscopeClientPlatform`/`NetscopeSystemAppAttestAvailability`
+/// na composição, não esta ponte. A criação/atestado de chave e a assertion seguem separados
 /// para que cada um receba o challenge próprio do contrato V2.
 public actor NetscopeSystemAppAttestationProvider {
     private let service: any NetscopeAppleAppAttestServicing

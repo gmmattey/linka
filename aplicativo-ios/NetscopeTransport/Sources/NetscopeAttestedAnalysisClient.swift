@@ -3,8 +3,10 @@ import Foundation
 import NetscopeEvidence
 
 /// A plataforma que a composição do app observou. Não há fallback de macOS ou
-/// simulador para uma chave local: esta primeira integração aceita somente
-/// aparelhos iPhone e iPad físicos com App Attest disponível.
+/// simulador para uma chave local. Netscope é iPhone-only por decisão de
+/// produto: não há iPad físico para gerar prova própria, então `.iPadPhysical`
+/// permanece reconhecido mas indisponível, como macOS e simulador, até existir
+/// essa prova — não é um caso "impossível", é um caso deliberadamente negado.
 public enum NetscopeClientPlatform: Equatable, Sendable {
     case iPhonePhysical
     case iPadPhysical
@@ -13,7 +15,7 @@ public enum NetscopeClientPlatform: Equatable, Sendable {
     case unsupported
 
     fileprivate var acceptsAppAttest: Bool {
-        self == .iPhonePhysical || self == .iPadPhysical
+        self == .iPhonePhysical
     }
 }
 
@@ -197,7 +199,8 @@ public struct NetscopeAttestationProof: Equatable, Sendable {
 
 /// Abstrai App Attest para que hardware, indisponibilidade e assinaturas sejam
 /// testáveis sem rede. A implementação concreta ainda será habilitada somente
-/// depois do provisionamento Apple e da prova física em iPhone e iPad.
+/// depois do provisionamento Apple e da prova física em iPhone (Netscope é
+/// iPhone-only até existir prova própria em iPad).
 public protocol NetscopeAttestationProviding: Sendable {
     func requestRegistrationChallenge() async throws -> NetscopeRegistrationChallenge
     func registerIfNeeded(for challenge: NetscopeRegistrationChallenge) async throws
