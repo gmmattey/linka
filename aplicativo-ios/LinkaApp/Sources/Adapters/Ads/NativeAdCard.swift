@@ -15,6 +15,23 @@ struct NativeAdCard: UIViewRepresentable {
     func updateUIView(_ view: LinkaNativeAdView, context: Context) {
         view.populate(with: nativeAd)
     }
+
+    func sizeThatFits(
+        _ proposal: ProposedViewSize,
+        uiView: LinkaNativeAdView,
+        context: Context
+    ) -> CGSize? {
+        guard let width = proposal.width else { return nil }
+        uiView.bounds.size = CGSize(width: width, height: 0)
+        uiView.setNeedsLayout()
+        uiView.layoutIfNeeded()
+        let fittingSize = uiView.systemLayoutSizeFitting(
+            CGSize(width: width, height: UIView.layoutFittingCompressedSize.height),
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+        )
+        return CGSize(width: width, height: fittingSize.height)
+    }
 }
 
 final class LinkaNativeAdView: NativeAdView {
@@ -51,6 +68,8 @@ final class LinkaNativeAdView: NativeAdView {
         actionLabel.textColor = tintColor
         actionLabel.textAlignment = .right
         actionLabel.adjustsFontForContentSizeCategory = true
+        actionLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        actionLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
         adIconView.layer.cornerRadius = 8
         adIconView.clipsToBounds = true
@@ -80,6 +99,7 @@ final class LinkaNativeAdView: NativeAdView {
         bodyView = bodyLabel
         callToActionView = actionLabel
         iconView = adIconView
+        accessibilityLabel = LinkaCopy.value("ads.native.attribution")
     }
 
     required init?(coder: NSCoder) { nil }
@@ -93,6 +113,8 @@ final class LinkaNativeAdView: NativeAdView {
         adIconView.image = ad.icon?.image
         adIconView.isHidden = ad.icon == nil
         nativeAd = ad
+        invalidateIntrinsicContentSize()
+        setNeedsLayout()
     }
 }
 #endif

@@ -1,21 +1,134 @@
 import Foundation
 #if os(iOS)
 import AppTrackingTransparency
+import UIKit
 import GoogleMobileAds
 import UserMessagingPlatform
 #endif
 
-/// Garante que o ponto de anúncio não vire uma fonte de tentativas repetidas
-/// por mudança de filtro, retorno de sheet ou recomposição de SwiftUI.
-struct LinkaHistoryAdSessionGate {
-    private(set) var didAttempt = false
+enum LinkaAdPlacement: Equatable {
+    case home
+    case history
+}
 
-    mutating func beginIfEligible(isEnabled: Bool, hasPlus: Bool, hasHistory: Bool) -> Bool {
-        guard isEnabled, !hasPlus, hasHistory, !didAttempt else { return false }
+/// Uma única tentativa nativa por sessão, escolhida pelo primeiro placement
+/// elegível. Isso impede request duplicado e que o mesmo anúncio apareça em
+/// duas telas quando a pessoa navega durante a sessão.
+struct LinkaAdSessionGate {
+    private(set) var didAttempt = false
+    private(set) var placement: LinkaAdPlacement?
+
+    mutating func beginIfEligible(
+        placement: LinkaAdPlacement,
+        isEnabled: Bool,
+        isEligibleForAds: Bool
+    ) -> Bool {
+        guard isEnabled,
+              isEligibleForAds,
+              !didAttempt else { return false }
         didAttempt = true
+        self.placement = placement
         return true
     }
 }
+
+/// Vincula cada fluxo assíncrono de consentimento/anúncio a uma geração. O
+/// início de uma medição invalida a geração atual para que uma resposta tardia
+/// da UMP nunca possa abrir uma superfície ou carregar publicidade sobre ela.
+struct LinkaAdRequestGate {
+    private var generation = 0
+
+    mutating func beginRequest() -> Int {
+        generation &+= 1
+        return generation
+    }
+
+    mutating func invalidateForMeasurement() {
+        generation &+= 1
+    }
+
+    func canContinue(requestGeneration: Int) -> Bool {
+        requestGeneration == generation
+    }
+}
+
+/// Permissão revogável entregue à etapa que pode abrir uma superfície UMP.
+/// A implementação consulta esta permissão imediatamente antes de apresentar;
+/// assim, uma medição iniciada enquanto a preparação estava suspensa cancela a
+/// apresentação, em vez de só impedir o carregamento do anúncio depois dela.
+struct LinkaAdPresentationPermit {
+    private let canPresent: @MainActor () -> Bool
+
+    init(canPresent: @escaping @MainActor () -> Bool) {
+        self.canPresent = canPresent
+    }
+
+    @MainActor
+    func allowsPresentation() -> Bool {
+        canPresent()
+    }
+}
+
+enum LinkaAdConsentSurface {
+    case initialConsent
+    case privacyOptions
+}
+
+#if os(iOS)
+/// Dependências pequenas e observáveis para o único ponto que pode apresentar
+/// UMP. Além de manter o SDK fora dos testes, o permit torna a apresentação
+/// revogável quando a medição começa no meio do fluxo assíncrono.
+struct LinkaAdsCoordinatorDependencies {
+    var isEnabled: () -> Bool
+    var requestTrackingAuthorizationIfNeeded: @MainActor () async -> Bool
+    var updateConsentInformation: @MainActor () async -> Bool
+    var presentConsentSurface: @MainActor (LinkaAdConsentSurface, LinkaAdPresentationPermit) async throws -> Void
+    var canRequestAds: () -> Bool
+    var privacyOptionsRequired: () -> Bool
+    var nativeAdLoadWillStart: @MainActor () -> Void
+    var adFlowDidFinish: @MainActor () -> Void
+
+    static let live = LinkaAdsCoordinatorDependencies(
+        isEnabled: {
+            (Bundle.main.object(forInfoDictionaryKey: "LinkaAdsEnabled") as? String) == "YES"
+        },
+        requestTrackingAuthorizationIfNeeded: {
+            guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else { return true }
+            // O sistema ignora pedidos feitos fora do estado ativo. Deixe o
+            // placement tentar novamente ao voltar, sem gastar a tentativa.
+            guard UIApplication.shared.applicationState == .active else { return false }
+            let status = await ATTrackingManager.requestTrackingAuthorization()
+            return status != .notDetermined
+        },
+        updateConsentInformation: {
+            do {
+                try await ConsentInformation.shared.requestConsentInfoUpdate(with: RequestParameters())
+                return true
+            } catch {
+                return false
+            }
+        },
+        presentConsentSurface: { surface, permit in
+            guard permit.allowsPresentation() else { return }
+            switch surface {
+            case .initialConsent:
+                guard ConsentInformation.shared.consentStatus == .required else { return }
+                let form = try await ConsentForm.load()
+                guard permit.allowsPresentation() else { return }
+                try await form.present(from: nil)
+            case .privacyOptions:
+                try await ConsentForm.presentPrivacyOptionsForm(from: nil)
+            }
+        },
+        canRequestAds: { ConsentInformation.shared.canRequestAds },
+        privacyOptionsRequired: {
+            ConsentInformation.shared.privacyOptionsRequirementStatus == .required
+        },
+        nativeAdLoadWillStart: {},
+        adFlowDidFinish: {}
+    )
+}
+#endif
 
 /// Coordena publicidade como uma capacidade opcional do app, e não como parte
 /// de medição ou do histórico. A configuração é deliberadamente fail-closed:
@@ -28,65 +141,142 @@ final class LinkaAdsCoordinator: NSObject, ObservableObject {
     @Published private(set) var privacyOptionsRequired = false
 
     private var nativeLoader: AdLoader?
-    private var historySessionGate = LinkaHistoryAdSessionGate()
+    private var sessionGate = LinkaAdSessionGate()
+    private var requestGate = LinkaAdRequestGate()
+    private var consentLoadTask: Task<Void, Never>?
+    private var adsSuppressedForMeasurement = false
     private var consentInformationWasUpdated = false
+    private var isEligibleForAds = false
+    private var isEntitlementResolved = false
+    private var nativeLoaderGeneration: Int?
 
-    private var isEnabled: Bool {
-        (Bundle.main.object(forInfoDictionaryKey: "LinkaAdsEnabled") as? String) == "YES"
+    private var canLoadAds: Bool {
+        dependencies.isEnabled() && isEntitlementResolved && isEligibleForAds
+            && !adsSuppressedForMeasurement
     }
 
-    func prepareHistoryAd(hasPlus: Bool, hasHistory: Bool) {
-        guard historySessionGate.beginIfEligible(
-            isEnabled: isEnabled,
-            hasPlus: hasPlus,
-            hasHistory: hasHistory
-        ) else { return }
+    /// Atualizações de compra/restauração revogam publicidade imediatamente.
+    func updateEligibility(isEligibleForAds: Bool, isEntitlementResolved: Bool) {
+        self.isEligibleForAds = isEligibleForAds
+        self.isEntitlementResolved = isEntitlementResolved
+        if !canLoadAds { invalidatePendingAds() }
+    }
 
-        Task { [weak self] in
-            await self?.requestHistoryConsentThenLoadNativeAd()
+    private func invalidatePendingAds() {
+        requestGate.invalidateForMeasurement()
+        consentLoadTask?.cancel()
+        consentLoadTask = nil
+        nativeLoader?.delegate = nil
+        nativeLoader = nil
+        nativeLoaderGeneration = nil
+        nativeAd = nil
+    }
+    private let dependencies: LinkaAdsCoordinatorDependencies
+
+    init(dependencies: LinkaAdsCoordinatorDependencies = .live) {
+        self.dependencies = dependencies
+        super.init()
+    }
+
+    func prepareHomeAd(
+        isEligibleForAds: Bool,
+        isEntitlementResolved: Bool
+    ) {
+        prepareNativeAd(
+            for: .home,
+            isEligibleForAds: isEligibleForAds,
+            isEntitlementResolved: isEntitlementResolved
+        )
+    }
+
+    func prepareHistoryAd(
+        isEligibleForAds: Bool,
+        isEntitlementResolved: Bool,
+        hasHistory: Bool
+    ) {
+        guard hasHistory else { return }
+        prepareNativeAd(
+            for: .history,
+            isEligibleForAds: isEligibleForAds,
+            isEntitlementResolved: isEntitlementResolved
+        )
+    }
+
+    private func prepareNativeAd(
+        for placement: LinkaAdPlacement,
+        isEligibleForAds: Bool,
+        isEntitlementResolved: Bool
+    ) {
+        updateEligibility(isEligibleForAds: isEligibleForAds, isEntitlementResolved: isEntitlementResolved)
+        guard canLoadAds, !sessionGate.didAttempt, consentLoadTask == nil else { return }
+
+        let requestGeneration = requestGate.beginRequest()
+        consentLoadTask = Task { [weak self] in
+            await self?.requestConsentThenLoadNativeAd(
+                placement: placement, requestGeneration: requestGeneration
+            )
         }
+    }
+
+    func measurementDidStart() {
+        adsSuppressedForMeasurement = true
+        invalidatePendingAds()
+    }
+
+    /// Libera superfícies elegíveis e opções de privacidade; não inicia anúncio.
+    func measurementDidEnd() {
+        adsSuppressedForMeasurement = false
     }
 
     /// Atualiza o estado que a UMP mantém para o aplicativo inteiro. Nunca
     /// mostra uma tela: o formulário só pode aparecer sob demanda no
     /// Histórico elegível.
     func refreshConsentInformation() async {
-        guard isEnabled else {
+        guard dependencies.isEnabled() else {
             consentInformationWasUpdated = false
             privacyOptionsRequired = false
             return
         }
 
-        do {
-            try await ConsentInformation.shared.requestConsentInfoUpdate(with: RequestParameters())
-            consentInformationWasUpdated = true
-        } catch {
-            consentInformationWasUpdated = false
-        }
-
-        privacyOptionsRequired = ConsentInformation.shared.privacyOptionsRequirementStatus == .required
+        consentInformationWasUpdated = await dependencies.updateConsentInformation()
+        privacyOptionsRequired = dependencies.privacyOptionsRequired()
     }
 
-    private func requestHistoryConsentThenLoadNativeAd() async {
-        await requestTrackingAuthorizationIfNeeded()
+    private func requestConsentThenLoadNativeAd(placement: LinkaAdPlacement, requestGeneration: Int) async {
+        defer {
+            if requestGate.canContinue(requestGeneration: requestGeneration) {
+                consentLoadTask = nil
+            }
+            dependencies.adFlowDidFinish()
+        }
+        guard canLoadAds, requestGate.canContinue(requestGeneration: requestGeneration) else { return }
+        let trackingChoiceResolved = await dependencies.requestTrackingAuthorizationIfNeeded()
+        guard trackingChoiceResolved, canLoadAds,
+              requestGate.canContinue(requestGeneration: requestGeneration) else { return }
         await refreshConsentInformation()
-        guard consentInformationWasUpdated else { return }
+        guard canLoadAds, requestGate.canContinue(requestGeneration: requestGeneration),
+              consentInformationWasUpdated else { return }
 
         do {
-            try await ConsentForm.loadAndPresentIfRequired(from: nil)
+            try await dependencies.presentConsentSurface(
+                .initialConsent,
+                presentationPermit(for: requestGeneration)
+            )
         } catch {
             // Falha fechada: sem formulário válido, não solicitamos anúncio.
             return
         }
 
-        privacyOptionsRequired = ConsentInformation.shared.privacyOptionsRequirementStatus == .required
-        guard ConsentInformation.shared.canRequestAds else { return }
+        privacyOptionsRequired = dependencies.privacyOptionsRequired()
+        guard canLoadAds, requestGate.canContinue(requestGeneration: requestGeneration),
+              dependencies.canRequestAds() else { return }
 
         // A configuração vale para todos os requests subsequentes e precisa
         // ser aplicada antes da inicialização do SDK.
         MobileAds.shared.requestConfiguration.setPublisherFirstPartyIDEnabled(false)
         MobileAds.shared.requestConfiguration.publisherPrivacyPersonalizationState = .disabled
         await MobileAds.shared.start()
+        guard canLoadAds, requestGate.canContinue(requestGeneration: requestGeneration) else { return }
         let loader = AdLoader(
             adUnitID: LinkaAdsConfiguration.nativeAdUnitID,
             rootViewController: nil,
@@ -95,35 +285,58 @@ final class LinkaAdsCoordinator: NSObject, ObservableObject {
         )
         loader.delegate = self
         nativeLoader = loader // O SDK exige manter o loader durante o request.
+        nativeLoaderGeneration = requestGeneration
 
         let request = Request()
         let extras = Extras()
         extras.additionalParameters = ["npa": "1"]
         request.register(extras)
+        guard canLoadAds,
+              requestGate.canContinue(requestGeneration: requestGeneration),
+              sessionGate.beginIfEligible(placement: placement,
+                                         isEnabled: dependencies.isEnabled(),
+                                         isEligibleForAds: isEligibleForAds) else { return }
+        dependencies.nativeAdLoadWillStart()
         loader.load(request)
     }
 
-    /// ATT vem antes de qualquer interação com a trilha de anúncios. A pessoa
-    /// vê o pedido apenas quando o Histórico Free se torna elegível a receber
-    /// publicidade; negar a permissão não bloqueia anúncios não personalizados.
-    private func requestTrackingAuthorizationIfNeeded() async {
-        guard #available(iOS 14, *),
-              ATTrackingManager.trackingAuthorizationStatus == .notDetermined else { return }
-        _ = await ATTrackingManager.requestTrackingAuthorization()
-    }
-
     func presentPrivacyOptions() async {
-        guard privacyOptionsRequired else { return }
+        guard !adsSuppressedForMeasurement,
+              privacyOptionsRequired else { return }
+        invalidatePendingAds()
+        let requestGeneration = requestGate.beginRequest()
         do {
-            try await ConsentForm.presentPrivacyOptionsForm(from: nil)
+            try await dependencies.presentConsentSurface(
+                .privacyOptions,
+                presentationPermit(for: requestGeneration)
+            )
         } catch {
             // A ação não tem fallback: a UMP é a fonte de verdade da escolha.
         }
-        privacyOptionsRequired = ConsentInformation.shared.privacyOptionsRequirementStatus == .required
+        guard requestGate.canContinue(requestGeneration: requestGeneration) else { return }
+        privacyOptionsRequired = dependencies.privacyOptionsRequired()
+    }
+
+    private func presentationPermit(for requestGeneration: Int) -> LinkaAdPresentationPermit {
+        LinkaAdPresentationPermit { [weak self] in
+            guard let self else { return false }
+            return !self.adsSuppressedForMeasurement
+                && self.requestGate.canContinue(requestGeneration: requestGeneration)
+        }
     }
     #else
     func refreshConsentInformation() async {}
-    func prepareHistoryAd(hasPlus: Bool, hasHistory: Bool) {}
+    func prepareHomeAd(isEligibleForAds: Bool, isEntitlementResolved: Bool) {}
+    func prepareHistoryAd(isEligibleForAds: Bool, isEntitlementResolved: Bool, hasHistory: Bool) {}
+    func measurementDidStart() {}
+    func measurementDidEnd() {}
+    func updateEligibility(isEligibleForAds: Bool, isEntitlementResolved: Bool) {}
+    #endif
+
+    #if os(iOS)
+    func nativeAd(for placement: LinkaAdPlacement) -> NativeAd? {
+        canLoadAds && sessionGate.placement == placement ? nativeAd : nil
+    }
     #endif
 }
 
@@ -139,7 +352,12 @@ private enum LinkaAdsConfiguration {
 extension LinkaAdsCoordinator: NativeAdLoaderDelegate, AdLoaderDelegate {
     nonisolated func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
         Task { @MainActor [weak self] in
-            self?.nativeAd = nativeAd
+            guard let self,
+                  self.canLoadAds,
+                  self.nativeLoader === adLoader,
+                  let generation = self.nativeLoaderGeneration,
+                  self.requestGate.canContinue(requestGeneration: generation) else { return }
+            self.nativeAd = nativeAd
         }
     }
 

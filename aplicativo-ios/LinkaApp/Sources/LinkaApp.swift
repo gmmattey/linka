@@ -146,17 +146,25 @@ struct LinkaApp: App {
             .task {
                 await entitlements.refreshSnapshot()
                 await serviceStatus.refresh()
-                // O consentimento de anúncios só começa quando o Histórico
-                // Free fica elegível a mostrar um anúncio. Assim, a ATT vem
-                // antes de qualquer interação com essa trilha.
+                // Consentimento e request de anúncio são disparados apenas
+                // por placements Free elegíveis, nunca no lançamento.
                 syncWidgetLanguagePreference()
             }
+            .onChange(of: entitlements.snapshot) { _ in syncAdEligibility() }
+            .onChange(of: entitlements.isEntitlementResolved) { _ in syncAdEligibility() }
             .onChange(of: languagePreference) { _ in syncWidgetLanguagePreference() }
         }
         #if os(macOS)
         .defaultSize(width: 980, height: 680)
         .commands { LinkaMacCommands() }
         #endif
+    }
+
+    private func syncAdEligibility() {
+        ads.updateEligibility(
+            isEligibleForAds: LinkaEntitlementPolicy.shouldShowAds(for: entitlements.snapshot),
+            isEntitlementResolved: entitlements.isEntitlementResolved
+        )
     }
 
     private var preferredColorScheme: ColorScheme? {

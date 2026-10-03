@@ -45,6 +45,39 @@ final class LinkaEntitlementsTests: XCTestCase {
         XCTAssertFalse(LinkaTemporaryFreeOffer.isWithinOfferPeriod(at: LinkaTemporaryFreeOffer.endsAt.addingTimeInterval(1)))
     }
 
+    func testPromotionKeepsPremiumFeaturesButIsEligibleForAds() {
+        let promotion = LinkaEntitlementSnapshot.plus(
+            status: .active,
+            source: .promotion,
+            validUntil: now.addingTimeInterval(60)
+        )
+
+        XCTAssertTrue(LinkaEntitlementPolicy.hasAccess(to: .assist, snapshot: promotion, at: now))
+        XCTAssertEqual(LinkaEntitlementPolicy.adEligibility(for: promotion, at: now), .eligibleFree)
+        XCTAssertTrue(LinkaEntitlementPolicy.shouldShowAds(for: promotion, at: now))
+    }
+
+    func testPaidPlusIsNotEligibleForAds() {
+        let paid = LinkaEntitlementSnapshot.plus(
+            status: .active,
+            source: .subscription,
+            validUntil: now.addingTimeInterval(60)
+        )
+
+        XCTAssertEqual(LinkaEntitlementPolicy.adEligibility(for: paid, at: now), .paidPlus)
+        XCTAssertFalse(LinkaEntitlementPolicy.shouldShowAds(for: paid, at: now))
+    }
+
+    func testUnresolvedPlusDoesNotRequestAds() {
+        let snapshot = LinkaEntitlementSnapshot.plus(status: .unknown, source: .subscription)
+        XCTAssertEqual(LinkaEntitlementPolicy.adEligibility(for: snapshot, at: now), .unresolvedEntitlement)
+    }
+
+    func testExpiredPaidPlusReturnsToAds() {
+        let snapshot = LinkaEntitlementSnapshot.plus(status: .active, source: .subscription, validUntil: now)
+        XCTAssertTrue(LinkaEntitlementPolicy.shouldShowAds(for: snapshot, at: now))
+    }
+
     func testActivePlusAllowsPremiumCapabilities() {
         let snapshot = LinkaEntitlementSnapshot.plus(
             status: .active,

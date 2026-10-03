@@ -123,3 +123,9 @@ Após alterar dependências ou arquivos do projeto, regenere o `.xcodeproj` via 
 4. Confirmar que o SpeedTest existente não mudou.
 5. Confirmar que não há SwiftUI/UIKit/StoreKit dentro de `LinkaModules`.
 6. Confirmar que não existe API key ou endpoint de IA embutido.
+
+## Promoção e publicidade — 2 de outubro de 2026
+
+Até o fim de 31/10/2026 (São Paulo), a campanha libera recursos Plus sem compra. Esse acesso promocional mantém anúncios não personalizados. Acesso a recursos e ausência de anúncios são decisões independentes.
+
+Uma assinatura/trial StoreKit válido ou acesso vitalício válido permanece sem anúncios. Após a campanha, quem não tiver compra válida volta ao Free com anúncios; o fim da promoção não remove anúncios automaticamente. Medição e resultado não exibem anúncios.
