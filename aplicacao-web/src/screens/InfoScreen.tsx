@@ -52,7 +52,7 @@ const pages: Record<string, InfoPage> = {
     eyebrow: 'Privacidade',
     title: 'Privacidade levada a sério.',
     intro: 'Luiz F. Giammattey é o responsável pelo Linka. Esta política explica quais dados o app usa, por quê e quais escolhas você tem.',
-    lastUpdated: '19 de setembro de 2026',
+    lastUpdated: '2 de outubro de 2026',
     sections: [
       {
         title: 'Dados usados na medição',
@@ -71,12 +71,12 @@ const pages: Record<string, InfoPage> = {
         body: 'Quando você usa o Assist, o Linka envia ao seu serviço de diagnóstico o contexto necessário para responder à sua pergunta, como resultados de medição, tipo de conexão e dados técnicos de Wi-Fi que estejam disponíveis. Endereços locais e URLs de administração do roteador não são enviados nesse diagnóstico.'
       },
       {
-        title: 'Publicidade no Histórico',
-        body: 'A versão gratuita pode exibir anúncios nativos fornecidos pelo Google AdMob somente no Histórico, depois que há medições para mostrar. O Linka Plus não exibe nem solicita esses anúncios. Não mostramos anúncios durante a medição nem na tela de resultado.'
+        title: 'Publicidade',
+        body: 'A versão Free pode exibir anúncios nativos fornecidos pelo Google AdMob na tela inicial e, quando há medições para mostrar, no Histórico. A promoção temporária de recursos Plus continua sendo Free para publicidade; apenas o Linka Plus pago não exibe nem solicita anúncios. Não mostramos anúncios durante a medição, na tela de resultado ou em erro.'
       },
       {
         title: 'Dados relacionados a anúncios',
-        body: 'Quando um anúncio é solicitado, o Google pode tratar categorias como identificadores técnicos, informações de uso e diagnóstico para fornecer, proteger, medir e limitar a frequência de anúncios, conforme as configurações e políticas aplicáveis do Google. O Linka solicita tratamento não personalizado (npa=1), mas isso não elimina os tratamentos necessários ao fornecimento, à segurança e à medição do anúncio.'
+        body: 'Quando um anúncio é solicitado, o Google pode tratar categorias como identificadores técnicos, informações de uso e diagnóstico para fornecer, proteger, medir e limitar a frequência de anúncios, conforme as configurações e políticas aplicáveis do Google. O Linka solicita anúncios não personalizados (npa=1), independentemente da escolha de rastreamento. Antes de iniciar a publicidade, pede a permissão App Tracking Transparency quando disponível. Se você negar, o app continua funcionando e os anúncios são solicitados sem acesso ao identificador de publicidade (IDFA). A opção não personalizada não elimina os tratamentos necessários ao fornecimento, à segurança e à medição do anúncio.'
       },
       {
         title: 'Suas escolhas de anúncios',

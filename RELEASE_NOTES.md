@@ -1,7 +1,5 @@
-# Linka 1.1.3 (build 49)
+# Linka 1.1.5 (53)
 
-Todos os recursos do Linka, inclusive o Linka+, estão liberados sem compra até 31 de outubro de 2026.
-
-Esta versão corrige a tela Assist para evitar conteúdo repetido, deslocamentos durante o carregamento e mistura de idiomas. Também deixa o resultado de velocidade mais direto, estabiliza o salvamento de perfis de rede e esclarece a ativação do DNS pelo iPhone.
-
-O app agora declara suporte a português (Brasil), inglês e espanhol (América Latina), além de ampliar a compatibilidade para iPhones com iOS 16 ou posterior.
+- Mantém anúncios não personalizados durante a promoção gratuita do Linka Plus.
+- Corrige o pedido de permissão de rastreamento para usuários com acesso promocional.
+- Preserva a medição e os resultados sem anúncios, e remove publicidade após compra ou restauração válida do Plus.

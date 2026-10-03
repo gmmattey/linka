@@ -62,7 +62,7 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>O Linka usa a localização apenas porque o iPhone exige essa autorização para informar o nome da rede Wi-Fi atual. Sua localização não é salva para identificar a rede.</string>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>O Linka usa sua permissão para apresentar anúncios mais relevantes e medir o desempenho deles.</string>
+	<string>Sua permissão permite medir o desempenho dos anúncios. O Linka continua solicitando anúncios não personalizados.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIRequiresFullScreen</key>

@@ -121,6 +121,7 @@ struct MainView: View {
 
     @StateObject private var viewModel = SpeedTestViewModel()
     @EnvironmentObject private var entitlements: StoreKitEntitlementProvider
+    @EnvironmentObject private var ads: LinkaAdsCoordinator
     @ObservedObject private var intentCoordinator = AppIntentCoordinator.shared
 
     @State private var navPath = NavigationPath()
@@ -366,7 +367,7 @@ struct MainView: View {
         content
             .onChange(of: intentCoordinator.pendingStartSpeedTest) { pending in
                 guard pending else { return }
-                viewModel.startTest()
+                beginSpeedTest()
                 intentCoordinator.consumeStartSpeedTestRequest()
             }
             .onChange(of: viewModel.uiPhase) { phase in
@@ -426,7 +427,7 @@ struct MainView: View {
                 .environmentObject(entitlements)
             }
             .sheet(isPresented: $showConnectivityTriage) {
-                ConnectivityTriageView(onRetry: { viewModel.startTest() })
+                ConnectivityTriageView(onRetry: { beginSpeedTest() })
             }
             .sheet(isPresented: $showOptimizationRetestResult) {
                 if let result = optimizationRetestResult { OptimizationRetestResultView(result: result) }
@@ -500,11 +501,18 @@ struct MainView: View {
                 switch newPhase {
                 case .active:
                     recoverAdvancedWiFiMeasurementIfNeeded()
+                    if viewModel.uiPhase == .idle, navPath.isEmpty {
+                        prepareHomeAdIfEligible()
+                    }
                 case .background, .inactive:
                     break
                 }
             }
             .onChange(of: viewModel.uiPhase) { handleUIPhaseChange($0) }
+            .onChange(of: entitlements.isEntitlementResolved) { resolved in
+                guard resolved, viewModel.uiPhase == .idle else { return }
+                prepareHomeAdIfEligible()
+            }
     }
 
     // MARK: - Toolbar
@@ -577,7 +585,7 @@ struct MainView: View {
         case .idle:
             return AnyView(idleView)
         case .connecting, .downloading, .uploading:
-            return AnyView(measuringView)
+            return AnyView(measuringView.accessibilityIdentifier("home.measurementInProgress"))
         case .done:
             return AnyView(resultView)
         }
@@ -605,6 +613,13 @@ struct MainView: View {
     }
 
     private func handleUIPhaseChange(_ newPhase: SpeedTestUIPhase) {
+        switch newPhase {
+        case .connecting, .downloading, .uploading:
+            ads.measurementDidStart()
+        case .idle, .done, .error, .connectionChanged:
+            ads.measurementDidEnd()
+        }
+
         if case .error = newPhase {
         } else {
             showConnectivityTriage = false
@@ -693,6 +708,12 @@ struct MainView: View {
                     connectionContextLine
 
                     primarySpeedTestButton
+                        // O anúncio native é uma ponte UIKit. Mantemos o CTA
+                        // acima dela na hierarquia de toque mesmo se o SDK
+                        // devolver uma área de hit-testing maior que o card.
+                        .zIndex(1)
+
+                    BannerView(placement: .home)
 
                     homeSecondaryActionsGroup
 
@@ -703,6 +724,20 @@ struct MainView: View {
                 .frame(minHeight: proxy.size.height, alignment: .center)
             }
         }
+        .onAppear {
+            prepareHomeAdIfEligible()
+        }
+    }
+
+    private var isEligibleForAds: Bool {
+        LinkaEntitlementPolicy.shouldShowAds(for: entitlements.snapshot, at: Date())
+    }
+
+    private func prepareHomeAdIfEligible() {
+        ads.prepareHomeAd(
+            isEligibleForAds: isEligibleForAds,
+            isEntitlementResolved: entitlements.isEntitlementResolved
+        )
     }
 
     private var idleHeroStatus: some View {
@@ -777,6 +812,7 @@ struct MainView: View {
             }
         }
         .buttonStyle(.linkaPrimary)
+        .accessibilityIdentifier("home.speedTestCTA")
     }
 
     private var homeSecondaryActionsGroup: some View {
@@ -1430,6 +1466,7 @@ struct MainView: View {
     }
 
     private func beginSpeedTest() {
+        ads.measurementDidStart()
         withAnimation {
             viewModel.startTest()
         }

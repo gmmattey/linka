@@ -55,6 +55,10 @@ public final class StoreKitEntitlementProvider: ObservableObject, LinkaEntitleme
 
     @Published public private(set) var productState: ProductLoadState = .loading
     @Published public private(set) var isRefreshingSnapshot = false
+    /// Enquanto o StoreKit ainda não respondeu, não carregamos publicidade:
+    /// evita mostrar anúncio a uma assinatura paga antes de ela prevalecer
+    /// sobre a campanha temporária.
+    @Published public private(set) var isEntitlementResolved = false
 
     private let productID: String
     private let now: @Sendable () -> Date
@@ -171,21 +175,19 @@ public final class StoreKitEntitlementProvider: ObservableObject, LinkaEntitleme
     /// do StoreKit 2 é a fonte da verdade sobre se o usuário tem a assinatura
     /// ativa, já lidando com revogações, renovações e carências.
     public func refreshSnapshot() async {
-        if LinkaTemporaryFreeOffer.isActive(at: now()) {
-            snapshot = .plus(
-                status: .active,
-                source: .promotion,
-                validUntil: LinkaTemporaryFreeOffer.endsAt
-            )
-            return
-        }
-
         #if DEBUG
         // Em desenvolvimento, preserva o override explícito do teste.
-        guard !isForcePlusEnabled else { return }
+        guard !isForcePlusEnabled else {
+            isEntitlementResolved = true
+            return
+        }
         #endif
         isRefreshingSnapshot = true
-        defer { isRefreshingSnapshot = false }
+        isEntitlementResolved = false
+        defer {
+            isRefreshingSnapshot = false
+            isEntitlementResolved = true
+        }
 
         var activeTransaction: Transaction?
 
@@ -203,6 +205,14 @@ public final class StoreKitEntitlementProvider: ObservableObject, LinkaEntitleme
                 status: .active,
                 source: .subscription,
                 validUntil: transaction.expirationDate
+            )
+        } else if LinkaTemporaryFreeOffer.isActive(at: now()) {
+            // A promoção é o fallback: uma compra StoreKit válida sempre
+            // prevalece para preservar o benefício sem anúncios do Plus.
+            snapshot = .plus(
+                status: .active,
+                source: .promotion,
+                validUntil: LinkaTemporaryFreeOffer.endsAt
             )
         } else {
             snapshot = .free
