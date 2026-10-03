@@ -1,5 +1,4 @@
-# Linka 1.1.5 (53)
+# Linka 1.1.5 (54)
 
-- Mantém anúncios não personalizados durante a promoção gratuita do Linka Plus.
-- Corrige o pedido de permissão de rastreamento para usuários com acesso promocional.
-- Preserva a medição e os resultados sem anúncios, e remove publicidade após compra ou restauração válida do Plus.
+- Corrige a importação de dados do Wi-Fi avançado pelo Atalhos durante a promoção gratuita do Linka Plus.
+- Mantém os recursos promocionais com anúncios não personalizados e preserva o acesso sem anúncios para assinaturas válidas.
