@@ -82,13 +82,7 @@ public final class StoreKitEntitlementProvider: ObservableObject, LinkaEntitleme
         self.productID = productID
         self.now = now
 
-        if LinkaTemporaryFreeOffer.isActive(at: now()) {
-            snapshot = .plus(
-                status: .active,
-                source: .promotion,
-                validUntil: LinkaTemporaryFreeOffer.endsAt
-            )
-        }
+        snapshot = LinkaEntitlementSnapshotResolver.resolve(at: now())
 
         #if DEBUG
         // Override exclusivamente para testes de desenvolvimento.
@@ -200,23 +194,14 @@ public final class StoreKitEntitlementProvider: ObservableObject, LinkaEntitleme
             activeTransaction = transaction
         }
 
-        if let transaction = activeTransaction {
-            snapshot = .plus(
+        let verifiedPurchase = activeTransaction.map { transaction in
+            LinkaEntitlementSnapshot.plus(
                 status: .active,
                 source: .subscription,
                 validUntil: transaction.expirationDate
             )
-        } else if LinkaTemporaryFreeOffer.isActive(at: now()) {
-            // A promoção é o fallback: uma compra StoreKit válida sempre
-            // prevalece para preservar o benefício sem anúncios do Plus.
-            snapshot = .plus(
-                status: .active,
-                source: .promotion,
-                validUntil: LinkaTemporaryFreeOffer.endsAt
-            )
-        } else {
-            snapshot = .free
         }
+        snapshot = LinkaEntitlementSnapshotResolver.resolve(verifiedPurchase: verifiedPurchase, at: now())
     }
 
     func handle(_ result: Product.PurchaseResult) async throws -> LinkaPurchaseOutcome {

@@ -4,7 +4,7 @@ options:
 settings:
   base:
     MARKETING_VERSION: "1.1.5"
-    CURRENT_PROJECT_VERSION: "53"
+    CURRENT_PROJECT_VERSION: "54"
     DEVELOPMENT_LANGUAGE: pt-BR
 targets:
   LinkaApp:
@@ -15,7 +15,7 @@ targets:
     settings:
       base:
         MARKETING_VERSION: "1.1.5"
-        CURRENT_PROJECT_VERSION: "53"
+        CURRENT_PROJECT_VERSION: "54"
         GENERATE_INFOPLIST_FILE: NO
         # O deploymentTarget do XcodeGen não chegou ao alvo da aplicação no
         # projeto gerado. Fixar o valor aqui impede que o Xcode herde o SDK
@@ -212,7 +212,7 @@ targets:
     settings:
       base:
         MARKETING_VERSION: "1.1.5"
-        CURRENT_PROJECT_VERSION: "53"
+        CURRENT_PROJECT_VERSION: "54"
         # XcodeGen não propaga o mapa `deploymentTarget: { iOS: 17.0 }`
         # para este tipo de app extension no Xcode 27; sem a chave explícita,
         # o projeto herda o SDK instalado (27.0) e o archive fica inválido.

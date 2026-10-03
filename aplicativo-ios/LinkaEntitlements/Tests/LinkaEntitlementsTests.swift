@@ -4,6 +4,50 @@ import XCTest
 final class LinkaEntitlementsTests: XCTestCase {
     private let now = Date(timeIntervalSince1970: 10_000)
 
+    func testResolverGrantsAdvancedWiFiWithoutPurchaseDuringPromotionAndKeepsAds() {
+        let date = LinkaTemporaryFreeOffer.endsAt.addingTimeInterval(-60)
+        let snapshot = LinkaEntitlementSnapshotResolver.resolve(at: date, promotionSupported: true)
+        XCTAssertEqual(snapshot.source, .promotion)
+        XCTAssertEqual(snapshot.validUntil, LinkaTemporaryFreeOffer.endsAt)
+        XCTAssertTrue(LinkaEntitlementPolicy.hasAccess(to: .advancedWiFiDiagnostics, snapshot: snapshot, at: date))
+        XCTAssertTrue(LinkaEntitlementPolicy.shouldShowAds(for: snapshot, at: date))
+    }
+
+    func testResolverPrefersVerifiedPurchaseDuringPromotion() {
+        let date = LinkaTemporaryFreeOffer.endsAt.addingTimeInterval(-60)
+        let purchase = LinkaEntitlementSnapshot.plus(status: .active, source: .subscription,
+                                                   validUntil: date.addingTimeInterval(3600))
+        let snapshot = LinkaEntitlementSnapshotResolver.resolve(verifiedPurchase: purchase, at: date,
+                                                               promotionSupported: true)
+        XCTAssertEqual(snapshot, purchase)
+        XCTAssertTrue(LinkaEntitlementPolicy.hasAccess(to: .advancedWiFiDiagnostics, snapshot: snapshot, at: date))
+        XCTAssertFalse(LinkaEntitlementPolicy.shouldShowAds(for: snapshot, at: date))
+    }
+
+    func testResolverReturnsFreeAfterPromotionWithoutPurchase() {
+        let date = LinkaTemporaryFreeOffer.endsAt.addingTimeInterval(1)
+        let snapshot = LinkaEntitlementSnapshotResolver.resolve(at: date, promotionSupported: true)
+        XCTAssertEqual(snapshot, .free)
+        XCTAssertFalse(LinkaEntitlementPolicy.hasAccess(to: .advancedWiFiDiagnostics, snapshot: snapshot, at: date))
+    }
+
+    func testResolverDoesNotPromoteUnsupportedPlatforms() {
+        let date = LinkaTemporaryFreeOffer.endsAt.addingTimeInterval(-60)
+        XCTAssertEqual(LinkaEntitlementSnapshotResolver.resolve(at: date, promotionSupported: false), .free)
+        #if os(macOS)
+        XCTAssertEqual(LinkaEntitlementSnapshotResolver.resolve(at: date), .free)
+        #endif
+    }
+
+    func testResolverDoesNotTreatExpiredPurchaseAsPaidPlus() {
+        let date = LinkaTemporaryFreeOffer.endsAt.addingTimeInterval(-60)
+        let purchase = LinkaEntitlementSnapshot.plus(status: .active, source: .subscription, validUntil: date)
+        let snapshot = LinkaEntitlementSnapshotResolver.resolve(verifiedPurchase: purchase, at: date,
+                                                               promotionSupported: true)
+        XCTAssertEqual(snapshot.source, .promotion)
+        XCTAssertTrue(LinkaEntitlementPolicy.shouldShowAds(for: snapshot, at: date))
+    }
+
     func testFreeAlwaysAllowsSpeedTestAndHistoryAndDeniesPremium() {
         XCTAssertTrue(
             LinkaEntitlementPolicy.hasAccess(

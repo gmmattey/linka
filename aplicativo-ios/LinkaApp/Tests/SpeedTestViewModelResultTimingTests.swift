@@ -41,14 +41,16 @@ final class SpeedTestViewModelResultTimingTests: XCTestCase {
         let suite = "linka-issue-134-\(UUID().uuidString)"
         guard let defaults = UserDefaults(suiteName: suite) else { return XCTFail("suite de teste indisponível") }
         defer { defaults.removePersistentDomain(forName: suite) }
-        let now = Date()
+        let now = LinkaTemporaryFreeOffer.endsAt.addingTimeInterval(-60)
+        let entitlement = LinkaEntitlementSnapshotResolver.resolve(at: now, promotionSupported: true)
+        XCTAssertTrue(LinkaEntitlementPolicy.shouldShowAds(for: entitlement, at: now))
         let payload = """
         {"schemaVersion":1,"shortcutVersion":1,"captureIdentifier":"550E8400-E29B-41D4-A716-446655440000","capturedAt":"\(ISO8601DateFormatter().string(from: now))","ssid":"Casa","bssid":"AA:BB:CC:DD:EE:FF","hardwareMacAddress":"11:22:33:44:55:66","rssiDbm":-54,"noiseDbm":-92,"channelNumber":44}
         """
 
         let diagnostics = try AdvancedWiFiDiagnosticsInbox.importPayload(
             payload,
-            entitlement: .plus(status: .active, source: .promotion),
+            entitlement: entitlement,
             now: now,
             defaults: defaults
         )
@@ -66,9 +68,13 @@ final class SpeedTestViewModelResultTimingTests: XCTestCase {
         guard let defaults = UserDefaults(suiteName: suite) else { return XCTFail("suite de teste indisponível") }
         defer { defaults.removePersistentDomain(forName: suite) }
         let captureIdentifier = UUID()
+        let now = LinkaTemporaryFreeOffer.endsAt.addingTimeInterval(-60)
+        let entitlement = LinkaEntitlementSnapshotResolver.resolve(at: now, promotionSupported: true)
+        XCTAssertTrue(LinkaEntitlementPolicy.shouldShowAds(for: entitlement, at: now))
 
         let diagnostics = try AdvancedWiFiDiagnosticsInbox.importFields(
-            entitlement: .plus(status: .active, source: .promotion),
+            entitlement: entitlement,
+            now: now,
             defaults: defaults,
             captureIdentifier: captureIdentifier,
             ssid: "Casa",
