@@ -373,12 +373,14 @@ private enum ShortcutEntitlementSnapshot {
         }
         #endif
 
+        var verifiedPurchase: LinkaEntitlementSnapshot?
         for await result in Transaction.currentEntitlements {
             guard case .verified(let transaction) = result,
                   LinkaStoreProductID.all.contains(transaction.productID) else { continue }
-            return .plus(status: .active, source: .subscription, validUntil: transaction.expirationDate)
+            verifiedPurchase = .plus(status: .active, source: .subscription, validUntil: transaction.expirationDate)
+            break
         }
-        return .free
+        return LinkaEntitlementSnapshotResolver.resolve(verifiedPurchase: verifiedPurchase)
     }
 }
 

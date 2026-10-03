@@ -72,12 +72,16 @@ public enum LinkaTemporaryFreeOffer {
         date <= endsAt
     }
 
-    public static func isActive(at date: Date = Date()) -> Bool {
+    public static var isSupportedOnCurrentPlatform: Bool {
         #if os(iOS)
-        return isWithinOfferPeriod(at: date)
+        return true
         #else
         return false
         #endif
+    }
+
+    public static func isActive(at date: Date = Date()) -> Bool {
+        isSupportedOnCurrentPlatform && isWithinOfferPeriod(at: date)
     }
 }
 
@@ -116,6 +120,26 @@ public struct LinkaEntitlementSnapshot: Codable, Equatable, Sendable {
             source: source,
             validUntil: validUntil
         )
+    }
+}
+
+/// Resolve acesso do app e dos App Intents pela mesma precedência.
+/// A compra deve vir de uma transação StoreKit já verificada pelo chamador.
+public enum LinkaEntitlementSnapshotResolver {
+    public static func resolve(
+        verifiedPurchase: LinkaEntitlementSnapshot? = nil,
+        at date: Date = Date(),
+        promotionSupported: Bool = LinkaTemporaryFreeOffer.isSupportedOnCurrentPlatform
+    ) -> LinkaEntitlementSnapshot {
+        if let verifiedPurchase,
+           [.subscription, .trial, .lifetime].contains(verifiedPurchase.source),
+           LinkaEntitlementPolicy.hasAccess(to: .appleIntegrations, snapshot: verifiedPurchase, at: date) {
+            return verifiedPurchase
+        }
+        if promotionSupported && LinkaTemporaryFreeOffer.isWithinOfferPeriod(at: date) {
+            return .plus(status: .active, source: .promotion, validUntil: LinkaTemporaryFreeOffer.endsAt)
+        }
+        return .free
     }
 }
 
