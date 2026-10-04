@@ -14,8 +14,6 @@ targets:
       iOS: 16.0
     settings:
       base:
-        MARKETING_VERSION: "1.1.5"
-        CURRENT_PROJECT_VERSION: "54"
         GENERATE_INFOPLIST_FILE: NO
         # O deploymentTarget do XcodeGen não chegou ao alvo da aplicação no
         # projeto gerado. Fixar o valor aqui impede que o Xcode herde o SDK
@@ -120,6 +118,8 @@ targets:
       macOS: 13.0
     settings:
       base:
+        MARKETING_VERSION: "1.1.5"
+        CURRENT_PROJECT_VERSION: "54"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_ENTITLEMENTS: LinkaApp/LinkaApp-macOS.entitlements
         CODE_SIGN_STYLE: Automatic
@@ -183,15 +183,7 @@ targets:
     dependencies:
       - target: LinkaApp
     sources:
-      - path: ../store/app-store/screenshots
-        excludes:
-          - final/pt-BR/iphone/02-resultado.png
-          - rascunhos-*/**
-          - "**/README.md"
-          # Scripts de geração de artefatos não são fontes de UI test. Alguns
-          # importam AppKit e têm top-level code, portanto não podem compilar
-          # para o simulador iOS.
-          - "scripts/**"
+      - path: ../store/app-store/screenshots/AppStoreScreenshotsUITests.swift
 
   LinkaAppTests:
     type: bundle.unit-test
@@ -211,8 +203,6 @@ targets:
       iOS: 17.0
     settings:
       base:
-        MARKETING_VERSION: "1.1.5"
-        CURRENT_PROJECT_VERSION: "54"
         # XcodeGen não propaga o mapa `deploymentTarget: { iOS: 17.0 }`
         # para este tipo de app extension no Xcode 27; sem a chave explícita,
         # o projeto herda o SDK instalado (27.0) e o archive fica inválido.

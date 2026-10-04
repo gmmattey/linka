@@ -2,7 +2,7 @@
 
 Este documento descreve a esteira operacional do Linka no **Codex**. A autoridade de governança continua em [`AGENTS.md`](../AGENTS.md). Os agentes nativos do projeto são definidos em `.codex/agents/`.
 
-A voz do produto é definida em [`documentacao/produto/VOZ.md`](../documentacao/produto/VOZ.md).
+A voz do produto é definida em [`documentacao/PRODUTO.md`](../documentacao/PRODUTO.md).
 
 > **Direção de voz:** o Linka fala menos e se posiciona mais. Se uma frase puder ser removida sem prejudicar o entendimento, remova.
 
@@ -34,6 +34,8 @@ Quando houver dúvida de produto, o Codex consulta **Íris**. Quando a decisão 
 ## Gate arquitetural
 
 Camillo é obrigatório antes de implementar quando houver múltiplos módulos/pacotes; API; integração entre sistemas, app ↔ backend ou produtos Buildea; contrato compartilhado; schema/persistência entre componentes; alteração relevante no `LinkaEngine`; novo serviço/dependência estrutural; integração Apple em múltiplas superfícies; refatoração arquitetural; segurança/privacidade sistêmica; ou grande raio de impacto.
+
+No hotfix, aplica-se a análise estrutural posterior prevista na Hot-lane do AGENTS.md §5; os demais limites de escopo e publicação permanecem.
 
 Nesses casos: Produto/Íris define o comportamento → Camillo cria ou revisa o Architecture Plan → Pedro ou Codex principal implementa → Tito valida → Camillo revisa de novo apenas se a entrega materializar uma decisão arquitetural relevante. Fora desses gatilhos, o Codex principal ou Pedro pode implementar normalmente.
 
@@ -147,10 +149,12 @@ O Codex:
 
 ### 7. Merge e release
 
+- Validação e release rodam localmente no Mac, pelo [Fastlane existente](../fastlane/Fastfile), conforme [operação](../documentacao/operacao/README.md). GitHub serve para código e PRs; não reativar Actions nem criar CI hospedada sem nova decisão do Luiz.
+
 - Mudança material segue o gate humano definido em [`AGENTS.md`](../AGENTS.md).
 - `.agents/scripts/release.sh`, TestFlight, App Store, deploy e publicação **nunca são automáticos** sem autorização explícita do Luiz.
 - `RELEASE_NOTES.md`, quando necessário, descreve mudança observável para o usuário, não implementação interna.
-- Antes de release relevante, revise `documentacao/funcional/VISAO.md`, `documentacao/funcional/HISTORIA.md`, `documentacao/produto/LINKA_PLUS.md` e `documentacao/arquitetura/PLANO_*.md` contra o código atual — não deixe esses documentos descrever uma fundação que o código já superou.
+- Antes de release relevante, revise `documentacao/PRODUTO.md`, `documentacao/features/linka-plus/README.md`, `documentacao/arquitetura/README.md` e as iniciativas ligadas em `.agents/plano.md` contra o código atual — não deixe esses documentos descrever uma fundação que o código já superou.
 
 ---
 
@@ -194,6 +198,12 @@ Estado vive em artefatos, não em conversa simulada:
 - `RELEASE_NOTES.md` — mudança observável para usuário.
 
 ---
+
+## Documentação em cada entrega
+
+Aplicar a [Governança documental](../documentacao/GOVERNANCA_DOCUMENTAL.md) em todas as trilhas: identificar fontes no início, atualizar o conteúdo impactado durante a execução e conferir links, estado e evidências antes de concluir. No PR ou retorno final, registrar documentos alterados ou justificar ausência de impacto documental, além de pendências com responsável e prazo/evento de revisão.
+
+Fast-lane permanece sem plano ou relatório extra obrigatório. Hotfix só adia contexto complementar com pendência rastreável. Revisão de release segue os requisitos acima e não transforma build, TestFlight ou App Review em publicação.
 
 ## Regras comuns
 

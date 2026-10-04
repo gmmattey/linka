@@ -1,13 +1,13 @@
 ---
 name: aplicar-voz-linka
-description: Aplica a voz canônica do Linka definida em documentacao/produto/VOZ.md sem inventar capacidade, entusiasmo artificial ou interpretação sem evidência.
+description: Aplica a voz canônica do Linka definida em documentacao/PRODUTO.md sem inventar capacidade, entusiasmo artificial ou interpretação sem evidência.
 ---
 
 # Skill: aplicar-voz-linka
 
 Use esta skill para criar ou revisar copy de produto, durante implementação ou auditoria.
 
-A fonte canônica da voz é `documentacao/produto/VOZ.md`. Esta skill é procedimento, não uma segunda personalidade.
+A fonte canônica da voz é `documentacao/PRODUTO.md`. Esta skill é procedimento, não uma segunda personalidade.
 
 Todo texto relevante passa também por `matar-cheiro-de-ia`.
 
@@ -41,7 +41,7 @@ Nunca transforme falha ou ausência de dado em linguagem otimista. Erro fala a v
 
 ## Estados
 
-Use a fonte `documentacao/produto/VOZ.md` para os estados canônicos. Evite frases rotativas, decorativas ou narrativas durante a medição.
+Use a fonte `documentacao/PRODUTO.md` para os estados canônicos. Evite frases rotativas, decorativas ou narrativas durante a medição.
 
 ## Páginas institucionais
 

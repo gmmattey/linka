@@ -1,35 +1,10 @@
 # MeasurementHistory
 
-Módulo independente para armazenar e consultar medições de rede.
+Estado: vigente como entrada do módulo.
+Responsável: executor do módulo; orquestrador mantém a fonte documental.
+Última revisão: 2026-10-04 — consolidação da descrição anterior na documentação por capacidade.
+Referência: [documentação da capacidade](../../documentacao/features/historico/README.md).
 
-## Dependência
+Comportamento, integração no app, contratos, testes existentes e pendências são mantidos na [fonte por feature](../../documentacao/features/historico/README.md). Este README não duplica regras nem presume que a existência de teste prove execução.
 
-Depende somente de `NetworkCore` e `Foundation`. Não conhece LinkaApp, SwiftUI, UIKit, StoreKit, React, Firebase, CloudKit ou qualquer motor de SpeedTest.
-
-## API pública
-
-- `MeasurementHistoryRepository`
-- `MeasurementQuery`
-- `HistoryRetentionPolicy`
-- `InMemoryMeasurementHistoryRepository`
-- `FileMeasurementHistoryRepository`
-
-## Comportamento
-
-- `save` faz upsert por `NetworkMeasurement.id`;
-- medições inválidas são rejeitadas antes da persistência;
-- consultas suportam intervalo de data, tipo de conexão, outcome, ordenação, offset e limit;
-- retenção é configurável por quantidade máxima e/ou idade;
-- o store em arquivo usa documento JSON versionado e escrita atômica;
-- arquivo corrompido ou versão desconhecida falha fechado, sem apagar dados automaticamente.
-
-## Não objetivos desta fase
-
-- conectar ao SpeedTest;
-- conectar a Web ou SwiftUI;
-- escolher tela ou jornada de Histórico;
-- sincronizar nuvem;
-- diagnosticar resultados;
-- controlar Free/Plus.
-
-A integração com produtos deve acontecer por adapter em uma fase posterior.
+O manifesto e os alvos atuais estão em [Package.swift](Package.swift); código em [Sources](Sources/) e testes em [Tests](Tests/). Para validar este pacote a partir da raiz Git: `swift test --package-path aplicativo-ios/MeasurementHistory`. Comando documentado, não executado nesta migração.

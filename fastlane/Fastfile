@@ -1,133 +1,391 @@
-# Fastfile – Linka iOS
-# Pipeline de deploy automático para TestFlight
-#
-# Secrets necessários (GitHub → Settings → Secrets and variables → Actions):
-#   ASC_KEY_ID      → ID da chave da App Store Connect API (ex: XXXXXXXXXX)
-#   ASC_ISSUER_ID   → Issuer ID da App Store Connect API (UUID)
-#   ASC_KEY_CONTENT → Conteúdo do arquivo .p8 codificado em Base64
-#                     Gere com: base64 -i AuthKey_XXXXXXXXXX.p8 | tr -d '\n'
-#   APPLE_TEAM_ID   → ID do time Apple Developer (ex: 2Z4T8228GR)
-
-default_platform(:ios)
+# Operação local no Mac. Não cria tags, não faz push nem publica na App Store.
+# validate: LINKA_SIMULATOR_UDID=<UDID existente> bundle exec fastlane ios validate
+# beta: mesmo UDID + LINKA_TESTFLIGHT_AUTHORIZED=YES bundle exec fastlane ios beta
+# Alternativa: beta authorized:true simulator_udid:<UDID>. Autorização é específica
+# desta execução; nunca decorre de CI verde. Não há opção de pular validate.
+# Secrets locais: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_CONTENT (p8 Base64),
+# APPLE_TEAM_ID. Não passar valores na linha de comando nem versioná-los.
+# Evidência por tentativa: build/releases/attempt-NNNN/testflight-evidence.json.
 
 require "base64"
 require "digest"
+require "fileutils"
 require "json"
-require "shellwords"
+require "open3"
 require "tmpdir"
+require "time"
+require "yaml"
+
+module LinkaLocalRelease
+  ROOT = File.expand_path("..", __dir__).freeze
+  APP_ID = "com.linka.assist"
+  WIDGET_ID = "com.linka.assist.Widget"
+  PACKAGES = %w[NetworkCore MeasurementHistory NetworkInsights NetworkAssist
+                NetworkDiagnostics NetworkConnectivityTriage LinkaEntitlements
+                LinkaAppIntents LinkaModules LinkaEngine LinkaWidgetShared].freeze
+
+  class ControlError < StandardError
+    attr_reader :code
+    def initialize(code)
+      @code = code
+      super(code)
+    end
+  end
+
+  def self.root
+    ROOT
+  end
+
+  def self.check(condition, code)
+    raise ControlError, code unless condition
+  end
+
+  # Argumentos sem shell; não ecoar stdout/stderr de assinatura ou ferramentas
+  # Apple, que podem conter dados privados. Evidência guarda código/etapa apenas.
+  def self.command(*arguments, chdir: root)
+    stdout, _stderr, status = Open3.capture3(*arguments, chdir: chdir)
+    check(status.success?, "command_failed:#{File.basename(arguments.first)}")
+    stdout
+  end
+
+  # Logs apenas para validação sem assinatura; não reutilizar em operações Apple.
+  def self.validation_command(label, *arguments)
+    directory = File.join(root, "build/validation")
+    FileUtils.mkdir_p(directory)
+    path = File.join(directory, "#{label}.log")
+    File.open(path, "w", 0o600) do |log|
+      Open3.popen2e(*arguments, chdir: root) do |input, output, process|
+        input.close
+        output.each_line { |line| log.write(line) }
+        check(process.value.success?, "validation_failed:#{label}:#{path}")
+      end
+    end
+    path
+  end
+
+  # Mesmo UDID não pode ser usado simultaneamente por worktrees diferentes.
+  def self.with_simulator_lock(udid)
+    check(udid.to_s.match?(/\A[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}\z/), "existing_simulator_udid_required")
+    path = File.join(Dir.tmpdir, "linka-simulator-#{Process.uid}-#{udid.downcase}.lock")
+    File.open(path, File::RDWR | File::CREAT | File::NOFOLLOW, 0o600) do |lock|
+      check(lock.flock(File::LOCK_EX | File::LOCK_NB), "simulator_in_use")
+      begin
+        yield
+      ensure
+        lock.flock(File::LOCK_UN)
+      end
+    end
+  end
+
+  def self.with_lock
+    FileUtils.mkdir_p(File.join(root, "build"))
+    lock_key = :linka_local_release_lock
+    return yield if Thread.current[lock_key] == root
+
+    File.open(File.join(root, "build", ".release.lock"), File::RDWR | File::CREAT, 0o600) do |lock|
+      check(lock.flock(File::LOCK_EX | File::LOCK_NB), "worktree_in_use")
+      Thread.current[lock_key] = root
+      begin
+        yield
+      ensure
+        Thread.current[lock_key] = nil
+        lock.flock(File::LOCK_UN)
+      end
+    end
+  end
+
+  def self.release_settings(document, target)
+    global = document.fetch("settings", {})
+    local = document.fetch("targets").fetch(target).fetch("settings", {})
+    # XcodeGen: settings.base e configuração Release; target prevalece sobre projeto.
+    global.fetch("base", {}).merge(global.fetch("configs", {}).fetch("Release", {}))
+          .merge(local.fetch("base", {})).merge(local.fetch("configs", {}).fetch("Release", {}))
+  end
+
+  def self.identity
+    document = YAML.safe_load(File.read(File.join(root, "aplicativo-ios/project.yml")), aliases: false)
+    targets = %w[LinkaApp LinkaWidgetExtension].map do |target|
+      settings = release_settings(document, target)
+      { "version" => settings.fetch("MARKETING_VERSION").to_s,
+        "build" => settings.fetch("CURRENT_PROJECT_VERSION").to_s,
+        "bundle_id" => settings.fetch("PRODUCT_BUNDLE_IDENTIFIER").to_s,
+        "team" => settings.fetch("DEVELOPMENT_TEAM").to_s }
+    end
+    app, widget = targets
+    check(app["version"].match?(/\A\d+\.\d+\.\d+\z/), "invalid_version")
+    check(app["build"].match?(/\A[1-9]\d*\z/), "invalid_build")
+    check(app["bundle_id"] == APP_ID && widget["bundle_id"] == WIDGET_ID, "unexpected_bundle_ids")
+    check(app.values_at("version", "build", "team") == widget.values_at("version", "build", "team"), "widget_identity_mismatch")
+    check(!app["team"].empty?, "missing_team")
+    app
+  end
+
+  def self.candidate!(expected_sha: nil)
+    check(command("git", "branch", "--show-current").strip == "main", "main_required")
+    check(command("git", "status", "--porcelain", "--untracked-files=all").strip.empty?, "clean_worktree_required")
+    sha = command("git", "rev-parse", "HEAD").strip
+    check(sha.match?(/\A[0-9a-f]{40,64}\z/), "invalid_git_sha")
+    check(expected_sha.nil? || sha == expected_sha, "candidate_changed")
+    command("git", "fetch", "origin", "main:refs/remotes/origin/main")
+    check(command("git", "rev-parse", "origin/main").strip == sha, "remote_main_mismatch")
+    sha
+  end
+
+  def self.validate!(udid)
+    check(RUBY_PLATFORM.include?("darwin"), "mac_required")
+    check(udid.to_s.match?(/\A[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}\z/), "existing_simulator_udid_required")
+    devices = JSON.parse(command("xcrun", "simctl", "list", "devices", "available", "--json")).fetch("devices")
+    device = devices.select { |runtime, _| runtime.include?(".iOS-") }.values.flatten.find do |item|
+      item["udid"].casecmp?(udid) && item["isAvailable"] == true
+    end
+    check(!device.nil?, "simulator_not_available")
+    toolchain = command("xcodebuild", "-version").strip
+    swift = command("swift", "--version").strip
+    expected = identity
+    check(command("git", "diff", "HEAD", "--", "aplicativo-ios/project.yml").strip.empty?, "spec_changed_regenerate_and_review_separately")
+    %w[LinkaApp LinkaWidgetExtension].each do |target|
+      output = command("xcodebuild", "-showBuildSettings", "-json", "-project",
+                       File.join(root, "aplicativo-ios/LinkaApp.xcodeproj"), "-target", target, "-configuration", "Release")
+      settings = JSON.parse(output).find { |item| item["target"] == target }&.fetch("buildSettings")
+      check(!settings.nil?, "project_target_missing:#{target}")
+      bundle = target == "LinkaApp" ? APP_ID : WIDGET_ID
+      check(settings.values_at("MARKETING_VERSION", "CURRENT_PROJECT_VERSION", "PRODUCT_BUNDLE_IDENTIFIER", "DEVELOPMENT_TEAM").map(&:to_s) ==
+            expected.values_at("version", "build") + [bundle, expected["team"]], "project_identity_mismatch_regenerate_separately:#{target}")
+    end
+    completed = []
+    PACKAGES.each do |package|
+      validation_command("package-#{package}", "swift", "test", "--package-path", File.join(root, "aplicativo-ios", package))
+      completed << package
+    end
+    app_directory = File.join(root, "aplicativo-ios")
+    # XcodeGen é uma etapa separada e revisada; nunca sobrescrever PBX/schemes/Info WIP.
+    common = ["-project", File.join(app_directory, "LinkaApp.xcodeproj"), "-scheme", "LinkaApp",
+              "-derivedDataPath", File.join(app_directory, "build/DerivedData"),
+              "-skipMacroValidation", "CODE_SIGNING_ALLOWED=NO"]
+    validation_command("ios-tests", "xcodebuild", "test", *common, "-destination", "platform=iOS Simulator,id=#{udid}",
+            "-parallel-testing-enabled", "NO", "-maximum-concurrent-test-simulator-destinations", "1")
+    validation_command("release-simulator", "xcodebuild", "build", *common, "-configuration", "Release", "-destination", "generic/platform=iOS Simulator")
+    { "packages" => completed, "simulator_udid" => udid, "xcode" => toolchain,
+      "swift" => swift, "app_tests" => "passed", "release_simulator_build" => "passed" }
+  end
+
+  def self.new_attempt
+    parent = File.join(root, "build/releases")
+    FileUtils.mkdir_p(parent)
+    index = 1
+    loop do
+      path = File.join(parent, format("attempt-%04d", index))
+      begin
+        Dir.mkdir(path, 0o700)
+        return path
+      rescue Errno::EEXIST
+        index += 1
+      end
+    end
+  end
+
+  def self.write_evidence(path, evidence)
+    evidence["updated_at"] = Time.now.utc.iso8601
+    temporary = "#{path}.tmp"
+    File.open(temporary, File::WRONLY | File::CREAT | File::TRUNC, 0o600) do |file|
+      file.write(JSON.pretty_generate(evidence))
+      file.flush
+      file.fsync
+    end
+    File.rename(temporary, path)
+  ensure
+    File.delete(temporary) if temporary && File.exist?(temporary)
+  end
+
+  def self.stage(path, evidence, name)
+    evidence["current_stage"] = name
+    evidence["stages"][name] = "running"
+    write_evidence(path, evidence)
+    result = yield
+    evidence["stages"][name] = "succeeded"
+    write_evidence(path, evidence)
+    result
+  end
+
+  def self.with_credentials
+    names = %w[ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_CONTENT APPLE_TEAM_ID]
+    check(names.all? { |name| !ENV[name].to_s.empty? }, "missing_apple_configuration")
+    directory = nil
+    begin
+      directory = Dir.mktmpdir("linka-apple-")
+      File.chmod(0o700, directory)
+      key = Base64.strict_decode64(ENV.fetch("ASC_KEY_CONTENT"))
+      key_path = File.join(directory, "AuthKey.p8")
+      api_path = File.join(directory, "api-key.json")
+      { key_path => key,
+        api_path => JSON.generate({ key_id: ENV.fetch("ASC_KEY_ID"), issuer_id: ENV.fetch("ASC_ISSUER_ID"), key: key, in_house: false }) }.each do |path, content|
+        File.open(path, File::WRONLY | File::CREAT | File::EXCL, 0o600) { |file| file.write(content) }
+      end
+      yield(directory, key_path, api_path)
+    ensure
+      FileUtils.remove_entry_secure(directory) if directory && File.directory?(directory)
+    end
+  end
+
+  def self.plist(path)
+    check(File.file?(path), "plist_missing")
+    JSON.parse(command("/usr/bin/plutil", "-convert", "json", "-o", "-", path))
+  end
+
+  def self.check_bundle(path, expected_id, identity)
+    info = plist(File.join(path, "Info.plist"))
+    check(info["CFBundleIdentifier"] == expected_id, "artifact_bundle_id_mismatch")
+    check(info["CFBundleShortVersionString"].to_s == identity["version"], "artifact_version_mismatch")
+    check(info["CFBundleVersion"].to_s == identity["build"], "artifact_build_mismatch")
+    info.slice("CFBundleIdentifier", "CFBundleShortVersionString", "CFBundleVersion")
+  end
+
+  def self.check_app(path, identity)
+    app = check_bundle(path, APP_ID, identity)
+    extensions = Dir.glob(File.join(path, "PlugIns", "*.appex"))
+    check(extensions.length == 1, "unexpected_extensions")
+    { "app" => app, "widget" => check_bundle(extensions.first, WIDGET_ID, identity) }
+  end
+
+  def self.check_archive(path, identity)
+    info = plist(File.join(path, "Info.plist")).fetch("ApplicationProperties")
+    check(info["CFBundleIdentifier"] == APP_ID && info["CFBundleShortVersionString"].to_s == identity["version"] &&
+          info["CFBundleVersion"].to_s == identity["build"], "archive_metadata_mismatch")
+    applications = Dir.glob(File.join(path, "Products/Applications/*.app"))
+    check(applications.length == 1, "unexpected_archive_apps")
+    check_app(applications.first, identity)
+  end
+
+  def self.check_ipa(path, identity, archive_identity)
+    check(File.file?(path), "ipa_missing")
+    Dir.mktmpdir("linka-ipa-") do |directory|
+      # Apenas a IPA produzida nesta tentativa; nunca reutiliza extração anterior.
+      command("/usr/bin/ditto", "-x", "-k", path, directory)
+      applications = Dir.glob(File.join(directory, "Payload/*.app"))
+      check(applications.length == 1, "unexpected_ipa_apps")
+      actual = check_app(applications.first, identity)
+      check(actual == archive_identity, "archive_ipa_identity_mismatch")
+      actual
+    end
+  end
+end
+
+default_platform(:ios)
 
 platform :ios do
-  # ------------------------------------------------------------------
-  # Lane: beta
-  # Faz build, archive e upload para TestFlight
-  # ------------------------------------------------------------------
-  desc "Build e upload para TestFlight via App Store Connect API"
-  lane :beta do
-    UI.user_error!("TestFlight só pode rodar pela GitHub Actions.") unless ENV["GITHUB_ACTIONS"] == "true"
-    UI.user_error!("TestFlight só pode partir da main.") unless ENV["GITHUB_REF"] == "refs/heads/main"
-    release_sha = ENV["GITHUB_SHA"]
-    UI.user_error!("SHA de release ausente.") if release_sha.to_s.empty?
-
-    repository_root = File.expand_path("..", __dir__)
-    sh("git -C #{repository_root.shellescape} fetch origin main:refs/remotes/origin/main")
-    head_sha = sh("git -C #{repository_root.shellescape} rev-parse HEAD").strip
-    main_sha = sh("git -C #{repository_root.shellescape} rev-parse origin/main").strip
-    UI.user_error!("O SHA de release não é a ponta atual da main.") unless release_sha == head_sha && head_sha == main_sha
-
-    required_envs = %w[ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_CONTENT APPLE_TEAM_ID]
-    missing_envs = required_envs.reject { |name| ENV[name] && !ENV[name].empty? }
-    UI.user_error!("Secrets ausentes: #{missing_envs.join(', ')}") unless missing_envs.empty?
-
-    project_yml = File.expand_path("../aplicativo-ios/project.yml", __dir__)
-    release_notes_path = File.expand_path("../RELEASE_NOTES.md", __dir__)
-    project_contents = File.read(project_yml)
-    version = project_contents[/MARKETING_VERSION:\s*"([0-9]+(?:\.[0-9]+){1,2})"/, 1]
-    build_number = project_contents[/CURRENT_PROJECT_VERSION:\s*"([0-9]+)"/, 1]
-    UI.user_error!("Versão ou build ausente em #{project_yml}") unless version && build_number
-    UI.user_error!("RELEASE_NOTES.md é obrigatório para TestFlight") unless File.exist?(release_notes_path) && !File.read(release_notes_path).strip.empty?
-
-    # 1. Autenticação na App Store Connect via API Key
-    api_key = app_store_connect_api_key(
-      key_id:        ENV["ASC_KEY_ID"],
-      issuer_id:     ENV["ASC_ISSUER_ID"],
-      key_content:   ENV["ASC_KEY_CONTENT"],  # conteúdo .p8 em Base64
-      is_key_content_base64: true,
-      in_house: false
-    )
-
-    # O runner efêmero também precisa da chave para criar ou baixar os
-    # perfis de distribuição do app e do widget durante o archive.
-    authentication_key_path = File.join(Dir.tmpdir, "AuthKey_#{ENV['ASC_KEY_ID']}.p8")
-    File.binwrite(authentication_key_path, Base64.strict_decode64(ENV.fetch("ASC_KEY_CONTENT")))
-    authentication_xcargs = [
-      "-allowProvisioningUpdates",
-      "-authenticationKeyPath #{authentication_key_path.shellescape}",
-      "-authenticationKeyID #{ENV.fetch('ASC_KEY_ID').shellescape}",
-      "-authenticationKeyIssuerID #{ENV.fetch('ASC_ISSUER_ID').shellescape}"
-    ].join(" ")
-
-    begin
-      latest_build = latest_testflight_build_number(
-        version: version,
-        app_identifier: "com.linka.assist",
-        api_key: api_key,
-        initial_build_number: 0
-      )
-      UI.user_error!("Build #{version} (#{build_number}) não é novo; Apple já tem build #{latest_build}.") if latest_build >= build_number.to_i
-
-      # 2. Gerar projeto Xcode com XcodeGen
-      sh("xcodegen generate --spec #{project_yml.shellescape} --project #{File.dirname(project_yml).shellescape}")
-
-      # 3. Build e Archive (IPA para App Store)
-      gym(
-        project:          "aplicativo-ios/LinkaApp.xcodeproj",
-        scheme:           "LinkaApp",
-        configuration:    "Release",
-        export_method:    "app-store",
-        clean:            true,
-        xcargs:           authentication_xcargs,
-        output_directory: "build",
-        output_name:      "LinkaApp.ipa"
-      )
-
-      # 4. As notas aprovadas na PR candidata são obrigatórias.
-      changelog = File.read(release_notes_path)
-
-      # 5. Upload para TestFlight
-      pilot(
-        api_key:                         api_key,
-        ipa:                             "build/LinkaApp.ipa",
-        changelog:                       changelog,
-        distribute_external:             false,
-        notify_external_testers:         false,
-        skip_waiting_for_build_processing: false,
-        wait_processing_interval: 30
-      )
-
-      processed_build = latest_testflight_build_number(
-        version: version,
-        app_identifier: "com.linka.assist",
-        api_key: api_key,
-        initial_build_number: 0
-      )
-      UI.user_error!("Apple não confirmou o processamento de #{version} (#{build_number}).") unless processed_build == build_number.to_i
-
-      ipa_path = File.join(repository_root, "build/LinkaApp.ipa")
-      evidence_path = File.join(repository_root, "build/testflight-evidence.json")
-      UI.user_error!("IPA ausente para registrar a evidência: #{ipa_path}") unless File.exist?(ipa_path)
-      File.write(evidence_path, JSON.pretty_generate({
-        version: version,
-        build: build_number.to_i,
-        git_sha: release_sha,
-        ipa_sha256: Digest::SHA256.file(ipa_path).hexdigest,
-        processed_build: processed_build
-      }))
-      UI.important("TestFlight processado: #{version} (#{build_number}), SHA #{release_sha}")
-    ensure
-      File.delete(authentication_key_path) if File.exist?(authentication_key_path)
+  desc "Valida localmente pacotes e app, sem Apple; exige simulator_udid ou LINKA_SIMULATOR_UDID"
+  lane :validate do |options|
+    LinkaLocalRelease.with_lock do
+      udid = options[:simulator_udid] || ENV["LINKA_SIMULATOR_UDID"]
+      LinkaLocalRelease.with_simulator_lock(udid) { LinkaLocalRelease.validate!(udid) }
     end
+  end
 
-    # A tag é criada pela workflow somente depois da confirmação da Apple.
-    # Tags vX.Y.Z continuam reservadas para a promoção pública autorizada.
+  desc "TestFlight local autorizado: main limpa, SHA remoto, validate obrigatório e evidência por tentativa"
+  lane :beta do |options|
+    LinkaLocalRelease.with_lock do
+      attempt = LinkaLocalRelease.new_attempt
+      evidence_path = File.join(attempt, "testflight-evidence.json")
+      evidence = { "schema_version" => 1, "started_at" => Time.now.utc.iso8601,
+                   "status" => "running", "stages" => {}, "upload" => "not_attempted", "processing" => "not_verified" }
+      LinkaLocalRelease.write_evidence(evidence_path, evidence)
+      begin
+        identity = nil
+        sha = LinkaLocalRelease.stage(evidence_path, evidence, "preflight") do
+          authorized = options[:authorized] == true || options[:authorized].to_s == "true" || ENV["LINKA_TESTFLIGHT_AUTHORIZED"] == "YES"
+          LinkaLocalRelease.check(authorized, "explicit_authorization_required")
+          identity = LinkaLocalRelease.identity
+          evidence["identity"] = identity.reject { |key, _| key == "team" }
+          notes = File.join(LinkaLocalRelease.root, "RELEASE_NOTES.md")
+          LinkaLocalRelease.check(File.file?(notes) && !File.read(notes).strip.empty?, "release_notes_required")
+          LinkaLocalRelease.candidate!
+        end
+        evidence["git_sha"] = sha
+        evidence["validation"] = LinkaLocalRelease.stage(evidence_path, evidence, "validation") do
+          validate(simulator_udid: options[:simulator_udid] || ENV["LINKA_SIMULATOR_UDID"])
+        end
+        # A resolução de pacotes não pode alterar o candidato silenciosamente.
+        LinkaLocalRelease.stage(evidence_path, evidence, "candidate_after_validation") do
+          LinkaLocalRelease.candidate!(expected_sha: sha)
+        end
+        evidence["current_stage"] = "credentials"
+        evidence["stages"]["credentials"] = "running"
+        LinkaLocalRelease.write_evidence(evidence_path, evidence)
+        LinkaLocalRelease.with_credentials do |directory, key_path, api_path|
+          LinkaLocalRelease.check(ENV.fetch("APPLE_TEAM_ID") == identity["team"], "signing_team_mismatch")
+          evidence["stages"]["credentials"] = "succeeded"
+          LinkaLocalRelease.stage(evidence_path, evidence, "apple_build_check") do
+            latest = latest_testflight_build_number(version: identity["version"], app_identifier: LinkaLocalRelease::APP_ID,
+                                                    api_key_path: api_path, initial_build_number: 0)
+            LinkaLocalRelease.check(latest.to_i < identity["build"].to_i, "build_already_used_no_automatic_retry")
+          end
+          archive = File.join(attempt, "LinkaApp.xcarchive")
+          export_directory = File.join(attempt, "export")
+          authentication = ["-allowProvisioningUpdates", "-authenticationKeyPath", key_path,
+                            "-authenticationKeyID", ENV.fetch("ASC_KEY_ID"), "-authenticationKeyIssuerID", ENV.fetch("ASC_ISSUER_ID")]
+          LinkaLocalRelease.stage(evidence_path, evidence, "archive") do
+            LinkaLocalRelease.command("xcodebuild", "archive", "-project", File.join(LinkaLocalRelease.root, "aplicativo-ios/LinkaApp.xcodeproj"),
+                                      "-scheme", "LinkaApp", "-configuration", "Release", "-destination", "generic/platform=iOS",
+                                      "-derivedDataPath", File.join(LinkaLocalRelease.root, "aplicativo-ios/build/DerivedData"),
+                                      "-archivePath", archive, *authentication)
+          end
+          archive_identity = LinkaLocalRelease.stage(evidence_path, evidence, "archive_identity") do
+            LinkaLocalRelease.check_archive(archive, identity)
+          end
+          LinkaLocalRelease.stage(evidence_path, evidence, "export") do
+            export_options = File.join(directory, "ExportOptions.plist")
+            File.open(export_options, File::WRONLY | File::CREAT | File::EXCL, 0o600) do |file|
+              file.write(JSON.generate({ method: "app-store-connect", signingStyle: "automatic", teamID: identity["team"], manageAppVersionAndBuildNumber: false }))
+            end
+            LinkaLocalRelease.command("/usr/bin/plutil", "-convert", "xml1", export_options)
+            LinkaLocalRelease.command("xcodebuild", "-exportArchive", "-archivePath", archive,
+                                      "-exportPath", export_directory, "-exportOptionsPlist", export_options, *authentication)
+          end
+          ipa = nil
+          evidence["artifact_identity"] = LinkaLocalRelease.stage(evidence_path, evidence, "ipa_identity") do
+            ipas = Dir.glob(File.join(export_directory, "*.ipa"))
+            LinkaLocalRelease.check(ipas.length == 1, "expected_single_ipa")
+            ipa = ipas.first
+            LinkaLocalRelease.check_ipa(ipa, identity, archive_identity)
+          end
+          evidence["archive_path"] = archive
+          evidence["ipa_path"] = ipa
+          evidence["ipa_sha256"] = Digest::SHA256.file(ipa).hexdigest
+          LinkaLocalRelease.stage(evidence_path, evidence, "candidate_before_upload") do
+            LinkaLocalRelease.candidate!(expected_sha: sha)
+          end
+          # A tentativa já tem proveniência durável antes do primeiro byte enviado.
+          evidence["current_stage"] = "upload_and_processing"
+          evidence["stages"]["upload_and_processing"] = "running"
+          evidence["upload"] = "attempting"
+          evidence["processing"] = "pending"
+          LinkaLocalRelease.write_evidence(evidence_path, evidence)
+          pilot(api_key_path: api_path, ipa: ipa,
+                changelog: File.read(File.join(LinkaLocalRelease.root, "RELEASE_NOTES.md")),
+                distribute_external: false, notify_external_testers: false,
+                skip_waiting_for_build_processing: false, wait_processing_interval: 30)
+          evidence["upload"] = "completed"
+          evidence["processing"] = "confirmed_by_pilot"
+          evidence["stages"]["upload_and_processing"] = "succeeded"
+          evidence["status"] = "processed"
+        end
+      rescue Exception => error # inclui interrupção para registrar incerteza e limpar chave
+        evidence["status"] = "failed"
+        stage = evidence["current_stage"]
+        evidence["stages"][stage] = "failed" if stage
+        if evidence["upload"] == "attempting"
+          evidence["upload"] = "unknown"
+          evidence["processing"] = "unknown"
+        end
+        evidence["error_class"] = error.class.name
+        evidence["error_code"] = error.is_a?(LinkaLocalRelease::ControlError) ? error.code : "operation_failed_see_stage"
+        # Não propagar texto bruto de ferramentas Apple/secrets para o log Fastlane.
+        UI.user_error!("TestFlight interrompido: #{evidence['error_code']}. Evidência: #{evidence_path}")
+      ensure
+        LinkaLocalRelease.write_evidence(evidence_path, evidence)
+      end
+      UI.success("Processamento confirmado pelo Fastlane. Evidência: #{evidence_path}")
+      evidence
+    end
   end
 end

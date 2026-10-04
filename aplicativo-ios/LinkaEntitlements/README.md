@@ -1,40 +1,10 @@
 # LinkaEntitlements
 
-Módulo independente da política comercial de acesso do Linka.
+Estado: vigente como entrada do módulo.
+Responsável: executor do módulo; orquestrador mantém a fonte documental.
+Última revisão: 2026-10-04 — consolidação da descrição anterior na documentação por capacidade.
+Referência: [documentação da capacidade](../../documentacao/features/linka-plus/README.md).
 
-## Responsabilidade
+Comportamento, integração no app, contratos, testes existentes e pendências são mantidos na [fonte por feature](../../documentacao/features/linka-plus/README.md). Este README não duplica regras nem presume que a existência de teste prove execução.
 
-Responder se uma capacidade do produto está disponível para um estado de entitlement conhecido.
-
-A política v1 mantém o SpeedTest disponível independentemente do estado da assinatura e falha fechado apenas para capacidades premium.
-
-## Planos
-
-- `free`: SpeedTest.
-- `plus`: SpeedTest, Histórico, Insights, Assist e integrações Apple.
-
-## Estados
-
-- `unknown`
-- `inactive`
-- `active`
-- `expired`
-
-## Fontes de acesso Plus
-
-- assinatura;
-- trial;
-- promoção;
-- lifetime.
-
-## Não faz
-
-- compra;
-- restauração de compra;
-- StoreKit;
-- validação de recibo;
-- chamada de backend;
-- UI/paywall;
-- precificação.
-
-StoreKit ou qualquer outro sistema futuro deve apenas produzir um `LinkaEntitlementSnapshot`. A decisão de acesso permanece neste módulo.
+O manifesto e os alvos atuais estão em [Package.swift](Package.swift); código em [Sources](Sources/) e testes em [Tests](Tests/). Para validar este pacote a partir da raiz Git: `swift test --package-path aplicativo-ios/LinkaEntitlements`. Comando documentado, não executado nesta migração.
