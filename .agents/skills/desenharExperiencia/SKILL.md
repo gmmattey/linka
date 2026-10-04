@@ -11,7 +11,7 @@ Fontes, em ordem: visão atual do produto, `AGENTS.md`, escopo Free/Plus, protó
 
 ## Filtro inicial
 
-Pergunta de `AGENTS.md §1`:
+Pergunta de `documentacao/PRODUTO.md`:
 
 > **Isso melhora medir, entender ou acompanhar a conexão no Apple sem competir com o resultado?**
 
