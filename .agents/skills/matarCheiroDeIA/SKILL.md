@@ -76,7 +76,7 @@ Além de tudo acima, texto que vai para tela obedece [`documentacao/PRODUTO.md`]
 
 - **rótulo de botão não varia** (é contrato) — `Testar novamente`, `Detalhes`, `Como medimos`;
 - **erro fala a verdade** — não esconde falha atrás de mensagem simpática;
-- **o Linka não opina no primeiro frame do resultado** — nunca "sua conexão está boa para X" antes do número. Interpretação vive em superfície secundária (detalhes, histórico, Assist) e precisa se sustentar em dado real (ver [`AGENTS.md`](../../../AGENTS.md) §1 e §9);
+- **o Linka não opina no primeiro frame do resultado** — nunca "sua conexão está boa para X" antes do número. Interpretação vive em superfície secundária (detalhes, histórico, Assist) e precisa se sustentar em dado real (ver [`Produto`](../../../documentacao/PRODUTO.md));
 - **voz não cria capacidade** — não escreve copy de coisa que não existe.
 
 Ver também [`aplicarVozLinka`](../aplicarVozLinka/SKILL.md).
