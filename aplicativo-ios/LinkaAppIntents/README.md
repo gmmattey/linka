@@ -1,25 +1,10 @@
 # LinkaAppIntents
 
-Módulo isolado de integração do Linka com o framework App Intents.
+Estado: vigente como entrada do módulo.
+Responsável: executor do módulo; orquestrador mantém a fonte documental.
+Última revisão: 2026-10-04 — consolidação da descrição anterior na documentação por capacidade.
+Referência: [documentação da capacidade](../../documentacao/features/integracoes-apple/README.md).
 
-## O que existe no v1
+Comportamento, integração no app, contratos, testes existentes e pendências são mantidos na [fonte por feature](../../documentacao/features/integracoes-apple/README.md). Este README não duplica regras nem presume que a existência de teste prove execução.
 
-- `StartSpeedTestIntent`
-- `OpenLatestMeasurementIntent`
-- `OpenHistoryIntent`
-- `GetLatestResultIntent`
-- `LinkaAppShortcuts` com dois atalhos pré-configurados
-- `LinkaAppIntentExecutor` como porta de execução injetável
-- `LinkaAppIntentsPackage` para permitir inclusão futura pelo app/extension
-
-## O que não existe ainda
-
-Este pacote não está conectado ao `LinkaApp`, ao `SpeedTestCore`, ao `MeasurementHistory` nem à navegação SwiftUI.
-
-Não há execução simulada. Sem um executor real registrado pelo app, a integração não deve ser considerada operacional.
-
-Na futura integração, o app registra um `LinkaAppIntentExecutor` no `AppDependencyManager` e mapeia cada `LinkaSystemAction` para capacidades reais do produto.
-
-## Limite de arquitetura
-
-App Intents é uma integração Apple dedicada. Widgets e sincronização iCloud devem viver em módulos/adapters próprios em vez de crescerem dentro deste pacote.
+O manifesto e os alvos atuais estão em [Package.swift](Package.swift); código em [Sources](Sources/) e testes em [Tests](Tests/). Para validar este pacote a partir da raiz Git: `swift test --package-path aplicativo-ios/LinkaAppIntents`. Comando documentado, não executado nesta migração.

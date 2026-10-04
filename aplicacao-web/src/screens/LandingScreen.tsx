@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import measurementScreenshot from '../../../store/app-store/screenshots/final/pt-BR/iphone-6.7/02-meca-sua-internet.jpg';
-import resultScreenshot from '../../../store/app-store/screenshots/final/pt-BR/iphone-6.7/01-entenda-sua-conexao.jpg';
-import historyScreenshot from '../../../store/app-store/screenshots/final/pt-BR/iphone-6.7/04-veja-sua-evolucao.jpg';
+import measurementScreenshot from '../assets/screenshots/02-meca-sua-internet.jpg';
+import resultScreenshot from '../assets/screenshots/01-entenda-sua-conexao.jpg';
+import historyScreenshot from '../assets/screenshots/04-veja-sua-evolucao.jpg';
 import { Header } from '../ui/components/layout/Header';
 import { Footer } from '../ui/components/layout/Footer';
 

@@ -1,46 +1,29 @@
-# Linka SpeedTest
+# Linka
 
-**Linka é um SpeedTest minimalista, eficiente e visualmente refinado, exclusivo do ecossistema Apple (iPhone, iPad, Mac).**
+SpeedTest para iPhone, iPad e Mac: medir a conexão, entender o resultado e acompanhar mudanças. O site é institucional; não executa a medição.
 
-Ele existe para fazer uma coisa muito bem: medir a qualidade da conexão e apresentar o resultado de forma imediata, clara e bonita — sem login, sem onboarding, sem escolha de modo. Abre, mede, mostra, repete.
+Estado deste documento: vigente como entrada do repositório.
+Responsável: Codex principal (Marco).
+Última revisão: 2026-10-04 — caminhos, estrutura e procedimentos locais.
+Referência: [AGENTS.md](AGENTS.md).
 
-Medir vem sempre primeiro. No ecossistema Apple, o Linka também pode interpretar e orientar sobre a própria medição — em superfície secundária, nunca no primeiro frame do resultado, e sempre sustentado por dado medido ou exposto pela plataforma. (Histórico: até 2026, essa fronteira era rígida — "Linka mede, SignallQ interpreta" — porque o SignallQ era o mesmo produto em outra plataforma. Com o SignallQ tornando-se exclusivo Android/Web, o Linka passou a absorver, com curadoria, as capacidades de interpretação viáveis no Apple.)
+## Começar
 
-Governança completa em [`AGENTS.md`](AGENTS.md) na raiz (ver especialmente §1 e §9) — este README é só a porta de entrada.
+- [Documentação atual](documentacao/README.md): produto, arquitetura, design e operação.
+- [Capacidades do app](documentacao/features/INDICE.md): comportamento, código, testes e pendências por feature.
+- [Desenvolvimento e publicação](documentacao/operacao/README.md): pré-requisitos, comandos e limites da validação.
+- [Trabalho em andamento](.agents/plano.md): fontes por frente e critérios de fechamento.
 
-## Onde vive cada coisa
+## Estrutura
 
-| Pasta | Papel |
+| Diretório | Conteúdo |
 |---|---|
-| [`aplicativo-ios/`](aplicativo-ios/) | App nativo Apple (iPhone/iPad/Mac). SwiftUI + Swift Concurrency, padrão Engine-Adapter-UI. Produto real. |
-| [`aplicativo-ios/LinkaEngine/`](aplicativo-ios/LinkaEngine/) | Motor real de medição (download/upload/latência) |
-| [`aplicativo-ios/NetworkCore/`](aplicativo-ios/NetworkCore/), [`MeasurementHistory/`](aplicativo-ios/MeasurementHistory/), [`NetworkInsights/`](aplicativo-ios/NetworkInsights/), [`NetworkAssist/`](aplicativo-ios/NetworkAssist/) | Pacotes Swift isolados (contrato canônico, histórico, estatísticas, contexto para IA) |
-| [`aplicacao-web/`](aplicacao-web/) | Site institucional e de marketing. **Não é uma versão do produto** — apresenta o Linka e direciona para o app Apple. |
-| [`documentacao/`](documentacao/) | Documentação atual do produto — comece por [`documentacao/arquitetura/INDICE.md`](documentacao/arquitetura/INDICE.md) |
+| [aplicativo-ios](aplicativo-ios/) | App SwiftUI, extensões e pacotes Swift |
+| [aplicacao-web](aplicacao-web/) | Site React/TypeScript/Vite |
+| [documentacao](documentacao/) | Referências atuais conforme a nova governança |
+| [store/app-store](store/app-store/) | Materiais de loja, sujeitos à revisão contra a candidata |
+| [fastlane](fastlane/) | Validação e TestFlight locais no Mac, sem GitHub Actions |
 
-## Plataformas
+A documentação descreve o checkout identificado em cada fonte, inclusive WIP; não confirma a versão publicada. Não se usa `swift test` na raiz: selecionar o pacote conforme a [operação](documentacao/operacao/README.md).
 
-- **iPhone, iPad, Mac** — **única** plataforma do produto Linka. Não haverá versão Web nem Android.
-- **Site institucional** (`aplicacao-web/`) — presença de marketing na Web. Não roda medição.
-
-## Como executar
-
-Cada pasta com código tem seu próprio ciclo de build/testes:
-
-- **App iOS**: abrir `aplicativo-ios/LinkaApp.xcodeproj` no Xcode; testes via `swift test` em cada pacote (`NetworkCore`, `MeasurementHistory`, `NetworkInsights`, `NetworkAssist`, `LinkaEngine`, `LinkaModules`). CI em `.github/workflows/swift-modules-ci.yml`.
-- **Site institucional** (`aplicacao-web/`): `npm install && npm run dev`.
-
-Detalhes de build e teste do app iOS ficam nos README dos próprios pacotes Swift e em [`documentacao/arquitetura/`](documentacao/arquitetura/).
-
-## Governança
-
-- Autoridade única: [`AGENTS.md`](AGENTS.md)
-- Squad e fluxo de trabalho: [`AGENTS.md`](AGENTS.md) §4-5 e [`.agents/WORKFLOW.md`](.agents/WORKFLOW.md)
-- Política de branches: [`AGENTS.md`](AGENTS.md) §12
-- Índice de documentação: [`documentacao/arquitetura/INDICE.md`](documentacao/arquitetura/INDICE.md)
-
-Documentos antigos que descreviam workspaces anteriores (Android nativo Kotlin, PWA como produto de medição, workspaces `E:\`/`C:\`/`D:\`) foram arquivados em `<pasta>/.old/` durante a auditoria de 2026-08-14 — não são referência viva.
-
-## Licença
-
-MIT — ver `LICENSE`.
+Governança: [AGENTS.md](AGENTS.md), [workflow](.agents/WORKFLOW.md) e [processo documental](documentacao/GOVERNANCA_DOCUMENTAL.md). Licença em [LICENSE](LICENSE).

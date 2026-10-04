@@ -1,5 +1,10 @@
 # Agentes e skills do Linka
 
+Estado: vigente.
+Responsável: Codex principal.
+Última revisão: 2026-10-04 — entradas documentais e estrutura de planejamento.
+Referência: [governança documental](../documentacao/GOVERNANCA_DOCUMENTAL.md).
+
 A governança do Linka está em [`AGENTS.md`](../AGENTS.md). O runtime principal é o **Codex**.
 
 Esta pasta `.agents/` continua existindo para **skills, workflow, scripts e artefatos de planejamento**. Os agentes executáveis do Codex não vivem mais aqui: eles são agentes nativos versionados em `.codex/agents/`.
@@ -21,7 +26,7 @@ Esta pasta `.agents/` continua existindo para **skills, workflow, scripts e arte
 ├── plano.md
 ├── scripts/
 ├── skills/
-└── .old/
+└── plano-<tema>.md  # quando uma iniciativa exigir plano separado
 ```
 
 Não use perfis JSON em `.agents/plugins/` para simular agentes. A migração de 2026-09-06 aposentou essa camada.
@@ -128,4 +133,4 @@ As responsabilidades foram reorganizadas, não apenas renomeadas: arquitetura vo
 
 Os antigos perfis JSON em `.agents/plugins/squad-linka/` foram aposentados em favor de `.codex/agents/*.toml`. As skills foram preservadas porque continuam úteis como runbooks independentes do runtime.
 
-Arquivos em `.agents/.old/`, changelogs e documentos históricos não são reescritos retroativamente; eles mantêm os nomes que existiam quando foram produzidos.
+Os planos anteriores foram consolidados na documentação por capacidade e no ledger de `plano.md`. A migração autorizada remove os arquivos `.old/` do checkout; histórico rastreado permanece no Git. Changelogs e notas de candidata são artefatos de versão, não manuais de comportamento atual.

@@ -53,7 +53,7 @@ O usuário não escolhe modo de teste antes de começar. Minimalismo na interfac
 
 Como o SignallQ é Android/Web, o Linka pode absorver capacidades que façam sentido e sejam tecnicamente viáveis no ecossistema Apple — histórico, comparação, tendências, interpretação, Assist, Widgets, App Intents e Shortcuts, entre outras.
 
-O acesso ao roteador (localizar o gateway da rede atual e abrir o painel de administração dele, com a senha salva no Keychain a pedido do usuário) é escopo oficial do produto — é a origem histórica do Linka (ver `documentacao/funcional/HISTORIA.md` e `documentacao/funcional/VISAO.md`, seção "Acesso ao roteador"), não um scanner de dispositivos genérico nem uma ferramenta de diagnóstico de rede.
+O acesso ao roteador (localizar o gateway da rede atual e abrir o painel de administração dele, com a senha salva no Keychain a pedido do usuário) é escopo oficial do produto — é a origem histórica do Linka (ver [Produto](documentacao/PRODUTO.md) e [Roteador](documentacao/features/roteador/README.md)), não um scanner de dispositivos genérico nem uma ferramenta de diagnóstico de rede.
 
 Isso não transforma o Linka em dashboard ou central de ferramentas. Toda capacidade nova passa por quatro filtros:
 
@@ -251,7 +251,7 @@ O Design System em `documentacao/design/design_system/` é a fonte visual do Lin
 
 - `documentacao/design/design_system/assets/icons/` é a fonte de verdade dos ícones.
 - O wordmark oficial é `wordmark.svg`; não substitua por texto puro quando a marca é requerida.
-- A direção aprovada para as superfícies macOS está em `documentacao/design/DIRECAO_VISUAL_MACOS.md`; trate-a como critério de produto para novos fluxos e para qualquer refinamento visual no Mac.
+- A direção aprovada para as superfícies macOS está em `documentacao/design/README.md`; trate-a como critério de produto para novos fluxos e para qualquer refinamento visual no Mac.
 - Não use Material Design 3 como regra do Linka.
 - Não restaure componentes legados quando contradizem protótipo/Design System atuais.
 
@@ -376,4 +376,20 @@ Estão aposentados como governança ativa:
 - esteira antiga baseada em personagens ou handoffs simulados;
 - execução automática de release sem gate humano.
 
-Histórico em `.agents/.old/`, changelogs e documentos que registram eventos passados não precisa ser reescrito para usar os nomes atuais.
+Histórico rastreado permanece no Git; a migração documental autorizada em 2026-10-04 remove fontes anteriores substituídas do checkout. Changelogs e notas de candidata são registros de versão, não autoridade sobre comportamento atual.
+
+
+---
+
+## 14. Governança de documentação
+
+Toda entrega deve seguir [Governança documental](documentacao/GOVERNANCA_DOCUMENTAL.md), vigente desde 2026-10-04. Este AGENTS.md permanece a autoridade única; o processo documental detalha sua aplicação sem alterar a precedência do §3.
+
+- Consultar as fontes do tema antes de agir e manter a documentação afetada junto com a entrega.
+- Separar proposta, decisão, implementação e evidência de validação.
+- Manter uma fonte por assunto, com responsável, estado e revisão de alcance explícito; referências apontam para ela.
+- Conferir links e coerência antes de concluir; registrar pendências com responsável e prazo/evento de revisão.
+- No PR ou retorno final, informar impacto documental e validação, ou justificar por que não há impacto.
+- Não tratar código ou material de versão como validado apenas por constar no índice. Manter fontes por tema e preservar WIP de implementação; a substituição documental autorizada segue o registro de migração.
+
+O Codex principal responde pela manutenção desse processo. A regra não exige convocar toda a squad nem altera os gates humanos existentes.

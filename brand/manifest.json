@@ -1,0 +1,52 @@
+{
+  "reviewed_at": "2026-10-04",
+  "base": "9eb1a094 + WIP local",
+  "kind": "byte-identical exports from app asset catalog; not proof of distributed build",
+  "assets": [
+    {
+      "file": "brand/linka/wordmark.svg",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/wordmark.imageset/wordmark.svg",
+      "sha256": "fa828f83f2c3954d3a4a5b1eafcf9112e0094c5ad11c5faa27dfca8b6d78a541"
+    },
+    {
+      "file": "brand/linka/wordmark-dark.svg",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/wordmark.imageset/wordmark-dark.svg",
+      "sha256": "878a41d2da799b4e6daaa6cb599df4621e3600cde8984bb5d3a27b9b16a385cc"
+    },
+    {
+      "file": "brand/linka-plus/linka-plus.svg",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/LinkaPlusWordmark.imageset/linka-plus.svg",
+      "sha256": "6a08c49043830d990545515062fef034c87801e50afd6c3bd018df1f4dd2d4b8"
+    },
+    {
+      "file": "brand/linka-plus/linka-plus-dark.svg",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/LinkaPlusWordmark.imageset/linka-plus-dark.svg",
+      "sha256": "6d33cd439e40abbc0a5f46b98410aa96f43dd94abf980854ed18429c7a071e7f"
+    },
+    {
+      "file": "brand/assist/assist-wordmark.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AssistWordmark.imageset/assist-wordmark.png",
+      "sha256": "148f29f1e5902024fc3bc83a0b503317165652bd3172eefa47337afd6bd86174"
+    },
+    {
+      "file": "brand/assist/assist-wordmark-dark.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AssistWordmark.imageset/assist-wordmark-dark.png",
+      "sha256": "f52a8b946334bcea4c0904f2096d84dd2feabbe744d0723e8529022b9a48f6ee"
+    },
+    {
+      "file": "brand/icons/AppIcon-iOS.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-iOS.png",
+      "sha256": "2c4d916c48f706ec6b63c4aa8dd7987efe9337b75b847eefdc13b9aca22449f4"
+    },
+    {
+      "file": "brand/icons/AppIcon-Mac-1x.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac-1x.png",
+      "sha256": "58f0e0a944072e69335fbc61682873383be3c2a905e70b00b7777e07071a55cc"
+    },
+    {
+      "file": "brand/icons/AppIcon-Mac@2x.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac@2x.png",
+      "sha256": "4eb259d4b390e0e94166e0839e5d22aec8e3a2b153d254d551889f90a717e2eb"
+    }
+  ]
+}

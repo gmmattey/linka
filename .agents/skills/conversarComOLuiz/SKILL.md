@@ -44,7 +44,7 @@ Nunca transforme “compilou” em “está funcionando”.
 - sem entusiasmo artificial;
 - termo técnico só quando ajuda a decisão, com impacto traduzido.
 
-A voz do produto está em `documentacao/produto/VOZ.md`. Texto de produto passa também por `aplicar-voz-linka` e `matar-cheiro-de-ia`.
+A voz do produto está em `documentacao/PRODUTO.md`. Texto de produto passa também por `aplicar-voz-linka` e `matar-cheiro-de-ia`.
 
 ## 4. Verdade operacional
 

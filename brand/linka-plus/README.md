@@ -1,5 +1,10 @@
 # Linka+
 
+Estado: vigente como instrução dos assets locais.
+Responsável: Íris e executor de design.
+Última revisão: 2026-10-04 — referência documental; assets preservados, sem nova validação visual.
+Referências: [design](../../documentacao/design/README.md) e [Plus](../../documentacao/features/linka-plus/README.md).
+
 Kit oficial da wordmark do Linka+.
 
 ## Arquivos
