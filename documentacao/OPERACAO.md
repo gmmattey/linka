@@ -63,8 +63,10 @@ O [teste de captura](../store/app-store/screenshots/AppStoreScreenshotsUITests.s
 
 ## Ficha pt-BR — base local, não enviada
 
-**Nome:** Linka: Wi-Fi e Internet  
-**Subtítulo:** Meça e acompanhe sua conexão  
+**Nome:** Linka: Wi-Fi e Internet
+
+**Subtítulo:** Meça e acompanhe sua conexão
+
 **Promocional:** Meça download, upload e ping. Consulte o histórico e compare sua conexão em diferentes locais e horários.
 
 **Descrição:** O Linka mede sua conexão no iPhone, iPad e Mac. Inicie um teste e consulte download, upload, ping e outros dados disponíveis. Guarde seus resultados no histórico e compare medições feitas em diferentes locais e horários. Veja detalhes de Wi-Fi quando disponíveis e acesse o painel do roteador da rede atual quando ele puder ser localizado e estiver acessível. Recursos adicionais do Linka Plus incluem Assist, padrões no histórico e detalhes avançados de Wi-Fi, conforme a plataforma, as permissões e a configuração. Os dados disponíveis variam conforme a conexão e o dispositivo. Uma medição descreve aquele momento. Repita o teste para acompanhar mudanças.
