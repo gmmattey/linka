@@ -1521,7 +1521,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = LinkaWidget/LinkaWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 53;
+				CURRENT_PROJECT_VERSION = 55;
 				DEVELOPMENT_TEAM = 2Z4T8228GR;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = LinkaWidget/Info.plist;
@@ -1569,7 +1569,7 @@
 				CODE_SIGN_ENTITLEMENTS = LinkaApp/LinkaApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 53;
+				CURRENT_PROJECT_VERSION = 55;
 				DEVELOPMENT_TEAM = 2Z4T8228GR;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = LinkaApp/Info.plist;
@@ -1594,7 +1594,7 @@
 				CODE_SIGN_ENTITLEMENTS = LinkaApp/LinkaApp.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 53;
+				CURRENT_PROJECT_VERSION = 55;
 				DEVELOPMENT_TEAM = 2Z4T8228GR;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = LinkaApp/Info.plist;
@@ -1616,7 +1616,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = LinkaWidget/LinkaWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 53;
+				CURRENT_PROJECT_VERSION = 55;
 				DEVELOPMENT_TEAM = 2Z4T8228GR;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = LinkaWidget/Info.plist;
