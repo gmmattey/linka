@@ -12,6 +12,7 @@
 - Área de produto proposta: **Minha Rede**. Não criar um segundo aplicativo.
 - **V1 — Meus equipamentos:** cadastro manual ou por foto, **pesquisa técnica na web com IA** por marca/modelo/revisão, sugestão de ficha técnica com fontes, confirmação da função do aparelho na instalação, **origem/propriedade e localização opcionais**, consulta/edição/exclusão. Lançar isoladamente.
 - **V2 — Perfil de rede e topologia declarada:** operadora, velocidade contratada declarada, associação voluntária de equipamentos a Ambientes e **relações entre aparelhos cadastrados**, com tipo de ligação (Ethernet/Wi-Fi/fibra/outro/não sei). Quando houver 2+ equipamentos, sugerir “Este aparelho está conectado a qual?” com opção Pular/Não sei. Não prometer descoberta/topologia automática.
+  - Especificação detalhada da V2: [Perfil de rede, plano contratado, vínculos e visão consolidada](PROPOSTA_MINHA_REDE_V2.md), com issues #285, #284, #286 e #287; **execução somente após validar V1**.
 - **V3 — Recomendações fundamentadas:** comparação de capacidades registradas com medições válidas e condições observadas; indicação explícita de evidência insuficiente. Não atribuir causalidade sem base.
 - **V4 — Assist contextual:** perguntas e orientações usando somente campos autorizados pelo usuário + medições elegíveis; memória de ações e reteste, com consentimento e transparência.
 
