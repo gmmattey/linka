@@ -10,8 +10,8 @@
 **Princípio:** a pessoa cadastra o que possui uma vez; o Linka passa a contextualizar orientações considerando os equipamentos e, progressivamente, seu plano, ambientes e medições.
 
 - Área de produto proposta: **Minha Rede**. Não criar um segundo aplicativo.
-- **V1 — Meus equipamentos:** cadastro manual ou por foto, **pesquisa técnica na web com IA** por marca/modelo/revisão, sugestão de ficha técnica com fontes, confirmação da função do aparelho na instalação, consulta/edição/exclusão. Lançar isoladamente.
-- **V2 — Perfil de rede:** operadora, velocidade contratada declarada, associação voluntária de equipamentos a ambientes e relações manuais entre modem/roteador/extensores. Não prometer topologia automática.
+- **V1 — Meus equipamentos:** cadastro manual ou por foto, **pesquisa técnica na web com IA** por marca/modelo/revisão, sugestão de ficha técnica com fontes, confirmação da função do aparelho na instalação, **origem/propriedade e localização opcionais**, consulta/edição/exclusão. Lançar isoladamente.
+- **V2 — Perfil de rede e topologia declarada:** operadora, velocidade contratada declarada, associação voluntária de equipamentos a Ambientes e **relações entre aparelhos cadastrados**, com tipo de ligação (Ethernet/Wi-Fi/fibra/outro/não sei). Quando houver 2+ equipamentos, sugerir “Este aparelho está conectado a qual?” com opção Pular/Não sei. Não prometer descoberta/topologia automática.
 - **V3 — Recomendações fundamentadas:** comparação de capacidades registradas com medições válidas e condições observadas; indicação explícita de evidência insuficiente. Não atribuir causalidade sem base.
 - **V4 — Assist contextual:** perguntas e orientações usando somente campos autorizados pelo usuário + medições elegíveis; memória de ações e reteste, com consentimento e transparência.
 
@@ -19,7 +19,7 @@
 
 ### Limites de UX
 
-- Fluxo: **Minha Rede → Adicionar equipamento → Digitar marca/modelo OU Fotografar etiqueta → Confirmar modelo/revisão → Buscar ficha técnica com IA → Conferir dados/fontes → Indicar papel na minha instalação → Salvar → Detalhes**. Se estiver offline, salvar dados manuais e oferecer completar a ficha depois.
+- Fluxo: **Minha Rede → Adicionar equipamento → Digitar marca/modelo OU Fotografar etiqueta → Confirmar modelo/revisão → Buscar ficha técnica com IA → Conferir dados/fontes → Indicar papel na minha instalação → Propriedade/origem e local (opcionais) → Salvar → Detalhes**. Na V2, ao existir outro aparelho cadastrado, oferecer associação opcional entre eles. Se estiver offline, salvar dados manuais e oferecer completar a ficha depois.
 - CTA principal: **Adicionar equipamento**. A câmera é alternativa, não barreira.
 - Tela vazia explica o benefício em linguagem comum; um único equipamento deve funcionar sem cadastrar plano, cômodos ou criar conta. A pesquisa externa requer internet e pode falhar sem impedir cadastro.
 - Dados não identificados aparecem como **Não informado**, nunca como especificação deduzida.
@@ -40,6 +40,8 @@ Criar modelo independente, por exemplo `RegisteredNetworkDevice`, em módulo de 
 | `installedRole` | não | `mainRouter`, `accessPoint`, `repeater`, `meshSatellite`, `fiberTermination`, `bridge`, `other`, `unknown`; indicação do usuário, NÃO dedução técnica definitiva |
 | `fiberDirectConnected` | não | `yes/no/unknown` declarado e confirmado pelo usuário; diferente de capacidade física de porta óptica |
 | `nickname` | não | Nome livre, ex.: “Roteador da sala” |
+| `ownershipSource` | não | `userOwned`, `ispProvided`, `thirdParty`, `unknown` — declarado pela pessoa; **não inferir fabricante/operadora pela marca** |
+| `installationLocation` | não | Local/cômodo informado manualmente; texto editável e/ou referência estável a `NetworkEnvironment.id` existente, sem atribuição automática a medições |
 | `specifications` | não | Dados estruturados e validados com referência de fonte por atributo, data de consulta e estado `verified/unverified/unknown` |
 | `enrichmentStatus` | não | `notRequested/loading/partial/complete/failed` para recuperação e novas consultas |
 | `createdAt`, `updatedAt` | sim | Datas de alteração |
@@ -80,6 +82,8 @@ O resultado da IA **não será armazenado como texto livre**. O backend deve nor
   "installation": {
     "role": "unknown",
     "fiberArrivesHere": "unknown",
+    "ownershipSource": "unknown",
+    "installationLocation": null,
     "confirmedByUser": false
   },
   "evidence": [],
@@ -112,6 +116,25 @@ A V1 **cria a estrutura e tenta preencher capacidades documentadas**; não obrig
 **Validação da IA:** propriedades internas opcionais podem ser `null`/`unknown`, mas não receber um valor default fabricado. Taxas devem ter unidade explícita (Mbps), largura de canal em MHz, bandas em GHz, e cada propriedade um `evidenceRef` verificável. Divergências entre versões/revisões permanecem não verificadas até o usuário escolher a variante correta. Não inferir porte do roteador, cobertura em m² ou número máximo de clientes quando o fabricante não documentar metodologia confiável.
 
 **Implicação de arquitetura:** a ficha técnica da V1 é **reaproveitável pelo Assist**, com `schemaVersion`, proveniência e compatibilidade retroativa. Dados sobre a residência não devem ser confundidos com características do modelo. Futuras decisões de recomendação deverão conferir suficiência/atualidade de dados, origem e plataforma antes de concluir que vale investir em outro equipamento.
+
+### Complemento — propriedade, local e conexões entre equipamentos
+
+**V1, coleta leve e opcional:**
+- **De quem é o equipamento?** “Meu”, “Fornecido pela operadora”, “Outro” ou “Não sei”. É uma declaração de origem/posse, não inferência da ficha técnica; o fato de ser fornecido pela operadora não comprova bloqueios nem contrato de comodato.
+- **Onde está instalado?** Escolher um Ambiente já existente (por ID estável) ou preencher um rótulo de localização, como “Sala”. Não exigir cômodo, nem deduzir automaticamente pela rede Wi-Fi, SSID ou GPS. Ambientes no Linka atualmente são nomes associados manualmente a medições; **associar um equipamento a um Ambiente não atribui medições automaticamente**, nem muda o comportamento existente.
+- Os dois campos devem permitir “Não sei”/“Prefiro não informar”, edição e remoção. Não enviar nomes de ambientes ou posse ao serviço de pesquisa técnica: ele precisa somente de marca/modelo/revisão/região.
+
+**V2, relações de rede declaradas progressivamente:**
+- Se houver **mais de um equipamento cadastrado**, após salvar oferecer: “Quer indicar a qual equipamento este está conectado?”. Opções “Escolher equipamento”, “Não sei” e “Agora não”. Não perguntar a quem possui um único aparelho nem impedir salvar.
+- Associar **dois IDs persistentes de equipamentos** e um `connectionMedium` padronizado: `ethernet`, `wifi`, `fiber`, `other`, `unknown`. Quando conhecido, registrar quem está a montante (de onde vem a ligação) e quem está a jusante; direção e meio podem ficar desconhecidos.
+- Contrato futuro sugerido: `DeviceConnection { id, upstreamDeviceId?, downstreamDeviceId?, endpoints: [deviceId,deviceId], connectionMedium, declaredByUser, updatedAt }`. Refinar o contrato antes do código: não duplicar pares invertidos, não permitir conexão consigo mesmo e tratar exclusão de equipamento limpando relações; exigir IDs existentes. Relações ainda não coletadas não são ausência comprovada de conexão.
+- A IA pode explicar modos suportados e sugerir perguntas, mas **não descobrir a topologia real** apenas pelo modelo do roteador, gateway ou nome da rede. Não realizar scanner local nem automatizar login em roteadores.
+- UI futura: lista simples “Conectado a: ONT da operadora — por cabo” dentro da ficha; **não exigir mapa gráfico**. Priorizar correção e edição manual; uma topologia visual é evolução opcional.
+- O Assist futuro distinguirá **dado de catálogo** (capacidade de porta/rádio), **dado declarado da instalação** (posse, cômodo, vínculos) e **métrica observada**. Isso ajuda a investigar gargalos, mas **não prova causa raiz**.
+
+**Exemplo declarado:** “Fibra → ONT Nokia (fornecida pela operadora, sala) → Ethernet → Archer C6 (meu, sala, roteador principal) → Wi‑Fi → repetidor (meu, corredor)”. Todos os vínculos dependem de confirmação da pessoa.
+
+**Estratégia de entrega:** gravar propriedade e localização na V1 com campos opcionais, sem comprometer cronograma de IA/ficha; **modelar a possibilidade de relações versionadas desde a V1**, mas entregar a edição de ligações/topologia na V2. Não exigir plano contratado ou leitura de medições para fazer o cadastro.
 
 ## 3. Identificação por fotografia
 
@@ -172,7 +195,7 @@ MinhaRedeView / DeviceFormView / DeviceDetailsView
 ## 5. Integrações e conflitos a reconciliar
 
 - A documentação de produto vigente (04/10) define o Linka primordialmente como speed test e exclui expansões de equipamentos sem decisão explícita. Esta proposta é a **nova direção solicitada**; sua aprovação exige atualizar `documentacao/PRODUTO.md`, `ARQUITETURA.md` e eventuais instruções de agentes, para não haver orientação conflitante.
-- `Ambientes` atuais são locais nomeados, associados manualmente a medições, **não** cômodos inferidos por SSID; não migrá-los nem alterar sem plano específico da V2.
+- `Ambientes` atuais são locais nomeados, associados manualmente a medições, **não** cômodos inferidos por SSID. Na V1, um equipamento pode referenciar um Ambiente existente **sem afetar medições/assignments**. Na V2, expandir relações de instalação, sem migração automática de medições. Validar integridade ao excluir/renomear um Ambiente.
 - [#142](https://github.com/gmmattey/linka/issues/142) e [#179](https://github.com/gmmattey/linka/issues/179) cuidam do **painel do roteador**; não duplicar descoberta, gestão de credenciais ou leitura de interface administrativa. As duas issues apresentam decisões diferentes sobre credenciais; resolver em trabalho próprio, fora deste inventário.
 - [#169](https://github.com/gmmattey/linka/issues/169), [#197](https://github.com/gmmattey/linka/issues/197), [#125](https://github.com/gmmattey/linka/issues/125) e [#56](https://github.com/gmmattey/linka/issues/56) se relacionam a diagnóstico/Assist; não assumir que o novo contexto já está sendo enviado ao NDS.
 - [#121](https://github.com/gmmattey/linka/issues/121) é épico anterior de “mais que um speedtest”, com quatro pilares distintos. Este plano constitui **um novo programa** sem reabrir indevidamente aquele escopo.
@@ -183,6 +206,8 @@ MinhaRedeView / DeviceFormView / DeviceDetailsView
 - [ ] Fotografar etiqueta e sugerir marca/modelo/revisão **editáveis**, com OCR local e tratamento de permissões.
 - [ ] Pesquisar informações técnicas na web por meio de backend+IA e exibir ficha estruturada, com URL e origem por atributo; confirmar antes de salvar.
 - [ ] Perguntar e registrar papel real na instalação (principal/AP/repetidor etc.) e se a fibra chega diretamente nele, permitindo “Não sei”.
+- [ ] Registrar opcionalmente se é equipamento próprio ou fornecido pela operadora e sua localização; seleção de Ambiente existente não modifica associações de medições.
+- [ ] Preparar contrato versionado para relacionamentos entre equipamentos sem afirmar topologia automática; UI opcional de ligação após 2+ equipamentos fica na V2.
 - [ ] Mostrar diferença entre “equipamento suporta X” e “equipamento está configurado como X”, sem inferência indevida.
 - [ ] Confirmar cadastro mesmo quando OCR, busca, IA ou fontes técnicas falharem; permitir completar depois.
 - [ ] Listar, abrir detalhes, editar e excluir com confirmação quando apropriado.
@@ -199,7 +224,7 @@ MinhaRedeView / DeviceFormView / DeviceDetailsView
 
 1. Revisar e incorporar esta proposta de produto (decidir Free/Plus e escopo iPad/macOS).
 2. Abrir **um épico de reposicionamento** com V1–V4, vinculado à presente proposta.
-3. V1 em issues implementáveis: **modelo/repositório**, **UX CRUD/papel na rede**, **foto/OCR**, **pesquisa web + IA estruturada**, **ficha técnica/integração/QA**.
+3. V1 em issues implementáveis: **modelo/repositório (incluindo posse, local e extensibilidade para conexões)**, **UX CRUD/papel/local**, **foto/OCR**, **pesquisa web + IA estruturada**, **ficha técnica/integração/QA**. V2 adicionará ligação manual entre equipamentos.
 4. Executar nessa ordem com dependências explícitas, PRs pequenos e testes; não abrir todas as implementações V2–V4 enquanto o contrato da V1 não estiver estabilizado.
 5. Atualizar materiais da App Store/ASO quando a funcionalidade estiver implementada e validada, não antes.
 
