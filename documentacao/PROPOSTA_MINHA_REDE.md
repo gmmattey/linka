@@ -48,6 +48,45 @@ Especificações opcionais: padrão Wi-Fi, bandas, taxas teóricas, portas Ether
 
 **Não capturar na V1:** número de série, credenciais, senha Wi-Fi, MAC/BSSID, dados da etiqueta sem utilidade. Não reaproveitar credenciais existentes para o inventário. Etiquetas podem conter senhas e outros dados pessoais.
 
+### Contrato canônico de ficha técnica (padronização para Linka)
+
+O resultado da IA **não será armazenado como texto livre**. O backend deve normalizar respostas para um contrato versionado (exemplo conceitual abaixo). Cada atributo pode ser `null`/desconhecido e precisa da sua evidência. **Modelo e revisão são chaves de correspondência**, mas não garantem que o equipamento da casa esteja no modo de operação esperado.
+
+```json
+{
+  "schemaVersion": 1,
+  "identity": {
+    "brand": "TP-Link",
+    "model": "Archer C6",
+    "hardwareRevision": null,
+    "marketRegion": "BR"
+  },
+  "deviceType": "router",
+  "technicalCapabilities": {
+    "wifiStandards": [],
+    "bandsGHz": [],
+    "lanPorts": null,
+    "wanPorts": null,
+    "wanMedia": "unknown",
+    "fiberTermination": "unknown",
+    "supportsMesh": null,
+    "supportedModes": []
+  },
+  "installation": {
+    "role": "unknown",
+    "fiberArrivesHere": "unknown",
+    "confirmedByUser": false
+  },
+  "evidence": [],
+  "enrichmentStatus": "partial",
+  "lastCheckedAt": null
+}
+```
+
+**Convenções obrigatórias:** todos os apps/clientes usam os mesmos nomes, unidades, enums e significados; versões de schema devem ter migração; `unknown` ou `null` não significam `false`; `capability` não se confunde com `configuration` nem com `measurement`. `wanMedia` usa valores tipados (por exemplo `ethernet`, `fiber`, `mixed`, `unknown`); `fiberTermination` expressa capacidade documentada e não afirma como a residência está conectada. `installation.role` e `installation.fiberArrivesHere` são **declarados/confirmados pelo usuário**, não derivados de busca. O esquema exato deve ser validado nos pacotes e testes antes da implementação.
+
+A IA/serviço pesquisa a documentação e devolve **campos canônicos + evidências por atributo**; se a fonte corresponder a outra variante ou houver conflito, o atributo permanece desconhecido. Os campos localmente salvos terão procedência `userDeclared`, `manufacturerDocumented` ou `unverified` conforme o caso. A interface distingue o que foi pesquisado, o que a pessoa confirmou e o que foi efetivamente medido pelo Linka.
+
 ## 3. Identificação por fotografia
 
 1. A pessoa escolhe fotografar a etiqueta (câmera ou seleção de imagem).
