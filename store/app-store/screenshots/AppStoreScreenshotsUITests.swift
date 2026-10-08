@@ -46,4 +46,16 @@ class AppStoreScreenshotsUITests: XCTestCase {
             takeScreenshot(name: "03-assist")
         }
     }
+
+    func testSpeedTestCTAStartsMeasurement() throws {
+        let app = XCUIApplication()
+        let speedTestButton = app.buttons["home.speedTestCTA"]
+
+        XCTAssertTrue(speedTestButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(speedTestButton.isHittable)
+
+        speedTestButton.tap()
+
+        XCTAssertTrue(app.otherElements["home.measurementInProgress"].waitForExistence(timeout: 3))
+    }
 }
