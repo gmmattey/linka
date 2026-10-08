@@ -890,3 +890,5 @@
 "inventory.firmware.unsupported" = "Sem suporte";
 
 "inventory.firmware.unknown" = "Não informado";
+
+"inventory.validation.textLength" = "Apelido e local podem ter até 200 caracteres. Reduza o texto para salvar.";

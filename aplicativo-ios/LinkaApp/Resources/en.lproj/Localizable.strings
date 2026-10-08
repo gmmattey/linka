@@ -890,3 +890,5 @@
 "inventory.firmware.unsupported" = "Unsupported";
 
 "inventory.firmware.unknown" = "Not reported";
+
+"inventory.validation.textLength" = "Nickname and location can each have up to 200 characters. Shorten the text to save.";

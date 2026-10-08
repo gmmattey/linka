@@ -1,5 +1,6 @@
 import XCTest
 import NetworkInventory
+import NetworkProfiles
 @testable import LinkaApp
 
 private actor DeferredDeviceLookup: DeviceSpecEnrichmentService {
@@ -83,4 +84,55 @@ final class DeviceEditorSessionTests: XCTestCase {
         await lookup.resolve(.init(identity: .init(model: "Wrong"), status: .partial)); await settle()
         XCTAssertNil(session.proposal); XCTAssertNotNil(session.message)
     }
+    func testDraftLengthValidationPreservesTextAndAllowsBoundary() {
+        let session = DeviceEditorSession(device: .init(identity: identity))
+        session.draft.nickname = String(repeating: "a", count: 200)
+        session.draft.installation.locationLabel = String(repeating: "b", count: 200)
+        XCTAssertTrue(session.canSave)
+        session.draft.nickname! += "x"
+        XCTAssertFalse(session.canSave)
+        XCTAssertNotNil(session.draftValidationMessage)
+        XCTAssertEqual(session.draft.nickname?.count, 201)
+        session.draft.nickname = nil
+        session.draft.installation.locationLabel! += "x"
+        XCTAssertFalse(session.canSave)
+        XCTAssertEqual(session.draft.installation.locationLabel?.count, 201)
+        session.draft.installation.locationLabel = nil
+        XCTAssertTrue(session.canSave)
+    }
+    func testUnavailableAndNotFoundHaveDifferentMessages() async {
+        let lookup = DeferredDeviceLookup()
+        let session = DeviceEditorSession(device: .init(identity: identity), enrichment: lookup)
+        session.research(); await awaitLookup(lookup)
+        await lookup.resolve(.init(identity: identity, status: .unavailable)); await settle()
+        XCTAssertEqual(session.message, LinkaCopy.value("inventory.research.unavailable"))
+        XCTAssertNil(session.proposal)
+        session.research(); await awaitLookup(lookup, count: 2)
+        await lookup.resolve(.init(identity: identity, status: .notFound)); await settle()
+        XCTAssertEqual(session.message, LinkaCopy.value("inventory.research.empty"))
+        XCTAssertNil(session.proposal)
+    }
+    func testRetryClearsPartialRemovalWithoutRequiringMeasurement() async {
+        let coordinator = OptimizationProfileCoordinator(repository: PartialRemovalProfiles())
+        let environment = NetworkEnvironment(name: "Sala")!
+        let removed = await coordinator.remove(environment)
+        XCTAssertFalse(removed)
+        XCTAssertTrue(coordinator.partialRemoval)
+        await coordinator.retryStoreAccess()
+        XCTAssertFalse(coordinator.partialRemoval)
+        XCTAssertFalse(coordinator.hasStoreError)
+    }
+
+}
+
+private actor PartialRemovalProfiles: NetworkProfileRepository {
+    func environments() async throws -> [NetworkEnvironment] { [] }
+    func environment(id: UUID) async throws -> NetworkEnvironment? { nil }
+    func create(_ environment: NetworkEnvironment) async throws {}
+    func rename(id: UUID, to name: String, updatedAt: Date) async throws {}
+    func remove(id: UUID) async throws { throw NetworkInventoryError.partialEnvironmentRemoval }
+    func assignment(for measurementID: UUID) async throws -> EnvironmentMeasurementAssignment? { nil }
+    func assignments(for environmentID: UUID) async throws -> [EnvironmentMeasurementAssignment] { [] }
+    func assign(measurementID: UUID, to environmentID: UUID, assignedAt: Date) async throws {}
+    func createAndAssign(_ environment: NetworkEnvironment, measurementID: UUID, assignedAt: Date) async throws {}
 }

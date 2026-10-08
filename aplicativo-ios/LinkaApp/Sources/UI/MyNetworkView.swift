@@ -168,6 +168,7 @@ private struct DeviceEditorView: View {
                 identitySection
                 installationSection
                 researchSection
+                if let validation = session.draftValidationMessage { Section { Text(validation).foregroundStyle(.red) } }
                 if let message = session.message { Section { Text(message).foregroundStyle(.secondary) } }
                 if let error = store.error { Section { Text(error).foregroundStyle(.red) } }
             }
@@ -187,7 +188,7 @@ private struct DeviceEditorView: View {
                         saving = true; session.cancel()
                         Task { if await store.save(session.draft) { dismiss() }; saving = false }
                     }
-                    .disabled(!session.draft.identity.isValid || saving)
+                    .disabled(!session.canSave || saving)
                     .accessibilityIdentifier("inventory.save")
                 }
             }

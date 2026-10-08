@@ -58,6 +58,14 @@ final class DeviceEditorSession: ObservableObject {
             }
         }
     }
+    var draftValidationMessage: String? {
+        if (draft.nickname?.count ?? 0) > 200 || (draft.installation.locationLabel?.count ?? 0) > 200 {
+            return LinkaCopy.value("inventory.validation.textLength")
+        }
+        return nil
+    }
+    var canSave: Bool { draft.identity.isValid && draftValidationMessage == nil }
+
     func research() {
         guard isActive, draft.identity.isValid else { return }
         cancel()
@@ -70,9 +78,11 @@ final class DeviceEditorSession: ObservableObject {
                 guard let self, !Task.isCancelled, self.isActive, self.generation == token, self.draft.id == deviceID, self.draft.identity == identity else { return }
                 try result.validate(for: identity)
                 self.researching = false
-                if result.status == .unavailable || result.status == .notFound {
-                    self.message = LinkaCopy.value("inventory.research.empty")
-                } else { self.proposal = result }
+                switch result.status {
+                case .unavailable: self.message = LinkaCopy.value("inventory.research.unavailable")
+                case .notFound: self.message = LinkaCopy.value("inventory.research.empty")
+                case .complete, .partial: self.proposal = result
+                }
             } catch {
                 guard let self, !Task.isCancelled, self.isActive, self.generation == token, self.draft.id == deviceID, self.draft.identity == identity else { return }
                 self.researching = false; self.message = LinkaCopy.value("inventory.research.failed")

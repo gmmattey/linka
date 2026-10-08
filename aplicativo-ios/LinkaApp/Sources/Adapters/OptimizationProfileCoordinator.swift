@@ -42,7 +42,7 @@ final class OptimizationProfileCoordinator: ObservableObject {
         await loadStore()
     }
 
-    func retryStoreAccess() async { guard currentMeasurement != nil else { return }; await loadStore() }
+    func retryStoreAccess() async { partialRemoval = false; await loadStore() }
     func loadEnvironments() async { await loadStore() }
 
     func assignCurrentMeasurement(to environment: NetworkEnvironment) async -> Bool {
