@@ -15,7 +15,7 @@ struct NetworkProfilesSection: View {
         macOSCurrentMeasurementContent
         #else
         Group {
-            if coordinator.hasStoreError {
+            if coordinator.hasStoreError || coordinator.partialRemoval {
                 Section { Text(LinkaCopy.value("environments.storeError.message")).foregroundStyle(.secondary); Button(LinkaCopy.value("environments.storeError.retry")) { Task { await coordinator.retryStoreAccess() } } }
             }
             Section(LinkaCopy.value("environments.current.title")) { currentMeasurementContent }
@@ -25,7 +25,7 @@ struct NetworkProfilesSection: View {
 
     #if os(macOS)
     @ViewBuilder private var macOSCurrentMeasurementContent: some View {
-        if coordinator.hasStoreError {
+        if coordinator.hasStoreError || coordinator.partialRemoval {
             Text(LinkaCopy.value("environments.storeError.message"))
                 .foregroundStyle(.secondary)
             Button(LinkaCopy.value("environments.storeError.retry")) {
@@ -289,11 +289,21 @@ private struct NetworkEnvironmentDetailView: View {
     @State private var renamePresented = false
     @State private var deletePresented = false
 
+    private var removalError: some View {
+        Group {
+            if coordinator.hasStoreError || coordinator.partialRemoval {
+                Text(LinkaCopy.value(coordinator.partialRemoval ? "inventory.environment.partial" : "environments.storeError.message"))
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
     var body: some View {
         #if os(macOS)
         macOSContent
         #else
         List {
+            removalError
             Section(LinkaCopy.value("environments.reference.title")) {
                 Text(referenceLabel).foregroundStyle(.secondary)
                 Text(LinkaCopy.value("environments.reference.message")).font(.footnote).foregroundStyle(.secondary)
@@ -320,6 +330,7 @@ private struct NetworkEnvironmentDetailView: View {
     private var macOSContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
+                removalError
                 VStack(alignment: .leading, spacing: 6) {
                     Text(environment.name)
                         .font(.title.weight(.bold))

@@ -13,6 +13,7 @@ import NetworkOptimization
 private enum MacDestination: Hashable {
     case speedTest
     case history
+    case myNetwork
     case assist
     case optimization
     case settings
@@ -141,6 +142,8 @@ struct MacMainView: View {
                             rightPanel
                                 .frame(width: 280)
                         }
+                    case .myNetwork:
+                        MyNetworkView()
                     case .history:
                         historyView
                     case .assist:
@@ -326,6 +329,9 @@ struct MacMainView: View {
             sidebarNavItem(LinkaCopy.value("Velocímetro"), systemImage: "gauge.medium", dest: .speedTest, disabled: false)
             sidebarNavItem(LinkaCopy.value("Histórico"), systemImage: "chart.bar", dest: .history, disabled: isMeasuring)
 
+            if MinhaRedeAvailability.isEnabled {
+                sidebarNavItem(LinkaCopy.value("inventory.title"), systemImage: "wifi.router", dest: .myNetwork, disabled: isMeasuring)
+            }
             sidebarGroupLabel("Ferramentas").padding(.top, 8)
             sidebarNavItem("Assist", systemImage: "sparkles", dest: .assist, disabled: isMeasuring)
             sidebarNavItem(LinkaCopy.value("optimization.title"), systemImage: "slider.horizontal.3", dest: .optimization, disabled: isMeasuring || currentMeasurement == nil)

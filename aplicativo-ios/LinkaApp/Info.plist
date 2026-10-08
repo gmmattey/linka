@@ -52,6 +52,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Fotografe a etiqueta para preencher marca e modelo. A imagem é lida neste aparelho e não é enviada nem salva pelo Linka.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>O Linka consulta o roteador da rede local para identificar o equipamento e diagnosticar a qualidade da conexão Wi-Fi.</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>

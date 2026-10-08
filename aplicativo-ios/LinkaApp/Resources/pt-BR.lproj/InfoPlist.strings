@@ -1,3 +1,5 @@
 "NSLocationWhenInUseUsageDescription" = "O Linka usa a localização apenas porque o iPhone exige essa autorização para informar o nome da rede Wi-Fi atual. Sua localização não é salva para identificar a rede.";
 "NSLocalNetworkUsageDescription" = "O Linka consulta o roteador da rede local para identificar o equipamento e diagnosticar a qualidade da conexão Wi-Fi.";
 "NSUserTrackingUsageDescription" = "Sua permissão permite medir o desempenho dos anúncios. O Linka continua solicitando anúncios não personalizados.";
+
+"NSCameraUsageDescription" = "Fotografe a etiqueta para preencher marca e modelo. A imagem é lida neste aparelho e não é enviada nem salva pelo Linka.";
