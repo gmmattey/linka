@@ -69,8 +69,13 @@ O resultado da IA **não será armazenado como texto livre**. O backend deve nor
     "wanPorts": null,
     "wanMedia": "unknown",
     "fiberTermination": "unknown",
+    "ethernetPortSpeedsMbps": [],
+    "radioCapabilities": [],
     "supportsMesh": null,
-    "supportedModes": []
+    "meshTechnology": null,
+    "supportedBackhaul": [],
+    "supportedModes": [],
+    "firmwareSupportStatus": "unknown"
   },
   "installation": {
     "role": "unknown",
@@ -86,6 +91,27 @@ O resultado da IA **não será armazenado como texto livre**. O backend deve nor
 **Convenções obrigatórias:** todos os apps/clientes usam os mesmos nomes, unidades, enums e significados; versões de schema devem ter migração; `unknown` ou `null` não significam `false`; `capability` não se confunde com `configuration` nem com `measurement`. `wanMedia` usa valores tipados (por exemplo `ethernet`, `fiber`, `mixed`, `unknown`); `fiberTermination` expressa capacidade documentada e não afirma como a residência está conectada. `installation.role` e `installation.fiberArrivesHere` são **declarados/confirmados pelo usuário**, não derivados de busca. O esquema exato deve ser validado nos pacotes e testes antes da implementação.
 
 A IA/serviço pesquisa a documentação e devolve **campos canônicos + evidências por atributo**; se a fonte corresponder a outra variante ou houver conflito, o atributo permanece desconhecido. Os campos localmente salvos terão procedência `userDeclared`, `manufacturerDocumented` ou `unverified` conforme o caso. A interface distingue o que foi pesquisado, o que a pessoa confirmou e o que foi efetivamente medido pelo Linka.
+
+### Campos necessários para futuras avaliações de adequação e troca
+
+A V1 **cria a estrutura e tenta preencher capacidades documentadas**; não obriga o usuário a fornecer todas as informações nem antecipa o algoritmo de recomendação. Organizar os dados em três grupos separados:
+
+| Categoria | Dados a armazenar, quando disponíveis | Origem e fase |
+|---|---|---|
+| **Identidade da variante** | Fabricante, modelo, revisão de hardware, região, tipo de equipamento | Usuário + pesquisa oficial, V1 |
+| **Capacidades Wi-Fi** | Padrões IEEE (Wi-Fi 4/5/6/6E/7 quando documentado), bandas 2,4/5/6 GHz, largura máxima de canal por banda, taxa PHY anunciada **por banda**, streams espaciais/MIMO por banda (se documentado) | IA + manual/datasheet com fonte, V1 |
+| **Capacidades cabeadas/fibra** | Número de portas e velocidades nominais LAN/WAN por porta (ex.: 100/1000/2500 Mbps), mídia WAN Ethernet/óptica/SFP, padrão de terminação de fibra quando houver (GPON/XGS-PON, se documentado) | IA + manual/datasheet, V1 |
+| **Topologia possível** | Modos suportados (roteador, AP, bridge, repetidor), tecnologia Mesh específica (não confundir EasyMesh/OneMesh/mesh proprietário), suporte de backhaul Ethernet/Wi-Fi | IA + manual/datasheet, V1 |
+| **Ciclo de vida** | Versão/linha de firmware publicamente documentada, suporte/atualizações quando verificáveis, datas de lançamento/descontinuação somente com fonte | IA + fonte oficial, V1, todos opcionais |
+| **Instalação real** | Qual aparelho é principal; se recebe fibra; posição/cômodo, equipamento a montante/jusante e tipo de ligação real (cabo ou Wi-Fi) | Papel básico declarado e confirmado, V1; relações/cômodos detalhados, V2 |
+| **Demanda da casa** | Operadora, plano de download/upload contratado, quantidade aproximada de dispositivos, principais usos (jogos, vídeo, trabalho) e problemas relatados | Declaração do usuário, V2; opcional |
+| **Evidências observadas** | Download/upload, RTT, jitter, perda, responsividade sob carga, bandas/SSID/sinal **apenas se disponíveis confiavelmente na plataforma**, ambiente e data de teste | Medições reais já existentes ou futuras do Linka, associadas de forma explícita, V3 |
+
+**Exemplos de avaliação futura:** (a) plano de 600 Mbps vs porta WAN de 100 Mbps documentada pode indicar limitação potencial, dependendo da topologia; (b) cobertura ruim em cômodo distante não implica troca do roteador sem medições/contexto; (c) roteador com Wi-Fi 6 não prova experiência Wi-Fi 6 no aparelho do usuário. **Nunca concluir causa raiz apenas por ficha técnica ou velocidade teórica de rádio.** Distinguir capacidade máxima teórica, limite físico, configuração declarada e resultado medido.
+
+**Validação da IA:** propriedades internas opcionais podem ser `null`/`unknown`, mas não receber um valor default fabricado. Taxas devem ter unidade explícita (Mbps), largura de canal em MHz, bandas em GHz, e cada propriedade um `evidenceRef` verificável. Divergências entre versões/revisões permanecem não verificadas até o usuário escolher a variante correta. Não inferir porte do roteador, cobertura em m² ou número máximo de clientes quando o fabricante não documentar metodologia confiável.
+
+**Implicação de arquitetura:** a ficha técnica da V1 é **reaproveitável pelo Assist**, com `schemaVersion`, proveniência e compatibilidade retroativa. Dados sobre a residência não devem ser confundidos com características do modelo. Futuras decisões de recomendação deverão conferir suficiência/atualidade de dados, origem e plataforma antes de concluir que vale investir em outro equipamento.
 
 ## 3. Identificação por fotografia
 
