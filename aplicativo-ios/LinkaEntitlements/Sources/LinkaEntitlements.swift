@@ -52,6 +52,14 @@ public enum LinkaAccessReason: String, Codable, Sendable {
     case invalidSnapshot
 }
 
+/// Acesso aos recursos Plus e ausência de anúncios são regras diferentes.
+/// A campanha libera recursos, mas não converte a pessoa em assinante pago.
+public enum LinkaAdEligibility: Equatable, Sendable {
+    case eligibleFree
+    case paidPlus
+    case unresolvedEntitlement
+}
+
 /// Campanha de lançamento: todos os recursos ficam disponíveis sem compra
 /// até o fim de 31/10/2026 no horário de São Paulo.
 ///
@@ -64,12 +72,16 @@ public enum LinkaTemporaryFreeOffer {
         date <= endsAt
     }
 
-    public static func isActive(at date: Date = Date()) -> Bool {
+    public static var isSupportedOnCurrentPlatform: Bool {
         #if os(iOS)
-        return isWithinOfferPeriod(at: date)
+        return true
         #else
         return false
         #endif
+    }
+
+    public static func isActive(at date: Date = Date()) -> Bool {
+        isSupportedOnCurrentPlatform && isWithinOfferPeriod(at: date)
     }
 }
 
@@ -108,6 +120,26 @@ public struct LinkaEntitlementSnapshot: Codable, Equatable, Sendable {
             source: source,
             validUntil: validUntil
         )
+    }
+}
+
+/// Resolve acesso do app e dos App Intents pela mesma precedência.
+/// A compra deve vir de uma transação StoreKit já verificada pelo chamador.
+public enum LinkaEntitlementSnapshotResolver {
+    public static func resolve(
+        verifiedPurchase: LinkaEntitlementSnapshot? = nil,
+        at date: Date = Date(),
+        promotionSupported: Bool = LinkaTemporaryFreeOffer.isSupportedOnCurrentPlatform
+    ) -> LinkaEntitlementSnapshot {
+        if let verifiedPurchase,
+           [.subscription, .trial, .lifetime].contains(verifiedPurchase.source),
+           LinkaEntitlementPolicy.hasAccess(to: .appleIntegrations, snapshot: verifiedPurchase, at: date) {
+            return verifiedPurchase
+        }
+        if promotionSupported && LinkaTemporaryFreeOffer.isWithinOfferPeriod(at: date) {
+            return .plus(status: .active, source: .promotion, validUntil: LinkaTemporaryFreeOffer.endsAt)
+        }
+        return .free
     }
 }
 
@@ -186,6 +218,45 @@ public enum LinkaEntitlementPolicy {
         at date: Date = Date()
     ) -> Bool {
         decision(for: capability, snapshot: snapshot, at: date).isGranted
+    }
+
+    /// A campanha temporária continua sendo uma experiência Free para fins de
+    /// publicidade. Assinaturas, trials do StoreKit e compras vitalícias são
+    /// Plus sem anúncios enquanto estiverem válidos.
+    public static func adEligibility(
+        for snapshot: LinkaEntitlementSnapshot,
+        at date: Date = Date()
+    ) -> LinkaAdEligibility {
+        guard isStructurallyValid(snapshot) else {
+            return .unresolvedEntitlement
+        }
+
+        guard snapshot.status != .unknown else { return .unresolvedEntitlement }
+
+        guard snapshot.plan == .plus else {
+            return .eligibleFree
+        }
+
+        guard snapshot.status == .active,
+              snapshot.validUntil.map({ $0 > date }) ?? true else {
+            return .eligibleFree
+        }
+
+        switch snapshot.source {
+        case .promotion:
+            return .eligibleFree
+        case .subscription, .trial, .lifetime:
+            return .paidPlus
+        case .free:
+            return .unresolvedEntitlement
+        }
+    }
+
+    public static func shouldShowAds(
+        for snapshot: LinkaEntitlementSnapshot,
+        at date: Date = Date()
+    ) -> Bool {
+        adEligibility(for: snapshot, at: date) == .eligibleFree
     }
 
     private static func isStructurallyValid(_ snapshot: LinkaEntitlementSnapshot) -> Bool {

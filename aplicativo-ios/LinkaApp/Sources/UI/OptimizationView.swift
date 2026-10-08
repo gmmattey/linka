@@ -104,6 +104,7 @@ struct OptimizationView: View {
                          : LinkaCopy.value("optimization.preview.hint"))
                 }
             }
+            .linkaGradientScreenBackground()
             .navigationTitle(LinkaCopy.value("optimization.title"))
             .task(id: baseline.id) {
                 await profileCoordinator.refresh(
@@ -325,7 +326,10 @@ struct OptimizationRetestResultView: View {
                 Image(systemName: symbol).font(.largeTitle).foregroundStyle(.tint)
                 Text(title).font(.title3.weight(.semibold))
                 Text(message).multilineTextAlignment(.center).foregroundStyle(.secondary)
-            }.padding(32).navigationTitle(LinkaCopy.value("optimization.title"))
+            }
+            .padding(32)
+            .linkaStaticScreenBackground()
+            .navigationTitle(LinkaCopy.value("optimization.title"))
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button(LinkaCopy.value("common.close")) { dismiss() } } }
         }
     }

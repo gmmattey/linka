@@ -116,7 +116,7 @@ struct AssistView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.surfacePage
+                LinkaScreenBackground(variant: .gradientOnly, showWaves: false)
                     .ignoresSafeArea()
                 contentView
             }

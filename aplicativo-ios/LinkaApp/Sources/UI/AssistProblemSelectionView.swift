@@ -430,6 +430,7 @@ struct AssistProblemSelectionView: View {
                 }
             }
         }
+        .linkaGradientScreenBackground()
     }
 
     // MARK: - Etapa 2 — subcategoria
@@ -453,6 +454,7 @@ struct AssistProblemSelectionView: View {
                 }
             }
         }
+        .linkaGradientScreenBackground()
     }
 
     // MARK: - Etapa alternativa — "Outro problema"
@@ -484,6 +486,7 @@ struct AssistProblemSelectionView: View {
                 .disabled(reportedProblemText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
+        .linkaGradientScreenBackground()
         .onAppear { reportedProblemText = "" }
     }
 

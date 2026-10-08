@@ -69,6 +69,7 @@ public struct UsageSuitabilityReport: Codable, Equatable, Sendable {
 public struct UsageSuitabilityThresholds: Equatable, Sendable {
     public var videoCallMinUploadMbps: Double
     public var videoCallMaxLatencyMs: Double
+    public var videoCallMaxJitterMs: Double
     public var videoCallMaxPacketLossPercent: Double
 
     public var streamingHDMinDownloadMbps: Double
@@ -88,6 +89,7 @@ public struct UsageSuitabilityThresholds: Equatable, Sendable {
     public init(
         videoCallMinUploadMbps: Double = 3,
         videoCallMaxLatencyMs: Double = 150,
+        videoCallMaxJitterMs: Double = 30,
         videoCallMaxPacketLossPercent: Double = 2,
         streamingHDMinDownloadMbps: Double = 5,
         streaming4KMinDownloadMbps: Double = 25,
@@ -102,6 +104,7 @@ public struct UsageSuitabilityThresholds: Equatable, Sendable {
     ) {
         self.videoCallMinUploadMbps = videoCallMinUploadMbps
         self.videoCallMaxLatencyMs = videoCallMaxLatencyMs
+        self.videoCallMaxJitterMs = videoCallMaxJitterMs
         self.videoCallMaxPacketLossPercent = videoCallMaxPacketLossPercent
         self.streamingHDMinDownloadMbps = streamingHDMinDownloadMbps
         self.streaming4KMinDownloadMbps = streaming4KMinDownloadMbps
@@ -157,11 +160,20 @@ public struct UsageSuitabilityEvaluator: UsageSuitabilityEvaluating {
     // MARK: - Chamada em vídeo
 
     private func evaluateVideoCall(_ measurement: NetworkMeasurement) -> UsageCaseVerdict {
+        guard hasCompletedProbeEvidence(measurement) else {
+            return verdict(.videoCall, .notAssessed, .packetLossPercent)
+        }
         guard let uploadMbps = measurement.uploadMbps else {
             return verdict(.videoCall, .notAssessed, .uploadMbps)
         }
         guard let latencyMs = measurement.latencyMs else {
             return verdict(.videoCall, .notAssessed, .latencyMs)
+        }
+        guard let jitterMs = measurement.jitterMs else {
+            return verdict(.videoCall, .notAssessed, .jitterMs)
+        }
+        guard let loadedLatency = worstTrustedLoadedLatency(measurement) else {
+            return verdict(.videoCall, .notAssessed, .loadedLatencyMs)
         }
 
         if uploadMbps < thresholds.videoCallMinUploadMbps {
@@ -169,6 +181,12 @@ public struct UsageSuitabilityEvaluator: UsageSuitabilityEvaluating {
         }
         if latencyMs > thresholds.videoCallMaxLatencyMs {
             return verdict(.videoCall, .limited, .latencyMs)
+        }
+        if jitterMs > thresholds.videoCallMaxJitterMs {
+            return verdict(.videoCall, .limited, .jitterMs)
+        }
+        if loadedLatency > thresholds.videoCallMaxLatencyMs {
+            return verdict(.videoCall, .limited, .loadedLatencyMs)
         }
 
         return verdict(
@@ -217,24 +235,33 @@ public struct UsageSuitabilityEvaluator: UsageSuitabilityEvaluating {
     // MARK: - Jogo online
 
     private func evaluateOnlineGaming(_ measurement: NetworkMeasurement) -> UsageCaseVerdict {
+        guard hasCompletedProbeEvidence(measurement) else {
+            return verdict(.onlineGaming, .notAssessed, .packetLossPercent)
+        }
+        guard let reference = measurement.regionalGameReference,
+              reference.status == .measured,
+              let referenceLatency = reference.p50LatencyMs else {
+            return verdict(.onlineGaming, .notAssessed, .latencyMs)
+        }
         // Preferimos latência sob carga quando existir — mais representativa
         // de jogo online (conexão ocupada) que o ping isolado — mas caímos
         // para `latencyMs` quando o motor não calculou `loadedLatencyMs`
         // para este teste, em vez de marcar como não avaliado à toa.
-        let trustedLoadedLatency = measurement.trustedLoadedLatencies.downloadMs
-        let latencyMetric: NetworkMetric = trustedLoadedLatency != nil ? .loadedLatencyMs : .latencyMs
-        guard let latencyMs = trustedLoadedLatency ?? measurement.latencyMs else {
-            return verdict(.onlineGaming, .notAssessed, .latencyMs)
+        guard let latencyMs = worstTrustedLoadedLatency(measurement) else {
+            return verdict(.onlineGaming, .notAssessed, .loadedLatencyMs)
         }
         guard let jitterMs = measurement.jitterMs else {
             return verdict(.onlineGaming, .notAssessed, .jitterMs)
         }
 
         if latencyMs > thresholds.onlineGamingMaxLatencyMs {
-            return verdict(.onlineGaming, .limited, latencyMetric)
+            return verdict(.onlineGaming, .limited, .loadedLatencyMs)
         }
         if jitterMs > thresholds.onlineGamingMaxJitterMs {
             return verdict(.onlineGaming, .limited, .jitterMs)
+        }
+        if referenceLatency > thresholds.onlineGamingMaxLatencyMs {
+            return verdict(.onlineGaming, .limited, .latencyMs)
         }
 
         return verdict(
@@ -294,6 +321,16 @@ public struct UsageSuitabilityEvaluator: UsageSuitabilityEvaluating {
             return (.limited, .packetLossPercent)
         }
         return (.adequate, nil)
+    }
+
+    private func hasCompletedProbeEvidence(_ measurement: NetworkMeasurement) -> Bool {
+        measurement.packetProbeEvidence?.completed == true
+    }
+
+    private func worstTrustedLoadedLatency(_ measurement: NetworkMeasurement) -> Double? {
+        let loaded = measurement.trustedLoadedLatencies
+        guard let download = loaded.downloadMs, let upload = loaded.uploadMs else { return nil }
+        return max(download, upload)
     }
 
     private func verdict(

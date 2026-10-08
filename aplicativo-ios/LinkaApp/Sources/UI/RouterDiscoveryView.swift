@@ -81,6 +81,7 @@ struct RouterDiscoveryView: View {
                 }
             }
         }
+        .linkaGradientScreenBackground()
         .navigationTitle(LinkaCopy.value("router.title"))
         .onAppear {
             if let data = KeychainHelper.shared.read(service: service, account: "router_admin"),

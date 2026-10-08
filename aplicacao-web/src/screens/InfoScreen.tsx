@@ -52,7 +52,7 @@ const pages: Record<string, InfoPage> = {
     eyebrow: 'Privacidade',
     title: 'Privacidade levada a sério.',
     intro: 'Luiz F. Giammattey é o responsável pelo Linka. Esta política explica quais dados o app usa, por quê e quais escolhas você tem.',
-    lastUpdated: '19 de setembro de 2026',
+    lastUpdated: '8 de outubro de 2026',
     sections: [
       {
         title: 'Dados usados na medição',
@@ -71,12 +71,12 @@ const pages: Record<string, InfoPage> = {
         body: 'Quando você usa o Assist, o Linka envia ao seu serviço de diagnóstico o contexto necessário para responder à sua pergunta, como resultados de medição, tipo de conexão e dados técnicos de Wi-Fi que estejam disponíveis. Endereços locais e URLs de administração do roteador não são enviados nesse diagnóstico.'
       },
       {
-        title: 'Publicidade no Histórico',
-        body: 'A versão gratuita pode exibir anúncios nativos fornecidos pelo Google AdMob somente no Histórico, depois que há medições para mostrar. O Linka Plus não exibe nem solicita esses anúncios. Não mostramos anúncios durante a medição nem na tela de resultado.'
+        title: 'Publicidade',
+        body: 'A versão Free pode exibir anúncios nativos fornecidos pelo Google AdMob na tela inicial e, quando há medições para mostrar, no Histórico. A promoção temporária de recursos Plus continua sendo Free para publicidade; apenas o Linka Plus pago não exibe nem solicita anúncios. Não mostramos anúncios durante a medição, na tela de resultado ou em erro.'
       },
       {
         title: 'Dados relacionados a anúncios',
-        body: 'Quando um anúncio é solicitado, o Google pode tratar categorias como identificadores técnicos, informações de uso e diagnóstico para fornecer, proteger, medir e limitar a frequência de anúncios, conforme as configurações e políticas aplicáveis do Google. O Linka solicita tratamento não personalizado (npa=1), mas isso não elimina os tratamentos necessários ao fornecimento, à segurança e à medição do anúncio.'
+        body: 'Quando um anúncio é solicitado, o Google pode tratar categorias como identificadores técnicos, informações de uso e diagnóstico para fornecer, proteger, medir e limitar a frequência de anúncios, conforme as configurações e políticas aplicáveis do Google. O Linka solicita anúncios não personalizados (npa=1) e não pede permissão de rastreamento (App Tracking Transparency). A opção não personalizada não elimina os tratamentos necessários ao fornecimento, à segurança e à medição do anúncio.'
       },
       {
         title: 'Suas escolhas de anúncios',
@@ -92,6 +92,50 @@ const pages: Record<string, InfoPage> = {
         action: {
           href: 'mailto:suporte@linka.app?subject=Privacidade%20Linka',
           label: 'Falar com suporte@linka.app'
+        }
+      }
+    ]
+  },
+  '/casawifi/privacidade': {
+    eyebrow: 'WiFi Casa · Privacidade',
+    title: 'Privacidade 100% no seu aparelho.',
+    intro: 'Luiz F. Giammattey (Buildea) é o responsável pelo WiFi Casa. Esta política explica como o aplicativo protege rigorosamente a sua privacidade.',
+    lastUpdated: '20 de setembro de 2026',
+    sections: [
+      {
+        title: 'O que o app faz',
+        body: 'O WiFi Casa é um utilitário para iOS projetado para mapear a cobertura Wi-Fi residencial e diagnosticar a qualidade da conexão em cada cômodo, identificando onde o sinal falha e se a lentidão decorre do Wi-Fi local ou da sua operadora de internet.'
+      },
+      {
+        title: 'Privacidade por Design (100% Local)',
+        body: 'Todos os cômodos, plantas residenciais, medições de latência, jitter, perda de pacotes e o histórico comparativo (Antes × Depois) são processados e armazenados exclusivamente no seu dispositivo (via SwiftData). Nenhuma planta residencial ou mapa de calor é enviado a servidores externos.'
+      },
+      {
+        title: 'Sem Contas ou Cadastros',
+        body: 'O app não exige cadastro, criação de conta, login social, e-mail ou número de telefone. Você utiliza todos os recursos sem qualquer coleta de dados pessoais de identificação.'
+      },
+      {
+        title: 'Permissões do Sistema',
+        body: 'Rede Local: usada estritamente para medir a latência e estabilidade direta com seu roteador residencial (Gateway). Nome do Wi-Fi (SSID): o iOS exige autorização de localização para exibir o nome da rede; o WiFi Casa não monitora, não compartilha sua geolocalização e não constrói histórico de localização.'
+      },
+      {
+        title: 'Tráfego de Medição Externa (WAN)',
+        body: 'Para diagnosticar o segmento de internet e isolar falhas da operadora, o app troca pacotes com servidores públicos de referência. O endereço IP público da sua conexão é tecnicamente necessário para a resposta, sem qualquer uso para criar perfis de usuário.'
+      },
+      {
+        title: 'Sem Rastreamento ou Anúncios',
+        body: 'O WiFi Casa não possui anúncios publicitários, não rastreia usuários (sem IDFA) e não compartilha dados com terceiros ou corretores de dados.'
+      },
+      {
+        title: 'Exclusão de Dados',
+        body: 'Você pode apagar qualquer medição, cômodo ou comparativo diretamente pelo app a qualquer momento, ou desinstalar o app para remover todos os dados locais permanentemente.'
+      },
+      {
+        title: 'Fale sobre Privacidade',
+        body: 'Para dúvidas ou solicitações sobre privacidade ou suporte do WiFi Casa, entre em contato:',
+        action: {
+          href: 'mailto:privacidade@linka.app?subject=Privacidade%20WiFi%20Casa',
+          label: 'Falar com privacidade@linka.app'
         }
       }
     ]

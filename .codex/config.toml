@@ -1,5 +1,5 @@
 # Configuração de projeto do Codex para o Linka.
-# AGENTS.md continua sendo a autoridade de governança do repositório.
+# AGENTS.md é a entrada; documentacao/GOVERNANCA.md contém a autoridade normativa.
 
 [agents]
 enabled = true

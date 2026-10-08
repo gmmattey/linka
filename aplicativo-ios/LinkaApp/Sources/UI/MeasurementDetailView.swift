@@ -303,6 +303,7 @@ struct MeasurementDetailView: View {
                 }
             }
         }
+        .linkaGradientScreenBackground()
         .navigationTitle(LinkaCopy.value("detail.title"))
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)

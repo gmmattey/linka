@@ -208,6 +208,31 @@ final class AssistViewModel: ObservableObject {
             }
         }
 
+        // Evidência local aditiva: o transporte NDS continua recebendo só a
+        // medição canônica até que o Worker aceite um contrato versionado.
+        if let probes = currentMeasurement.packetProbeEvidence {
+            allEvidence.append(NetworkAssistEvidence(
+                id: "stability-loss:\(currentMeasurement.id.uuidString.lowercased())",
+                kind: .statistic,
+                metricKey: "packetProbeLossPercent",
+                value: probes.packetLossPercent,
+                unit: "%",
+                direction: probes.expandedAfterInitialWindow ? "expanded" : "initial",
+                sourceMeasurementIDs: [currentMeasurement.id]
+            ))
+        }
+        if let reference = currentMeasurement.regionalGameReference {
+            allEvidence.append(NetworkAssistEvidence(
+                id: "regional-game-reference:\(currentMeasurement.id.uuidString.lowercased())",
+                kind: .statistic,
+                metricKey: "regionalGameReferenceP50Ms",
+                value: reference.p50LatencyMs,
+                unit: "ms",
+                direction: reference.status.rawValue,
+                sourceMeasurementIDs: [currentMeasurement.id]
+            ))
+        }
+
         return NetworkAssistContext(
             question: LinkaCopy.value("assist.defaultQuestion"),
             currentMeasurement: currentMeasurement,

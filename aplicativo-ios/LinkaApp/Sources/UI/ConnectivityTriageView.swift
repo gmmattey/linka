@@ -60,7 +60,7 @@ struct ConnectivityTriageView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .background(Color.surfacePage.ignoresSafeArea())
+            .linkaStaticScreenBackground()
             .linkaSheetToolbar(title: LinkaCopy.value("triage.title")) { dismiss() }
             .task {
                 do {

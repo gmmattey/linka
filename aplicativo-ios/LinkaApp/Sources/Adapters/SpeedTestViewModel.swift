@@ -110,6 +110,9 @@ public class SpeedTestViewModel: ObservableObject {
     /// (teste já concluído, `uiPhase == .done`) — escrita continua só interna
     /// a esta classe.
     public private(set) var loadedLatencyMs: Double? = nil
+    /// Evidência formal de estabilidade; não é publicada durante a medição.
+    public private(set) var packetProbeEvidence: PacketProbeEvidence? = nil
+    public private(set) var regionalGameReference: RegionalGameReference? = nil
 
     /// Latência sob carga durante upload (issue #128, paridade com
     /// `loadedLatencyMs`) — mesmo motivo de não ser `@Published`.
@@ -337,6 +340,8 @@ public class SpeedTestViewModel: ObservableObject {
             self.testDuration = ""
         }
         self.packetLossPercent = measurement.packetLossPercent
+        self.packetProbeEvidence = measurement.packetProbeEvidence
+        self.regionalGameReference = measurement.regionalGameReference
         self.loadedLatencyMs = measurement.loadedLatencyMs
         self.loadedLatencyUploadMs = measurement.loadedLatencyUploadMs
         self.loadResponsiveness = measurement.loadResponsiveness
@@ -383,6 +388,8 @@ public class SpeedTestViewModel: ObservableObject {
         networkType = ""
         testDuration = ""
         loadedLatencyMs = nil
+        packetProbeEvidence = nil
+        regionalGameReference = nil
         loadedLatencyUploadMs = nil
         loadResponsiveness = nil
         dnsResolutionMs = nil
@@ -505,6 +512,8 @@ public class SpeedTestViewModel: ObservableObject {
                             latencyMs: self.hasMeasuredPing ? Double(self.ping) : nil,
                             jitterMs: self.jitter,
                             packetLossPercent: self.packetLossPercent,
+                            packetProbeEvidence: self.packetProbeEvidence,
+                            regionalGameReference: self.regionalGameReference,
                             loadedLatencyMs: self.loadedLatencyMs,
                             loadedLatencyUploadMs: self.loadedLatencyUploadMs,
                             loadResponsiveness: self.loadResponsiveness,
@@ -610,6 +619,8 @@ public class SpeedTestViewModel: ObservableObject {
         hasMeasuredUpload = false
         hasMeasuredPing = false
         loadedLatencyMs = nil
+        packetProbeEvidence = nil
+        regionalGameReference = nil
         loadedLatencyUploadMs = nil
         loadResponsiveness = nil
         dnsResolutionMs = nil
@@ -788,7 +799,7 @@ public class SpeedTestViewModel: ObservableObject {
                 provider: self.provider,
                 networkType: self.networkType,
                 testDuration: self.testDuration,
-                packetLossPercent: self.packetLossPercent,
+                            packetLossPercent: self.packetLossPercent,
                 connectionKind: self.connectionKind,
                 wifiBandGHz: self.wifiBandGHz,
                 wifiContext: self.wifiContext,
@@ -802,6 +813,8 @@ public class SpeedTestViewModel: ObservableObject {
                 latencyMs: self.hasMeasuredPing ? Double(self.ping) : nil,
                 jitterMs: self.jitter,
                 packetLossPercent: self.packetLossPercent,
+                packetProbeEvidence: self.packetProbeEvidence,
+                regionalGameReference: self.regionalGameReference,
                 loadedLatencyMs: self.loadedLatencyMs,
                 loadedLatencyUploadMs: self.loadedLatencyUploadMs,
                 loadResponsiveness: self.loadResponsiveness,
@@ -874,6 +887,8 @@ public class SpeedTestViewModel: ObservableObject {
             latencyMs: measurement.latencyMs,
             jitterMs: measurement.jitterMs,
             packetLossPercent: measurement.packetLossPercent,
+            packetProbeEvidence: measurement.packetProbeEvidence,
+            regionalGameReference: measurement.regionalGameReference,
             loadedLatencyMs: measurement.loadedLatencyMs,
             loadedLatencyUploadMs: measurement.loadedLatencyUploadMs,
             loadResponsiveness: measurement.loadResponsiveness,
@@ -921,6 +936,12 @@ public class SpeedTestViewModel: ObservableObject {
             self.rawTestDuration = dur
         }
         if let loss = state.packetLossPercent { self.packetLossPercent = loss }
+        if let evidence = state.packetProbeEvidence {
+            self.packetProbeEvidence = Self.packetProbeEvidence(from: evidence)
+        }
+        if let reference = state.regionalGameReference {
+            self.regionalGameReference = Self.regionalGameReference(from: reference)
+        }
         if let loadedLatency = state.loadedLatencyMs { self.loadedLatencyMs = loadedLatency }
         if let loadedLatencyUpload = state.loadedLatencyUploadMs { self.loadedLatencyUploadMs = loadedLatencyUpload }
         if let responsiveness = state.loadResponsiveness {
@@ -978,6 +999,33 @@ public class SpeedTestViewModel: ObservableObject {
             baseline: latency(source.baseline),
             download: phase(source.download),
             upload: phase(source.upload)
+        )
+    }
+
+    private static func packetProbeEvidence(from source: EnginePacketProbeEvidence) -> PacketProbeEvidence {
+        PacketProbeEvidence(
+            environmentIdentifier: source.environmentIdentifier,
+            attemptCount: source.attemptCount,
+            successCount: source.successCount,
+            failureCount: source.failureCount,
+            timeoutCount: source.timeoutCount,
+            longestFailureStreak: source.longestFailureStreak,
+            expandedAfterInitialWindow: source.expandedAfterInitialWindow,
+            completed: source.completed
+        )
+    }
+
+    private static func regionalGameReference(from source: EngineRegionalGameReference) -> RegionalGameReference {
+        RegionalGameReference(
+            catalogVersion: source.catalogVersion,
+            regionIdentifier: source.regionIdentifier,
+            p50LatencyMs: source.p50LatencyMs,
+            jitterMs: source.jitterMs,
+            attemptCount: source.attemptCount,
+            validResponseCount: source.validResponseCount,
+            timeoutCount: source.timeoutCount,
+            packetLossPercent: source.packetLossPercent,
+            status: source.isMeasured ? .measured : .inconclusive
         )
     }
 

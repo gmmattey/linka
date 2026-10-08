@@ -48,6 +48,7 @@ struct DNSBenchmarkView: View {
             content
             configurationSection
         }
+        .linkaGradientScreenBackground()
         .navigationTitle("Resposta de DNS")
         .toolbar {
             if case .running = benchmark.state {

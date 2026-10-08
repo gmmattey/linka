@@ -11,9 +11,9 @@ Uma coisa só:
 
 > **Se dá para sentir que um robô escreveu, refaz.**
 
-O Linka fala com voz curta, técnica e calma ([`documentacao/produto/VOZ.md`](../../../documentacao/produto/VOZ.md)). Nada aqui pode soar como assistente virtual de banco, copy de release note SaaS ou onboarding de app de startup.
+O Linka fala com voz curta, técnica e calma ([`documentacao/PRODUTO.md`](../../../documentacao/PRODUTO.md)). Nada aqui pode soar como assistente virtual de banco, copy de release note SaaS ou onboarding de app de startup.
 
-Esta skill não é a fonte da voz — a fonte é [`documentacao/produto/VOZ.md`](../../../documentacao/produto/VOZ.md). Aqui é a **lista do que mata**.
+Esta skill não é a fonte da voz — a fonte é [`documentacao/PRODUTO.md`](../../../documentacao/PRODUTO.md). Aqui é a **lista do que mata**.
 
 ---
 
@@ -72,11 +72,11 @@ robusto · poderoso · elegante (em copy — como direção interna do design sy
 
 ## 4. Copy do produto tem regra extra
 
-Além de tudo acima, texto que vai para tela obedece [`documentacao/produto/VOZ.md`](../../../documentacao/produto/VOZ.md), inclusive:
+Além de tudo acima, texto que vai para tela obedece [`documentacao/PRODUTO.md`](../../../documentacao/PRODUTO.md), inclusive:
 
 - **rótulo de botão não varia** (é contrato) — `Testar novamente`, `Detalhes`, `Como medimos`;
 - **erro fala a verdade** — não esconde falha atrás de mensagem simpática;
-- **o Linka não opina no primeiro frame do resultado** — nunca "sua conexão está boa para X" antes do número. Interpretação vive em superfície secundária (detalhes, histórico, Assist) e precisa se sustentar em dado real (ver [`AGENTS.md`](../../../AGENTS.md) §1 e §9);
+- **o Linka não opina no primeiro frame do resultado** — nunca "sua conexão está boa para X" antes do número. Interpretação vive em superfície secundária (detalhes, histórico, Assist) e precisa se sustentar em dado real (ver [`Produto`](../../../documentacao/PRODUTO.md));
 - **voz não cria capacidade** — não escreve copy de coisa que não existe.
 
 Ver também [`aplicarVozLinka`](../aplicarVozLinka/SKILL.md).
@@ -105,7 +105,7 @@ O cheiro é o **enfeite**: a estrutura que existe porque enche o olho, não porq
 
 ## Relacionados
 
-- **A voz:** [`documentacao/produto/VOZ.md`](../../../documentacao/produto/VOZ.md)
+- **A voz:** [`documentacao/PRODUTO.md`](../../../documentacao/PRODUTO.md)
 - **Escrever copy do produto:** [`aplicarVozLinka`](../aplicarVozLinka/SKILL.md)
 - **Falar com o Luiz:** [`conversarComOLuiz`](../conversarComOLuiz/SKILL.md)
 - **Issue, PR e commit:** [`registrarIssue`](../registrarIssue/SKILL.md)

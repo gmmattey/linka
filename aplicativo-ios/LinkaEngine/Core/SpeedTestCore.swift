@@ -306,10 +306,11 @@ public actor SpeedTestCore {
 
                     let initialBaseline: BaselineMeasurement
                     switch pingOutcome {
-                    case .measured(let pingMs, let jitterMs, let lossPercent, let baseline):
+                    case .measured(let pingMs, let jitterMs, let lossPercent, let baseline, let probeEvidence):
                         state.ping = pingMs
                         state.jitter = jitterMs
                         state.packetLossPercent = lossPercent
+                        state.packetProbeEvidence = probeEvidence
                         initialBaseline = baseline
                     case .fatalFailure(let reason):
                         // Falha fatal já durante o ping (issue #85) — antes
@@ -429,6 +430,13 @@ public actor SpeedTestCore {
                         upload: uploadEvidence
                     )
 
+                    // A referência regional é uma evidência adicional do
+                    // resultado formal. Ela nunca roda no monitor vivo e não
+                    // altera download/upload; ausência de eco UDP só deixa
+                    // Jogos inconclusivo.
+                    state.regionalGameReference = await GameLiftRegionalReferenceProbe().measure()
+                    try Task.checkCancellation()
+
                     // Anexa o provedor somente aqui, na virada para o resultado final.
                     // A essa altura download (18s) + upload (18s) já consumiram muito
                     // mais tempo que o timeout de enriquecimento (2s por padrão), então
@@ -488,7 +496,7 @@ public actor SpeedTestCore {
     }
 
     private enum DetailedPingOutcome {
-        case measured(latency: Double, jitter: Double, packetLossPercent: Double, baseline: BaselineMeasurement)
+        case measured(latency: Double, jitter: Double, packetLossPercent: Double, baseline: BaselineMeasurement, probeEvidence: EnginePacketProbeEvidence)
         case fatalFailure(EngineFailureReason)
     }
 
@@ -1083,7 +1091,7 @@ public actor SpeedTestCore {
         try await Task.sleep(nanoseconds: UInt64(drainDelay * 1_000_000_000))
         try Task.checkCancellation()
         switch try await performDetailedPingTest(environment: environment, transport: transport) {
-        case .measured(_, _, _, let retried):
+        case .measured(_, _, _, let retried, _):
             return BaselineMeasurement(
                 statistics: retried.statistics,
                 remediationFailed: isMateriallyInverted(baseline: retried.statistics, download: download, upload: upload)
@@ -1145,7 +1153,7 @@ public actor SpeedTestCore {
             return .fatalFailure(.connectionLost(phase: .ping))
         }
         switch outcome {
-        case .measured(let latency, let jitter, let loss, _):
+        case .measured(let latency, let jitter, let loss, _, _):
             return .measured(latency: latency, jitter: jitter, packetLossPercent: loss)
         case .fatalFailure(let reason):
             return .fatalFailure(reason)
@@ -1158,10 +1166,16 @@ public actor SpeedTestCore {
     ) async throws -> DetailedPingOutcome {
         var latencies: [Double] = []
         var failures = 0
+        var timeouts = 0
         var consecutiveFatalErrors = 0
-        let totalPings = 10
+        var longestFailureStreak = 0
+        var failureStreak = 0
+        let initialWindow = 100
+        let expandedWindow = 300
+        var targetCount = initialWindow
+        var probeIndex = 0
 
-        for _ in 0..<totalPings {
+        while probeIndex < targetCount {
             try Task.checkCancellation()
             let start = Date()
             do {
@@ -1169,6 +1183,7 @@ public actor SpeedTestCore {
                 if response.statusCode == 200 {
                     let latency = Date().timeIntervalSince(start) * 1000.0
                     latencies.append(latency)
+                    failureStreak = 0
                     // Sondagem bem-sucedida prova que o transporte não está
                     // de fato perdido — zera a sequência de falhas fatais
                     // (issue #85, mesmo padrão de `FatalErrorTracker.recordSuccess`
@@ -1176,11 +1191,16 @@ public actor SpeedTestCore {
                     consecutiveFatalErrors = 0
                 } else {
                     failures += 1
+                    failureStreak += 1
+                    longestFailureStreak = max(longestFailureStreak, failureStreak)
                 }
             } catch let urlError as URLError where SpeedTestCore.isFatalTransportError(urlError) {
                 // Falha fatal de transporte (issue #85, extensão do #66 para
                 // a fase de ping) — distinta de timeout/erro isolado.
                 failures += 1
+                if urlError.code == .timedOut { timeouts += 1 }
+                failureStreak += 1
+                longestFailureStreak = max(longestFailureStreak, failureStreak)
                 consecutiveFatalErrors += 1
                 if Self.shouldAbortPingTest(
                     consecutiveFatalErrors: consecutiveFatalErrors,
@@ -1192,23 +1212,46 @@ public actor SpeedTestCore {
                     // de transporte.
                     return .fatalFailure(.connectionLost(phase: .ping))
                 }
+            } catch let urlError as URLError {
+                failures += 1
+                if urlError.code == .timedOut { timeouts += 1 }
+                failureStreak += 1
+                longestFailureStreak = max(longestFailureStreak, failureStreak)
             } catch {
                 // Erro transiente (ex.: timeout isolado) — segue tentando as
                 // sondagens restantes, igual ao comportamento anterior.
                 failures += 1
+                failureStreak += 1
+                longestFailureStreak = max(longestFailureStreak, failureStreak)
             }
-            // Small delay between pings
-            try await Task.sleep(nanoseconds: 50_000_000)
+            probeIndex += 1
+            if probeIndex == initialWindow, failures >= 1, failures <= 2 {
+                targetCount = expandedWindow
+            }
+            // A janela é deliberadamente sequencial, mas um intervalo curto
+            // evita inflar o teste formal por dezenas de segundos.
+            try await Task.sleep(nanoseconds: 5_000_000)
         }
 
-        let lossPercent = (Double(failures) / Double(totalPings)) * 100.0
+        let evidence = EnginePacketProbeEvidence(
+            environmentIdentifier: environment.latencyProbeEndpoint.host ?? "latency-probe",
+            attemptCount: probeIndex,
+            successCount: latencies.count,
+            failureCount: failures,
+            timeoutCount: timeouts,
+            longestFailureStreak: longestFailureStreak,
+            expandedAfterInitialWindow: targetCount == expandedWindow,
+            completed: true
+        )
+        let lossPercent = evidence.packetLossPercent ?? 100
 
         guard !latencies.isEmpty else {
             return .measured(
                 latency: 0.0,
                 jitter: 0.0,
                 packetLossPercent: lossPercent,
-                baseline: BaselineMeasurement(statistics: nil, remediationFailed: false)
+                baseline: BaselineMeasurement(statistics: nil, remediationFailed: false),
+                probeEvidence: evidence
             ) // 100% loss
         }
 
@@ -1226,10 +1269,10 @@ public actor SpeedTestCore {
                 jitterSum += abs(latencies[i] - latencies[i-1])
             }
             let avgJitter = jitterSum / Double(latencies.count - 1)
-            return .measured(latency: representativeLatency, jitter: avgJitter, packetLossPercent: lossPercent, baseline: baseline)
+            return .measured(latency: representativeLatency, jitter: avgJitter, packetLossPercent: lossPercent, baseline: baseline, probeEvidence: evidence)
         }
 
-        return .measured(latency: representativeLatency, jitter: 0.0, packetLossPercent: lossPercent, baseline: baseline)
+        return .measured(latency: representativeLatency, jitter: 0.0, packetLossPercent: lossPercent, baseline: baseline, probeEvidence: evidence)
     }
 
     /// Resolução DNS cronometrada do host usado no teste — Expert Mode. Uma

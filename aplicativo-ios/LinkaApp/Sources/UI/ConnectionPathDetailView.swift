@@ -45,6 +45,7 @@ struct ConnectionPathDetailView: View {
                     }
                 }
             }
+            .linkaGradientScreenBackground()
             .linkaSheetToolbar(title: LinkaCopy.value("connectionPath.title")) { dismiss() }
         }
     }

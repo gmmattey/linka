@@ -53,6 +53,7 @@ struct MacMainView: View {
     @State private var assistEntryPoint: MacAssistEntryPoint = .fresh
     @State private var showAssistProblemSelection = false
     @State private var showAssistResult = false
+    @State private var showNetscopeAnalysis = false
     @State private var pendingAssistMeasurement = false
     @State private var pendingAssistObjective: String?
     @State private var pendingAssistSubcategory: String?
@@ -153,7 +154,12 @@ struct MacMainView: View {
             }
         }
         .frame(minWidth: 960, minHeight: 600)
-        .background(Color.surfacePage)
+        .background(
+            LinkaScreenBackground(
+                variant: .gradientOnly,
+                showWaves: false
+            )
+        )
         .sheet(isPresented: $showPurchase, onDismiss: handlePurchaseDismissal) {
             PurchaseSheet(entryPoint: purchaseEntryPoint) {
                 if purchaseEntryPoint == .assist {
@@ -203,6 +209,17 @@ struct MacMainView: View {
                 entitlements: entitlements
             )
             .frame(minWidth: 680, minHeight: 620)
+        }
+        .sheet(isPresented: $showNetscopeAnalysis) {
+            if let currentMeasurement {
+                NetscopeAnalysisView(
+                    input: NetscopeAnalysisInput(projectingFinalMeasurement: currentMeasurement)
+                )
+                .frame(minWidth: 520, minHeight: 380)
+            } else {
+                NetscopeAnalysisView()
+                    .frame(minWidth: 520, minHeight: 380)
+            }
         }
         .sheet(isPresented: $showConnectivityTriage) {
             ConnectivityTriageView(onRetry: { viewModel.startTest() })
@@ -669,23 +686,12 @@ struct MacMainView: View {
                         statusColor: liveWifiColor
                     )
 
-                    if let band = liveWiFiBandGHz {
-                        let bandStr = band.truncatingRemainder(dividingBy: 1) == 0 ? String(format: "%.0f", band) : String(format: "%.1f", band)
-                        let chStr = viewModel.advancedWiFiDiagnostics?.channelNumber.map { " · Ch \($0)" } ?? ""
-                        liveMetricCard(
-                            title: LinkaCopy.value("Frequência"),
-                            value: "\(bandStr) GHz\(chStr)",
-                            icon: "antenna.radiowaves.left.and.right",
-                            statusColor: .textSecondary
-                        )
-                    } else {
-                        liveMetricCard(
-                            title: LinkaCopy.value("Frequência"),
-                            value: "—",
-                            icon: "antenna.radiowaves.left.and.right",
-                            statusColor: .textSecondary
-                        )
-                    }
+                    liveMetricCard(
+                        title: LinkaCopy.value("network.wifiBand"),
+                        value: confirmedWiFiBandDisplay,
+                        icon: "antenna.radiowaves.left.and.right",
+                        statusColor: .textSecondary
+                    )
                 } else if viewModel.liveConnectionKind == .ethernet {
                     liveMetricCard(
                         title: LinkaCopy.value("Conexão"),
@@ -793,6 +799,8 @@ struct MacMainView: View {
             RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
                 .stroke(Color.borderDefault.opacity(0.25), lineWidth: 0.5)
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(title): \(value)")
     }
     
     private var liveLatencyColor: Color {
@@ -828,10 +836,16 @@ struct MacMainView: View {
         return "\(Int(rssi)) dBm"
     }
 
-    /// A frequência é telemetria local do rádio. Ela não depende da
-    /// identificação (SSID/BSSID), que a pessoa pode optar por não expor.
-    private var liveWiFiBandGHz: Double? {
-        viewModel.liveWiFiContext?.bandGHz ?? ApplePlatformSignalProvider.currentWifiBandGHz()
+    /// Banda confirmada pelo rádio Wi-Fi do Mac. Não usa SSID, nem dados
+    /// opcionais importados de Diagnóstico Wi-Fi Avançado, para não inferir
+    /// nem combinar fontes de verdade distintas.
+    private var confirmedWiFiBandDisplay: String {
+        switch ApplePlatformSignalProvider.currentWifiBandGHz() {
+        case 2.4: return LinkaCopy.value("network.wifiBand.value2_4GHz")
+        case 5.0: return LinkaCopy.value("network.wifiBand.value5GHz")
+        case 6.0: return LinkaCopy.value("network.wifiBand.value6GHz")
+        default: return LinkaCopy.value("common.unavailable")
+        }
     }
 
     private func wifiDetail(label: String, value: String) -> some View {
@@ -1044,6 +1058,12 @@ struct MacMainView: View {
                         .foregroundColor(.textPrimary)
 
                     qualityCard
+                }
+
+                if isFinalResult {
+                    NetscopeResultEntryCard {
+                        showNetscopeAnalysis = true
+                    }
                 }
 
                 // Bloco Temático 2: Histórico Recente

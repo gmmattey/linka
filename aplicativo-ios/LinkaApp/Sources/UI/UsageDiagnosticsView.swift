@@ -73,6 +73,7 @@ struct UsageDiagnosticsView: View {
                     }
                 }
             }
+            .linkaGradientScreenBackground()
             .linkaSheetToolbar(title: LinkaCopy.value("usage.title")) { dismiss() }
         }
     }

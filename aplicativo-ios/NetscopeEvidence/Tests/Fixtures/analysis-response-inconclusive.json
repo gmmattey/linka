@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0.0",
+  "request_id": "fixture-inconclusive-001",
+  "status": "inconclusive",
+  "declared_context": { "objective": "streaming" },
+  "evidence_used": [
+    { "metric": "packet_loss_percent", "value": 0, "source": "system_observed" }
+  ],
+  "limitations": ["Não houve evidência suficiente para uma conclusão específica."],
+  "next_action": { "title": "Teste novamente", "steps": ["Repita a medição em alguns minutos."] }
+}

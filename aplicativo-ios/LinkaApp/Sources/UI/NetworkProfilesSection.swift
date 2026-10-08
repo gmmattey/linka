@@ -218,6 +218,7 @@ struct NetworkProfilesManagementView: View {
                     Section { Text(LinkaCopy.value("environments.preview.message")); Button(LinkaCopy.value("environments.preview.cta"), action: onRequestPurchase) }
                 }
             }
+            .linkaGradientScreenBackground()
             .navigationTitle(LinkaCopy.value("environments.saved.title"))
             .task { await coordinator.loadEnvironments() }
         }
@@ -302,6 +303,7 @@ private struct NetworkEnvironmentDetailView: View {
                 Button(LinkaCopy.value("environments.delete.cta"), role: .destructive) { deletePresented = true }
             }
         }
+        .linkaGradientScreenBackground()
         .navigationTitle(environment.name)
         .confirmationDialog(LinkaCopy.value("environments.delete.title"), isPresented: $deletePresented) {
             Button(LinkaCopy.value("environments.delete.cta"), role: .destructive) { Task { if await coordinator.remove(environment) { dismiss() } } }
@@ -385,6 +387,7 @@ struct NetworkProfileNameEditor: View {
     init(title: String, name: String, saveTitle: String, onSave: @escaping (String) -> Void) { self.title = title; self.saveTitle = saveTitle; self.onSave = onSave; _name = State(initialValue: name) }
     var body: some View {
         NavigationStack { Form { Section(LinkaCopy.value("environments.name.title")) { TextField(LinkaCopy.value("environments.name.placeholder"), text: $name) } }
+            .linkaGradientScreenBackground()
             .navigationTitle(title).toolbar { ToolbarItem(placement: .cancellationAction) { Button(LinkaCopy.value("common.cancel")) { dismiss() } }; ToolbarItem(placement: .confirmationAction) { Button(saveTitle) { onSave(name) }.disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) } }
         }
     }

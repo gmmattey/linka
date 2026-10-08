@@ -57,6 +57,8 @@ public enum MeasurementRecordMapper {
         case latencyMs
         case jitterMs
         case packetLossPercent
+        case packetProbeEvidenceData
+        case regionalGameReferenceData
         case loadedLatencyMs
         case loadedLatencyUploadMs
         /// JSON codificado do envelope aditivo. CloudKit não aceita structs
@@ -95,6 +97,14 @@ public enum MeasurementRecordMapper {
         record[FieldKey.latencyMs.rawValue] = measurement.latencyMs
         record[FieldKey.jitterMs.rawValue] = measurement.jitterMs
         record[FieldKey.packetLossPercent.rawValue] = measurement.packetLossPercent
+        if let evidence = measurement.packetProbeEvidence,
+           let encoded = try? JSONEncoder().encode(evidence) {
+            record[FieldKey.packetProbeEvidenceData.rawValue] = encoded as NSData
+        }
+        if let reference = measurement.regionalGameReference,
+           let encoded = try? JSONEncoder().encode(reference) {
+            record[FieldKey.regionalGameReferenceData.rawValue] = encoded as NSData
+        }
         record[FieldKey.loadedLatencyMs.rawValue] = measurement.loadedLatencyMs
         record[FieldKey.loadedLatencyUploadMs.rawValue] = measurement.loadedLatencyUploadMs
         if let responsiveness = measurement.loadResponsiveness,
@@ -138,6 +148,10 @@ public enum MeasurementRecordMapper {
             latencyMs: record[FieldKey.latencyMs.rawValue] as? Double,
             jitterMs: record[FieldKey.jitterMs.rawValue] as? Double,
             packetLossPercent: record[FieldKey.packetLossPercent.rawValue] as? Double,
+            packetProbeEvidence: (record[FieldKey.packetProbeEvidenceData.rawValue] as? Data)
+                .flatMap { try? JSONDecoder().decode(PacketProbeEvidence.self, from: $0) },
+            regionalGameReference: (record[FieldKey.regionalGameReferenceData.rawValue] as? Data)
+                .flatMap { try? JSONDecoder().decode(RegionalGameReference.self, from: $0) },
             loadedLatencyMs: record[FieldKey.loadedLatencyMs.rawValue] as? Double,
             loadedLatencyUploadMs: record[FieldKey.loadedLatencyUploadMs.rawValue] as? Double,
             loadResponsiveness: (record[FieldKey.loadResponsivenessData.rawValue] as? Data)
@@ -208,6 +222,8 @@ public enum MeasurementConflictResolver {
             measurement.latencyMs != nil,
             measurement.jitterMs != nil,
             measurement.packetLossPercent != nil,
+            measurement.packetProbeEvidence != nil,
+            measurement.regionalGameReference != nil,
             measurement.loadedLatencyMs != nil,
             measurement.loadedLatencyUploadMs != nil,
             measurement.loadResponsiveness != nil,
@@ -234,6 +250,8 @@ public enum MeasurementConflictResolver {
             latencyMs: winner.latencyMs ?? loser.latencyMs,
             jitterMs: winner.jitterMs ?? loser.jitterMs,
             packetLossPercent: winner.packetLossPercent ?? loser.packetLossPercent,
+            packetProbeEvidence: winner.packetProbeEvidence ?? loser.packetProbeEvidence,
+            regionalGameReference: winner.regionalGameReference ?? loser.regionalGameReference,
             loadedLatencyMs: winner.loadedLatencyMs ?? loser.loadedLatencyMs,
             loadedLatencyUploadMs: winner.loadedLatencyUploadMs ?? loser.loadedLatencyUploadMs,
             loadResponsiveness: winner.loadResponsiveness ?? loser.loadResponsiveness,

@@ -131,10 +131,10 @@ final class UsageSuitabilityTests: XCTestCase {
 
         let report = evaluator.evaluate(measurement)
 
-        XCTAssertEqual(report.verdict(for: .onlineGaming)?.level, .limited)
+        XCTAssertEqual(report.verdict(for: .onlineGaming)?.level, .notAssessed)
         XCTAssertEqual(report.verdict(for: .onlineGaming)?.limitingMetric, .packetLossPercent)
 
-        XCTAssertEqual(report.verdict(for: .videoCall)?.level, .limited)
+        XCTAssertEqual(report.verdict(for: .videoCall)?.level, .notAssessed)
         XCTAssertEqual(report.verdict(for: .videoCall)?.limitingMetric, .packetLossPercent)
 
         XCTAssertEqual(report.verdict(for: .streaming4K)?.level, .limited)
@@ -319,14 +319,41 @@ final class UsageSuitabilityTests: XCTestCase {
         packetLoss: Double? = 0,
         loadedLatency: Double? = nil
     ) -> NetworkMeasurement {
-        NetworkMeasurement(
+        let formalLoadedLatency = loadedLatency ?? latency
+        let probes = packetLoss.map { loss in
+            PacketProbeEvidence(
+                environmentIdentifier: "test",
+                attemptCount: 10_000,
+                successCount: 10_000 - Int((loss * 100).rounded()),
+                failureCount: Int((loss * 100).rounded()),
+                timeoutCount: 0,
+                longestFailureStreak: 0,
+                expandedAfterInitialWindow: false,
+                completed: true
+            )
+        }
+        let reference = RegionalGameReference(
+            catalogVersion: "test",
+            regionIdentifier: "test-region",
+            p50LatencyMs: latency,
+            jitterMs: jitter,
+            attemptCount: 6,
+            validResponseCount: 6,
+            timeoutCount: 0,
+            packetLossPercent: 0,
+            status: .measured
+        )
+        return NetworkMeasurement(
             outcome: .complete,
             downloadMbps: download,
             uploadMbps: upload,
             latencyMs: latency,
             jitterMs: jitter,
             packetLossPercent: packetLoss,
-            loadedLatencyMs: loadedLatency
+            packetProbeEvidence: probes,
+            regionalGameReference: reference,
+            loadedLatencyMs: formalLoadedLatency,
+            loadedLatencyUploadMs: formalLoadedLatency
         )
     }
 }

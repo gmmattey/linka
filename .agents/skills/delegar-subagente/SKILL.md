@@ -48,4 +48,4 @@ Para Camillo, o agente principal revisa o diff antes de integrar.
 
 O Codex principal integra o retorno, resolve divergências e valida o que for material. Não repita todo o trabalho do subagente, mas também não trate o retorno como verdade automática.
 
-Modelo e esforço seguem `.codex/config.toml` e `AGENTS.md §4a`. Escale pela criticidade da tarefa, não pelo nome do especialista.
+Modelo e esforço seguem `.codex/config.toml` e `documentacao/GOVERNANCA.md`. Escale pela criticidade da tarefa, não pelo nome do especialista.

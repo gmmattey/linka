@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "request_id": "fixture-unavailable-001",
+  "status": "unavailable",
+  "limitations": ["A análise não está disponível agora."]
+}

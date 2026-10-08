@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Suporte do LagCheck" />
+    <meta name="theme-color" content="#FF6B5A" />
+    <title>Suporte — LagCheck</title>
+    <style>
+      :root { color-scheme: light; --coral: #e85242; --ink: #1d1d1f; --muted: #6e6e73; --surface: #fff; --line: #e5e5ea; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #f5f5f7; color: var(--ink); font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; }
+      main { width: min(720px, calc(100% - 40px)); margin: 0 auto; padding: 72px 0 56px; }
+      .wordmark { color: var(--coral); font-size: 22px; font-weight: 750; letter-spacing: -0.7px; text-decoration: none; }
+      h1 { font-size: clamp(38px, 7vw, 56px); line-height: 1.05; letter-spacing: -2.2px; margin: 36px 0 16px; }
+      h2 { font-size: 24px; letter-spacing: -0.4px; margin: 38px 0 8px; }
+      p { margin: 0 0 16px; }
+      .lead { color: var(--muted); font-size: 20px; }
+      .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; margin-top: 30px; padding: 24px; }
+      a { color: var(--coral); font-weight: 650; }
+      ul { margin: 12px 0 0; padding-left: 23px; }
+      footer { color: var(--muted); font-size: 14px; margin-top: 48px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="wordmark" href="/lagcheck/suporte" aria-label="LagCheck">lagcheck</a>
+      <h1>Como podemos ajudar?</h1>
+      <p class="lead">O LagCheck ajuda a entender a conexão antes da partida. Ele mede a rota do iPhone até uma infraestrutura de referência; não promete o ping real de um jogo nem “zero lag”.</p>
+
+      <section class="card" aria-labelledby="contato">
+        <h2 id="contato">Fale com a gente</h2>
+        <p>Envie uma mensagem para <a href="mailto:suporte@lagcheck.app">suporte@lagcheck.app</a>. Se puder, conte o que aconteceu, em qual rede você estava e a versão do app. Não envie senhas, códigos de acesso ou dados financeiros.</p>
+      </section>
+
+      <section>
+        <h2>Antes de escrever</h2>
+        <ul>
+          <li>O LagCheck requer iPhone com iOS 17 ou posterior.</li>
+          <li>Uma medição inconclusiva significa que não houve respostas UDP válidas suficientes; ela não recebe score ou recomendação para jogar.</li>
+          <li>Trocar de rede, colocar o app em segundo plano ou cancelar uma medição descarta o resultado parcial.</li>
+          <li>Em consoles e PCs, qualquer leitura é uma estimativa: a rota do aparelho pode ser diferente da rota medida pelo iPhone.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Privacidade</h2>
+        <p>Leia como o app trata dados de medição e histórico na nossa <a href="/lagcheck/privacidade">Política de Privacidade</a>. Para dúvidas desse tema, escreva para <a href="mailto:privacidade@lagcheck.app">privacidade@lagcheck.app</a>.</p>
+      </section>
+
+      <footer>LagCheck · Suporte</footer>
+    </main>
+  </body>
+</html>

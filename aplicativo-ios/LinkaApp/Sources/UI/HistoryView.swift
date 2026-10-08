@@ -52,6 +52,7 @@ struct HistoryView: View {
 
     @State private var measurements: [NetworkMeasurement] = []
     @State private var isLoading = true
+    @Environment(\.scenePhase) private var scenePhase
     @State private var hasPlus = false
     @State private var showPurchase = false
     @State private var purchaseEntryPoint: PurchaseEntryPoint = .historyInsights
@@ -65,7 +66,8 @@ struct HistoryView: View {
 
     var body: some View {
         ZStack {
-            Color.surfacePage.ignoresSafeArea()
+            LinkaScreenBackground(variant: .gradientOnly, showWaves: false)
+                .ignoresSafeArea()
             if isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -162,6 +164,13 @@ struct HistoryView: View {
                             .frame(maxWidth: .infinity)
                         }
                     } else {
+                        // O anúncio fica no começo do conteúdo rolável, antes
+                        // das medições. Só existe depois de o SDK entregar um
+                        // native ad, portanto nunca cria um buraco na lista.
+                        if showsHistoryAd {
+                            historyAdRow
+                        }
+
                         if historyVisualizationState == .singleMeasurement,
                            let measurement = filteredMeasurements.first {
                             Section {
@@ -184,16 +193,6 @@ struct HistoryView: View {
                                 }
                             }
                         }
-
-                        // A publicidade só existe neste destino, depois de
-                        // conteúdo útil. `BannerView` não reserva espaço até
-                        // um native ad consentido estar realmente pronto.
-                        if !hasPlus, !filteredMeasurements.isEmpty {
-                            Section {
-                                BannerView()
-                            }
-                            .listRowBackground(Color.clear)
-                        }
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -202,6 +201,7 @@ struct HistoryView: View {
         .navigationTitle(LinkaCopy.value("history.title"))
         #if os(iOS)
         .navigationBarTitleDisplayMode(.large)
+        .toolbarBackground(.hidden, for: .navigationBar)
         #endif
         .sheet(isPresented: $showPurchase) {
             PurchaseSheet(entryPoint: purchaseEntryPoint) {
@@ -211,6 +211,13 @@ struct HistoryView: View {
         }
         .onAppear {
             loadData()
+        }
+        .onChange(of: scenePhase) { phase in
+            if phase == .active { prepareHistoryAdIfEligible() }
+        }
+        .onChange(of: entitlements.isEntitlementResolved) { resolved in
+            guard resolved else { return }
+            prepareHistoryAdIfEligible()
         }
     }
 
@@ -243,6 +250,31 @@ struct HistoryView: View {
         HistoryVisualizationState.resolve(measurementCount: filteredMeasurements.count)
     }
 
+    private var isEligibleForAds: Bool {
+        LinkaEntitlementPolicy.shouldShowAds(for: entitlements.snapshot, at: Date())
+    }
+
+    private var showsHistoryAd: Bool {
+        // Em `List`, um `EmptyView` ainda pode manter a linha/separador do
+        // lugar onde ele foi declarado. Só inserimos a linha depois que o
+        // native ad existe de fato; carregamento e no-fill não viram buraco.
+        #if os(iOS)
+        return entitlements.isEntitlementResolved && isEligibleForAds
+            && !filteredMeasurements.isEmpty
+            && ads.nativeAd(for: .history) != nil
+        #else
+        return false
+        #endif
+    }
+
+    private var historyAdRow: some View {
+        Section {
+            BannerView(placement: .history)
+        }
+        .listRowInsets(EdgeInsets(top: 10, leading: 4, bottom: 10, trailing: 4))
+        .listRowBackground(Color.clear)
+    }
+
     private func loadData() {
         Task {
             let decision = LinkaEntitlementPolicy.decision(
@@ -260,12 +292,18 @@ struct HistoryView: View {
                 insightText = weeklyInsightText(from: measurements)
             }
 
-            // Plus não cria slot nem request. Para Free, a própria
-            // coordenadora garante uma única tentativa nesta sessão.
-            ads.prepareHistoryAd(hasPlus: hasPlus, hasHistory: !measurements.isEmpty)
+            prepareHistoryAdIfEligible()
 
             isLoading = false
         }
+    }
+
+    private func prepareHistoryAdIfEligible() {
+        ads.prepareHistoryAd(
+            isEligibleForAds: isEligibleForAds,
+            isEntitlementResolved: entitlements.isEntitlementResolved,
+            hasHistory: !measurements.isEmpty
+        )
     }
 
     private func weeklyInsightText(from measurements: [NetworkMeasurement]) -> String? {
@@ -419,6 +457,7 @@ struct HistoryWaveChartView: View {
                     Spacer()
                     Text(formatAxisDate(lastDate)).font(.caption2.weight(.medium)).foregroundColor(.textSecondary)
                 }
+                .scrollContentBackground(.hidden)
             }
         }
         .padding(18)

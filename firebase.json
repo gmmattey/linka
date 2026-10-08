@@ -8,6 +8,38 @@
     ],
     "rewrites": [
       {
+        "source": "/casawifi/privacidade",
+        "destination": "/casawifi/privacidade/index.html"
+      },
+      {
+        "source": "/casawifi/privacidade/**",
+        "destination": "/casawifi/privacidade/index.html"
+      },
+      {
+        "source": "/casawifi",
+        "destination": "/casawifi/privacidade/index.html"
+      },
+      {
+        "source": "/casawifi/**",
+        "destination": "/casawifi/privacidade/index.html"
+      },
+      {
+        "source": "/lagcheck/suporte",
+        "destination": "/lagcheck/suporte/index.html"
+      },
+      {
+        "source": "/lagcheck/suporte/**",
+        "destination": "/lagcheck/suporte/index.html"
+      },
+      {
+        "source": "/lagcheck/privacidade",
+        "destination": "/lagcheck/privacidade/index.html"
+      },
+      {
+        "source": "/lagcheck/privacidade/**",
+        "destination": "/lagcheck/privacidade/index.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

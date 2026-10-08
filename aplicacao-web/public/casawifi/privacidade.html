@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Política de Privacidade do WiFi Casa — Diagnóstico e Mapeamento de Qualidade Wi-Fi Residencial" />
+    <meta name="theme-color" content="#FF6B35" />
+    <title>Privacidade — WiFi Casa</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --coral: #FF6B35;
+        --coral-deep: #FF3823;
+        --ink: #1d1d1f;
+        --muted: #6e6e73;
+        --surface: #ffffff;
+        --bg: #f5f5f7;
+        --line: #e5e5ea;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ink: #f5f5f7;
+          --muted: #8e8e93;
+          --surface: #1c1c1e;
+          --bg: #000000;
+          --line: #2c2c2e;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      main {
+        width: min(720px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 56px 0 64px;
+      }
+      .brand-header {
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        color: var(--ink);
+      }
+      .wordmark-svg {
+        height: 38px;
+        width: auto;
+        display: block;
+      }
+      h1 {
+        font-size: clamp(34px, 6vw, 48px);
+        line-height: 1.1;
+        letter-spacing: -1.8px;
+        margin: 32px 0 10px;
+        font-weight: 750;
+      }
+      h2 {
+        font-size: 22px;
+        letter-spacing: -0.4px;
+        margin: 36px 0 10px;
+        font-weight: 650;
+      }
+      p { margin: 0 0 16px; }
+      ul {
+        margin: 0 0 20px;
+        padding-left: 22px;
+      }
+      li {
+        margin-bottom: 8px;
+      }
+      .updated {
+        color: var(--muted);
+        font-size: 15px;
+        margin-bottom: 8px;
+      }
+      .lead {
+        color: var(--muted);
+        font-size: 19px;
+        line-height: 1.45;
+        margin-bottom: 32px;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 24px;
+        margin: 28px 0;
+      }
+      .card h2 {
+        margin-top: 0;
+      }
+      a {
+        color: var(--coral);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      footer {
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 56px;
+        padding-top: 24px;
+        border-top: 1px solid var(--line);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="brand-header" href="/casawifi/privacidade" aria-label="WiFi Casa">
+        <svg class="wordmark-svg" viewBox="0 0 540 120" xmlns="http://www.w3.org/2000/svg" role="img">
+          <defs>
+            <linearGradient id="wm-coral-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#FF3823" />
+              <stop offset="50%" stop-color="#FF6B35" />
+              <stop offset="100%" stop-color="#FFAB2E" />
+            </linearGradient>
+          </defs>
+          <g transform="translate(62, 58) scale(0.088) translate(-512, -490)">
+            <path d="M 200 280 Q 512 80 824 280" fill="none" stroke="url(#wm-coral-grad)" stroke-width="64" stroke-linecap="round" />
+            <path d="M 300 375 Q 512 215 724 375" fill="none" stroke="url(#wm-coral-grad)" stroke-width="64" stroke-linecap="round" />
+            <path d="M 396 465 Q 512 345 628 465" fill="none" stroke="url(#wm-coral-grad)" stroke-width="64" stroke-linecap="round" />
+            <path d="M 310 655 L 512 545 L 714 655 L 714 810 Q 714 825 699 825 L 325 825 Q 310 825 310 810 Z" fill="none" stroke="currentColor" stroke-width="52" stroke-linejoin="round" stroke-linecap="round" />
+            <circle cx="512" cy="695" r="48" fill="url(#wm-coral-grad)" />
+            <circle cx="512" cy="695" r="20" fill="#FFFFFF" />
+          </g>
+          <g transform="translate(132, 73)" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif" font-size="44" font-weight="700" letter-spacing="-1.1">
+            <text x="0" y="0">
+              <tspan fill="currentColor">WiFi</tspan>
+              <tspan dx="12" fill="url(#wm-coral-grad)">Casa</tspan>
+            </text>
+          </g>
+        </svg>
+      </a>
+
+      <h1>Política de Privacidade</h1>
+      <p class="updated">Atualizada em 20 de setembro de 2026.</p>
+      <p class="lead">Esta política explica como o WiFi Casa trata suas informações e garante sua privacidade ao diagnosticar e mapear a cobertura Wi-Fi na sua residência.</p>
+
+      <section>
+        <h2>O que o aplicativo faz</h2>
+        <p>O <strong>WiFi Casa</strong> é um utilitário para iOS projetado para mapear a qualidade de conexão sem fio residencial. O app permite criar cômodos, marcar a posição do roteador e realizar testes rápidos de conectividade em cada ambiente para identificar onde o sinal falha e se a lentidão é causada pelo Wi-Fi local ou pela sua operadora de internet.</p>
+      </section>
+
+      <section>
+        <h2>Privacidade por Design: 100% no Aparelho</h2>
+        <p>A sua residência e os seus dados pertencem unicamente a você:</p>
+        <ul>
+          <li><strong>Plantas e cômodos:</strong> a estrutura de cômodos, nomes de ambientes e a disposição visual da casa são processados e armazenados exclusivamente no seu dispositivo (via SwiftData).</li>
+          <li><strong>Medições e histórico:</strong> os resultados de latência, jitter, perda de pacotes e o histórico comparativo (Antes × Depois) ficam gravados apenas no seu aparelho.</li>
+          <li><strong>Zero envio externo:</strong> nenhuma planta da residência, mapa de calor, BSSID ou registro de medição é transmitido para servidores da Buildea ou de terceiros.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Sem Contas ou Cadastros</h2>
+        <p>O WiFi Casa não exige cadastro, criação de conta, login com redes sociais, e-mail ou número de telefone. Você tem acesso imediato aos recursos sem qualquer coleta de dados pessoais de identificação.</p>
+      </section>
+
+      <section>
+        <h2>Permissões do Sistema</h2>
+        <ul>
+          <li><strong>Rede Local:</strong> o app solicita permissão para se comunicar na rede local para realizar medições ativas de latência e estabilidade diretamente com o roteador (Gateway local). Todo esse tráfego ocorre estritamente dentro da sua rede doméstica.</li>
+          <li><strong>Informações de Wi-Fi:</strong> o sistema operacional iOS exige a autorização de localização para expor o nome da rede Wi-Fi conectada (SSID). O WiFi Casa utiliza essa permissão unicamente para identificar a rede Wi-Fi ativa durante o teste. O app não coleta, não monitora, não compartilha sua geolocalização e não constrói histórico de localização física.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Tráfego de Medição de Internet (WAN)</h2>
+        <p>Para diagnosticar se a oscilação da conexão provém do Wi-Fi ou do provedor de internet, o aplicativo troca pacotes de teste com infraestruturas públicas e serviços de rede de referência. Como em qualquer comunicação via internet, o endereço IP público da sua conexão é tecnicamente visível aos servidores que atendem as requisições para que os dados retornem ao seu dispositivo. Esse tráfego tem finalidade puramente técnica de medição e não é utilizado para criar perfis de usuário.</p>
+      </section>
+
+      <section>
+        <h2>Sem Rastreamento ou Publicidade Comportamental</h2>
+        <p>O WiFi Casa não comercializa seus dados, não integra redes de publicidade de terceiros e não utiliza identificadores de rastreamento entre apps ou sites (IDFA / Tracking). Não compartilhamos suas informações com corretores de dados (data brokers).</p>
+      </section>
+
+      <section>
+        <h2>Compras no Aplicativo</h2>
+        <p>Eventuais compras integradas (como a licença do WiFi Casa Pro) são processadas com segurança pela Apple através da infraestrutura da App Store. O WiFi Casa não armazena e não tem acesso aos seus dados financeiros ou de cartão de crédito.</p>
+      </section>
+
+      <section>
+        <h2>Exclusão de Dados</h2>
+        <p>Você pode remover cômodos, medições e históricos comparativos diretamente no aplicativo a qualquer momento. Ao desinstalar o aplicativo do seu iPhone ou iPad, todos os dados locais são definitiva e permanentemente apagados.</p>
+      </section>
+
+      <section class="card">
+        <h2>Fale sobre Privacidade</h2>
+        <p>Para dúvidas, sugestões ou solicitações sobre esta política de privacidade, entre em contato:</p>
+        <p>E-mail: <a href="mailto:privacidade@linka.app?subject=Privacidade%20WiFi%20Casa">privacidade@linka.app</a> ou <a href="mailto:suporte@linka.app?subject=WiFi%20Casa">suporte@linka.app</a></p>
+        <p>Responsável: Luiz F. Giammattey · Buildea</p>
+      </section>
+
+      <footer>
+        WiFi Casa · Buildea · Política de Privacidade
+      </footer>
+    </main>
+  </body>
+</html>
+

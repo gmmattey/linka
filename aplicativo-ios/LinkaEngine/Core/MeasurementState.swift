@@ -10,10 +10,52 @@ public enum MeasurementNetworkKind: String, Equatable, Sendable {
     case unknown
 }
 
+/// Fato do motor, convertido para o contrato persistível pelo adaptador do app.
+public struct EnginePacketProbeEvidence: Equatable, Sendable {
+    public let environmentIdentifier: String
+    public let attemptCount: Int
+    public let successCount: Int
+    public let failureCount: Int
+    public let timeoutCount: Int
+    public let longestFailureStreak: Int
+    public let expandedAfterInitialWindow: Bool
+    public let completed: Bool
+
+    public init(environmentIdentifier: String, attemptCount: Int, successCount: Int, failureCount: Int, timeoutCount: Int, longestFailureStreak: Int, expandedAfterInitialWindow: Bool, completed: Bool) {
+        self.environmentIdentifier = environmentIdentifier
+        self.attemptCount = attemptCount
+        self.successCount = successCount
+        self.failureCount = failureCount
+        self.timeoutCount = timeoutCount
+        self.longestFailureStreak = longestFailureStreak
+        self.expandedAfterInitialWindow = expandedAfterInitialWindow
+        self.completed = completed
+    }
+
+    public var packetLossPercent: Double? {
+        guard completed, attemptCount > 0 else { return nil }
+        return Double(failureCount) / Double(attemptCount) * 100
+    }
+}
+
+public struct EngineRegionalGameReference: Equatable, Sendable {
+    public let catalogVersion: String
+    public let regionIdentifier: String?
+    public let p50LatencyMs: Double?
+    public let jitterMs: Double?
+    public let attemptCount: Int
+    public let validResponseCount: Int
+    public let timeoutCount: Int
+    public let packetLossPercent: Double?
+    public let isMeasured: Bool
+}
+
 public struct MeasurementState {
     public var ping: Double?
     public var jitter: Double?
     public var packetLossPercent: Double?
+    public var packetProbeEvidence: EnginePacketProbeEvidence?
+    public var regionalGameReference: EngineRegionalGameReference?
     public var downloadSpeed: Double? // in Mbps
     public var uploadSpeed: Double? // in Mbps
     public var progress: Double // 0.0 to 1.0
@@ -61,10 +103,12 @@ public struct MeasurementState {
     
     public var location: (latitude: Double, longitude: Double)?
 
-    public init(ping: Double? = nil, jitter: Double? = nil, packetLossPercent: Double? = nil, downloadSpeed: Double? = nil, uploadSpeed: Double? = nil, progress: Double = 0.0, phase: Phase = .idle, provider: String? = nil, networkType: MeasurementNetworkKind? = nil, duration: Double? = nil, loadedLatencyMs: Double? = nil, loadedLatencyUploadMs: Double? = nil, dnsResolutionMs: Double? = nil, downloadThroughputVariation: Double? = nil, uploadThroughputVariation: Double? = nil, loadResponsiveness: EngineLoadResponsivenessEvidence? = nil, failureReason: EngineFailureReason? = nil, location: (latitude: Double, longitude: Double)? = nil) {
+    public init(ping: Double? = nil, jitter: Double? = nil, packetLossPercent: Double? = nil, packetProbeEvidence: EnginePacketProbeEvidence? = nil, regionalGameReference: EngineRegionalGameReference? = nil, downloadSpeed: Double? = nil, uploadSpeed: Double? = nil, progress: Double = 0.0, phase: Phase = .idle, provider: String? = nil, networkType: MeasurementNetworkKind? = nil, duration: Double? = nil, loadedLatencyMs: Double? = nil, loadedLatencyUploadMs: Double? = nil, dnsResolutionMs: Double? = nil, downloadThroughputVariation: Double? = nil, uploadThroughputVariation: Double? = nil, loadResponsiveness: EngineLoadResponsivenessEvidence? = nil, failureReason: EngineFailureReason? = nil, location: (latitude: Double, longitude: Double)? = nil) {
         self.ping = ping
         self.jitter = jitter
         self.packetLossPercent = packetLossPercent
+        self.packetProbeEvidence = packetProbeEvidence
+        self.regionalGameReference = regionalGameReference
         self.downloadSpeed = downloadSpeed
         self.uploadSpeed = uploadSpeed
         self.progress = progress

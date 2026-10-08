@@ -5,11 +5,11 @@ description: Desenha mudanças modulares no Linka com fronteiras, contratos, ris
 
 # Skill: arquitetar-modulo
 
-Use esta skill quando o gate arquitetural for acionado. O especialista arquitetural produz o plano; o Codex principal o consolida em `plano.md` quando necessário.
+Use esta skill quando o gate arquitetural for acionado. O especialista arquitetural produz o plano; o Codex principal o registra na PR/issue ou numa seção temporária da fonte afetada, sem criar plano permanente.
 
 ## Antes da arquitetura
 
-Leia `AGENTS.md §1-3` e o código relevante. Confirme primeiro que a capacidade pertence ao Linka e é viável no ecossistema Apple.
+Leia `documentacao/GOVERNANCA.md` e `documentacao/PRODUTO.md` e o código relevante. Confirme primeiro que a capacidade pertence ao Linka e é viável no ecossistema Apple.
 
 Se houver dúvida de produto, não invente uma resposta técnica para escondê-la. Devolva ao Codex para decisão de produto ou consulta ao Luiz.
 

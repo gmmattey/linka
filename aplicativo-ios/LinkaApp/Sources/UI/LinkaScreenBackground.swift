@@ -131,6 +131,24 @@ public struct LinkaScreenBackground: View {
     }
 }
 
+extension View {
+    /// Mantém o mesmo fundo estático do Linka nos destinos secundários sem
+    /// introduzir as ondas reservadas ao estado de medição da Home.
+    func linkaStaticScreenBackground() -> some View {
+        background {
+            LinkaScreenBackground(variant: .gradientOnly, showWaves: false)
+                .ignoresSafeArea()
+        }
+    }
+
+    /// List e Form usam um fundo de scroll opaco por padrão. Torná-lo
+    /// transparente revela o gradiente sem alterar as células nativas.
+    func linkaGradientScreenBackground() -> some View {
+        scrollContentBackground(.hidden)
+            .linkaStaticScreenBackground()
+    }
+}
+
 // MARK: - Previews
 
 #Preview("LinkaScreenBackground — Dark") {

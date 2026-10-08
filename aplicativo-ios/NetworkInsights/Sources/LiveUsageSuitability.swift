@@ -92,6 +92,23 @@ public struct LiveUsageSuitabilityEvaluator: LiveUsageSuitabilityEvaluating {
         telemetry: LiveNetworkTelemetrySnapshot,
         baseline: ThroughputBaseline? = nil
     ) -> LiveUsageSuitabilityReport {
+        // Home é uma observação, não a medição formal. Três respostas boas
+        // não autorizam conclusão de uso; a janela só amadurece com cinco.
+        if telemetry.sampleCount < 5 {
+            return LiveUsageSuitabilityReport(
+                verdicts: UsageCase.allCases.map {
+                    LiveUsageCaseVerdict(
+                        usageCase: $0,
+                        level: .notAssessed,
+                        confidence: .insufficientData,
+                        limitingMetric: $0 == .onlineGaming ? .jitterMs : nil,
+                        reason: .missingThroughputMeasurement
+                    )
+                },
+                telemetry: telemetry,
+                baseline: baseline
+            )
+        }
         let verdicts = UsageCase.allCases.map { usageCase in
             evaluateCase(usageCase, telemetry: telemetry, baseline: baseline)
         }
@@ -100,6 +117,14 @@ public struct LiveUsageSuitabilityEvaluator: LiveUsageSuitabilityEvaluating {
             telemetry: telemetry,
             baseline: baseline
         )
+    }
+
+    /// Uma única falha numa janela curta não é instabilidade. Como o snapshot
+    /// expõe apenas a porcentagem agregada, convertemos de volta para uma
+    /// contagem mínima e só promovemos o sintoma a partir de duas falhas.
+    private func hasRepeatedLoss(_ telemetry: LiveNetworkTelemetrySnapshot, threshold: Double) -> Bool {
+        guard let loss = telemetry.packetLossPercent, loss > threshold else { return false }
+        return (loss * Double(telemetry.sampleCount) / 100) >= 2
     }
 
     private func evaluateCase(
@@ -154,7 +179,7 @@ public struct LiveUsageSuitabilityEvaluator: LiveUsageSuitabilityEvaluating {
             )
         }
 
-        if let loss = telemetry.packetLossPercent, loss > thresholds.onlineGamingMaxPacketLossPercent {
+        if hasRepeatedLoss(telemetry, threshold: thresholds.onlineGamingMaxPacketLossPercent) {
             return LiveUsageCaseVerdict(
                 usageCase: .onlineGaming,
                 level: .limited,
@@ -218,7 +243,7 @@ public struct LiveUsageSuitabilityEvaluator: LiveUsageSuitabilityEvaluating {
             )
         }
 
-        if let loss = telemetry.packetLossPercent, loss > thresholds.videoCallMaxPacketLossPercent {
+        if hasRepeatedLoss(telemetry, threshold: thresholds.videoCallMaxPacketLossPercent) {
             return LiveUsageCaseVerdict(
                 usageCase: .videoCall,
                 level: .limited,
@@ -282,7 +307,7 @@ public struct LiveUsageSuitabilityEvaluator: LiveUsageSuitabilityEvaluating {
             )
         }
 
-        if let loss = telemetry.packetLossPercent, loss > thresholds.streaming4KMaxPacketLossPercent {
+        if hasRepeatedLoss(telemetry, threshold: thresholds.streaming4KMaxPacketLossPercent) {
             return LiveUsageCaseVerdict(
                 usageCase: .streamingHD,
                 level: .limited,
@@ -324,7 +349,7 @@ public struct LiveUsageSuitabilityEvaluator: LiveUsageSuitabilityEvaluating {
             )
         }
 
-        if let loss = telemetry.packetLossPercent, loss > thresholds.streaming4KMaxPacketLossPercent {
+        if hasRepeatedLoss(telemetry, threshold: thresholds.streaming4KMaxPacketLossPercent) {
             return LiveUsageCaseVerdict(
                 usageCase: .streaming4K,
                 level: .limited,

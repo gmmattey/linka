@@ -166,6 +166,7 @@ struct SettingsView: View {
                     .foregroundColor(.textSecondary)
             }
         }
+        .linkaGradientScreenBackground()
         #endif
         }
         .navigationTitle(LinkaCopy.value("settings.title"))
@@ -719,6 +720,7 @@ struct SubscriptionManagementSheet: View {
                 }
                 if let message { Section { Text(message).foregroundColor(.textSecondary) } }
             }
+            .linkaGradientScreenBackground()
             .linkaSheetToolbar(title: LinkaCopy.value("linka.plus")) { dismiss() }
         }
     }

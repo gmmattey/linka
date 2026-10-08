@@ -13,7 +13,8 @@ import CoreWLAN
 /// único switch sobre `CWChannelBand` do arquivo — ver grep no PR.
 ///
 /// `CWChannelBand` é um enum simples (`UInt` raw value) do framework
-/// `CoreWLAN`: seus cases (`.band2GHz`, `.band5GHz`, `.bandUnknown`) podem
+/// `CoreWLAN`: seus cases (`.band2GHz`, `.band5GHz`, `.band6GHz`,
+/// `.bandUnknown`) podem
 /// ser instanciados diretamente, sem precisar de uma interface Wi-Fi real
 /// nem de hardware — por isso o mapper dá pra testar isoladamente aqui,
 /// sem mockar `CWWiFiClient`/`CWInterface`.
@@ -39,6 +40,10 @@ final class ApplePlatformSignalProviderCWChannelBandTests: XCTestCase {
         XCTAssertEqual(ApplePlatformSignalProvider.mapCWChannelBand(.band5GHz), 5.0)
     }
 
+    func test_mapCWChannelBand_band6GHz_returns6Point0() {
+        XCTAssertEqual(ApplePlatformSignalProvider.mapCWChannelBand(.band6GHz), 6.0)
+    }
+
     func test_mapCWChannelBand_bandUnknown_returnsNil() {
         XCTAssertNil(ApplePlatformSignalProvider.mapCWChannelBand(.bandUnknown))
     }
@@ -55,6 +60,10 @@ final class ApplePlatformSignalProviderCWChannelBandTests: XCTestCase {
         XCTAssertEqual(ApplePlatformSignalProvider.bandLabel(forGHz: 5.0), "5GHz")
     }
 
+    func test_bandLabel_6Point0_returns6GHzLabel() {
+        XCTAssertEqual(ApplePlatformSignalProvider.bandLabel(forGHz: 6.0), "6GHz")
+    }
+
     func test_bandLabel_nil_returnsNil() {
         XCTAssertNil(ApplePlatformSignalProvider.bandLabel(forGHz: nil))
     }
@@ -69,6 +78,10 @@ final class ApplePlatformSignalProviderCWChannelBandTests: XCTestCase {
         XCTAssertEqual(
             ApplePlatformSignalProvider.mapCWChannelBand(.band5GHz),
             5.0
+        )
+        XCTAssertEqual(
+            ApplePlatformSignalProvider.mapCWChannelBand(.band6GHz),
+            6.0
         )
         XCTAssertNil(ApplePlatformSignalProvider.mapCWChannelBand(.bandUnknown))
     }

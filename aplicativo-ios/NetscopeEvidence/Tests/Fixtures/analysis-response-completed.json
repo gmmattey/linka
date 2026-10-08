@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "request_id": "fixture-completed-001",
+  "status": "completed",
+  "declared_context": { "objective": "gaming" },
+  "assessment": {
+    "title": "Conexão estável",
+    "summary": "A latência observada está dentro do esperado.",
+    "confidence": "high"
+  },
+  "evidence_used": [
+    { "metric": "latency_ms", "value": 12.5, "source": "system_observed" },
+    { "metric": "connection_kind", "value": "wifi", "source": "system_observed" }
+  ],
+  "limitations": ["A leitura não identifica a causa raiz da rede."],
+  "next_action": { "title": "Continue jogando", "steps": ["Refaça o teste se a conexão mudar."] },
+  "provenance": { "provider": "fixture", "model": "fixture-v1", "policy_version": "v1" }
+}

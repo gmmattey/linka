@@ -48,7 +48,8 @@ struct PurchaseSheet: View {
 
     var body: some View {
         ZStack {
-            Color.surfacePage.ignoresSafeArea()
+            LinkaScreenBackground(variant: .gradientOnly, showWaves: false)
+                .ignoresSafeArea()
             VStack(spacing: 0) {
                 HStack {
                     Spacer()

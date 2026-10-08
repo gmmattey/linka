@@ -53,6 +53,7 @@ struct ServiceStatusView: View {
                 }
             }
         }
+        .linkaGradientScreenBackground()
         .searchable(text: $query, prompt: "Buscar serviço")
         .navigationTitle("Status de serviços")
         .task { await store.refresh() }

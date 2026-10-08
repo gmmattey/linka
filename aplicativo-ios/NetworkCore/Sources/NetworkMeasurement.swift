@@ -78,6 +78,98 @@ public struct LoadResponsivenessEvidence: Codable, Equatable, Hashable, Sendable
     }
 }
 
+/// Resumo verificável das sondagens de estabilidade da medição formal.
+/// Não guarda amostras individuais, host ou qualquer identificador de rede.
+public struct PacketProbeEvidence: Codable, Equatable, Hashable, Sendable {
+    public static let currentMethodologyVersion = 1
+
+    public let methodologyVersion: Int
+    public let environmentIdentifier: String
+    public let attemptCount: Int
+    public let successCount: Int
+    public let failureCount: Int
+    public let timeoutCount: Int
+    public let longestFailureStreak: Int
+    public let expandedAfterInitialWindow: Bool
+    public let completed: Bool
+
+    public init(
+        methodologyVersion: Int = Self.currentMethodologyVersion,
+        environmentIdentifier: String,
+        attemptCount: Int,
+        successCount: Int,
+        failureCount: Int,
+        timeoutCount: Int,
+        longestFailureStreak: Int,
+        expandedAfterInitialWindow: Bool,
+        completed: Bool
+    ) {
+        self.methodologyVersion = methodologyVersion
+        self.environmentIdentifier = environmentIdentifier
+        self.attemptCount = attemptCount
+        self.successCount = successCount
+        self.failureCount = failureCount
+        self.timeoutCount = timeoutCount
+        self.longestFailureStreak = longestFailureStreak
+        self.expandedAfterInitialWindow = expandedAfterInitialWindow
+        self.completed = completed
+    }
+
+    public var packetLossPercent: Double? {
+        guard completed, attemptCount > 0, failureCount >= 0 else { return nil }
+        return Double(failureCount) / Double(attemptCount) * 100
+    }
+}
+
+/// Referência regional de caminho para jogos. É uma referência de internet,
+/// não o ping de um jogo nem a localização da pessoa.
+public struct RegionalGameReference: Codable, Equatable, Hashable, Sendable {
+    public static let currentMethodologyVersion = 1
+
+    public enum Status: String, Codable, Equatable, Hashable, Sendable {
+        case measured
+        case inconclusive
+    }
+
+    public let methodologyVersion: Int
+    public let selectionRuleVersion: Int
+    public let catalogVersion: String
+    public let regionIdentifier: String?
+    public let p50LatencyMs: Double?
+    public let jitterMs: Double?
+    public let attemptCount: Int
+    public let validResponseCount: Int
+    public let timeoutCount: Int
+    public let packetLossPercent: Double?
+    public let status: Status
+
+    public init(
+        methodologyVersion: Int = Self.currentMethodologyVersion,
+        selectionRuleVersion: Int = 1,
+        catalogVersion: String,
+        regionIdentifier: String? = nil,
+        p50LatencyMs: Double? = nil,
+        jitterMs: Double? = nil,
+        attemptCount: Int,
+        validResponseCount: Int,
+        timeoutCount: Int,
+        packetLossPercent: Double? = nil,
+        status: Status
+    ) {
+        self.methodologyVersion = methodologyVersion
+        self.selectionRuleVersion = selectionRuleVersion
+        self.catalogVersion = catalogVersion
+        self.regionIdentifier = regionIdentifier
+        self.p50LatencyMs = p50LatencyMs
+        self.jitterMs = jitterMs
+        self.attemptCount = attemptCount
+        self.validResponseCount = validResponseCount
+        self.timeoutCount = timeoutCount
+        self.packetLossPercent = packetLossPercent
+        self.status = status
+    }
+}
+
 public extension NetworkMeasurement {
     /// Única porta de consumo dos escalares de latência sob carga. Registros
     /// anteriores ao envelope continuam usando os fatos legados; quando o
@@ -111,6 +203,11 @@ public struct NetworkMeasurement: Identifiable, Codable, Equatable, Hashable, Se
     public let latencyMs: Double?
     public let jitterMs: Double?
     public let packetLossPercent: Double?
+    /// Evidência da janela formal de estabilidade. Ausente em medições
+    /// legadas e em resultados parciais/cancelados.
+    public let packetProbeEvidence: PacketProbeEvidence?
+    /// Referência regional para Jogos, executada após as fases do teste.
+    public let regionalGameReference: RegionalGameReference?
     public let loadedLatencyMs: Double?
     /// Latência sob carga (ms) durante a fase de upload — issue #128,
     /// paridade com `loadedLatencyMs` (que hoje só cobre download). Campo
@@ -172,6 +269,8 @@ public struct NetworkMeasurement: Identifiable, Codable, Equatable, Hashable, Se
         latencyMs: Double? = nil,
         jitterMs: Double? = nil,
         packetLossPercent: Double? = nil,
+        packetProbeEvidence: PacketProbeEvidence? = nil,
+        regionalGameReference: RegionalGameReference? = nil,
         loadedLatencyMs: Double? = nil,
         loadedLatencyUploadMs: Double? = nil,
         loadResponsiveness: LoadResponsivenessEvidence? = nil,
@@ -195,7 +294,9 @@ public struct NetworkMeasurement: Identifiable, Codable, Equatable, Hashable, Se
         self.uploadMbps = uploadMbps
         self.latencyMs = latencyMs
         self.jitterMs = jitterMs
-        self.packetLossPercent = packetLossPercent
+        self.packetProbeEvidence = packetProbeEvidence
+        self.regionalGameReference = regionalGameReference
+        self.packetLossPercent = packetProbeEvidence?.packetLossPercent ?? packetLossPercent
         self.loadedLatencyMs = loadedLatencyMs
         self.loadedLatencyUploadMs = loadedLatencyUploadMs
         self.loadResponsiveness = loadResponsiveness
@@ -450,6 +551,45 @@ public enum NetworkMeasurementContract {
         if let packetLossPercent = measurement.packetLossPercent,
            packetLossPercent > 100 {
             result.append("packetLossPercent")
+        }
+
+        if let probes = measurement.packetProbeEvidence {
+            let countsAreConsistent = probes.attemptCount > 0
+                && probes.successCount >= 0
+                && probes.failureCount >= 0
+                && probes.successCount + probes.failureCount == probes.attemptCount
+                && probes.timeoutCount >= 0
+                && probes.timeoutCount <= probes.failureCount
+                && probes.longestFailureStreak >= 0
+                && probes.longestFailureStreak <= probes.failureCount
+            if probes.methodologyVersion != PacketProbeEvidence.currentMethodologyVersion
+                || probes.environmentIdentifier.isEmpty
+                || !countsAreConsistent
+                || !probes.completed
+                || measurement.packetLossPercent != probes.packetLossPercent {
+                result.append("packetProbeEvidence")
+            }
+        }
+
+        if let reference = measurement.regionalGameReference {
+            let countsAreConsistent = reference.attemptCount >= 0
+                && reference.validResponseCount >= 0
+                && reference.validResponseCount <= reference.attemptCount
+                && reference.timeoutCount >= 0
+                && reference.timeoutCount <= reference.attemptCount
+            let valuesAreValid = [reference.p50LatencyMs, reference.jitterMs, reference.packetLossPercent]
+                .compactMap { $0 }
+                .allSatisfy { $0.isFinite && $0 >= 0 }
+            let measuredIsComplete = reference.status != .measured || (
+                reference.regionIdentifier != nil && reference.p50LatencyMs != nil && reference.validResponseCount >= 2
+            )
+            if reference.methodologyVersion != RegionalGameReference.currentMethodologyVersion
+                || reference.catalogVersion.isEmpty
+                || !countsAreConsistent
+                || !valuesAreValid
+                || !measuredIsComplete {
+                result.append("regionalGameReference")
+            }
         }
 
         if let durationMs = measurement.durationMs, durationMs < 0 {

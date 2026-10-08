@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "request_id": "fixture-out-of-scope-001",
+  "status": "out_of_scope",
+  "limitations": ["A solicitação não pertence ao escopo desta análise."]
+}
