@@ -16,10 +16,10 @@ enum InventoryBuildConfiguration {
 
     static var isEnabled: Bool { channel != .publicRelease }
 
-    // Filled only after the dedicated lookup deployment is verified. A missing value fails closed.
+    // Dedicated lookup deployment verified while disabled. Server activation is independent.
     // No provider credential belongs in this app. Keep the host allowlist explicit when activating.
-    private static let internalBetaEndpointString: String? = nil
-    private static let internalBetaAllowedHosts: Set<String> = []
+    private static let internalBetaEndpointString: String? = "https://linka-device-spec-lookup.buildealabs.workers.dev/v1/device-specs/lookup"
+    private static let internalBetaAllowedHosts: Set<String> = ["linka-device-spec-lookup.buildealabs.workers.dev"]
     private static let lookupPath = "/v1/device-specs/lookup"
 
     static var lookupEndpoint: URL? {

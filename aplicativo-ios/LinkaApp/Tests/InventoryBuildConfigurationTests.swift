@@ -6,6 +6,7 @@ final class InventoryBuildConfigurationTests: XCTestCase {
         #if LINKA_INTERNAL_BETA
         XCTAssertEqual(InventoryBuildConfiguration.channel, .internalBeta)
         XCTAssertTrue(InventoryBuildConfiguration.isEnabled)
+        XCTAssertEqual(InventoryBuildConfiguration.lookupEndpoint?.absoluteString, "https://linka-device-spec-lookup.buildealabs.workers.dev/v1/device-specs/lookup")
         #elseif DEBUG
         XCTAssertEqual(InventoryBuildConfiguration.channel, .development)
         XCTAssertTrue(InventoryBuildConfiguration.isEnabled)

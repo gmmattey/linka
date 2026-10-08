@@ -2,7 +2,7 @@
 
 - Adiciona Minha Rede à candidata interna para cadastrar, editar e excluir equipamentos localmente, inclusive offline.
 - Permite fotografar ou importar uma etiqueta para sugerir marca/modelo com leitura local e confirmação da pessoa.
-- Prepara pesquisa de ficha técnica com fontes; o serviço remoto ainda depende de endpoint verificado e ativação. Não há validação de IA real nesta preparação.
+- Prepara pesquisa de ficha técnica com fontes; o endpoint dedicado foi verificado, mas o serviço permanece desativado, aguardando credencial e ativação. Não há validação de IA real nesta preparação.
 - Mantém Minha Rede desativada no Release público. Distribuição desta candidata deve usar TestFlight Internal Only pelo Xcode.
 
 # Linka 1.1.5 (55)
