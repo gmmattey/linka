@@ -1,11 +1,11 @@
-# Linka 1.1.6 (57) — beta interna em preparação
+# Linka 1.1.6 (57) — disponível no TestFlight interno
 
 - Avança a versão após a Apple informar que 1.1.5 está encerrada para novas submissões; a candidata 1.1.5 (56) não foi enviada ao TestFlight.
 
 - Adiciona Minha Rede à candidata interna para cadastrar, editar e excluir equipamentos localmente, inclusive offline.
 - Permite fotografar ou importar uma etiqueta para sugerir marca/modelo com leitura local e confirmação da pessoa.
-- Prepara pesquisa de ficha técnica com fontes; o endpoint dedicado foi verificado, mas o serviço permanece desativado, aguardando credencial e ativação. Não há validação de IA real nesta preparação.
-- Mantém Minha Rede desativada no Release público. Distribuição desta candidata deve usar TestFlight Internal Only pelo Xcode.
+- Ativa pesquisa de ficha técnica com IA no piloto interno, com fontes e confirmação antes de salvar. Uma consulta real com fonte oficial e o fluxo de revisão/salvamento no Mac foram verificados; a cobertura de modelos ainda está em avaliação.
+- Mantém Minha Rede desativada no Release público. Enviada pelo Xcode em modo TestFlight Internal Only, processada e disponível ao grupo interno Projeto Adonis.
 
 # Linka 1.1.5 (55)
 
