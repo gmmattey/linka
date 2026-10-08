@@ -138,6 +138,17 @@ final class NetworkInventoryTests: XCTestCase {
         let retained = try await repo.device(id: first.id)
         XCTAssertEqual(retained, first)
     }
+    func testOCRRejectsSensitiveIdentityAndRevisionLinesAcrossLabelVariants() {
+        let suffixes = ["SN: 123456", "s.n = 123456", "S-N / 123456", "IMEI: 123456789012345", "imeisv 1234567890123456", "UID = private-id", "USER: admin", "username / admin", "Login=admin", "Usuário: admin", "WPA: secret", "wpa2 / secret", "WPA3 = secret", "AA:BB:CC:DD:EE:FF", "aa-bb-cc-dd-ee-ff", "aabb.ccdd.eeff", "AABBCCDDEEFF"]
+        for suffix in suffixes {
+            XCTAssertTrue(DeviceLabelParser.candidates(from: ["Model: Archer C6 " + suffix]).isEmpty, suffix)
+            let candidates = DeviceLabelParser.candidates(from: ["Model: Archer C6", "Ver: V3 " + suffix])
+            XCTAssertEqual(candidates.count, 1, suffix)
+            XCTAssertNil(candidates.first?.identity.hardwareRevision, suffix)
+        }
+        let clean = DeviceLabelParser.candidates(from: ["Model: Archer C6", "Ver: V3"])
+        XCTAssertEqual(clean.first?.identity.hardwareRevision, "V3")
+    }
     func testMergedOCRCredentialsNeverBecomeModel() {
         for line in ["Model: Archer C6 WPS PIN : 12345670", "Model: AX3000 Wi-Fi Key: segredo", "Modelo: AX3000 Senha : segredo", "Model: AX3000 S / N : ABC", "Model: AX3000 SSID casa", "Model: AX3000 PSK segredo", "Model: AX3000 passphrase segredo"] {
             XCTAssertTrue(DeviceLabelParser.candidates(from: [line]).isEmpty, line)

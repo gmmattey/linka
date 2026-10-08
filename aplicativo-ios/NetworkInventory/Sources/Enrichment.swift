@@ -81,8 +81,9 @@ public enum DeviceLabelParser {
             let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
             let lower = trimmed.lowercased()
             // Reject the entire line, including merged OCR fields. Never truncate around a secret.
-            let sensitive = #"(?i)\b(password|passwd|passphrase|senha|ssid|bssid|serial|s\s*/\s*n|mac|wps|pin|key|psk|chave)\b"#
-            if lower.range(of: sensitive, options: .regularExpression) != nil { continue }
+            let sensitive = #"(?i)\b(password|passwd|passphrase|senha|ssid|bssid|serial|s\s*[./-]?\s*n|imei(?:sv)?|uid|user(?:name)?|usuário|usuario|login|wpa[23]?|mac|wps|pin|key|psk|chave)\b"#
+            let hardwareAddress = #"(?i)(?<![a-z0-9])(?:[0-9a-f]{2}(?::[0-9a-f]{2}){5}|[0-9a-f]{2}(?:-[0-9a-f]{2}){5}|[0-9a-f]{4}(?:\.[0-9a-f]{4}){2}|[0-9a-f]{12})(?![a-z0-9])"#
+            if lower.range(of: sensitive, options: .regularExpression) != nil || lower.range(of: hardwareAddress, options: .regularExpression) != nil { continue }
             if let match = brands.first(where: { lower == $0.lowercased() || lower.hasPrefix($0.lowercased() + " ") }) { brand = match }
             for prefix in ["model:", "modelo:", "model no:", "model no.:"] where lower.hasPrefix(prefix) {
                 let value = String(trimmed.dropFirst(prefix.count)).trimmingCharacters(in: .whitespaces)
