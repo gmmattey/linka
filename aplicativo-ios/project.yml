@@ -8,8 +8,8 @@ configs:
   InternalBeta: release
 settings:
   base:
-    MARKETING_VERSION: "1.1.5"
-    CURRENT_PROJECT_VERSION: "56"
+    MARKETING_VERSION: "1.1.6"
+    CURRENT_PROJECT_VERSION: "57"
     DEVELOPMENT_LANGUAGE: pt-BR
   configs:
     InternalBeta:

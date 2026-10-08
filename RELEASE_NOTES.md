@@ -1,4 +1,6 @@
-# Linka 1.1.5 (56) — beta interna em preparação
+# Linka 1.1.6 (57) — beta interna em preparação
+
+- Avança a versão após a Apple informar que 1.1.5 está encerrada para novas submissões; a candidata 1.1.5 (56) não foi enviada ao TestFlight.
 
 - Adiciona Minha Rede à candidata interna para cadastrar, editar e excluir equipamentos localmente, inclusive offline.
 - Permite fotografar ou importar uma etiqueta para sugerir marca/modelo com leitura local e confirmação da pessoa.
