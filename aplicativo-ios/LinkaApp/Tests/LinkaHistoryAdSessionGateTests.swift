@@ -163,7 +163,7 @@ final class LinkaAdsCoordinatorMeasurementSuppressionTests: XCTestCase {
         XCTAssertEqual(recorder.nativeAdLoadStarts, 0)
     }
 
-    func testPromotionalEligibleFlowResolvesATTBeforeConsentAndContinuesAfterDenial() async {
+    func testPromotionalEligibleFlowChecksActiveStateBeforeConsent() async {
         let pause = ConsentPresentationPause()
         let recorder = AdFlowRecorder()
         let finished = expectation(description: "flow finishes after consent")
@@ -171,9 +171,9 @@ final class LinkaAdsCoordinatorMeasurementSuppressionTests: XCTestCase {
         var events: [String] = []
         var configuration = dependencies(pause: pause, recorder: recorder,
                                          adFlowDidFinish: { finished.fulfill() })
-        configuration.requestTrackingAuthorizationIfNeeded = {
-            events.append("ATT denied, choice resolved")
-            return true // Denied is a resolved choice, not a veto on NPA.
+        configuration.isApplicationActive = {
+            events.append("application active")
+            return true
         }
         configuration.updateConsentInformation = {
             events.append("consent information")
@@ -183,11 +183,11 @@ final class LinkaAdsCoordinatorMeasurementSuppressionTests: XCTestCase {
         let coordinator = LinkaAdsCoordinator(dependencies: configuration)
         coordinator.prepareHomeAd(isEligibleForAds: true, isEntitlementResolved: true)
         await fulfillment(of: [finished], timeout: 1)
-        XCTAssertEqual(events, ["ATT denied, choice resolved", "consent information"])
+        XCTAssertEqual(events, ["application active", "consent information"])
         XCTAssertEqual(recorder.presentedSurfaces, [.initialConsent])
     }
 
-    func testUnresolvedATTDefersConsentAndAllowsRetryWhenActive() async {
+    func testInactiveApplicationDefersConsentAndAllowsRetryWhenActive() async {
         let pause = ConsentPresentationPause()
         let recorder = AdFlowRecorder()
         let deferred = expectation(description: "inactive flow deferred")
@@ -198,7 +198,7 @@ final class LinkaAdsCoordinatorMeasurementSuppressionTests: XCTestCase {
         var configuration = dependencies(pause: pause, recorder: recorder, adFlowDidFinish: {
             if active { retried.fulfill() } else { deferred.fulfill() }
         })
-        configuration.requestTrackingAuthorizationIfNeeded = { active }
+        configuration.isApplicationActive = { active }
         configuration.updateConsentInformation = { consentUpdates += 1; return true }
         configuration.canRequestAds = { false }
         let coordinator = LinkaAdsCoordinator(dependencies: configuration)
@@ -211,26 +211,27 @@ final class LinkaAdsCoordinatorMeasurementSuppressionTests: XCTestCase {
         XCTAssertEqual(consentUpdates, 1)
     }
 
-    func testMeasurementStartedDuringATTPreventsConsentContinuation() async {
+    func testMeasurementStartedDuringConsentUpdatePreventsPresentation() async {
         let pause = ConsentPresentationPause()
         let recorder = AdFlowRecorder()
-        let finished = expectation(description: "ATT flow invalidated")
+        let finished = expectation(description: "consent update invalidated")
         var consentUpdates = 0
         var configuration = dependencies(pause: pause, recorder: recorder,
                                          adFlowDidFinish: { finished.fulfill() })
-        configuration.requestTrackingAuthorizationIfNeeded = {
+        configuration.updateConsentInformation = {
+            consentUpdates += 1
             await pause.reachPresentationCheckpoint()
             await pause.waitForRelease()
             return true
         }
-        configuration.updateConsentInformation = { consentUpdates += 1; return true }
         let coordinator = LinkaAdsCoordinator(dependencies: configuration)
         coordinator.prepareHomeAd(isEligibleForAds: true, isEntitlementResolved: true)
         await pause.waitUntilPresentationCheckpoint()
         coordinator.measurementDidStart()
         await pause.releasePresentation()
         await fulfillment(of: [finished], timeout: 1)
-        XCTAssertEqual(consentUpdates, 0)
+        XCTAssertEqual(consentUpdates, 1)
+        XCTAssertTrue(recorder.presentedSurfaces.isEmpty)
         XCTAssertEqual(recorder.nativeAdLoadStarts, 0)
     }
 
@@ -241,7 +242,7 @@ final class LinkaAdsCoordinatorMeasurementSuppressionTests: XCTestCase {
     ) -> LinkaAdsCoordinatorDependencies {
         LinkaAdsCoordinatorDependencies(
             isEnabled: { true },
-            requestTrackingAuthorizationIfNeeded: { true },
+            isApplicationActive: { true },
             updateConsentInformation: { true },
             presentConsentSurface: { surface, permit in
                 await pause.reachPresentationCheckpoint()

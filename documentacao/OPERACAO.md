@@ -77,7 +77,7 @@ URLs declaradas: [marketing](https://linka-speedtest.web.app), [privacidade](htt
 
 Notas de review: medição por ação da pessoa, sem conta Linka obrigatória; acesso adicional depende de entitlement. iOS/iPad usa Atalhos configurado para Wi-Fi avançado; Mac depende de APIs/permissões. Informar versão/build, destinos, compra/restauração, configuração reproduzível e campanha aplicável. Não declarar preço fixo, causa raiz ou resposta infalível. Promoção é elegível a anúncios; compra paga válida não. O rascunho específico da build 53 permanece no [histórico Git](https://github.com/gmmattey/linka/blob/39269c7a9d2ed461fb944de09d5b27c34d3d1d4d/store/app-store/review-notes-1.1.5-build53.md), não é nota pronta para qualquer candidata.
 
-Antes de enviar publicidade: gravar ATT/consentimento na candidata física e contexto correto de conta/permissão; conferir App Privacy/SDK, ausência de mensagem remota duplicada e política publicada. Negação de tracking não bloqueia funções; inventário/consentimento não garantem anúncio. Não inferir oferta ou preço do antigo paywall sem build/catálogo identificados.
+Antes de enviar publicidade: verificar ausência do pedido ATT e gravar consentimento UMP na candidata física e contexto correto de conta/permissão; conferir App Privacy/SDK, ausência de mensagem remota duplicada e política publicada. A retirada do ATT não dispensa verificar os tratamentos efetivos dos SDKs; inventário/consentimento não garantem anúncio. Não inferir oferta ou preço do antigo paywall sem build/catálogo identificados.
 
 ## Validação conhecida e próxima candidata
 
