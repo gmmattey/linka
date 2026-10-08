@@ -816,7 +816,7 @@
 "inventory.research.title" = "Pesquisar ficha técnica?";
 "inventory.research.action" = "Buscar ficha técnica";
 "inventory.research.disclosure" = "Marca, modelo, versão e região serão enviados ao serviço de pesquisa do Linka, que usa OpenAI para consultar fontes públicas. Fotos, senhas e dados da sua casa não são enviados.";
-"inventory.research.unavailable" = "A pesquisa não está disponível nesta versão. Você pode salvar o equipamento e completar a ficha depois.";
+"inventory.research.unavailable" = "A pesquisa não está disponível no momento. Você pode salvar o equipamento e completar a ficha depois.";
 "inventory.research.failed" = "Não foi possível pesquisar agora. Seus dados foram mantidos; tente novamente ou salve manualmente.";
 "inventory.research.empty" = "Não encontramos uma ficha correspondente com fontes suficientes. Continue manualmente.";
 "inventory.research.progress" = "Consultando fontes…";

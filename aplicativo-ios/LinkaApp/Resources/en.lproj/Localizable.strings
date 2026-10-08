@@ -816,7 +816,7 @@
 "inventory.research.title" = "Look up technical specifications?";
 "inventory.research.action" = "Look up specifications";
 "inventory.research.disclosure" = "Brand, model, revision and region will be sent to Linka’s research service, which uses OpenAI to consult public sources. Photos, passwords and household details are not sent.";
-"inventory.research.unavailable" = "Research is unavailable in this version. You can save the equipment and complete its specifications later.";
+"inventory.research.unavailable" = "Research is currently unavailable. You can save the equipment and complete its specifications later.";
 "inventory.research.failed" = "Research failed. Your entries are preserved; retry or save manually.";
 "inventory.research.empty" = "No matching specifications with sufficient sources were found. Continue manually.";
 "inventory.research.progress" = "Consulting sources…";
