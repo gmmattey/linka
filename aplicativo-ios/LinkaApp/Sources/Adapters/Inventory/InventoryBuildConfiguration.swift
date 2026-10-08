@@ -18,9 +18,9 @@ enum InventoryBuildConfiguration {
 
     // Dedicated lookup deployment verified while disabled. Server activation is independent.
     // No provider credential belongs in this app. Keep the host allowlist explicit when activating.
-    private static let internalBetaEndpointString: String? = "https://linka-device-spec-lookup.buildealabs.workers.dev/v1/device-specs/lookup"
+    private static let internalBetaEndpointString: String? = "https://linka-device-spec-lookup.buildealabs.workers.dev/v2/device-specs/lookup"
     private static let internalBetaAllowedHosts: Set<String> = ["linka-device-spec-lookup.buildealabs.workers.dev"]
-    private static let lookupPath = "/v1/device-specs/lookup"
+    private static let lookupPath = "/v2/device-specs/lookup"
 
     static var lookupEndpoint: URL? {
         switch channel {

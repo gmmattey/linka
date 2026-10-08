@@ -53,7 +53,7 @@ private final class RejectLookupRedirects: NSObject, URLSessionTaskDelegate, @un
 }
 public extension DeviceSpecificationSnapshot {
     func validate(for expected: DeviceIdentity) throws {
-        let allowed: Set<String> = ["wifiStandards", "bandsGHz", "lanPorts", "wanPorts", "wanMedia", "ethernetPortSpeedsMbps", "supportsMesh", "meshTechnology", "supportedModes", "firmwareSupportStatus", "radioCapabilities", "ethernetPorts", "supportedBackhaul", "fiberTermination"]
+        let allowed: Set<String> = ["wifiStandards", "bandsGHz", "lanPorts", "wanPorts", "wanMedia", "ethernetPortSpeedsMbps", "supportsMesh", "meshTechnology", "supportedModes", "firmwareSupportStatus", "radioCapabilities", "ethernetPorts", "supportedBackhaul", "fiberTermination", "deviceKind"]
         guard schemaVersion == 1, identity.isValid, identity.matches(expected), attributes.count <= allowed.count, sources.count <= 30,
               Set(attributes.map(\.key)).count == attributes.count, Set(sources.map(\.id)).count == sources.count else { throw NetworkInventoryError.invalidResponse }
         if status == .notFound || status == .unavailable { guard attributes.isEmpty, sources.isEmpty else { throw NetworkInventoryError.invalidResponse } }
@@ -76,7 +76,6 @@ public protocol DeviceLabelOCRService: Sendable { func candidates(from imageData
 public enum DeviceLabelParser {
     public static func candidates(from recognizedLines: [String]) -> [DeviceLabelCandidate] {
         var models: [String] = []; var revision: String?; var brand = ""
-        let brands = ["TP-Link", "D-Link", "Huawei", "Nokia", "Intelbras", "ASUS", "Netgear", "ZTE", "Tenda", "Ubiquiti"]
         for line in recognizedLines.prefix(100) {
             let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
             let lower = trimmed.lowercased()
@@ -84,7 +83,10 @@ public enum DeviceLabelParser {
             let sensitive = #"(?i)\b(password|passwd|passphrase|senha|ssid|bssid|serial|s\s*[./-]?\s*n|imei(?:sv)?|uid|user(?:name)?|usuário|usuario|login|wpa[23]?|mac|wps|pin|key|psk|chave)\b"#
             let hardwareAddress = #"(?i)(?<![a-z0-9])(?:[0-9a-f]{2}(?::[0-9a-f]{2}){5}|[0-9a-f]{2}(?:-[0-9a-f]{2}){5}|[0-9a-f]{4}(?:\.[0-9a-f]{4}){2}|[0-9a-f]{12})(?![a-z0-9])"#
             if lower.range(of: sensitive, options: .regularExpression) != nil || lower.range(of: hardwareAddress, options: .regularExpression) != nil { continue }
-            if let match = brands.first(where: { lower == $0.lowercased() || lower.hasPrefix($0.lowercased() + " ") }) { brand = match }
+            for prefix in ["brand:", "marca:", "manufacturer:", "fabricante:"] where lower.hasPrefix(prefix) {
+                let value = String(trimmed.dropFirst(prefix.count)).trimmingCharacters(in: .whitespaces)
+                if !value.isEmpty && value.count <= 80 { brand = value }
+            }
             for prefix in ["model:", "modelo:", "model no:", "model no.:"] where lower.hasPrefix(prefix) {
                 let value = String(trimmed.dropFirst(prefix.count)).trimmingCharacters(in: .whitespaces)
                 if !value.isEmpty && value.count <= 120 { if !models.contains(value) { models.append(value) } }
@@ -103,6 +105,7 @@ private extension DeviceSpecificationSnapshot {
         let parts = attribute.value.split(separator: ",", omittingEmptySubsequences: false).map { $0.trimmingCharacters(in: .whitespaces) }
         func members(_ allowed: Set<String>) -> Bool { !parts.isEmpty && Set(parts).count == parts.count && parts.allSatisfy { allowed.contains($0) } }
         switch attribute.key {
+        case "deviceKind": return attribute.unit == nil && DeviceKind(rawValue: attribute.value) != nil
         case "lanPorts", "wanPorts": return attribute.unit == nil && Int(attribute.value).map { (0...128).contains($0) } == true
         case "supportsMesh": return attribute.unit == nil && ["true", "false"].contains(attribute.value)
         case "bandsGHz": return attribute.unit == "GHz" && members(["2.4", "5", "6"])

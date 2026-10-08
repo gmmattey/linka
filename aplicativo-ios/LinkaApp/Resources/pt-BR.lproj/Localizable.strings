@@ -801,29 +801,29 @@
 "inventory.location.optional" = "Local (opcional)";
 "inventory.unknown" = "Não informado";
 "inventory.edit" = "Editar equipamento";
-"inventory.save" = "Salvar";
+"inventory.save" = "Salvar equipamento";
 "inventory.delete" = "Excluir equipamento";
 "inventory.delete.title" = "Excluir este equipamento?";
 "inventory.delete.message" = "O cadastro será removido deste aparelho. Suas medições não serão alteradas.";
 "inventory.deleted" = "Este equipamento foi excluído.";
-"inventory.camera" = "Fotografar etiqueta";
-"inventory.image" = "Escolher imagem";
+"inventory.camera" = "Fotografar";
+"inventory.image" = "Escolher foto";
 "inventory.camera.denied" = "Permita o uso da câmera nos Ajustes ou preencha manualmente.";
 "inventory.ocr.empty" = "Não identificamos o modelo. Você pode preencher manualmente.";
 "inventory.ocr.failed" = "Não foi possível ler a imagem. Continue pelo cadastro manual.";
 "inventory.ocr.progress" = "Lendo etiqueta neste aparelho…";
 "inventory.ocr.confirm" = "Confira e escolha o modelo sugerido. Você pode editar depois.";
 "inventory.research.title" = "Pesquisar ficha técnica?";
-"inventory.research.action" = "Buscar ficha técnica";
-"inventory.research.disclosure" = "Ao confirmar, marca, modelo, revisão e região vão ao serviço do Linka na Cloudflare e à OpenAI para pesquisar fontes públicas. Fotos, texto bruto da etiqueta, senhas e dados da casa não são enviados. O serviço usa um código derivado do IP para limitar abuso. Você pode cancelar e cadastrar manualmente.";
+"inventory.research.action" = "Buscar informações";
+"inventory.research.disclosure" = "A IA busca usando a identificação do equipamento. A foto é lida neste aparelho; senhas não são enviadas.";
 "inventory.research.unavailable" = "A pesquisa não está disponível no momento. Você pode salvar o equipamento e completar a ficha depois.";
-"inventory.research.failed" = "Não foi possível pesquisar agora. Seus dados foram mantidos; tente novamente ou salve manualmente.";
-"inventory.research.empty" = "Não encontramos uma ficha correspondente com fontes suficientes. Continue manualmente.";
+"inventory.research.failed" = "Não conseguimos concluir a busca. O que você digitou está aqui; tente de novo ou salve sem a ficha.";
+"inventory.research.empty" = "Não encontramos informações suficientes sobre esse modelo. Você pode salvar o equipamento assim e pesquisar depois.";
 "inventory.research.progress" = "Consultando fontes…";
 "inventory.review" = "Conferir ficha e fontes";
 "inventory.apply" = "Usar esta ficha";
 "inventory.specs.title" = "Informações pesquisadas";
-"inventory.specs.disclaimer" = "Ficha sugerida pela pesquisa com IA. Confira cada informação nas fontes; pode haver erros. Capacidades teóricas, não medições nem configuração observada.";
+"inventory.specs.disclaimer" = "Informações pesquisadas com IA, baseadas nas fontes abaixo. Descrevem capacidades do equipamento, não a velocidade medida na sua casa.";
 "inventory.specs.empty" = "Ficha técnica ainda não pesquisada. Edite o equipamento para buscar informações.";
 "inventory.specs.saved" = "Ficha selecionada. Salve o equipamento para guardar as informações.";
 "inventory.error.storage" = "Não foi possível ler ou salvar os dados. Nenhum arquivo foi apagado. Tente novamente.";
@@ -883,7 +883,7 @@
 "inventory.environment.partial" = "Os equipamentos mantiveram o nome do local, mas não foi possível excluir o Ambiente. Tente excluir novamente.";
 "inventory.capability.router" = "Modo roteador";
 "inventory.capability.streams" = "fluxos espaciais";
-"inventory.research.required" = "Para pesquisar, informe marca (até 80 caracteres), modelo, versão (até 40, se souber) e região com duas letras, como BR (opcional).";
+"inventory.research.required" = "Digite a marca e o modelo, ou escolha uma foto da etiqueta.";
 
 "inventory.firmware.supported" = "Com suporte";
 
@@ -892,3 +892,41 @@
 "inventory.firmware.unknown" = "Não informado";
 
 "inventory.validation.textLength" = "Apelido e local podem ter até 200 caracteres. Reduza o texto para salvar.";
+
+"inventory.identify.title" = "Qual é o equipamento?";
+
+"inventory.identify.subtitle" = "Fotografe a etiqueta ou digite a marca e o modelo.";
+
+"inventory.identify.placeholder" = "Ex.: Nokia G-1425-B";
+
+"inventory.identify.label" = "Marca e modelo";
+
+"inventory.confirm.title" = "É este aqui?";
+
+"inventory.correctIdentity" = "Corrigir identificação";
+
+"inventory.saveWithoutResearch" = "Salvar sem pesquisar";
+
+"inventory.saveWithoutSpecs" = "Salvar sem ficha";
+
+"inventory.completeDetails" = "Completar informações";
+
+"inventory.completeDetails.subtitle" = "Conte um pouco sobre o uso na sua casa. Tudo aqui é opcional.";
+
+"inventory.detailsAndSources" = "Detalhes e fontes";
+
+"inventory.research.ambiguous" = "Encontramos modelos parecidos. Qual deles está na etiqueta? Se nenhum for o seu, corrija a identificação ou salve sem ficha.";
+
+"inventory.research.timeout" = "A busca demorou mais que o esperado. Tente de novo ou salve o equipamento sem ficha.";
+
+"inventory.research.offline" = "Você está sem conexão. Pode salvar o equipamento agora e pesquisar depois.";
+
+"inventory.privacy.title" = "Sobre seus dados";
+
+"inventory.privacy.details" = "Ao buscar, a identificação que você conferiu e os detalhes de versão ou região, se informados, são enviados ao serviço do Linka, hospedado na Cloudflare, e à OpenAI para consultar fontes públicas. A leitura da etiqueta acontece neste aparelho: fotos, texto bruto, senhas e dados da casa não são enviados. O serviço usa um código derivado do IP para limitar abuso. Você pode cancelar a pesquisa ou salvar sem pesquisar.";
+
+"inventory.spec.deviceKind" = "Tipo de equipamento";
+
+"inventory.kind.fiberEquipment" = "Equipamento de fibra";
+
+"inventory.summary.cablePorts" = "Conexões para cabo";
