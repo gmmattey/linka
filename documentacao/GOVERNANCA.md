@@ -67,6 +67,6 @@ O Obsidian mantém apenas cópias dessas quatro fontes. A sincronização é pon
 
 ## Aplicação da decisão Minha Rede — 08/10/2026
 
-Luiz autorizou execução gradual da V1 completa, Free em iPhone/iPad/Mac, incluindo pesquisa técnica com IA. Produto, contratos e gates estão nas três fontes pares; a [PR #277](https://github.com/gmmattey/linka/pull/277) consolida as propostas anteriores, cujo histórico Git permanece recuperável. Não manter versões paralelas da especificação.
+O escopo da V1 completa, Free em iPhone/iPad/Mac e com pesquisa técnica com IA, está definido em Produto. Contratos e gates estão nas fontes pares; a [PR #277](https://github.com/gmmattey/linka/pull/277) consolida as propostas anteriores, cujo histórico Git permanece recuperável. Não manter versões paralelas da especificação.
 
 A autorização de implementação/preservação e PRs não equivale a provisionar serviço, consumir API paga, fazer deploy ou publicar app. Reutilizar as autorizações explícitas existentes dentro do seu escopo; registrar separadamente os gates operacionais ainda não concedidos. Entrega interna pode ser incremental, mas não anunciar V1 pública concluída sem cadastro, OCR, pesquisa/ficha e validação das três plataformas. V2–V4 permanecem evolução especificada, sem execução automática. Squad e regra de preservação de WIP acima continuam aplicáveis.
