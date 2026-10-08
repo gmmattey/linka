@@ -4,7 +4,7 @@ options:
 settings:
   base:
     MARKETING_VERSION: "1.1.5"
-    CURRENT_PROJECT_VERSION: "54"
+    CURRENT_PROJECT_VERSION: "55"
     DEVELOPMENT_LANGUAGE: pt-BR
 targets:
   LinkaApp:
@@ -61,7 +61,6 @@ targets:
         GADApplicationIdentifier: "ca-app-pub-5542349230926522~6717355071"
         LinkaAdsEnabled: "$(LINKA_ADS_ENABLED)"
         NSCameraUsageDescription: "Fotografe a etiqueta para preencher marca e modelo. A imagem é lida neste aparelho e não é enviada nem salva pelo Linka."
-        NSUserTrackingUsageDescription: "Sua permissão permite medir o desempenho dos anúncios. O Linka continua solicitando anúncios não personalizados."
         NSLocationWhenInUseUsageDescription: "O Linka usa a localização apenas porque o iPhone exige essa autorização para informar o nome da rede Wi-Fi atual. Sua localização não é salva para identificar a rede."
         NSLocationTemporaryUsageDescriptionDictionary:
           WiFiIdentification: "O Linka precisa de precisão total apenas para obter o nome da rede Wi-Fi atual exigido pelo sistema."

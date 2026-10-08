@@ -52,7 +52,7 @@ const pages: Record<string, InfoPage> = {
     eyebrow: 'Privacidade',
     title: 'Privacidade levada a sério.',
     intro: 'Luiz F. Giammattey é o responsável pelo Linka. Esta política explica quais dados o app usa, por quê e quais escolhas você tem.',
-    lastUpdated: '2 de outubro de 2026',
+    lastUpdated: '8 de outubro de 2026',
     sections: [
       {
         title: 'Dados usados na medição',
@@ -76,7 +76,7 @@ const pages: Record<string, InfoPage> = {
       },
       {
         title: 'Dados relacionados a anúncios',
-        body: 'Quando um anúncio é solicitado, o Google pode tratar categorias como identificadores técnicos, informações de uso e diagnóstico para fornecer, proteger, medir e limitar a frequência de anúncios, conforme as configurações e políticas aplicáveis do Google. O Linka solicita anúncios não personalizados (npa=1), independentemente da escolha de rastreamento. Antes de iniciar a publicidade, pede a permissão App Tracking Transparency quando disponível. Se você negar, o app continua funcionando e os anúncios são solicitados sem acesso ao identificador de publicidade (IDFA). A opção não personalizada não elimina os tratamentos necessários ao fornecimento, à segurança e à medição do anúncio.'
+        body: 'Quando um anúncio é solicitado, o Google pode tratar categorias como identificadores técnicos, informações de uso e diagnóstico para fornecer, proteger, medir e limitar a frequência de anúncios, conforme as configurações e políticas aplicáveis do Google. O Linka solicita anúncios não personalizados (npa=1). A partir da versão 1.1.5, build 55, o app não pede permissão de rastreamento (App Tracking Transparency). Versões anteriores podem apresentar esse pedido. A opção não personalizada não elimina os tratamentos necessários ao fornecimento, à segurança e à medição do anúncio.'
       },
       {
         title: 'Suas escolhas de anúncios',

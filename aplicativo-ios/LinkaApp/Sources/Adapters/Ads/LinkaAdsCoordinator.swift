@@ -1,6 +1,5 @@
 import Foundation
 #if os(iOS)
-import AppTrackingTransparency
 import UIKit
 import GoogleMobileAds
 import UserMessagingPlatform
@@ -80,7 +79,7 @@ enum LinkaAdConsentSurface {
 /// revogável quando a medição começa no meio do fluxo assíncrono.
 struct LinkaAdsCoordinatorDependencies {
     var isEnabled: () -> Bool
-    var requestTrackingAuthorizationIfNeeded: @MainActor () async -> Bool
+    var isApplicationActive: @MainActor () -> Bool
     var updateConsentInformation: @MainActor () async -> Bool
     var presentConsentSurface: @MainActor (LinkaAdConsentSurface, LinkaAdPresentationPermit) async throws -> Void
     var canRequestAds: () -> Bool
@@ -92,13 +91,8 @@ struct LinkaAdsCoordinatorDependencies {
         isEnabled: {
             (Bundle.main.object(forInfoDictionaryKey: "LinkaAdsEnabled") as? String) == "YES"
         },
-        requestTrackingAuthorizationIfNeeded: {
-            guard ATTrackingManager.trackingAuthorizationStatus == .notDetermined else { return true }
-            // O sistema ignora pedidos feitos fora do estado ativo. Deixe o
-            // placement tentar novamente ao voltar, sem gastar a tentativa.
-            guard UIApplication.shared.applicationState == .active else { return false }
-            let status = await ATTrackingManager.requestTrackingAuthorization()
-            return status != .notDetermined
+        isApplicationActive: {
+            UIApplication.shared.applicationState == .active
         },
         updateConsentInformation: {
             do {
@@ -250,8 +244,7 @@ final class LinkaAdsCoordinator: NSObject, ObservableObject {
             dependencies.adFlowDidFinish()
         }
         guard canLoadAds, requestGate.canContinue(requestGeneration: requestGeneration) else { return }
-        let trackingChoiceResolved = await dependencies.requestTrackingAuthorizationIfNeeded()
-        guard trackingChoiceResolved, canLoadAds,
+        guard dependencies.isApplicationActive(), canLoadAds,
               requestGate.canContinue(requestGeneration: requestGeneration) else { return }
         await refreshConsentInformation()
         guard canLoadAds, requestGate.canContinue(requestGeneration: requestGeneration),
