@@ -89,15 +89,5 @@ final class DeviceEditorSession: ObservableObject {
             }
         }
     }
-    private static var endpoint: URL? {
-        // Internal builds only, no default host and no public activation via preferences.
-        #if DEBUG
-        guard let value = ProcessInfo.processInfo.environment["LINKA_DEVICE_SPEC_ENDPOINT"],
-              let url = URL(string: value), url.scheme == "https", url.host != nil,
-              url.user == nil, url.password == nil, url.query == nil, url.fragment == nil else { return nil }
-        return url
-        #else
-        return nil
-        #endif
-    }
+    private static var endpoint: URL? { InventoryBuildConfiguration.lookupEndpoint }
 }
