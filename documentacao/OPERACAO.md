@@ -90,3 +90,24 @@ A PR [#274](https://github.com/gmmattey/linka/pull/274) registrou testes simulad
 | Texto, URLs, privacidade e capturas | Íris/Marco | Antes de submissão: materiais confrontados com candidata/portal; atualizar site quando afetado |
 
 Referências: [Produto](PRODUTO.md), [Arquitetura](ARQUITETURA.md), [Governança](GOVERNANCA.md).
+
+## Minha Rede — integração gradual e condição de lançamento
+
+Decisão de 08/10/2026: V1 pública completa e Free para iPhone/iPad/Mac, incluindo pesquisa com IA. Entregas internas podem avançar separadamente; flags/endpoint desligados mantêm o recorte em revisão. Código local e testes simulados não comprovam piloto, fonte real, coleta física, paridade visual ou publicação.
+
+Estado desta consolidação: documentação [PR #277](https://github.com/gmmattey/linka/pull/277); app `feat/minha-rede-v1` e backend isolado `feat/device-spec-lookup` ainda em revisão, sem merge declarado. Modelo/Household, CRUD, OCR/clientes estão implementados na branch do app, sujeitos ao review/QA. Backend tem configuração local desabilitada; não houve chamadas pagas, provisionamento, deploy ou piloto físico nesta frente. Evidências e revisões exatas ficam nas PRs de implementação, não são aprovação de lançamento por esta PR documental.
+
+Ordem: preservar refs/stashes/WIP → integrar correções independentes → core/persistência/CRUD → OCR → pesquisa/ficha → QA conjunta. PR276 de ATT e PR288 de teste CTA são frentes separadas; Netscope L06 não é dependência automática do lookup. Nenhuma etapa autoriza restaurar snapshot antigo sobre main ou misturar versões/configurações alheias.
+
+| Gate | Responsável e condição de fechamento |
+|---|---|
+| Integridade local | Camillo/Tito: reinício/offline, conflito/revisão, corrupção/schema futuro, falha de escrita, renomear/excluir Ambiente e falha parcial, duas instâncias e notificações, sem alterar assignments/Histórico |
+| Editor/OCR | Pedro/Tito: descarte, permissões, etiqueta ambígua/credenciais mescladas, resposta tardia após troca/cancelamento/exclusão; confirmar ausência de foto/OCR bruto em armazenamento/payload |
+| Contrato/fontes | Camillo/Íris/Tito: fixtures app/backend, unidades/estruturas, modelos inexistentes, variantes/conflitos, fontes efetivamente consultadas e confiáveis, instruções adversariais, revisão antes de persistir; não aceitar eco de identidade como prova |
+| Piloto de custo | Luiz/operador: aprovar provider/modelo, limite de ferramentas/tokens e reserva conservadora por pior caso, teto global e duração do piloto; testar reserva atômica pré-dispatch, concorrência/cache, timeout/incerteza e kill switch antes de tráfego pago |
+| Plataforma/QA | Tito/Íris: candidata identificada em iPhone/iPad/Mac, dispositivo físico para câmera/permissões e serviço real, VoiceOver/Dynamic Type/teclado, CRUD/offline/fontes, regressão medição/Histórico/Ambientes/Assist/DNS/Otimização/Ferramentas |
+| Ativação/publicação | Luiz/executor: autorização explícita para recursos/deploy/tráfego pago e, separadamente, distribuição/loja; disclosures, App Privacy, política/site e materiais confrontados com comportamento real |
+
+Não colocar chave no app, logs, fixtures ou PR. Definir bindings/migrations localmente não provisiona nem autoriza deploy. Serviço deve permanecer indisponível quando desligado, sem política válida, sem fonte suficiente ou com reserva/custo incerto. Custo máximo precisa de evidência do modelo e ferramentas aprovados, não apenas variável de ambiente afirmando aprovação. Definir retenção/cache/expurgo e reconciliar ledger ao mudar política. Quando pesquisa falha, manter cadastro/ficha anterior e permitir nova tentativa explícita.
+
+Fechamento V1 exige todos os aceites de [#279–#283](https://github.com/gmmattey/linka/issues/278) e decisão de lançamento registrada. V2 [#284–#287](https://github.com/gmmattey/linka/issues/284) só executa após validação V1; planos e vínculos ainda são contratos futuros, sem prometer sincronização ou recomendações. Material de loja só depois de homologar o comportamento correspondente.
