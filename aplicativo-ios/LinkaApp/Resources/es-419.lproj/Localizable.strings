@@ -815,7 +815,7 @@
 "inventory.ocr.confirm" = "Revisa y elige el modelo sugerido. Puedes editarlo después.";
 "inventory.research.title" = "¿Buscar ficha técnica?";
 "inventory.research.action" = "Buscar ficha técnica";
-"inventory.research.disclosure" = "La marca, el modelo, la versión y la región se enviarán al servicio de búsqueda de Linka, que usa OpenAI para consultar fuentes públicas. No se envían fotos, contraseñas ni datos de tu hogar.";
+"inventory.research.disclosure" = "Al confirmar, la marca, el modelo, la revisión y la región se envían al servicio de Linka en Cloudflare y a OpenAI para consultar fuentes públicas. No se envían fotos, texto sin procesar de la etiqueta, contraseñas ni datos del hogar. El servicio usa un código derivado de tu IP para limitar abusos. Puedes cancelar y registrar manualmente.";
 "inventory.research.unavailable" = "La búsqueda no está disponible en este momento. Puedes guardar el equipo y completar su ficha después.";
 "inventory.research.failed" = "No se pudo buscar ahora. Tus datos se conservaron; vuelve a intentar o guarda manualmente.";
 "inventory.research.empty" = "No se encontró una ficha correspondiente con fuentes suficientes. Continúa manualmente.";
