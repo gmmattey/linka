@@ -60,6 +60,7 @@ targets:
         LinkaServiceStatusEndpoint: "https://linka-assist-relay.buildealabs.workers.dev/v1/service-status"
         GADApplicationIdentifier: "ca-app-pub-5542349230926522~6717355071"
         LinkaAdsEnabled: "$(LINKA_ADS_ENABLED)"
+        NSCameraUsageDescription: "Fotografe a etiqueta para preencher marca e modelo. A imagem é lida neste aparelho e não é enviada nem salva pelo Linka."
         NSLocationWhenInUseUsageDescription: "O Linka usa a localização apenas porque o iPhone exige essa autorização para informar o nome da rede Wi-Fi atual. Sua localização não é salva para identificar a rede."
         NSLocationTemporaryUsageDescriptionDictionary:
           WiFiIdentification: "O Linka precisa de precisão total apenas para obter o nome da rede Wi-Fi atual exigido pelo sistema."
@@ -101,6 +102,7 @@ targets:
       - package: NetworkDiagnostics
       - package: NetworkOptimization
       - package: NetworkProfiles
+      - package: NetworkInventory
       - package: NetworkDNSBenchmark
       - package: GoogleMobileAds
         product: GoogleMobileAds
@@ -171,6 +173,7 @@ targets:
       - package: NetworkDiagnostics
       - package: NetworkOptimization
       - package: NetworkProfiles
+      - package: NetworkInventory
       - package: NetworkDNSBenchmark
   LinkaAppUITests:
     type: bundle.ui-testing
@@ -183,6 +186,7 @@ targets:
       - target: LinkaApp
     sources:
       - path: ../store/app-store/screenshots/AppStoreScreenshotsUITests.swift
+      - path: ../store/app-store/screenshots/MyNetworkUITests.swift
 
   LinkaAppTests:
     type: bundle.unit-test
@@ -253,6 +257,8 @@ schemes:
         - LinkaAppTests
         - LinkaAppUITests
 packages:
+  NetworkInventory:
+    path: NetworkInventory
   LinkaEngine:
     path: LinkaEngine
   LinkaModules:

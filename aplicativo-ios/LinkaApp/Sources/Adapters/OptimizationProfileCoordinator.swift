@@ -4,6 +4,7 @@ import NetworkCore
 import NetworkInsights
 import NetworkOptimization
 import NetworkProfiles
+import NetworkInventory
 
 /// Coordena a associação explícita e local entre o resultado aberto e um
 /// ambiente. SSID é só uma pré-condição efêmera: nunca é persistido nem usado
@@ -20,14 +21,18 @@ final class OptimizationProfileCoordinator: ObservableObject {
     @Published private(set) var readyEnvironmentIDs: Set<UUID> = []
     @Published private(set) var currentComparisons: [UUID: [MetricComparison]] = [:]
     @Published private(set) var hasStoreError = false
+    @Published private(set) var partialRemoval = false
 
     private let repository: any NetworkProfileRepository
+    private var storeObserver: AnyCancellable?
     private var measurements: [NetworkMeasurement] = []
     private var currentMeasurement: NetworkMeasurement?
     private var assignmentsByMeasurementID: [UUID: EnvironmentMeasurementAssignment] = [:]
 
     init(repository: (any NetworkProfileRepository)? = nil) {
-        self.repository = repository ?? FileNetworkProfileRepository(fileURL: Self.defaultStoreURL())
+        self.repository = repository ?? LinkaHousehold.repository
+        storeObserver = NotificationCenter.default.publisher(for: LinkaHousehold.didChange)
+            .sink { [weak self] _ in Task { @MainActor [weak self] in await self?.loadStore() } }
     }
 
     func refresh(currentMeasurement: NetworkMeasurement, history: [NetworkMeasurement]) async {
@@ -37,13 +42,14 @@ final class OptimizationProfileCoordinator: ObservableObject {
         await loadStore()
     }
 
-    func retryStoreAccess() async { guard currentMeasurement != nil else { return }; await loadStore() }
+    func retryStoreAccess() async { partialRemoval = false; await loadStore() }
     func loadEnvironments() async { await loadStore() }
 
     func assignCurrentMeasurement(to environment: NetworkEnvironment) async -> Bool {
         guard canAssignCurrentMeasurement, let currentMeasurement else { return false }
         do {
             try await repository.assign(measurementID: currentMeasurement.id, to: environment.id, assignedAt: Date())
+            NotificationCenter.default.post(name: LinkaHousehold.didChange, object: nil)
             await loadStore()
             return true
         } catch { hasStoreError = true; return false }
@@ -53,19 +59,25 @@ final class OptimizationProfileCoordinator: ObservableObject {
         guard canAssignCurrentMeasurement, let currentMeasurement, let environment = NetworkEnvironment(name: name) else { return false }
         do {
             try await repository.createAndAssign(environment, measurementID: currentMeasurement.id, assignedAt: Date())
+            NotificationCenter.default.post(name: LinkaHousehold.didChange, object: nil)
             await loadStore()
             return true
         } catch { hasStoreError = true; return false }
     }
 
     func rename(_ environment: NetworkEnvironment, to name: String) async -> Bool {
-        do { try await repository.rename(id: environment.id, to: name, updatedAt: Date()); await loadStore(); return true }
+        do { try await repository.rename(id: environment.id, to: name, updatedAt: Date()); NotificationCenter.default.post(name: LinkaHousehold.didChange, object: nil); await loadStore(); return true }
         catch { hasStoreError = true; return false }
     }
 
     func remove(_ environment: NetworkEnvironment) async -> Bool {
-        do { try await repository.remove(id: environment.id); await loadStore(); return true }
-        catch { hasStoreError = true; return false }
+        partialRemoval = false
+        do { try await repository.remove(id: environment.id); NotificationCenter.default.post(name: LinkaHousehold.didChange, object: nil); await loadStore(); return true }
+        catch {
+            partialRemoval = (error as? NetworkInventoryError) == .partialEnvironmentRemoval
+            if partialRemoval { NotificationCenter.default.post(name: LinkaHousehold.didChange, object: nil) }
+            hasStoreError = true; return false
+        }
     }
 
     func referenceState(for environment: NetworkEnvironment) -> ReferenceState {

@@ -10,6 +10,7 @@ import NetworkConnectivityTriage
 
 enum AppRoute: Hashable {
     case settings
+    case myNetwork
     case history
     case measurementDetail(NetworkMeasurement)
 }
@@ -308,6 +309,7 @@ struct MainView: View {
             }
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 toolbarHistoryButton
+                toolbarInventoryButton
                 toolbarShareButton
                 toolbarSettingsButton
             }
@@ -549,6 +551,16 @@ struct MainView: View {
     }
 
     @ViewBuilder
+    private var toolbarInventoryButton: some View {
+        if MinhaRedeAvailability.isEnabled && (viewModel.uiPhase == .idle || viewModel.uiPhase == .error || viewModel.uiPhase == .connectionChanged) {
+            Button { navPath.append(AppRoute.myNetwork) } label: {
+                Label(LinkaCopy.value("inventory.title"), systemImage: "wifi.router")
+            }
+            .accessibilityIdentifier("inventory.open")
+        }
+    }
+
+    @ViewBuilder
     private var toolbarShareButton: some View {
         if viewModel.uiPhase == .done {
             Button {
@@ -593,6 +605,8 @@ struct MainView: View {
 
     private func destinationView(for route: AppRoute) -> AnyView {
         switch route {
+        case .myNetwork:
+            return AnyView(MyNetworkView())
         case .settings:
             return AnyView(SettingsView().environmentObject(entitlements))
         case .history:

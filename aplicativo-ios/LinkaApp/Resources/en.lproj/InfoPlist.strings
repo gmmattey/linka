@@ -1,2 +1,4 @@
 "NSLocationWhenInUseUsageDescription" = "Linka uses location only because iPhone requires this permission to show the current Wi-Fi network name. Your location is not saved to identify the network.";
 "NSLocalNetworkUsageDescription" = "Linka checks the router on your local network to identify the equipment and diagnose Wi-Fi connection quality.";
+
+"NSCameraUsageDescription" = "Photograph the label to fill in brand and model. The image is read on this device and is not sent or saved by Linka.";
