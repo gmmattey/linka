@@ -49,6 +49,9 @@ class AppStoreScreenshotsUITests: XCTestCase {
 
     func testSpeedTestCTAStartsMeasurement() throws {
         let app = XCUIApplication()
+        // A live service notice must not obscure the measurement CTA under test.
+        let serviceNotice = app.alerts.buttons.matching(NSPredicate(format: "label IN %@", ["Entendi", "Got it", "Entendido"])).firstMatch
+        if serviceNotice.waitForExistence(timeout: 3) { serviceNotice.tap() }
         let speedTestButton = app.buttons["home.speedTestCTA"]
 
         XCTAssertTrue(speedTestButton.waitForExistence(timeout: 5))
