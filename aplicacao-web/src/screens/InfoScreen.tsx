@@ -71,6 +71,18 @@ const pages: Record<string, InfoPage> = {
         body: 'Quando você usa o Assist, o Linka envia ao seu serviço de diagnóstico o contexto necessário para responder à sua pergunta, como resultados de medição, tipo de conexão e dados técnicos de Wi-Fi que estejam disponíveis. Endereços locais e URLs de administração do roteador não são enviados nesse diagnóstico.'
       },
       {
+        title: 'Minha Rede na beta interna: inventário e fotografia',
+        body: 'Quando disponível na beta interna, Minha Rede permite cadastrar equipamentos e guardar sua identificação, função declarada, propriedade, localização e fichas técnicas no próprio aparelho. Esse inventário não é sincronizado pelo Linka com o iCloud. A leitura da etiqueta acontece no aparelho; o Linka não salva nem envia a foto ou o texto bruto reconhecido. A imagem original que você escolher na sua biblioteca continua sob seu controle. Você pode editar e excluir os equipamentos pelo app.'
+      },
+      {
+        title: 'Pesquisa opcional de ficha técnica',
+        body: 'Ao confirmar a pesquisa, são enviados apenas a marca, o modelo, a revisão de hardware e a região que você confirmou ao serviço dedicado do Linka na Cloudflare. Quando habilitado, esse serviço usa a OpenAI e pesquisa na web para consultar fontes públicas. Fotos, texto bruto da etiqueta, senhas, número de série, MAC, nome do ambiente, propriedade do equipamento, plano e medições não fazem parte desse envio. O serviço recebe o endereço IP necessário à conexão. Cadastrar manualmente ou cancelar a pesquisa continua possível; indisponibilidade do serviço não impede salvar o equipamento.'
+      },
+      {
+        title: 'Proteção e retenção da pesquisa',
+        body: 'Para limitar abuso, o serviço transforma o IP em um código criptográfico com chave do servidor (HMAC) e guarda esse código com horários de consultas; não grava o IP original nesse controle nem envia o código à OpenAI. A janela de limitação é de 60 segundos, e a limpeza dos registros vencidos ocorre na próxima gravação de controle, não necessariamente ao completar um minuto. Fichas e a identificação técnica pesquisada podem ser reutilizadas em cache por até 24 horas; registros vencidos são removidos em uma atualização posterior do cache. A integração solicita à OpenAI que não armazene a resposta para recuperação posterior (store=false), o que não significa retenção zero por parte dos provedores: regras de segurança e processamento da Cloudflare e da OpenAI também se aplicam. Esta descrição da beta não indica que a pesquisa já esteja ativa em todas as versões.'
+      },
+      {
         title: 'Publicidade',
         body: 'A versão Free pode exibir anúncios nativos fornecidos pelo Google AdMob na tela inicial e, quando há medições para mostrar, no Histórico. A promoção temporária de recursos Plus continua sendo Free para publicidade; apenas o Linka Plus pago não exibe nem solicita anúncios. Não mostramos anúncios durante a medição, na tela de resultado ou em erro.'
       },

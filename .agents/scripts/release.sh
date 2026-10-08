@@ -179,11 +179,13 @@ def run():
             staging = Path(directory)
             shutil.copytree(root / 'aplicativo-ios', staging / 'aplicativo-ios',
                             ignore=shutil.ignore_patterns('.build', 'build', 'DerivedData', '.git', '.swiftpm'))
-            test_source = root / 'store/app-store/screenshots/AppStoreScreenshotsUITests.swift'
-            if test_source.exists():
-                dest = staging / test_source.relative_to(root)
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(test_source, dest)
+            # Ambos são sources explícitos do target de UI tests no project.yml.
+            for filename in ('AppStoreScreenshotsUITests.swift', 'MyNetworkUITests.swift'):
+                test_source = root / 'store/app-store/screenshots' / filename
+                if test_source.exists():
+                    dest = staging / test_source.relative_to(root)
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(test_source, dest)
             (staging / 'aplicativo-ios/project.yml').write_text(next_text)
             subprocess.run(['xcodegen', 'generate'], cwd=staging / 'aplicativo-ios', check=True)
             generated = (staging / 'aplicativo-ios/LinkaApp.xcodeproj/project.pbxproj').read_bytes()

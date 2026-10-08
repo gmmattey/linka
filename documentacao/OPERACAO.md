@@ -41,7 +41,17 @@ Não apagar caches como primeira reação, criar pastas com timestamp a cada tes
 3. Conferir diff, commit/PR e merge dentro da autorização recebida. Beta exige `main` limpa e igual a `origin/main`; não ocultar WIP com limpeza.
 4. Depois de autorização para TestFlight daquela candidata, executar `bundle exec fastlane ios beta authorized:true`, mantendo UDID e variáveis do Bundler da mesma sessão.
 
-No snapshot integrado, iOS/widget e Mac estão em 1.1.5 (54), sem nova build gerada pela reorganização. A versão local não prova disponibilidade no catálogo.
+A candidata local para a beta interna de Minha Rede é iOS/widget 1.1.5 (56); Mac permanece em 1.1.5 (54). Preparação local não prova archive, envio ou distribuição na Apple.
+
+### Minha Rede — beta interna pelo Xcode
+
+Usar o scheme compartilhado `LinkaApp-InternalBeta` para iPhone/iPad ou `LinkaApp_macOS-InternalBeta` para a preparação Mac. Ambos arquivam com `InternalBeta`, configuração do tipo Release com `LINKA_INTERNAL_BETA`; não usam `DEBUG`. Os schemes públicos `LinkaApp` e `LinkaApp_macOS` continuam arquivando em `Release`, com Minha Rede e endpoint de pesquisa desativados. A beta preserva as configurações de assinatura e publicidade de Release.
+
+A composição central `InventoryBuildConfiguration` ativa a área local na beta interna. O endpoint distribuído deve ser uma constante HTTPS do Worker verificado, com host e caminho permitidos explicitamente; não lê variável de ambiente nem preferências na beta. A candidata fixa `https://linka-device-spec-lookup.buildealabs.workers.dev/v1/device-specs/lookup`, provisionado e verificado com o Worker desativado (HTTP 200, `unavailable`). A chave do provedor e a ativação remota continuam pendentes; o cadastro manual funciona e a configuração do endpoint não comprova pesquisa com IA. Debug mantém endpoint por variável de processo apenas para desenvolvimento. Nenhuma chave de provedor vai no aplicativo.
+
+Após revisão e autorização da candidata, no Xcode selecionar o scheme interno, destino genérico iOS e **Product → Archive**. Conferir versão/build do app e widget, configuração `InternalBeta`, assinatura e endpoint antes de distribuir. No Organizer escolher **TestFlight Internal Only**; export equivalente exige `testFlightInternalTestingOnly=true` com `method=app-store-connect`. Essa restrição impede distribuição externa/App Store; o nome do scheme sozinho não oferece essa proteção. Não usar o fluxo público/automático de upload para essa candidata. Preparar a versão Mac não autoriza seu envio.
+
+O usuário autorizou IA na beta sem teto monetário global nesta etapa; permanecem limites técnicos por consulta no backend. Ativação do Worker e endpoint verificado, consultas reais, archive, upload e distribuição continuam evidências distintas. Não afirmar pesquisa funcionando antes de verificar o serviço e o cliente. Esta configuração não publica nem ativa Minha Rede no Release público.
 
 Configurar localmente `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_CONTENT` (p8 Base64) e `APPLE_TEAM_ID`. Não colocar valores na linha de comando compartilhada, logs ou Git. A chave temporária usa permissões restritas e limpeza ao terminar. Beta valida obrigatoriamente, consulta build usada, confere app/widget no archive e IPA e só então envia. Não cria tag nem faz push automático.
 

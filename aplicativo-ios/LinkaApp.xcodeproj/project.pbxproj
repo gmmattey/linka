@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		00A0E5D3AE63195FBF1E8B73 /* MeasurementHistoryCloudKit in Frameworks */ = {isa = PBXBuildFile; productRef = C544F31F0954FB38FEA92DAE /* MeasurementHistoryCloudKit */; };
 		01291A72D1AE05FDD8B56EAD /* UsageSuitabilityCopyQualityLevelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7936AC36AB6A238A31BCF85 /* UsageSuitabilityCopyQualityLevelTests.swift */; };
+		037E6DFA21B22DF88AD7F57F /* InventoryBuildConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9396CB175CFD73A1F7F5C6D0 /* InventoryBuildConfiguration.swift */; };
 		04D7EE043E89ADE50EE4E3A5 /* NetworkInventory in Frameworks */ = {isa = PBXBuildFile; productRef = DE47D2394644F8F74914E89E /* NetworkInventory */; };
 		074A78EB05FB73EAA13BFF42 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E86E6389194D1938B09BEE51 /* HistoryView.swift */; };
 		0794CAB9623C9907CA924D64 /* AppShortcuts.strings in Resources */ = {isa = PBXBuildFile; fileRef = A7441EDE760EBFBE2B29269F /* AppShortcuts.strings */; };
@@ -143,6 +144,7 @@
 		B1B19632A149CD3F95EF967A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D5651BA532ACE94FE745A847 /* Localizable.strings */; };
 		B231131264E58B99E7610D23 /* RouterDiscoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABDFE946268A5BA52007CFFA /* RouterDiscoveryView.swift */; };
 		B49CE021825E80DC95B954AA /* AssistContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DD4A980DC574793818E97A1 /* AssistContainer.swift */; };
+		B65E669B4458B31C9E1607E0 /* InventoryBuildConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9396CB175CFD73A1F7F5C6D0 /* InventoryBuildConfiguration.swift */; };
 		B6FAE46457F43B5A2910225F /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E86E6389194D1938B09BEE51 /* HistoryView.swift */; };
 		BA26DE554BED919571A110BA /* NetworkInventory in Frameworks */ = {isa = PBXBuildFile; productRef = 6DB80E40BE9256CFE8D1674C /* NetworkInventory */; };
 		BBCD26A5CB7293C88A0A8577 /* LinkaPlusWordmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D579EFF3B620AD5DF92A3A87 /* LinkaPlusWordmarkView.swift */; };
@@ -164,6 +166,7 @@
 		D188691379C8139876B72CC4 /* GoogleUserMessagingPlatform in Frameworks */ = {isa = PBXBuildFile; productRef = F04CDCD9285ED19C8D0E6E15 /* GoogleUserMessagingPlatform */; };
 		D6446648E2A4A8652046EFC7 /* LinkaWidgetShared in Frameworks */ = {isa = PBXBuildFile; productRef = 5DF4E7D682987E0812DC7371 /* LinkaWidgetShared */; };
 		D7BE5A2EE2B1E0BF691CEE43 /* ConnectionPathDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4781F293BF600F767AD519F6 /* ConnectionPathDetailView.swift */; };
+		D95BCEE23981021426781274 /* InventoryBuildConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658D29F5072B4A681D37E136 /* InventoryBuildConfigurationTests.swift */; };
 		DB7044C5AD57168F84BF2874 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3234D1B179CE201E17961385 /* SplashView.swift */; };
 		DE2555408D65DFC440130AFC /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6D72124FDD0CB4E07F4E7B5 /* ShareSheet.swift */; };
 		DFBAE558A49CA5513D880717 /* ApplePlatformSignalProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F59DF4C04B975718AB2E308A /* ApplePlatformSignalProvider.swift */; };
@@ -287,6 +290,7 @@
 		6052814E829E396518A3EB18 /* LinkaWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaWidgetBundle.swift; sourceTree = "<group>"; };
 		641020ADE92F07BF8F597BD6 /* NetworkStabilityPatternsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStabilityPatternsViewModel.swift; sourceTree = "<group>"; };
 		647AB617F0B68B7D63BE2191 /* AssistTeaserCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistTeaserCard.swift; sourceTree = "<group>"; };
+		658D29F5072B4A681D37E136 /* InventoryBuildConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryBuildConfigurationTests.swift; sourceTree = "<group>"; };
 		66CBF1A76A2700A86FB6D257 /* LinkaSpeedTestWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaSpeedTestWidget.swift; sourceTree = "<group>"; };
 		67A921C4B0BDC839130F101C /* OptimizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptimizationView.swift; sourceTree = "<group>"; };
 		6935758C28176CC335C491C7 /* AppStoreScreenshotsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreScreenshotsUITests.swift; sourceTree = "<group>"; };
@@ -301,6 +305,7 @@
 		8B466168E5335F4FDD7C68E3 /* LinkaInventoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaInventoryStore.swift; sourceTree = "<group>"; };
 		8DD4A980DC574793818E97A1 /* AssistContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistContainer.swift; sourceTree = "<group>"; };
 		935BAC9694139394F0625999 /* DNSConfigurationCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNSConfigurationCoordinatorTests.swift; sourceTree = "<group>"; };
+		9396CB175CFD73A1F7F5C6D0 /* InventoryBuildConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryBuildConfiguration.swift; sourceTree = "<group>"; };
 		9B850E19211801E1038B746A /* OptimizationProfileCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptimizationProfileCoordinator.swift; sourceTree = "<group>"; };
 		9CEBC5378F0F21833AE1AC70 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		9E32165DD4B81E22B4E1E148 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -498,6 +503,7 @@
 				78285EB65890B076CF8D41D4 /* AssistViewModelTests.swift */,
 				F15D9DA4CAEB49F16D77132D /* DeviceEditorSessionTests.swift */,
 				935BAC9694139394F0625999 /* DNSConfigurationCoordinatorTests.swift */,
+				658D29F5072B4A681D37E136 /* InventoryBuildConfigurationTests.swift */,
 				352DD4E485299EF5A4AD38B5 /* LinkaHealthCheckTests.swift */,
 				AEFE04BB75BFA7E561692BEE /* LinkaHistoryAdSessionGateTests.swift */,
 				DC0D225A60C99915789B9319 /* NetscopeAnalysisPresentationModelTests.swift */,
@@ -594,6 +600,7 @@
 			isa = PBXGroup;
 			children = (
 				1D6F549785C44A409881554D /* DeviceEditorSession.swift */,
+				9396CB175CFD73A1F7F5C6D0 /* InventoryBuildConfiguration.swift */,
 				8B466168E5335F4FDD7C68E3 /* LinkaInventoryStore.swift */,
 				395F4CCCFF125A14164AFD19 /* SpecificationDisplay.swift */,
 				BD5C9B6AB18ABE1F047530FA /* VisionDeviceLabelOCR.swift */,
@@ -948,6 +955,7 @@
 				521554E7FE11AE6B02C5CEC2 /* FeatureFlags.swift in Sources */,
 				9288DDEA644401DADF55486B /* HistoricalMeasurementDetailView.swift in Sources */,
 				B6FAE46457F43B5A2910225F /* HistoryView.swift in Sources */,
+				037E6DFA21B22DF88AD7F57F /* InventoryBuildConfiguration.swift in Sources */,
 				2C787028BC6163D47B91B0CD /* KeychainHelper.swift in Sources */,
 				10A56B40B0BCA9FE704AB194 /* LinkaAdsCoordinator.swift in Sources */,
 				604BB99D0B8DFA3EEF29145B /* LinkaApp.swift in Sources */,
@@ -1000,6 +1008,7 @@
 				C795EB7B3D3C235CC07EB505 /* AssistViewModelTests.swift in Sources */,
 				C87881AA8AE5BD789147C9C6 /* DNSConfigurationCoordinatorTests.swift in Sources */,
 				53670905412ED56AAB25F879 /* DeviceEditorSessionTests.swift in Sources */,
+				D95BCEE23981021426781274 /* InventoryBuildConfigurationTests.swift in Sources */,
 				1D8B410D80FB10FB140914B6 /* LinkaHealthCheckTests.swift in Sources */,
 				38D0EA65ECE11E0AA69DD308 /* LinkaHistoryAdSessionGateTests.swift in Sources */,
 				464DA5721AB6BCDEFECB264A /* NetscopeAnalysisPresentationModelTests.swift in Sources */,
@@ -1037,6 +1046,7 @@
 				251732D2D655E2FC6E8896B6 /* FeatureFlags.swift in Sources */,
 				5D4D11F451064AF6ECB2429F /* HistoricalMeasurementDetailView.swift in Sources */,
 				074A78EB05FB73EAA13BFF42 /* HistoryView.swift in Sources */,
+				B65E669B4458B31C9E1607E0 /* InventoryBuildConfiguration.swift in Sources */,
 				362C5016416F51F09525DB39 /* KeychainHelper.swift in Sources */,
 				5868E2B059BF07538C443E2E /* LinkaAdsCoordinator.swift in Sources */,
 				D023E595162ADE7D1452F5EC /* LinkaApp.swift in Sources */,
@@ -1147,6 +1157,45 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		0293E15F1D0CF047E73C3201 /* InternalBeta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.linka.LinkaWidgetTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = InternalBeta;
+		};
+		2169B39736F2098270285A1C /* InternalBeta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APS_ENVIRONMENT = production;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = LinkaApp/LinkaApp.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2Z4T8228GR;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LinkaApp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LINKA_ADS_ENABLED = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.linka.assist;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = InternalBeta;
+		};
 		31DB955F732815CF75FD024A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1221,7 +1270,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 55;
+				CURRENT_PROJECT_VERSION = 56;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_LANGUAGE = "pt-BR";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1250,6 +1299,24 @@
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
+		};
+		65FBDF2C90EED62590C2A8BF /* InternalBeta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.linka.LinkaAppTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LinkaApp.app/LinkaApp";
+			};
+			name = InternalBeta;
 		};
 		6B4B7B444424746AB2041523 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1321,7 +1388,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 55;
+				CURRENT_PROJECT_VERSION = 56;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_LANGUAGE = "pt-BR";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -1359,6 +1426,30 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
+		};
+		8CAC30FED959692DB0DD5C7E /* InternalBeta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APS_ENVIRONMENT = production;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "LinkaApp/LinkaApp-macOS.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 54;
+				DEVELOPMENT_TEAM = 2Z4T8228GR;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "LinkaApp/Info-macOS.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.1.5;
+				PRODUCT_BUNDLE_IDENTIFIER = com.linka.assist;
+				PRODUCT_NAME = LinkaApp;
+				SDKROOT = macosx;
+			};
+			name = InternalBeta;
 		};
 		907449E835E0FA7C5836416B /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -1404,6 +1495,24 @@
 				SDKROOT = macosx;
 			};
 			name = Release;
+		};
+		AFF7BF620BCFE5416BD0A9D6 /* InternalBeta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.linka.LinkaAppUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = LinkaApp;
+			};
+			name = InternalBeta;
 		};
 		B3B1DDBF58280385DA75A871 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -1472,6 +1581,27 @@
 			};
 			name = Debug;
 		};
+		F16FB5B9B2D0FDE457CEC374 /* InternalBeta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = LinkaWidget/LinkaWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2Z4T8228GR;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LinkaWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.linka.assist.Widget;
+				PRODUCT_NAME = LinkaWidget;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = InternalBeta;
+		};
 		FAE1902CFF61B6B6D8FD44D6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1508,6 +1638,64 @@
 			};
 			name = Release;
 		};
+		FEC24C14EF6463A79C75BF1D /* InternalBeta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 56;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_LANGUAGE = "pt-BR";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MARKETING_VERSION = 1.1.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) LINKA_INTERNAL_BETA";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = InternalBeta;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1515,6 +1703,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DE450D69DDFB95295519F2F0 /* Debug */,
+				F16FB5B9B2D0FDE457CEC374 /* InternalBeta */,
 				907449E835E0FA7C5836416B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -1524,6 +1713,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				31DB955F732815CF75FD024A /* Debug */,
+				8CAC30FED959692DB0DD5C7E /* InternalBeta */,
 				9FABB7CD3629CDA0B5875E0C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -1533,6 +1723,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6B4B7B444424746AB2041523 /* Debug */,
+				AFF7BF620BCFE5416BD0A9D6 /* InternalBeta */,
 				6CF1CF7E95E06FBF3012C906 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -1542,6 +1733,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C7DA9DE8EC46322EFDE587D7 /* Debug */,
+				2169B39736F2098270285A1C /* InternalBeta */,
 				B3B1DDBF58280385DA75A871 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -1551,6 +1743,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				FAE1902CFF61B6B6D8FD44D6 /* Debug */,
+				65FBDF2C90EED62590C2A8BF /* InternalBeta */,
 				FC5665225CE66DABC8346786 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -1560,6 +1753,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				62C2407D057C908386165BF0 /* Debug */,
+				FEC24C14EF6463A79C75BF1D /* InternalBeta */,
 				6DA41DDD9F44086172391D2C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -1569,6 +1763,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				82C36FA6B48890E156A1B4C9 /* Debug */,
+				0293E15F1D0CF047E73C3201 /* InternalBeta */,
 				3A8CB65A7F7AEF4C337869CB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;

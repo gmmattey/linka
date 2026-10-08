@@ -15,37 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "43879976A06AC9B70CC4365B"
-               BuildableName = "LinkaApp.app"
-               BlueprintName = "LinkaApp"
-               ReferencedContainer = "container:LinkaApp.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "NO"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "57D0A290943F86C259A182B6"
-               BuildableName = "LinkaAppTests.xctest"
-               BlueprintName = "LinkaAppTests"
-               ReferencedContainer = "container:LinkaApp.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "NO"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "3F2ED16AA6022DBB7650DAC5"
-               BuildableName = "LinkaAppUITests.xctest"
-               BlueprintName = "LinkaAppUITests"
+               BlueprintIdentifier = "86DF27BAA01897B036E86CFB"
+               BuildableName = "LinkaApp_macOS.app"
+               BlueprintName = "LinkaApp_macOS"
                ReferencedContainer = "container:LinkaApp.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -60,38 +32,14 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "43879976A06AC9B70CC4365B"
-            BuildableName = "LinkaApp.app"
-            BlueprintName = "LinkaApp"
+            BlueprintIdentifier = "86DF27BAA01897B036E86CFB"
+            BuildableName = "LinkaApp_macOS.app"
+            BlueprintName = "LinkaApp_macOS"
             ReferencedContainer = "container:LinkaApp.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "57D0A290943F86C259A182B6"
-               BuildableName = "LinkaAppTests.xctest"
-               BlueprintName = "LinkaAppTests"
-               ReferencedContainer = "container:LinkaApp.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "3F2ED16AA6022DBB7650DAC5"
-               BuildableName = "LinkaAppUITests.xctest"
-               BlueprintName = "LinkaAppUITests"
-               ReferencedContainer = "container:LinkaApp.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
-      <CommandLineArguments>
-      </CommandLineArguments>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -107,9 +55,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "43879976A06AC9B70CC4365B"
-            BuildableName = "LinkaApp.app"
-            BlueprintName = "LinkaApp"
+            BlueprintIdentifier = "86DF27BAA01897B036E86CFB"
+            BuildableName = "LinkaApp_macOS.app"
+            BlueprintName = "LinkaApp_macOS"
             ReferencedContainer = "container:LinkaApp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -126,9 +74,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "43879976A06AC9B70CC4365B"
-            BuildableName = "LinkaApp.app"
-            BlueprintName = "LinkaApp"
+            BlueprintIdentifier = "86DF27BAA01897B036E86CFB"
+            BuildableName = "LinkaApp_macOS.app"
+            BlueprintName = "LinkaApp_macOS"
             ReferencedContainer = "container:LinkaApp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

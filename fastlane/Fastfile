@@ -21,7 +21,7 @@ module LinkaLocalRelease
   APP_ID = "com.linka.assist"
   WIDGET_ID = "com.linka.assist.Widget"
   PACKAGES = %w[NetworkCore MeasurementHistory NetworkInsights NetworkAssist
-                NetworkDiagnostics NetworkConnectivityTriage LinkaEntitlements
+                NetworkDiagnostics NetworkConnectivityTriage NetworkProfiles NetworkInventory LinkaEntitlements
                 LinkaAppIntents LinkaModules LinkaEngine LinkaWidgetShared].freeze
 
   class ControlError < StandardError

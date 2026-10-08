@@ -17,11 +17,7 @@ enum LinkaHousehold {
 
 enum MinhaRedeAvailability {
     static var isEnabled: Bool {
-        #if DEBUG
-        return true
-        #else
-        return false
-        #endif
+        InventoryBuildConfiguration.isEnabled
     }
 }
 

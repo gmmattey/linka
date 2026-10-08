@@ -1,11 +1,19 @@
 name: LinkaApp
 options:
   bundleIdPrefix: com.linka
+  defaultConfig: Debug
+configs:
+  Debug: debug
+  Release: release
+  InternalBeta: release
 settings:
   base:
     MARKETING_VERSION: "1.1.5"
-    CURRENT_PROJECT_VERSION: "55"
+    CURRENT_PROJECT_VERSION: "56"
     DEVELOPMENT_LANGUAGE: pt-BR
+  configs:
+    InternalBeta:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) LINKA_INTERNAL_BETA"
 targets:
   LinkaApp:
     type: application
@@ -39,6 +47,9 @@ targets:
           # habilitada localmente num esquema que não é distribuído.
           LINKA_ADS_ENABLED: NO
         Release:
+          APS_ENVIRONMENT: production
+          LINKA_ADS_ENABLED: YES
+        InternalBeta:
           APS_ENVIRONMENT: production
           LINKA_ADS_ENABLED: YES
     info:
@@ -134,6 +145,8 @@ targets:
         Debug:
           APS_ENVIRONMENT: development
         Release:
+          APS_ENVIRONMENT: production
+        InternalBeta:
           APS_ENVIRONMENT: production
     info:
       path: LinkaApp/Info-macOS.plist
@@ -252,10 +265,43 @@ schemes:
         LinkaApp: all
         LinkaAppTests: [test]
         LinkaAppUITests: [test]
+    run:
+      config: Debug
     test:
+      config: Debug
       targets:
         - LinkaAppTests
         - LinkaAppUITests
+    archive:
+      config: Release
+  LinkaApp-InternalBeta:
+    build:
+      targets:
+        LinkaApp: all
+    run:
+      config: InternalBeta
+    profile:
+      config: InternalBeta
+    archive:
+      config: InternalBeta
+  LinkaApp_macOS:
+    build:
+      targets:
+        LinkaApp_macOS: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+  LinkaApp_macOS-InternalBeta:
+    build:
+      targets:
+        LinkaApp_macOS: all
+    run:
+      config: InternalBeta
+    profile:
+      config: InternalBeta
+    archive:
+      config: InternalBeta
 packages:
   NetworkInventory:
     path: NetworkInventory
