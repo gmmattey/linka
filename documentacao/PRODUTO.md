@@ -18,7 +18,7 @@ Toda capacidade precisa melhorar **medir, entender ou acompanhar a conexão no A
 - Ausência, zero, erro e resultado parcial são diferentes. Não fabricar dado para completar uma tela.
 - Interpretação exige evidência; IA e sinais indiretos não comprovam causa raiz, culpa da operadora ou velocidade contratada.
 - O produto é Apple. O site é institucional; não existe direção de produto Android, speed test Web ou PWA.
-- Expansões comerciais, equipamentos e automações não viram escopo por constarem em propostas antigas.
+- Expansões comerciais e automações não viram escopo por constarem em propostas antigas. Minha Rede tem decisão explícita abaixo; cadastro não autoriza ofertas comerciais ou recomendação de troca.
 
 ## Medição, Home e recuperação
 
@@ -141,3 +141,29 @@ Copy pública deve descrever medição e acompanhamento, com limites de platafor
 Uma entrega está pronta para avaliação quando a pessoa consegue iniciar, cancelar, ler e repetir a medição sem perder controle; dados reais, parciais e ausentes permanecem distinguíveis; interpretação e publicidade respeitam o resultado; acesso e privacidade correspondem ao comportamento declarado.
 Aceite exige evidência proporcional na build pretendida e nos destinos afetados, incluindo recuperação e acessibilidade. Código e testes existentes sustentam leitura estática, não execução nem aprovação visual; aprovação passada não valida outro checkout.
 Nesta revisão documental não houve app, teste, build, simulador, aparelho, serviço remoto, consulta de loja ou release. A síntese não fecha planos, não cria escopo e não declara publicação. Procedimentos e evidências de execução ficam em Operação; contratos e riscos técnicos ficam em Arquitetura.
+
+## Minha Rede — decisão de produto de 08/10/2026
+
+O Linka passa a conhecer os equipamentos da pessoa para contextualizar a rede doméstica, mantendo a medição simples e independente. **V1 completa em iPhone, iPad e Mac, gratuita, incluindo cadastro e pesquisa técnica com IA.** Cadastro básico não exige conta, Plus, plano contratado, Ambiente, câmera ou internet. A pesquisa precisa de internet; sua indisponibilidade não impede salvar, editar ou consultar o inventário local. Não há sincronização entre dispositivos na V1.
+
+Fluxo: Minha Rede → Adicionar equipamento → tipo e modelo manual ou sugestão de etiqueta → confirmar identidade → pesquisar especificações quando desejado → revisar fontes → informar instalação → salvar → consultar/editar/excluir. É possível salvar antes da pesquisa e completar depois. Home não vira dashboard, abrir cadastro não dispara medição, e a entrada não duplica descoberta/painel administrativo do roteador.
+
+- Modelo é obrigatório; marca, revisão de hardware, região e apelido são opcionais no cadastro. A pesquisa pode exigir identidade mais precisa e deve explicar o que falta. Revisões/regiões divergentes não são intercambiáveis.
+- Perguntar “Este é o roteador principal?” e “É neste aparelho que a fibra chega?”, com Sim/Não/Não sei. Função AP/repetidor/mesh/bridge etc. é declarada, separada das capacidades documentadas. Não principal e papel desconhecido são estados distintos.
+- Origem/propriedade: Meu / Da operadora / Outro / Não sei. Local: Ambiente existente, texto livre ou não informar. Marca não comprova propriedade; modelo não comprova topologia. Escolher Ambiente não atribui medições.
+- OCR usa Vision local, sugere identidade editável e requer confirmação. Não salva nem transmite fotografia, texto bruto, senha, serial, SSID ou MAC. Permissão negada, leitura inválida e cancelamento deixam a opção manual disponível.
+- Pesquisa envia somente marca/modelo/revisão/região após escolha explícita. A ficha é proposta estruturada com fontes por atributo; consulta, confirmação humana e fato medido permanecem distinguíveis. URL aberta ou resposta de IA não bastam para afirmar verificação da variante.
+- Capacidade teórica de rádio/porta não é desempenho observado. Dados ausentes ou conflitantes ficam Não informado/Não verificado; resultados parciais são explícitos. Atualizar ficha exige nova revisão, sem sobrescrever silenciosamente correções.
+- Edição preserva rascunho diante de falha; descarte e exclusão têm confirmação. CRUD e ficha salva funcionam offline e após reinício. VoiceOver, Dynamic Type, teclado e apresentação nativa fazem parte do aceite nas três plataformas.
+
+**Entrega gradual interna, lançamento público completo.** Os pacotes podem integrar separadamente: persistência/CRUD, OCR, pesquisa/ficha e QA. Uma tela interna de cadastro com pesquisa desligada não encerra a V1. Disponibilidade pública depende da jornada completa, fontes confiáveis, serviço operacional aprovado e validação nas três plataformas. Código em branch não significa merge, build distribuída ou homologação.
+
+O programa é o [épico #278](https://github.com/gmmattey/linka/issues/278): modelo [#279](https://github.com/gmmattey/linka/issues/279), cadastro [#280](https://github.com/gmmattey/linka/issues/280), OCR [#281](https://github.com/gmmattey/linka/issues/281), ficha/QA [#282](https://github.com/gmmattey/linka/issues/282) e pesquisa [#283](https://github.com/gmmattey/linka/issues/283). Painel/credenciais do roteador ([#142](https://github.com/gmmattey/linka/issues/142), [#179](https://github.com/gmmattey/linka/issues/179)) seguem outro escopo. Nenhum dado passa automaticamente ao Assist, NDS ou Netscope diagnóstico.
+
+### Evolução preservada, sem execução antecipada
+
+**V2** acrescenta perfil doméstico, plano contratado declarado, ligações entre aparelhos e visão consolidada. Um plano ativo por perfil inicialmente; operadora/nome comercial, download e upload independentes, tecnologia de acesso e vigência, com campos ausentes honestos. Preço em centavos/moeda e observação são opcionais ainda sujeitos ao recorte da entrega. Não exigir fatura, CPF, contrato, endereço, conta ou API da operadora. Mudança de plano preserva revisões para não atribuir contrato novo a medições antigas.
+
+Com dois ou mais aparelhos, convite opcional “Quer informar a qual equipamento ele está conectado?”, com Agora não/Não sei. Meio Ethernet/Wi-Fi/fibra/outro/desconhecido e direção são declarados, editáveis e incompletos. Lista de relações basta; não exigir mapa gráfico, escanear a rede ou inferir ligações. Vínculo ausente não significa desconexão. Reutilizar Ambientes e não alterar Histórico/assignments. Visão sugerida: Meu plano, Equipamentos, Como estão conectados e acesso aos Ambientes. Perfil básico permanece Free; sem inferência de paywall. V2 só começa após validar V1: [#285](https://github.com/gmmattey/linka/issues/285), [#284](https://github.com/gmmattey/linka/issues/284), [#286](https://github.com/gmmattey/linka/issues/286), [#287](https://github.com/gmmattey/linka/issues/287).
+
+**V3** poderá comparar declarações/capacidades com medições elegíveis, sempre verificando suficiência, idade e comparabilidade; ficha sozinha não prova gargalo, defeito, cobertura ou necessidade de compra. **V4** poderá oferecer Assist contextual com consentimento/projeção explícita, ações e reteste. Não estão implementadas por esta decisão. Ofertas/afiliados, sincronização e monetização avançada exigem decisão própria.
