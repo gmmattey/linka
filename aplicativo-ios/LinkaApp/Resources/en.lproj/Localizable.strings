@@ -801,29 +801,29 @@
 "inventory.location.optional" = "Location (optional)";
 "inventory.unknown" = "Not specified";
 "inventory.edit" = "Edit equipment";
-"inventory.save" = "Save";
+"inventory.save" = "Save equipment";
 "inventory.delete" = "Delete equipment";
 "inventory.delete.title" = "Delete this equipment?";
 "inventory.delete.message" = "This entry will be removed from this device. Your measurements will not change.";
 "inventory.deleted" = "This equipment was deleted.";
-"inventory.camera" = "Photograph label";
-"inventory.image" = "Choose image";
+"inventory.camera" = "Take photo";
+"inventory.image" = "Choose photo";
 "inventory.camera.denied" = "Allow camera access in Settings or enter the details manually.";
 "inventory.ocr.empty" = "No model identified. You can enter it manually.";
 "inventory.ocr.failed" = "The image could not be read. Continue manually.";
 "inventory.ocr.progress" = "Reading label on this device…";
 "inventory.ocr.confirm" = "Check and choose a suggested model. You can edit it afterward.";
 "inventory.research.title" = "Look up technical specifications?";
-"inventory.research.action" = "Look up specifications";
-"inventory.research.disclosure" = "When you confirm, brand, model, revision and region are sent to Linka’s Cloudflare service and OpenAI to research public sources. Photos, raw label text, passwords and household details are not sent. The service uses a code derived from your IP address to limit abuse. You can cancel and register manually.";
+"inventory.research.action" = "Find information";
+"inventory.research.disclosure" = "AI searches using the equipment identification. The photo is read on this device; passwords are not sent.";
 "inventory.research.unavailable" = "Research is currently unavailable. You can save the equipment and complete its specifications later.";
-"inventory.research.failed" = "Research failed. Your entries are preserved; retry or save manually.";
-"inventory.research.empty" = "No matching specifications with sufficient sources were found. Continue manually.";
+"inventory.research.failed" = "We could not finish the search. Your entries are still here; try again or save without specifications.";
+"inventory.research.empty" = "We could not find enough information about this model. You can save the equipment as it is and search later.";
 "inventory.research.progress" = "Consulting sources…";
 "inventory.review" = "Review specifications and sources";
 "inventory.apply" = "Use these specifications";
 "inventory.specs.title" = "Researched information";
-"inventory.specs.disclaimer" = "Specifications suggested by AI research. Check each detail against its sources; errors are possible. Theoretical capabilities, not measurements or observed configuration.";
+"inventory.specs.disclaimer" = "Information researched with AI, based on the sources below. These are equipment capabilities, not measured speed in your home.";
 "inventory.specs.empty" = "Specifications have not been researched. Edit the equipment to look them up.";
 "inventory.specs.saved" = "Specifications selected. Save the equipment to keep them.";
 "inventory.error.storage" = "Could not read or save the data. No files were deleted. Please retry.";
@@ -883,7 +883,7 @@
 "inventory.environment.partial" = "Equipment kept the location name, but the environment could not be deleted. Try deleting it again.";
 "inventory.capability.router" = "Router mode";
 "inventory.capability.streams" = "spatial streams";
-"inventory.research.required" = "To research, enter a brand (up to 80 characters), model, revision (up to 40, if known) and two-letter region such as BR (optional).";
+"inventory.research.required" = "Enter the brand and model, or choose a photo of the label.";
 
 "inventory.firmware.supported" = "Supported";
 
@@ -892,3 +892,41 @@
 "inventory.firmware.unknown" = "Not reported";
 
 "inventory.validation.textLength" = "Nickname and location can each have up to 200 characters. Shorten the text to save.";
+
+"inventory.identify.title" = "Which equipment is it?";
+
+"inventory.identify.subtitle" = "Take a photo of the label or enter the brand and model.";
+
+"inventory.identify.placeholder" = "E.g. Nokia G-1425-B";
+
+"inventory.identify.label" = "Brand and model";
+
+"inventory.confirm.title" = "Is this your equipment?";
+
+"inventory.correctIdentity" = "Correct identification";
+
+"inventory.saveWithoutResearch" = "Save without searching";
+
+"inventory.saveWithoutSpecs" = "Save without specifications";
+
+"inventory.completeDetails" = "Complete information";
+
+"inventory.completeDetails.subtitle" = "Tell us about its use in your home. Everything here is optional.";
+
+"inventory.detailsAndSources" = "Details and sources";
+
+"inventory.research.ambiguous" = "We found similar models. Which one is on the label? If none is yours, correct the identification or save without specifications.";
+
+"inventory.research.timeout" = "The search took longer than expected. Try again or save the equipment without specifications.";
+
+"inventory.research.offline" = "You are offline. You can save the equipment now and search later.";
+
+"inventory.privacy.title" = "About your data";
+
+"inventory.privacy.details" = "When you search, the identification you reviewed and any revision or region you provided are sent to the Linka service, hosted on Cloudflare, and to OpenAI to consult public sources. Label recognition happens on this device: photos, raw text, passwords and household details are not sent. The service uses a code derived from your IP address to limit abuse. You can cancel the search or save without searching.";
+
+"inventory.spec.deviceKind" = "Equipment type";
+
+"inventory.kind.fiberEquipment" = "Fiber equipment";
+
+"inventory.summary.cablePorts" = "Wired connections";

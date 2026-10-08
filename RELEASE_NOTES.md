@@ -1,3 +1,11 @@
+# Linka 1.1.6 (58) — candidata interna em validação
+
+- Simplifica o cadastro para identificar, buscar e confirmar/salvar, com ficha preenchida pela pesquisa na internet.
+- Remove as restrições de marcas e os campos obrigatórios de revisão/região; mantém modelos semelhantes separados.
+- Mostra andamento e resultado no mesmo editor, preserva identificação ao cancelar e descarta respostas atrasadas.
+- Mantém leitura da etiqueta no aparelho, detalhes técnicos expansíveis e mensagens claras de falha.
+- Serviço v2 publicado com compatibilidade v1; nova beta em preparação para validação física.
+
 # Linka 1.1.6 (57) — disponível no TestFlight interno
 
 - Avança a versão após a Apple informar que 1.1.5 está encerrada para novas submissões; a candidata 1.1.5 (56) não foi enviada ao TestFlight.

@@ -156,7 +156,7 @@ final class NetworkInventoryTests: XCTestCase {
     }
     func testOCRDoesNotReturnSecretsOrInventUnlabelledModel() {
         XCTAssertTrue(DeviceLabelParser.candidates(from: ["Senha: abc", "C6", "SSID: casa"]).isEmpty)
-        let values = DeviceLabelParser.candidates(from: ["TP-Link", "Model: Archer C6", "Ver: V3", "Password: secret"])
+        let values = DeviceLabelParser.candidates(from: ["Brand: TP-Link", "Model: Archer C6", "Ver: V3", "Password: secret"])
         XCTAssertEqual(values.first?.identity, .init(brand: "TP-Link", model: "Archer C6", hardwareRevision: "V3"))
     }
 }

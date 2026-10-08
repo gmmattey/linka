@@ -6,6 +6,7 @@ enum SpecificationDisplay {
     static func value(_ attribute: SpecificationAttribute) -> String {
         let values = attribute.value.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         switch attribute.key {
+        case "deviceKind": return LinkaCopy.value("inventory.kind.\(attribute.value)")
         case "meshTechnology": return ["easyMesh": "EasyMesh", "oneMesh": "OneMesh", "aiMesh": "AiMesh", "orbi": "Orbi", "deco": "Deco", "eero": "eero", "velop": "Velop"][attribute.value] ?? LinkaCopy.value(attribute.value == "other" ? "inventory.kind.other" : "inventory.unknown")
         case "firmwareSupportStatus": return LinkaCopy.value("inventory.firmware.\(attribute.value)")
         case "supportsMesh": return LinkaCopy.value("inventory.answer.\(attribute.value == "true" ? "yes" : "no")")
@@ -27,6 +28,19 @@ enum SpecificationDisplay {
             return rows.map { row in "\(row.portCount) × \(row.role == "lanWan" ? "LAN/WAN" : row.role.uppercased()) · \(number(row.speedMbps)) Mbps" }.joined(separator: "\n")
         default: return attribute.value + (attribute.unit.map { " " + $0 } ?? "")
         }
+    }
+    /// Only everyday capabilities belong in the summary; technical tables remain expandable.
+    static func summary(_ snapshot: DeviceSpecificationSnapshot) -> [String] {
+        var lines: [String] = []
+        if let bands = snapshot.attributes.first(where: { $0.key == "bandsGHz" }) {
+            let values = bands.value.split(separator: ",").compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
+                .map { number($0) }.joined(separator: " / ")
+            lines.append("Wi-Fi · " + values + " GHz")
+        }
+        if let ports = snapshot.attributes.first(where: { $0.key == "lanPorts" }) {
+            lines.append(LinkaCopy.value("inventory.summary.cablePorts") + ": " + ports.value)
+        }
+        return lines
     }
     private static func number(_ value: Double) -> String { value.formatted(.number.locale(LinkaLanguagePreference.currentLocale)) }
 }

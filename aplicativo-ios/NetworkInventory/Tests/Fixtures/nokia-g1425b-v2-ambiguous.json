@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 2,
+  "requestID": "d292de94-ab00-4bcb-9e9c-bae6a25eddba",
+  "query": "Nokia G-1425-B",
+  "status": "ambiguous",
+  "reason": "multipleMatches",
+  "identity": null,
+  "deviceKind": null,
+  "candidates": [
+    {
+      "id": "nokia-g-1425g-b",
+      "label": "Nokia G-1425G-B",
+      "identity": {
+        "brand": "Nokia",
+        "model": "G-1425G-B",
+        "hardwareRevision": null,
+        "marketRegion": null
+      },
+      "evidenceIDs": [
+        "s1",
+        "s2"
+      ]
+    }
+  ],
+  "attributes": [],
+  "sources": [
+    {
+      "id": "s1",
+      "url": "https://onestore.nokia.com/asset/211032",
+      "title": "Nokia: Nokia ONT G-1425G-B datasheet",
+      "retrievedAt": "2026-10-08T22:07:41.863Z"
+    },
+    {
+      "id": "s2",
+      "url": "https://fccid.io/2ADZRG1425GB/User-Manual/User-Manual-6022243.pdf",
+      "title": "Nokia ONT  G-1425G-B Product Guide",
+      "retrievedAt": "2026-10-08T22:07:41.863Z"
+    }
+  ],
+  "checkedAt": "2026-10-08T22:07:41.863Z"
+}
