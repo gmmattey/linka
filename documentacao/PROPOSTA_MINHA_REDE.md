@@ -10,18 +10,18 @@
 **Princípio:** a pessoa cadastra o que possui uma vez; o Linka passa a contextualizar orientações considerando os equipamentos e, progressivamente, seu plano, ambientes e medições.
 
 - Área de produto proposta: **Minha Rede**. Não criar um segundo aplicativo.
-- **V1 — Meus equipamentos:** cadastro manual, preenchimento assistido por foto, consulta/edição/exclusão e informações técnicas **confirmadas**. Lançar isoladamente.
+- **V1 — Meus equipamentos:** cadastro manual ou por foto, **pesquisa técnica na web com IA** por marca/modelo/revisão, sugestão de ficha técnica com fontes, confirmação da função do aparelho na instalação, consulta/edição/exclusão. Lançar isoladamente.
 - **V2 — Perfil de rede:** operadora, velocidade contratada declarada, associação voluntária de equipamentos a ambientes e relações manuais entre modem/roteador/extensores. Não prometer topologia automática.
 - **V3 — Recomendações fundamentadas:** comparação de capacidades registradas com medições válidas e condições observadas; indicação explícita de evidência insuficiente. Não atribuir causalidade sem base.
 - **V4 — Assist contextual:** perguntas e orientações usando somente campos autorizados pelo usuário + medições elegíveis; memória de ações e reteste, com consentimento e transparência.
 
-**Benefício da V1:** a pessoa deixa registrado seu equipamento e pode consultar suas características e limitações documentadas; o app não promete, nessa fase, dizer se é hora de trocá-lo com base em medições.
+**Benefício da V1:** a pessoa informa ou fotografa marca/modelo, a IA pesquisa preferencialmente a documentação oficial, apresenta a ficha técnica com fontes e o usuário confirma os dados e o papel do aparelho em sua rede. A V1 ainda não promete recomendar troca com base em medições.
 
 ### Limites de UX
 
-- Fluxo: **Minha Rede → Adicionar equipamento → Digitar modelo OU Fotografar etiqueta → Conferir → Salvar → Detalhes**.
+- Fluxo: **Minha Rede → Adicionar equipamento → Digitar marca/modelo OU Fotografar etiqueta → Confirmar modelo/revisão → Buscar ficha técnica com IA → Conferir dados/fontes → Indicar papel na minha instalação → Salvar → Detalhes**. Se estiver offline, salvar dados manuais e oferecer completar a ficha depois.
 - CTA principal: **Adicionar equipamento**. A câmera é alternativa, não barreira.
-- Tela vazia explica o benefício em linguagem comum; um único equipamento deve funcionar sem cadastrar plano, cômodos ou criar conta.
+- Tela vazia explica o benefício em linguagem comum; um único equipamento deve funcionar sem cadastrar plano, cômodos ou criar conta. A pesquisa externa requer internet e pode falhar sem impedir cadastro.
 - Dados não identificados aparecem como **Não informado**, nunca como especificação deduzida.
 - A Home de teste continua simples; o cadastro não dispara speed test nem exige cadastro para medir.
 - Evitar cardização excessiva; usar listas/seções nativas e estrutura visual do Linka existente.
@@ -36,11 +36,15 @@ Criar modelo independente, por exemplo `RegisteredNetworkDevice`, em módulo de 
 | `kind` | sim | `modem`, `router`, `modemRouter`, `ont`, `meshNode`, `extender`, `other` |
 | `brand` | não | Marca confirmada ou preenchida manualmente |
 | `model` | sim | Texto confirmado pelo usuário |
+| `hardwareRevision` | não | Revisão/versão de hardware (ex. V2/V3/V4) necessária para desambiguar fichas distintas |
+| `installedRole` | não | `mainRouter`, `accessPoint`, `repeater`, `meshSatellite`, `fiberTermination`, `bridge`, `other`, `unknown`; indicação do usuário, NÃO dedução técnica definitiva |
+| `fiberDirectConnected` | não | `yes/no/unknown` declarado e confirmado pelo usuário; diferente de capacidade física de porta óptica |
 | `nickname` | não | Nome livre, ex.: “Roteador da sala” |
-| `specifications` | não | Dados estruturados, com origem e nível de confiança explícitos |
+| `specifications` | não | Dados estruturados e validados com referência de fonte por atributo, data de consulta e estado `verified/unverified/unknown` |
+| `enrichmentStatus` | não | `notRequested/loading/partial/complete/failed` para recuperação e novas consultas |
 | `createdAt`, `updatedAt` | sim | Datas de alteração |
 
-Especificações opcionais: padrão Wi-Fi, bandas, portas Ethernet, capacidade mesh, referência de firmware **apenas quando provenientes de fonte confiável**. Incluir `sourceType` (`user`, `manufacturer`, `curatedCatalog`) e `sourceReference` quando aplicável. Dados confirmados manualmente pelo usuário não são “homologados pelo fabricante”.
+Especificações opcionais: padrão Wi-Fi, bandas, taxas teóricas, portas Ethernet, **tipo de entrada WAN (RJ45/fibra/SFP quando verificável)**, papel suportado (router/AP/repeater), capacidade mesh e revisão de firmware **somente com fonte rastreável adequada à revisão de hardware**. Incluir `sourceType` (`user`, `manufacturer`, `curatedCatalog`, `thirdPartyUnverified`), `sourceReference`, `retrievedAt` e status da verificação por campo. Uma resposta da IA não é uma fonte de verdade. Dados confirmados manualmente não são automaticamente “homologados pelo fabricante”.
 
 **Não capturar na V1:** número de série, credenciais, senha Wi-Fi, MAC/BSSID, dados da etiqueta sem utilidade. Não reaproveitar credenciais existentes para o inventário. Etiquetas podem conter senhas e outros dados pessoais.
 
@@ -51,12 +55,28 @@ Especificações opcionais: padrão Wi-Fi, bandas, portas Ethernet, capacidade m
 3. Exibir sugestão editável e pedir confirmação explícita.
 4. A fotografia é descartada após extração por padrão; não incluí-la em sincronização, analytics ou payload de Assist.
 5. Falha de leitura retorna ao campo manual sem impedir cadastro.
-6. **IA remota é opcional e futura**, não pré-requisito da V1. Se for usada depois, requer aviso claro, consentimento e filtragem/redução de dados sensíveis, sem expor a imagem completa por padrão.
+6. **A IA remota de pesquisa técnica faz parte da V1**, mas recebe por padrão apenas marca, modelo, versão de hardware e região após confirmação. **Não enviar a foto da etiqueta ou OCR bruto** por padrão. Informar ao usuário que a ficha será pesquisada online e qual serviço processa os dados; exigir escolha explícita para qualquer envio adicional.
 7. OCR identifica **texto de etiqueta**, não autentica fabricante nem garante ficha técnica correta.
 
-### Ficha técnica
+### Enriquecimento técnico com pesquisa na web + IA (requisito V1)
 
-Evitar pedir à IA para inventar especificações. Começar com dados básicos inseridos pelo usuário e, quando houver, catálogo com fontes rastreáveis (fabricante/documentação). Se não houver correspondência confiável, mostrar “Informações técnicas ainda não verificadas”, mantendo modelo/marca cadastrados. Não é requisito da V1 uma API paga de catálogo universal.
+A IA **não possui pesquisa na internet automaticamente**. Implementar um serviço remoto de enriquecimento com busca/retrieval explícitos e resposta estruturada:
+
+1. Com modelo e revisão confirmados, o app consulta um backend existente ou novo endpoint seguro (`DeviceSpecEnrichmentService`; avaliar o Worker atual do Assist).
+2. O backend pesquisa fontes públicas, dando prioridade ao fabricante/manual/datasheet da **mesma variante regional e revisão**. Não aceitar snippets isolados como verificação completa; recuperar páginas/documentos quando permitido.
+3. O serviço usa um modelo de IA para extrair/normalizar um **JSON tipado** de atributos, cada um com URL, referência e confiança; rejeitar URLs não rastreáveis, contradições ou informação de outra variante.
+4. A interface exibe a ficha proposta, cita as fontes e permite revisar/corrigir antes de armazenar. Ausência, conflito ou versão indefinida são estados explícitos.
+5. Guardar **snapshot local de especificações e fontes** no inventário. Usar cache no backend por marca+modelo+revisão+região (com prazo de validade), controle de custo/rate limit e timeout. Sem busca bem-sucedida, cadastro manual continua utilizável.
+6. Para a V1, o usuário pode acionar **Atualizar especificações**; mudanças relevantes exigem nova revisão/confirmacão, sem sobrescrever silenciosamente dados salvos.
+7. Testar modelos inexistentes, descrições conflitantes, variantes semelhantes, falta de conectividade, erro de serviço, JSON inválido e páginas com conteúdo adversarial (instruções na web não podem comandar a IA ou ações do app).
+
+**Dois conceitos diferentes no cadastro:**
+- **Capacidade física do equipamento** (pode receber fibra diretamente? tem porta óptica/ONT/SFP? funciona em modo roteador/AP?) é informação técnica pesquisável.
+- **Papel real na casa** (é o principal? está em AP? é o aparelho onde chega a fibra?) depende da instalação. A IA pode sugerir possibilidades e fazer perguntas, mas não deve afirmar o papel sem confirmação do usuário ou prova confiável específica.
+
+**Exemplo:** TP-Link Archer C6 dispõe de entrada WAN Ethernet e modos roteador/AP; sem porta óptica direta nas variantes documentadas, normalmente depende de ONT/modem da operadora para terminar fibra. Porém somente o usuário pode confirmar se ele é o principal, está atrás do modem/ONT ou atua como AP. A TP-Link publica versões V2/V3/V4 etc., com diferenças de especificações; exigir identificação da revisão quando isso importar. Referências: https://www.tp-link.com/br/home-networking/wifi-router/archer-c6/v3/ e https://www.tp-link.com/br/support/download/archer-c6/v3/
+
+A pesquisa com IA faz parte do benefício central da V1, **não** de uma fase futura. A forma exata de pesquisa e provedores deve ser decidida após análise de custo, termos e capacidade do backend existente.
 
 ## 4. Arquitetura e persistência
 
@@ -72,13 +92,15 @@ MinhaRedeView / DeviceFormView / DeviceDetailsView
        armazenamento local versionado
              ↑
    DeviceLabelOCRService (Vision, efêmero)
+             ↓ (somente marca/modelo/revisão confirmados)
+   DeviceSpecEnrichmentService → backend/Worker → busca web + leitura de fontes → IA JSON tipado → validação de evidências
 ```
 
 - Preferir repositório local isolado do histórico de medições, com gravação atômica, versionamento de schema, migração e testes de persistência; reavaliar se existe infraestrutura reutilizável suficiente antes de criar pacote novo.
-- Cadastro funciona offline e independe de autenticação, StoreKit, backend ou Assist.
+- **Cadastro manual** funciona offline e independe de autenticação, StoreKit, backend ou Assist; **enriquecimento automático com IA** exige internet, serviço remoto e orçamento/limite de consultas. A ficha salva segue acessível offline.
 - Não vincular automaticamente equipamentos a SSID ou gateway. Um mesmo gateway IP aparece em redes distintas; identificação de gateway não é identificação garantida de um roteador.
 - Não modificar `LinkaEngine` para suportar inventário.
-- **Sem CloudKit na V1** até definir conflitos, exclusões e privacidade; explicitar dados locais na interface.
+- **Sem CloudKit na V1** até definir conflitos, exclusões e privacidade; explicitar dados locais na interface. Nunca persistir fotos/etiquetas brutas remotamente por padrão; uso da IA deve ter disclosure e política compatíveis.
 - Reusar estilo, acessibilidade, localização e padrões de navegação existentes.
 - Adicionar eventos analíticos apenas abstratos (ex.: cadastro concluído), sem imagem, modelo, serial, endereço ou senha.
 
@@ -93,12 +115,15 @@ MinhaRedeView / DeviceFormView / DeviceDetailsView
 ## 6. Critérios de aceite V1
 
 - [ ] Cadastrar manualmente roteador, modem, ONT, mesh/extensor e outros com modelo obrigatório.
-- [ ] Fotografar etiqueta e sugerir marca/modelo **editáveis**, com OCR local e tratamento de permissões.
-- [ ] Confirmar cadastro mesmo quando OCR falhar ou não houver fonte técnica.
+- [ ] Fotografar etiqueta e sugerir marca/modelo/revisão **editáveis**, com OCR local e tratamento de permissões.
+- [ ] Pesquisar informações técnicas na web por meio de backend+IA e exibir ficha estruturada, com URL e origem por atributo; confirmar antes de salvar.
+- [ ] Perguntar e registrar papel real na instalação (principal/AP/repetidor etc.) e se a fibra chega diretamente nele, permitindo “Não sei”.
+- [ ] Mostrar diferença entre “equipamento suporta X” e “equipamento está configurado como X”, sem inferência indevida.
+- [ ] Confirmar cadastro mesmo quando OCR, busca, IA ou fontes técnicas falharem; permitir completar depois.
 - [ ] Listar, abrir detalhes, editar e excluir com confirmação quando apropriado.
 - [ ] Persistir e recuperar registros após encerrar/reabrir o app, inclusive offline.
 - [ ] Não salvar/uploadar foto, senha, serial ou outro texto bruto da etiqueta.
-- [ ] Não apresentar ficha técnica não verificada como fato.
+- [ ] Não apresentar ficha técnica não verificada como fato; versionar fonte/variante e tratar incompatibilidades de revisão.
 - [ ] Não confundir cadastro manual com equipamento automaticamente detectado.
 - [ ] VoiceOver, Dynamic Type, localização pt-BR, estados vazios/erro e teste em iPhone real.
 - [ ] Testes automatizados para modelagem, serialização, versionamento, OCR interpretado e operações CRUD.
@@ -109,7 +134,7 @@ MinhaRedeView / DeviceFormView / DeviceDetailsView
 
 1. Revisar e incorporar esta proposta de produto (decidir Free/Plus e escopo iPad/macOS).
 2. Abrir **um épico de reposicionamento** com V1–V4, vinculado à presente proposta.
-3. V1 em issues implementáveis: **modelo/repositório**, **UX CRUD**, **foto/OCR**, **ficha técnica verificada/integração/QA**.
+3. V1 em issues implementáveis: **modelo/repositório**, **UX CRUD/papel na rede**, **foto/OCR**, **pesquisa web + IA estruturada**, **ficha técnica/integração/QA**.
 4. Executar nessa ordem com dependências explícitas, PRs pequenos e testes; não abrir todas as implementações V2–V4 enquanto o contrato da V1 não estiver estabilizado.
 5. Atualizar materiais da App Store/ASO quando a funcionalidade estiver implementada e validada, não antes.
 
