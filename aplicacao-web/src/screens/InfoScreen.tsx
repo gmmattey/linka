@@ -76,7 +76,7 @@ const pages: Record<string, InfoPage> = {
       },
       {
         title: 'Dados relacionados a anúncios',
-        body: 'Quando um anúncio é solicitado, o Google pode tratar categorias como identificadores técnicos, informações de uso e diagnóstico para fornecer, proteger, medir e limitar a frequência de anúncios, conforme as configurações e políticas aplicáveis do Google. O Linka solicita anúncios não personalizados (npa=1) e não pede permissão de rastreamento (App Tracking Transparency). A opção não personalizada não elimina os tratamentos necessários ao fornecimento, à segurança e à medição do anúncio.'
+        body: 'Quando um anúncio é solicitado, o Google pode tratar categorias como identificadores técnicos, informações de uso e diagnóstico para fornecer, proteger, medir e limitar a frequência de anúncios, conforme as configurações e políticas aplicáveis do Google. O Linka solicita anúncios não personalizados (npa=1). A partir da versão 1.1.5, build 55, o app não pede permissão de rastreamento (App Tracking Transparency). Versões anteriores podem apresentar esse pedido. A opção não personalizada não elimina os tratamentos necessários ao fornecimento, à segurança e à medição do anúncio.'
       },
       {
         title: 'Suas escolhas de anúncios',
