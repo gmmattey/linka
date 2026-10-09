@@ -1014,3 +1014,30 @@
 
 /* Minha Rede V2 - Profile and Errors */
 "inventory.profile.invalidError" = "The home network profile could not be saved.";
+
+/* Minha Rede V2-C - Consolidated View */
+"inventory.section.plan" = "My plan";
+"inventory.section.devices" = "Equipment";
+"inventory.section.connections" = "How they are connected";
+"inventory.section.environments" = "Environments";
+
+"inventory.plan.cta.add" = "Register plan";
+
+"inventory.devices.empty" = "No equipment registered.";
+"inventory.devices.add" = "Add equipment";
+
+"inventory.connections.guide.message" = "Specify how your devices are connected to map your connection path";
+"inventory.connections.guide.cta" = "Specify connections";
+"inventory.connection.addNew" = "Add connection";
+
+"inventory.environments.empty" = "No environments registered.";
+"inventory.environments.manage" = "Manage environments";
+"inventory.environments.footer" = "Environments organize your tests and equipment on this device. Linking equipment to a location does not transfer previous measurements.";
+"inventory.environment.deviceCount.single" = "%d device";
+"inventory.environment.deviceCount.multiple" = "%d devices";
+
+"inventory.medium.short.ethernet" = "Ethernet";
+"inventory.medium.short.wifi" = "Wi-Fi";
+"inventory.medium.short.fiber" = "Fiber";
+"inventory.medium.short.other" = "Other";
+"inventory.medium.short.unknown" = "Unspecified";

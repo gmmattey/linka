@@ -1014,3 +1014,30 @@
 
 /* Minha Rede V2 - Perfil y Errores */
 "inventory.profile.invalidError" = "No se pudo guardar el perfil de la red del hogar.";
+
+/* Minha Rede V2-C - Vista Consolidada */
+"inventory.section.plan" = "Mi plan";
+"inventory.section.devices" = "Equipos";
+"inventory.section.connections" = "Cómo están conectados";
+"inventory.section.environments" = "Ambientes";
+
+"inventory.plan.cta.add" = "Registrar plan";
+
+"inventory.devices.empty" = "No hay equipos registrados.";
+"inventory.devices.add" = "Agregar equipo";
+
+"inventory.connections.guide.message" = "Indique cómo están conectados sus equipos para trazar el camino de su conexión";
+"inventory.connections.guide.cta" = "Indicar conexiones";
+"inventory.connection.addNew" = "Agregar conexión";
+
+"inventory.environments.empty" = "No hay ambientes registrados.";
+"inventory.environments.manage" = "Administrar ambientes";
+"inventory.environments.footer" = "Los ambientes organizan tus pruebas y equipos en este dispositivo. Vincular un equipo a un lugar no transfiere mediciones anteriores.";
+"inventory.environment.deviceCount.single" = "%d equipo";
+"inventory.environment.deviceCount.multiple" = "%d equipos";
+
+"inventory.medium.short.ethernet" = "Ethernet";
+"inventory.medium.short.wifi" = "Wi-Fi";
+"inventory.medium.short.fiber" = "Fibra";
+"inventory.medium.short.other" = "Otro";
+"inventory.medium.short.unknown" = "No especificado";

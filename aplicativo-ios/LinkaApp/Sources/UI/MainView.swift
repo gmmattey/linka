@@ -606,7 +606,7 @@ struct MainView: View {
     private func destinationView(for route: AppRoute) -> AnyView {
         switch route {
         case .myNetwork:
-            return AnyView(MyNetworkView())
+            return AnyView(MyNetworkView().environmentObject(entitlements))
         case .settings:
             return AnyView(SettingsView().environmentObject(entitlements))
         case .history:

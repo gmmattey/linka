@@ -144,6 +144,7 @@ struct MacMainView: View {
                         }
                     case .myNetwork:
                         MyNetworkView()
+                            .environmentObject(entitlements)
                     case .history:
                         historyView
                     case .assist:
