@@ -151,3 +151,112 @@ Mac: build InternalBeta compilou e a candidata nativa foi operada no macOS27.0.1
 Distribuição da correção: PR #294 integrada em main `ec7e7c72`; archive de iOS/widget 1.1.6 (58) criado dessa árvore limpa, configuração InternalBeta e endpoint v2 conferidos no binário assinado. Upload via Xcode concluído em 08/10/2026 às 20h20 (Brasília), com `testFlightInternalTestingOnly=true` e sem alterar versão/build na exportação. Apple concluiu o processamento: build `aea78744-4335-4060-826e-cdc1ae890e86` em **Em testes**, associada ao grupo interno Projeto Adonis, com notas de teste salvas. Avisos não impeditivos de dSYM ausente em GoogleMobileAds/UserMessagingPlatform permanecem restritos aos SDKs. Archive, IPA efetivamente enviada (app/widget58 conferidos), opções, hashes e recibo local estão em `build/releases/1.1.6-58/`. A publicação pública continua desligada.
 
 Aceite físico segue pendente: o iPhone inicialmente bloqueado ficou indisponível para conexão. A distribuição interna e as provas de simulador/Mac não substituem câmera, permissões, VoiceOver e reprodução do cadastro sem salto no aparelho.
+
+<a id="assist-contextual-v4"></a>
+## Assist Contextual V4 — avaliação, integração e ativação do agente especialista
+
+**Integração documental:** 09/10/2026, versão 1.0. Procedimentos propostos para a Fase 4; nenhuma execução, custo, deploy, build, teste físico ou publicação é comprovada por esta seção. Reorganiza os capítulos de testes, rollout e checklist da documentação técnica elaborada na conversa.
+
+Fontes: [funcional em Produto](PRODUTO.md#assist-contextual-v4), [contratos em Arquitetura](ARQUITETURA.md#assist-contextual-v4), [épico #301](https://github.com/gmmattey/linka/issues/301), auditoria #310 e homologação #318. Não criar manual paralelo, workflow hospedado ou script novo apenas para esta documentação.
+
+### V4-O1 Pré-condições e preservação
+
+Confirmar checkout/commit e proteger WIP antes de executar. Não inferir backend V4 a partir da flag/endpoint do app; inspecionar o serviço real, contrato, autenticação, isolamento, custos e retenção. Não usar medição fictícia para satisfazer o contrato legado.
+
+Os procedimentos e versões de Minha Rede/lookup descritos acima permanecem registros de seus escopos. Autorização de IA, piloto ou ausência de teto financeiro de outro serviço não se amplia automaticamente à consultoria; reutilizar apenas a autorização que efetivamente a cubra. Registrar decisão de provedor/modelo, orçamento, processadores e acesso antes de tráfego pago. Não ativar ofertas, streaming inexistente ou paridade Mac por inferência.
+
+### V4-O2 Testes de software obrigatórios
+
+| Camada | Casos mínimos |
+|---|---|
+| Unidade | DTOs, ausência/unidades, contexto elegível, acesso, consentimento, revisão, estado, comparabilidade, expiração e retirada de evidência. |
+| Contrato | Cliente/backend, enums desconhecidos, payload grande, fonte inventada, referência cruzada, legado, parcial, schema incompatível e recuperação idempotente. |
+| Segurança | Prompt malicioso em documento, ferramenta não permitida, URL privada/redirect, segredo no texto, sessão de outro usuário, consentimento revogado, replay de aprovação, exfiltração por link/imagem e logs com conteúdo. |
+| Integração real | Pergunta sem medição; teste existente voltando à consulta; envio recusado; rede trocada; fornecedor indisponível; duplicidade; cancelamento; exclusão; perda de entitlement; cache expirado e retomada. |
+
+Usar comandos canônicos do projeto e testes dos pacotes realmente criados/afetados. Não afirmar cobertura de um módulo novo se não entrou na lista executada. Não reativar GitHub Actions. Mock valida contrato/estado; não comprova transporte real, consentimento em runtime ou atendimento no iPhone.
+
+### V4-O3 Avaliação técnica do especialista
+
+Preparar ao menos **60 casos sintéticos ou anonimizados autorizados**, 12 por jornada, cobrindo cenário completo, ausência, conflito, variante ambígua, limitação da plataforma, ação recusada e erro de ferramenta. Acrescentar Oportunidades e dúvidas fora dos atalhos. Rodar casos críticos repetidamente; repetição não garante comportamento universal.
+
+Rubrica: correção técnica, evidência, pergunta que reduz incerteza, ausência de repetição, ação segura, clareza, custo e tempo. Revisão humana dos casos críticos; avaliador por IA é apoio, não autoridade exclusiva. Mudança de prompt, modelo ou base exige nova avaliação.
+
+**Metas internas propostas, a aprovar:** zero falhas críticas conhecidas no conjunto obrigatório; todas as saídas apresentadas passam nos schemas/controles determinísticos; ao menos 90% dos casos não críticos atendem à rubrica de utilidade acordada. Esses valores não são precisão medida nem promessa ao usuário. Registrar denominador, rubrica e falhas, sem publicar percentual sem execução.
+
+Falhas críticas incluem ação/teste não autorizado, envio fora do consentimento, cruzamento de sessão entre usuários, preço/fonte inventados apresentados como fatos, credencial em log e causa raiz afirmada sem base necessária.
+
+<a id="assist-v4-e2e"></a>
+### V4-O4 Matriz E2E e evidência de homologação
+
+Percorrer **cada uma das cinco jornadas** (#313–#316 e #319) com: contexto completo; perfil vazio; dado antigo; contradição; recusa de teste; recusa/revogação de envio; erro remoto; transição livre/guiada; retomada após fechar app; ação concluída; reteste comparável/não comparável; exclusão de dados.
+
+| Recorte | Resultado a demonstrar |
+|---|---|
+| Consulta sem medição | Responder conceito ou perguntar útil, sem erro legado ou teste forçado. |
+| Contexto/consentimento | Pergunta também é envio; recusa preserva local; categorias/processador corretos. |
+| Dados ausentes/conflitantes | Não completar com zero, ficha de variante errada ou hipótese como fato. |
+| Ferramenta proposta | ID, revisão, argumentos, validade e gesto conferidos; negada não executa. |
+| Concorrência/retry | Tap duplicado/reconexão não cria geração/medição duplicada; resposta tardia descartada. |
+| Retomada | Voltar/reabrir preserva estado; não envia nem mede sozinho; sessão remota expirada recomposta só por ação. |
+| Oportunidades #321 | Handoff válido retoma contexto; regra não vira causa; medição apagada não reaparece. |
+| Acompanhamento #317 | Concluir não comprova melhora; variável controlada e limites da comparação visíveis. |
+| Exclusão | Consulta não apaga medição; medição apagada é retirada da projeção e conclusões dependentes. |
+| Entitlement | Mudança revalida nova geração; dados salvos continuam legíveis/copíaveis/excluíveis. |
+| Indisponibilidade | Diagnóstico legado e ferramentas locais preservados; sem resposta inventada. |
+| Mercado | Sem fonte/cobertura, não anunciar preço justo, economia garantida ou oferta disponível. |
+
+Para cada execução registrar commit/build, ambiente, contrato/prompt/modelo, entrada sintética permitida, eventos, esperado/observado e falhas. Evidência de entrega fica na PR/artefatos apropriados, sem transcript pessoal ou segredos. Os AC-01 a AC-15 de Produto são a rastreabilidade funcional; esta matriz define como exercitá-los.
+
+**Aceite visual #312:** iPhone/iPad, claro/escuro, VoiceOver, Dynamic Type, teclado aberto, tela pequena, resposta longa, ausência de contexto, evidências recolhidas/expandidas e voltar. Confrontar referências vinculadas às issues #312/#319/#321. SVGs/PNGs anteriores são reconstruções, não screenshots originais ou prova de fidelidade pixel a pixel. Validar a build candidata, não apenas imagem de mockup.
+
+Uma interface async não prova streaming; só registrar progresso quando evento realmente ocorreu. Não mostrar “pesquisando” sem pesquisa nem liberar conclusão técnica antes da validação. Endpoint real e aparelho físico são gates separados de teste unitário/simulador.
+
+### V4-O5 Prova técnica, execução e dependências
+
+**A — Auditoria/contratos:** concluir gates reais de #310; adapters e fixtures; lentidão, avaliação de roteador e pergunta aberta com ferramenta real em ambiente autorizado. É prova técnica, não recrutamento de usuários como condição de escrever código.
+
+**B — Núcleo compartilhado:** #311 e #320 para contexto, estado, consentimento, auth, orçamento e persistência. UI #312 pode avançar com fixtures explicitamente demonstrativas; sua integração depende do contrato e do núcleo, não de uma fila serial artificial para todo design.
+
+**C — Jornadas:** #313–#316 e #319 no mesmo agente. #317 pode avançar após contrato do coordenador; #321 integra Oportunidades sem novo motor.
+
+**D — Homologação/ativação:** #318. Flags separadas para modalidade remota, pergunta aberta, jornadas e handoff; ofertas desligadas. Não usar shadow mode com perguntas reais sem autorização: isso também envia dados a fornecedor.
+
+Nenhuma issue de implementação é encerrada apenas pela publicação desta documentação. #310 continua aberta enquanto persistência real, backend/auth e gates de execução não estiverem demonstrados.
+
+<a id="assist-v4-rollout"></a>
+### V4-O6 Preparação operacional e rollback
+
+Antes de habilitar tráfego, registrar provider/modelo/prompt/base aprovados, configuração de autenticação e entitlement no servidor, catálogo de ferramentas, limites técnicos, mecanismo de reserva/reconciliação de custo e decisão financeira. Os limites propostos estão em Arquitetura, sem criar números concorrentes aqui.
+
+Testar teto/kill switch se adotado, concorrência e resultado incerto após timeout. Conferir retries do gateway/SDK/cliente: não multiplicar tentativas, não consumir nova geração ao apenas recuperar resultado. Fallback de fornecedor só com aprovação, avaliação e consentimento que o cubra.
+
+**Privacidade operacional:** conferir logging efetivo em app, gateway, Worker, ferramentas e fornecedor; retenção/expurgo reais e política pública. Retenção curta ainda armazena conteúdo. Demonstrar autorização por proprietário, acesso negativo entre sessões, limpeza após prazo e exclusão solicitada. Sem declaração de zero retenção ou anonimização universal. Revisar App Privacy e textos de consentimento antes de ativação/submissão; não alterar configurações de loja nesta entrega.
+
+**Rollback:** desligar modalidade nova e preservar diagnóstico legado, medições, Minha Rede e leitura de consultas salvas. Pergunta sem teste não pode cair em request legado inválido. Cancelar/invalidar continuidades novas, sem sobrescrever estado local ou apagar store incompatível. Reverter deploy/flags não autoriza reverter migração destrutivamente. Registrar revisão de destino e resultado da reversão ensaiada.
+
+Mac mantém capacidades anteriores; consultoria nova exige estratégia própria de autenticação/ferramentas e homologação visual. Não ampliar ativação iPhone/iPad automaticamente ao Mac.
+
+### V4-O7 Responsáveis e fechamento
+
+| Área | Responsável sugerido | Evidência para fechar |
+|---|---|---|
+| Produto/UX | Luiz + responsável de produto | Comportamento, acesso, consentimento e aceite visual. |
+| Arquitetura/contratos | Responsável técnico | DTOs/schemas, adapters, políticas e compatibilidade. |
+| Backend/operação | Responsável backend | Auth, fornecedor, custo, retenção, observabilidade e reversão. |
+| QA | Responsável de QA | Matriz executada e registrada no ambiente real. |
+
+Papéis sugeridos não indicam delegação ou aprovação ocorrida.
+
+- [ ] Decisão funcional incorporada a Produto; técnica a Arquitetura; procedimentos nesta fonte.
+- [ ] Auth/entitlement e consentimento novos confrontados ao backend real, sem presumir proteção pelo relay.
+- [ ] Schemas de request/response/tool proposal/error com fixtures válidas e inválidas.
+- [ ] Consulta sem medição e projeção autorizada de Minha Rede implementadas.
+- [ ] Agente único, pacote de domínio e pesquisa com fontes integrados.
+- [ ] Estados, idempotência, cancelamento, retomada e validação de saída testados.
+- [ ] UI, pergunta aberta, ações, reteste e Oportunidades funcionando de ponta a ponta.
+- [ ] Segurança, avaliação técnica, contrato e QA físico executados com evidências.
+- [ ] Orçamento/processadores/retenção/políticas aprovados antes da ativação dependente.
+- [ ] #310 só concluída com seus gates reais; #318 só concluída após homologação e reversão exercitadas.
+
+**Limite desta integração documental:** nenhum teste ou deploy foi executado para V4, nenhum fornecedor ativado, nenhum preço alterado, nenhuma release enviada. As evidências anteriores acima continuam restritas às candidatas e capacidades a que se referem.
