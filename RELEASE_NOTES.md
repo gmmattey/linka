@@ -1,3 +1,11 @@
+# Linka 1.1.7 (59) — desenvolvimento Minha Rede V2
+
+- Adiciona perfil doméstico de internet fixa com cadastro honesto de plano, velocidades de download/upload nominais independentes e tecnologia de acesso residencial.
+- Permite mapear conexões declaradas entre equipamentos com convite não-intrusivo para redes com dois ou mais aparelhos.
+- Reestrutura Minha Rede em quatro seções nativas e harmoniosas: Meu plano, Equipamentos, Como estão conectados e Ambientes.
+- Implementa guarda de isolamento estrito impedindo qualquer confusão ou contaminação entre internet residencial e dados de celular móvel.
+- Mantém Minha Rede 100% gratuita, local e offline em iPhone, iPad e Mac.
+
 # Linka 1.1.6 (58) — disponível no TestFlight interno
 
 - Simplifica o cadastro para identificar, buscar e confirmar/salvar, com ficha preenchida pela pesquisa na internet.
