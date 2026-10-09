@@ -1,4 +1,5 @@
 import Foundation
+import NetworkCore
 
 public enum DeviceKind: String, Codable, CaseIterable, Sendable { case modem, router, modemRouter, ont, meshNode, extender, other }
 public enum InstalledRole: String, Codable, CaseIterable, Sendable { case mainRouter, accessPoint, repeater, meshSatellite, fiberTermination, bridge, other, unknown }
@@ -87,5 +88,266 @@ public struct RegisteredNetworkDevice: Codable, Equatable, Sendable, Identifiabl
     public var updatedAt: Date
     public init(id: UUID = UUID(), kind: DeviceKind = .router, identity: DeviceIdentity, nickname: String? = nil, installation: DeviceInstallation = .init(), specifications: DeviceSpecificationSnapshot? = nil, revision: Int = 0, createdAt: Date = Date(), updatedAt: Date = Date()) {
         self.id = id; self.kind = kind; self.identity = identity; self.nickname = nickname; self.installation = installation; self.specifications = specifications; self.revision = revision; self.createdAt = createdAt; self.updatedAt = updatedAt
+    }
+}
+
+public enum AccessTechnology: String, Codable, CaseIterable, Sendable {
+    case fiber
+    case cable
+    case dsl
+    case fixedWireless
+    case cellularCpe
+    case satellite
+    case other
+    case unknown
+}
+
+public enum LinkMedium: String, Codable, CaseIterable, Sendable {
+    case ethernet
+    case wifi
+    case fiber
+    case other
+    case unknown
+}
+
+public struct NetworkServicePlan: Codable, Equatable, Sendable, Identifiable {
+    public var id: UUID
+    public var ispName: String
+    public var planName: String?
+    public var nominalDownloadMbps: Double?
+    public var nominalUploadMbps: Double?
+    public var technology: AccessTechnology
+    public var monthlyCostCents: Int?
+    public var currencyCode: String?
+    public var notes: String?
+    public var effectiveFrom: Date?
+    public var effectiveTo: Date?
+    public var createdAt: Date
+    public var updatedAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        ispName: String,
+        planName: String? = nil,
+        nominalDownloadMbps: Double? = nil,
+        nominalUploadMbps: Double? = nil,
+        technology: AccessTechnology = .unknown,
+        monthlyCostCents: Int? = nil,
+        currencyCode: String? = nil,
+        notes: String? = nil,
+        effectiveFrom: Date? = nil,
+        effectiveTo: Date? = nil,
+        createdAt: Date = Date(),
+        updatedAt: Date = Date()
+    ) {
+        self.id = id
+        self.ispName = ispName
+        self.planName = planName
+        self.nominalDownloadMbps = nominalDownloadMbps
+        self.nominalUploadMbps = nominalUploadMbps
+        self.technology = technology
+        self.monthlyCostCents = monthlyCostCents
+        self.currencyCode = currencyCode
+        self.notes = notes
+        self.effectiveFrom = effectiveFrom
+        self.effectiveTo = effectiveTo
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
+    public var isValid: Bool {
+        let cleanIsp = ispName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanIsp.isEmpty, cleanIsp.count <= 120,
+              !cleanIsp.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) else {
+            return false
+        }
+        if let planName {
+            let cleanPlan = planName.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard cleanPlan.count <= 120,
+                  !cleanPlan.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) else {
+                return false
+            }
+        }
+        if let nominalDownloadMbps {
+            guard nominalDownloadMbps.isFinite, nominalDownloadMbps > 0 else { return false }
+        }
+        if let nominalUploadMbps {
+            guard nominalUploadMbps.isFinite, nominalUploadMbps > 0 else { return false }
+        }
+        if let monthlyCostCents {
+            guard monthlyCostCents >= 0 else { return false }
+            guard let currencyCode, currencyCode.range(of: #"^[A-Z]{3}$"#, options: .regularExpression) != nil else {
+                return false
+            }
+        } else if let currencyCode {
+            guard currencyCode.range(of: #"^[A-Z]{3}$"#, options: .regularExpression) != nil else {
+                return false
+            }
+        }
+        if let notes {
+            guard notes.count <= 500 else { return false }
+        }
+        if let effectiveFrom, let effectiveTo {
+            guard effectiveTo >= effectiveFrom else { return false }
+        }
+        guard updatedAt >= createdAt else { return false }
+        return true
+    }
+}
+
+public struct DeviceConnection: Codable, Equatable, Sendable, Identifiable {
+    public var id: UUID
+    public var endpointADeviceID: UUID
+    public var endpointBDeviceID: UUID
+    public var medium: LinkMedium
+    public var sourceDeviceID: UUID?
+    public var declaredByUser: Bool
+    public var createdAt: Date
+    public var updatedAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        endpointADeviceID: UUID,
+        endpointBDeviceID: UUID,
+        medium: LinkMedium,
+        sourceDeviceID: UUID? = nil,
+        declaredByUser: Bool = true,
+        createdAt: Date = Date(),
+        updatedAt: Date = Date()
+    ) {
+        self.id = id
+        self.endpointADeviceID = endpointADeviceID
+        self.endpointBDeviceID = endpointBDeviceID
+        self.medium = medium
+        self.sourceDeviceID = sourceDeviceID
+        self.declaredByUser = declaredByUser
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
+    public var isValid: Bool {
+        guard endpointADeviceID != endpointBDeviceID else { return false }
+        if let sourceDeviceID {
+            guard sourceDeviceID == endpointADeviceID || sourceDeviceID == endpointBDeviceID else {
+                return false
+            }
+        }
+        guard updatedAt >= createdAt else { return false }
+        return true
+    }
+
+    /// Chave normalizada para evitar conexões duplicadas para o mesmo meio físico/lógico
+    public var normalizedLinkKey: String {
+        let first = min(endpointADeviceID.uuidString, endpointBDeviceID.uuidString)
+        let second = max(endpointADeviceID.uuidString, endpointBDeviceID.uuidString)
+        return "\(first):\(second):\(medium.rawValue)"
+    }
+}
+
+public struct HomeNetworkProfile: Codable, Equatable, Sendable, Identifiable {
+    public var id: UUID
+    public var displayName: String
+    public var activePlanID: UUID?
+    public var createdAt: Date
+    public var updatedAt: Date
+
+    public init(
+        id: UUID = UUID(),
+        displayName: String,
+        activePlanID: UUID? = nil,
+        createdAt: Date = Date(),
+        updatedAt: Date = Date()
+    ) {
+        self.id = id
+        self.displayName = displayName
+        self.activePlanID = activePlanID
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
+    public var isValid: Bool {
+        let cleanName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanName.isEmpty, cleanName.count <= 100,
+              !cleanName.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) else {
+            return false
+        }
+        guard updatedAt >= createdAt else { return false }
+        return true
+    }
+}
+
+public enum ResidentialPlanEligibility: Equatable, Sendable {
+    case eligible
+    case ineligible(Reason)
+
+    public var isEligible: Bool {
+        if case .eligible = self { return true }
+        return false
+    }
+
+    public var reason: Reason? {
+        if case .ineligible(let reason) = self { return reason }
+        return nil
+    }
+
+    public enum Reason: String, Codable, CaseIterable, Sendable {
+        case cellularConnection
+        case personalHotspot
+        case expensiveNetwork
+        case missingConnectionKind
+        case unsupportedConnectionKind
+    }
+
+    /// Avaliação exaustiva a partir dos fatos de rede
+    public static func evaluate(
+        connectionKind: NetworkConnectionKind?,
+        isExpensive: Bool = false,
+        isPersonalHotspot: Bool = false
+    ) -> ResidentialPlanEligibility {
+        guard let connectionKind else {
+            return .ineligible(.missingConnectionKind)
+        }
+        if connectionKind == .cellular {
+            return .ineligible(.cellularConnection)
+        }
+        if isPersonalHotspot {
+            return .ineligible(.personalHotspot)
+        }
+        if isExpensive {
+            return .ineligible(.expensiveNetwork)
+        }
+        switch connectionKind {
+        case .wifi, .ethernet:
+            return .eligible
+        case .cellular:
+            return .ineligible(.cellularConnection)
+        case .other:
+            return .ineligible(.unsupportedConnectionKind)
+        }
+    }
+
+    /// Avaliação sobre NetworkMeasurement canônica
+    public static func evaluate(
+        measurement: NetworkMeasurement,
+        isExpensive: Bool = false,
+        isPersonalHotspot: Bool = false
+    ) -> ResidentialPlanEligibility {
+        evaluate(
+            connectionKind: measurement.connectionKind,
+            isExpensive: isExpensive,
+            isPersonalHotspot: isPersonalHotspot
+        )
+    }
+
+    /// Avaliação sobre snapshot de telemetria ao vivo
+    public static func evaluate(
+        telemetry: LiveNetworkTelemetrySnapshot,
+        isPersonalHotspot: Bool = false
+    ) -> ResidentialPlanEligibility {
+        evaluate(
+            connectionKind: telemetry.connectionKind,
+            isExpensive: telemetry.isExpensive,
+            isPersonalHotspot: isPersonalHotspot
+        )
     }
 }

@@ -31,6 +31,71 @@ public actor HouseholdRepository: NetworkProfileRepository {
         return try await inventory.save(value, expectedRevision: expectedRevision)
     }
     public func removeDevice(id: UUID, expectedRevision: Int) async throws { await acquire(); defer { release() }; try Task.checkCancellation(); try await inventory.remove(id: id, expectedRevision: expectedRevision) }
+
+    // MARK: - Plans
+
+    public func plans() async throws -> [NetworkServicePlan] {
+        await acquire(); defer { release() }; try Task.checkCancellation()
+        return try await inventory.plans()
+    }
+
+    public func plan(id: UUID) async throws -> NetworkServicePlan? {
+        await acquire(); defer { release() }; try Task.checkCancellation()
+        return try await inventory.plan(id: id)
+    }
+
+    @discardableResult
+    public func savePlan(_ plan: NetworkServicePlan) async throws -> NetworkServicePlan {
+        await acquire(); defer { release() }; try Task.checkCancellation()
+        return try await inventory.savePlan(plan)
+    }
+
+    public func removePlan(id: UUID) async throws {
+        await acquire(); defer { release() }; try Task.checkCancellation()
+        try await inventory.removePlan(id: id)
+    }
+
+    // MARK: - Connections
+
+    public func connections() async throws -> [DeviceConnection] {
+        await acquire(); defer { release() }; try Task.checkCancellation()
+        return try await inventory.connections()
+    }
+
+    public func connection(id: UUID) async throws -> DeviceConnection? {
+        await acquire(); defer { release() }; try Task.checkCancellation()
+        return try await inventory.connection(id: id)
+    }
+
+    public func connections(forDevice id: UUID) async throws -> [DeviceConnection] {
+        await acquire(); defer { release() }; try Task.checkCancellation()
+        return try await inventory.connections(forDevice: id)
+    }
+
+    @discardableResult
+    public func saveConnection(_ connection: DeviceConnection) async throws -> DeviceConnection {
+        await acquire(); defer { release() }; try Task.checkCancellation()
+        return try await inventory.saveConnection(connection)
+    }
+
+    public func removeConnection(id: UUID) async throws {
+        await acquire(); defer { release() }; try Task.checkCancellation()
+        try await inventory.removeConnection(id: id)
+    }
+
+    // MARK: - Home Profile
+
+    public func homeProfile() async throws -> HomeNetworkProfile? {
+        await acquire(); defer { release() }; try Task.checkCancellation()
+        return try await inventory.homeProfile()
+    }
+
+    @discardableResult
+    public func saveHomeProfile(_ profile: HomeNetworkProfile) async throws -> HomeNetworkProfile {
+        await acquire(); defer { release() }; try Task.checkCancellation()
+        return try await inventory.saveHomeProfile(profile)
+    }
+
     public func environments() async throws -> [NetworkEnvironment] { await acquire(); defer { release() }; return try await profiles.environments() }
     public func environment(id: UUID) async throws -> NetworkEnvironment? { await acquire(); defer { release() }; return try await profiles.environment(id: id) }
     public func create(_ environment: NetworkEnvironment) async throws { await acquire(); defer { release() }; try Task.checkCancellation(); try await profiles.create(environment) }
