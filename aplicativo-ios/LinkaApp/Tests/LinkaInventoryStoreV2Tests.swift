@@ -151,4 +151,62 @@ final class LinkaInventoryStoreV2Tests: XCTestCase {
         XCTAssertFalse(saved2)
         XCTAssertNotNil(store.error)
     }
+
+    // MARK: - Environments & Consolidated Helpers
+
+    func testDeviceLinkedToEnvironmentReload() async throws {
+        guard let env = NetworkEnvironment(name: "Sala") else {
+            XCTFail("Failed to initialize NetworkEnvironment")
+            return
+        }
+        try await repository.create(env)
+        await store.reload()
+        XCTAssertEqual(store.environments.count, 1)
+        XCTAssertEqual(store.environments.first?.name, "Sala")
+
+        var dev = RegisteredNetworkDevice(identity: .init(brand: "TP-Link", model: "Archer AX50"))
+        dev.installation.environmentID = env.id
+        let saved = await store.save(dev)
+        XCTAssertTrue(saved)
+        XCTAssertEqual(store.devices.count, 1)
+        XCTAssertEqual(store.devices.first?.installation.environmentID, env.id)
+
+        let matchingEnv = store.environments.first(where: { $0.id == store.devices.first?.installation.environmentID })
+        XCTAssertEqual(matchingEnv?.name, "Sala")
+    }
+
+    func testConnectionDirectionEndpointOrdering() async {
+        let devA = RegisteredNetworkDevice(identity: .init(brand: "Modem", model: "FiberGateway"))
+        let devB = RegisteredNetworkDevice(identity: .init(brand: "Mesh", model: "Deco X20"))
+        _ = await store.save(devA)
+        _ = await store.save(devB)
+
+        // Internet flowing from A to B
+        let connAtoB = DeviceConnection(
+            endpointADeviceID: devA.id,
+            endpointBDeviceID: devB.id,
+            medium: .ethernet,
+            sourceDeviceID: devA.id
+        )
+        let savedAtoB = await store.saveConnection(connAtoB)
+        XCTAssertTrue(savedAtoB)
+
+        let retrieved = store.connections.first
+        XCTAssertNotNil(retrieved)
+        XCTAssertEqual(retrieved?.sourceDeviceID, devA.id)
+
+        // If source is B, origin device should be B
+        let connBtoA = DeviceConnection(
+            endpointADeviceID: devA.id,
+            endpointBDeviceID: devB.id,
+            medium: .wifi,
+            sourceDeviceID: devB.id
+        )
+        let savedBtoA = await store.saveConnection(connBtoA)
+        XCTAssertTrue(savedBtoA)
+        XCTAssertEqual(store.connections.count, 2)
+
+        let retrievedBtoA = store.connections.first(where: { $0.id == connBtoA.id })
+        XCTAssertEqual(retrievedBtoA?.sourceDeviceID, devB.id)
+    }
 }

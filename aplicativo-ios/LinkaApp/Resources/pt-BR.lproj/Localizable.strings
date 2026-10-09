@@ -1014,3 +1014,30 @@
 
 /* Minha Rede V2 - Perfil e Erros */
 "inventory.profile.invalidError" = "O perfil da rede residencial não pôde ser salvo.";
+
+/* Minha Rede V2-C - Visão Consolidada */
+"inventory.section.plan" = "Meu plano";
+"inventory.section.devices" = "Equipamentos";
+"inventory.section.connections" = "Como estão conectados";
+"inventory.section.environments" = "Ambientes";
+
+"inventory.plan.cta.add" = "Cadastrar plano";
+
+"inventory.devices.empty" = "Nenhum equipamento cadastrado.";
+"inventory.devices.add" = "Adicionar equipamento";
+
+"inventory.connections.guide.message" = "Informe como seus aparelhos estão ligados para mapear o caminho da sua conexão";
+"inventory.connections.guide.cta" = "Informar conexões";
+"inventory.connection.addNew" = "Adicionar conexão";
+
+"inventory.environments.empty" = "Nenhum ambiente cadastrado.";
+"inventory.environments.manage" = "Gerenciar ambientes";
+"inventory.environments.footer" = "Os ambientes organizam seus testes e equipamentos neste aparelho. Vincular um aparelho a um local não transfere medições anteriores.";
+"inventory.environment.deviceCount.single" = "%d equipamento";
+"inventory.environment.deviceCount.multiple" = "%d equipamentos";
+
+"inventory.medium.short.ethernet" = "Ethernet";
+"inventory.medium.short.wifi" = "Wi-Fi";
+"inventory.medium.short.fiber" = "Fibra";
+"inventory.medium.short.other" = "Outro";
+"inventory.medium.short.unknown" = "Não informado";
