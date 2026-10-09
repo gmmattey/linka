@@ -240,3 +240,310 @@ Integrada na main pelas PRs #296 (Core e Guarda B1), #297 (UI de Planos e Conex�
 - **Isolamento B1 e Temporal:** `ResidentialPlanEligibility` filtra interfaces móveis, hotspots e redes restritas. Janelas `effectiveFrom` e `effectiveTo` impedem contaminação por medições anteriores ou posteriores à vigência do plano ativo.
 - **Independência Download/Upload e Ausência != 0:** Avaliação desacoplada de direções (um campo nulo no plano não anula o outro). Ausência de dados retorna `.noData`, sem gerar `0 Mbps` fictício, divisão por zero ou `NaN`/`Inf`.
 - **Integração Reativa:** `LinkaInventoryStore` injeta `MeasurementHistoryRepository`, alimenta o motor sob `@MainActor` e expõe `planEvaluation` reativo para a seção `planPerformanceSection` na `MyNetworkView`.
+
+<a id="assist-contextual-v4"></a>
+## Assist Contextual V4 — arquitetura do agente especialista supervisionado
+
+**Integração documental:** 09/10/2026, versão 1.0. **Status:** arquitetura-alvo proposta; não implantada nem homologada por esta entrega. Reorganiza a documentação técnica da conversa nas fontes canônicas; comportamento em [Produto](PRODUTO.md#assist-contextual-v4), avaliação e ativação em [Operação](OPERACAO.md#assist-contextual-v4).
+
+**Base inspecionada na documentação de origem:** `8268dac778bbdd8b2ed9eab7ec5a463597cf0f7a`. Os símbolos de consultoria abaixo são propostos. Reutilizar tipos concretos quando adequados; não tratar proposta como código existente. Não substituir governança, permissões dos serviços atuais ou política de diagnóstico pela mera publicação deste texto.
+
+### V4-T1 Estado atual e consequência de integração
+
+| Fonte da base inspecionada | Observação | Consequência |
+|---|---|---|
+| `NetworkAssist.swift` [V4-T1] | Context/Request exigem medição; `measurementUnderstanding` é observacional | Novo contrato de consulta independente; nunca medição fictícia para satisfazer tipo. |
+| `AssistViewModel.swift` [V4-T2] | Falha sem medição; histórico esvaziado; pergunta padrão | Preservar mensagem real, admitir ausência e selecionar histórico elegível. |
+| Mesmo ViewModel | idle/loading/success/error; consome completed | Estado de sessão próprio; interface assíncrona não prova streaming real. |
+| `AssistContainer.swift` [V4-T3] | Entitlement, flag remota, BuildeaDiagnosticAPI, timeout 55 s | Reutilizar fronteiras; app não comprova auth/retenção/capacidade do Worker. |
+| `HouseholdRepository.swift` [V4-T4] | Coordena dispositivos, planos, conexões, perfil e Ambientes | Adapter de leitura; snapshot consistente precisa de revisão específica. |
+
+A inspeção não executou suites, Xcode, endpoints ou aparelhos, nem certificou integralmente as fases 1–3. Requisitos de auditoria operacional em #310 permanecem abertos.
+
+### V4-T2 Composição e responsabilidades
+
+Um único **Network Specialist Agent** em orquestração supervisionada. Modelo propõe perguntas, consulta conhecimento e escolhe ferramentas de leitura permitidas; software controla estado, permissão, orçamento, execução e apresentação crítica. Não começar com fine-tuning, múltiplos agentes, banco vetorial obrigatório ou framework pesado. SDK é opção se reduzir trabalho sem ocultar os controles. [V4-T5]
+
+```text
+App Linka: Assist UI / campo aberto / Oportunidades
+  → ConsultationCoordinator (sessão local)
+      → ContextAssembler
+          → HouseholdRepository
+          → MeasurementHistory + elegibilidade
+          → NetworkOptimization / avaliadores existentes
+      → ConsentController / AccessPolicy
+      → LocalToolDispatcher (ferramentas existentes)
+      → ConsultationRepository (histórico local)
+  → ConsultationTransport (novo contrato)
+Backend de consultoria (fronteira lógica própria)
+  → auth + entitlement + idempotência + limites
+  → ConsultationOrchestrator
+      → políticas / procedimentos
+      → NetworkSpecialist / ModelAdapter
+      → KnowledgeRetriever
+      → EvidenceValidator / ResponseValidator
+  → resposta validada → renderização nativa
+```
+
+`ConsultationCoordinator`: navegação e estado local, escolhas, vínculo de turnos/testes, descarte de respostas antigas e persistência. Pacote novo ou seção isolada do atual conforme evitar ciclos.
+
+`ContextAssembler`: na composição, usa protocolos dos repositórios e minimiza snapshot. Módulos puros não importam SwiftUI, StoreKit ou implementações HTTP.
+
+Orquestrador remoto controla turno, escopo e orçamento; executa somente ferramentas permitidas do servidor e emite propostas tipadas de ação local. Texto do modelo nunca é comando. `ModelAdapter` normaliza saída/erros; modelo/cliente não escolhem endpoint, credencial, política, TTL, preço ou outro modelo arbitrariamente.
+
+`KnowledgeRetriever` seleciona conhecimento curado e documentação. Validadores conferem estrutura, referências, valores, ações e restrições; declaração do próprio modelo não serve como prova específica.
+
+O transporte de entendimento de medição permanece independente. Reuso físico do relay depende de auditoria; não alterar silenciosamente `/v2/assist`. Nenhuma dependência da consultoria entra no `LinkaEngine`. Privacidade do lookup da V1 e limites do Netscope permanecem próprios; novo contexto só segue ao transporte de consultoria com autorização específica.
+
+<a id="assist-v4-contexto"></a>
+### V4-T3 Identidades, contexto e evidências
+
+Separar `localSessionID`, `transportSessionID`, `turnID`, `requestID` idempotente e `revision`. Não reutilizar UUIDs de medições/equipamentos/residência como identificadores públicos permanentes. Mapear para referências por sessão (`device-1`, `measurement-2`, `room-1`); nomes amigáveis podem ficar no app. Servidor não resolve referências em outra instalação.
+
+| Campo de ContextSnapshot | Conteúdo/regra |
+|---|---|
+| `schemaVersion`, `snapshotID`, `revision` | Contrato e revisão de contexto. |
+| `purpose`, `intent` | Finalidade/intenção; `open_question` válida. |
+| `selectedProfileRef` | Perfil selecionado ou nulo se sem associação confiável. |
+| `entities` | Subconjunto de aparelhos, plano, Ambientes e conexões relevantes. |
+| `facts` | Valores tipados, unidade, origem e escopo. |
+| `measurements` | Apenas leituras elegíveis; vazio válido. |
+| `sources` | Fichas/documentos, revisão e data. |
+| `capabilities` | Ferramentas realmente disponíveis nesta plataforma/sessão. |
+| `consentReceiptRef` | Referência ao consentimento, não booleano da IA. |
+| `createdAt` | Composição distinta da data de cada fato. |
+
+Não apenas desbloquear `makeContext`. Projetar contexto explícito. Sequência de chamadas async não é atomicidade: conferir revisões antes/depois ou criar snapshot atômico no coordenador existente.
+
+`EvidenceFact`: `id`, `subjectRef`, `property`, `value`, `unit`, `sourceType`, `sourceRefs`, `observedAt`, `validFrom`, `validUntil`, `scope`, `qualityStatus`, `derivedFrom`. Validade desconhecida pode ser nula, não infinita. `sourceType`: user_declared / system_observed / manufacturer_documented / curated_knowledge / derived. Hipótese é objeto separado. Ausência não vira zero/false/lista vazia como negativa comprovada.
+
+`qualityStatus`: usable / partial / stale / conflicted / unavailable. Fonte oficial pode ser antiga ou de outra variante; confirmar UI não transforma dado sem fonte em documentação. Atestação/integridade do app não comprova a veracidade física ou método de cada medição; manter limite do envelope/metodologia.
+
+**Elegibilidade:** conferir perfil/interface, associação explícita a ambiente, caminho, método, completude, idade e mudanças de plano/topologia. Reutilizar `ResidentialPlanEligibility`/vigência para plano, sem contornar B1. Wi-Fi e celular não isolam roteador; só comparação qualificada de experiências distintas. Para problema atual, usar investigação em andamento ou confirmar contexto; TTL isolado não transforma histórico em telemetria. Para recorrência, usar avaliadores/janelas existentes, sem thresholds paralelos. Excluir consentimento revogado, registros apagados e relações presumidas entre SSID/aparelho/cômodo/teste.
+
+<a id="assist-v4-contratos"></a>
+### V4-T4 Contratos de turno e resposta
+
+Contrato novo proposto: **`assist.consultation/1.0`**, independente da fase de produto e do diagnóstico legado. Objetos de intercâmbio fechados (`additionalProperties: false`), limites e validação nos dois lados; negociar mudanças incompatíveis.
+
+Request obrigatório: `schemaVersion`, `requestID`, `transportSessionID`, `turnID`, `expectedRevision`, `locale`, `input`, `contextSnapshot`, `consentReceiptRef`.
+
+`input` é união discriminada: `user_message { text }`; `answer { questionID, optionID?, text? }`; `tool_result { proposalID, result }`; `action_feedback { actionID, status }`. “Não sei” é opção explícita. Rejeitar vazio, opção alheia à pergunta ativa e revisão incorreta. Enviar janela limitada de turnos/resumo referenciado, não transcript irrestrito. Resumo não fornece consentimento, autorização de execução ou nova evidência.
+
+Exemplo sintético de resposta, não JSON Schema executável:
+
+```json
+{
+  "schemaVersion": "assist.consultation/1.0",
+  "requestID": "request-example",
+  "turnID": "turn-example",
+  "revision": 2,
+  "intent": "open_question",
+  "disposition": "awaiting_answer",
+  "claims": [],
+  "limitations": ["A revisão do equipamento não foi confirmada."],
+  "next": {
+    "kind": "question",
+    "question": {
+      "id": "q-hardware",
+      "text": "Qual é a versão indicada na etiqueta?",
+      "options": [{"id": "unknown", "label": "Não sei"}],
+      "allowFreeText": true
+    }
+  },
+  "assessment": null
+}
+```
+
+`disposition`: awaiting_answer / awaiting_approval / answered / inconclusive / out_of_scope / unavailable. Erro de transporte é distinto. `next`: question / tool_proposal / action_proposal / none; uma pergunta e uma ação principal por etapa. `assessment`: conclusão de domínio, resumo, achados, hipóteses, lacunas, alternativas e referências; não usar “adequado” universal.
+
+`Claim { id, kind, text, evidenceRefs, appliesToRefs }` distingue observação, declaração, capacidade, conhecimento geral e hipótese. Modelo referencia IDs do sistema, não inventa URLs. App formata números de evidência. Capacidade exige variante/fonte; recomendações preservam condições; conhecimento geral usa base curada pertinente, sem fabricar citação se insuficiente.
+
+Conclusões sugeridas: lentidão → next_test / safe_action / escalation / insufficient; roteador → keep / adjust / upgrade_candidate / insufficient; mesh → not_justified / reposition_candidate / wired_ap_candidate / mesh_candidate / insufficient; plano → usage_fit / review_cost / capacity_candidate / commercial_data_missing / insufficient.
+
+JSON válido não garante verdade. Causa raiz, disponibilidade comercial e compatibilidade exata exigem controles/evidência específicos ou permanecem condicionais. O servidor valida propostas e referências antes de apresentar.
+
+<a id="assist-v4-sessoes"></a>
+### V4-T5 Máquina de estados e concorrência
+
+Separar estado da consulta, turno remoto e ação. Resposta concluída não implica orientação executada.
+
+| Estado | Evento autorizado | Destino |
+|---|---|---|
+| draft | Usuário inicia | context_ready |
+| context_ready | Envio requer autorização | awaiting_consent |
+| context_ready / awaiting_consent | Consentimento/acesso válidos + enviar | processing_turn |
+| processing_turn | Pergunta validada | awaiting_answer |
+| awaiting_answer | Responder/pular/Não sei | context_ready, validar pergunta/revisão |
+| processing_turn | Proposta de teste válida | awaiting_test_approval |
+| awaiting_test_approval | Aceite + contexto válido | measuring |
+| awaiting_test_approval | Recusa/expiração | context_ready ou orientação local limitada |
+| measuring | Resultado recebido/validado | processing_turn ou result_ready local |
+| processing_turn | Resposta final/inconclusiva | result_ready |
+| result_ready | Aceitar orientação | action_pending |
+| action_pending | Pedir reteste | awaiting_test_approval |
+| action_pending | Concluir/ignorar/impossível | context_ready; resultado local se não houver envio |
+| result_ready | Nova pergunta na consulta | context_ready com histórico |
+| paused / recoverable_error | Retomar/retry | Último estado estável; revalidar |
+| completed | Continuar consulta | context_ready em nova revisão |
+| Estável | Fechar | paused ou completed |
+| Com atividade | Cancelar | cancelling, depois estável |
+| Qualquer | Falha recuperável | recoverable_error com retorno definido |
+
+Só gesto de envio ou continuidade explicitamente autorizada inicia novo turno nos caminhos context_ready. Retomar tela, notificação interna ou snapshot recomposto não autorizam I/O por si só. “Não sei”, recusa e pular são eventos normais, não laços infinitos. Restaurar app não reexecuta medição.
+
+Uma chamada remota ativa por sessão; uma medição ativa no app. Respostas precisam coincidir com sessão, request e revisão. Descartar tardias após edição, revogação ou cancelamento; replay não repete ação. Mudança de rede invalida aprovação de teste anterior; usuário confirma novo cenário. Não reutilizar contexto de outro perfil.
+
+<a id="assist-v4-ferramentas"></a>
+### V4-T6 Ferramentas e handoff
+
+Catálogo estreito, com entradas, saídas, limitações, custo e erros. Não expor HTTP/SQL/shell/filesystem genéricos, abertura arbitrária de URL ou credenciais ao modelo. O catálogo é parte da avaliação técnica. [V4-T6]
+
+| Ferramenta proposta | Executor | Entrada/saída | Autorização |
+|---|---|---|---|
+| read_network_context | App | Intenção/seleção → snapshot mínimo | Escopo local; envio separado. |
+| select_measurement_evidence | App | Objetivo → leituras elegíveis/lacunas | Escopo escolhido; não todo histórico. |
+| evaluate_opportunities | App | Medição → achados/regra | Reutilizar motor determinístico. |
+| lookup_device_specs | Servidor | Marca/modelo/revisão/região → ficha/fontes | Pesquisa técnica no escopo. |
+| retrieve_network_guidance | Servidor | Tópico/restrições → trechos | Busca pública sem contexto pessoal. |
+| propose_network_test | Servidor → app | Tipo/objetivo → proposta | Não executa; pessoa aprova. |
+| run_existing_test | App | Proposta + aprovação → resultado | Gesto e revalidação de interface. |
+| compare_measurements | App | IDs/variável → comparação qualificada | Regras testadas. |
+| save_consultation | App | Resultado → confirmação local | Comando da pessoa, não escrita da IA. |
+| compare_offers | Servidor, futura | Critérios → ofertas com condições | Desligada até decisão/auditoria. |
+
+`ToolProposal`: ID do servidor, ferramenta enumerada, argumentos tipados, objetivo, referências, risco e expiração. Catálogo controla necessidade de aprovação, não modelo. Vincular autorização à proposta/sessão/argumentos normalizados/revisão; aprovação expirada, repetida ou incompatível não inicia nada.
+
+Teste retorna completed / partial / cancelled / denied / unavailable / failed e razão. Parcial não inventa métricas. Tempo da pessoa e da medição não mantém HTTP remoto aberto.
+
+`OpportunityHandoff`: ID, kind, ruleVersion, baselineMeasurementID, evidenceMeasurementIDs, suggestedAction e createdAt conforme #321. Resolver IDs localmente e mapear referências remotas por sessão. Revalidar idade, qualidade, existência e contexto; evitar sessão duplicada por tap. SuggestedAction é candidata, não autorização ou causa. `confidence` numérica do motor não vira probabilidade de causa raiz. Reusar ações/reteste #317; com V4 desligada preservar caminho legado honesto.
+
+### V4-T7 Conhecimento especializado
+
+Pacote versionado proposto `network-specialist@1`: domínio, fronteiras, evidência, procedimentos e parada. Módulos para lentidão, equipamentos, mesh/cobertura, plano e pergunta aberta são conhecimento de um agente, não agentes concorrentes.
+
+Conteúdo mínimo: LAN/WAN, bandas e capacidades, portas/enlaces, DNS, latência/jitter/perda conforme método, responsividade, AP/roteador/bridge, terminação óptica, mesh/backhaul, adequação de uso e ações seguras.
+
+Referência recuperada: sourceID, URL canônica, título, organização, modelo/revisão/região, data, versão/hash, trechos necessários e limites de uso. Cache público separado de contexto pessoal. Priorizar ficha validada/base curada; pesquisar apenas quando necessário, em fabricante/fontes primárias. Não mesclar variantes/conflitos nem espelhar manuais indiscriminadamente. Índice por marca/modelo/tópico e busca textual podem bastar; vetor é opcional.
+
+Instrução-base proposta:
+
+```text
+Você é o Assist, consultor de redes domésticas do Linka.
+Responda à pergunta real e use apenas o contexto autorizado.
+Diferencie o que foi medido, declarado, documentado e suposto.
+Explique conceitos sem exigir testes desnecessários.
+Para instrução específica, confirme variante e referência aplicável.
+Faça uma pergunta útil por vez se faltar informação relevante.
+Prefira ação simples/reversível a compra desnecessária.
+Proponha somente ferramentas do catálogo; não execute comandos.
+Não invente valores, fontes, disponibilidade ou causa raiz.
+Se faltar base ou ferramenta falhar, exponha o limite.
+Retorne contrato tipado, não raciocínio interno.
+```
+
+Instrução complementa controles externos. Avaliação precisa demonstrar benefício do pacote, não presumir competência pelo nome do prompt.
+
+<a id="assist-v4-api"></a>
+### V4-T8 Backend, autenticação e protocolo
+
+Workers é opção compatível com a infraestrutura mencionada; reuso depende de auditoria de contrato, auth, isolamento e orçamento. Não exigir Agents SDK/Vercel/migração por causa desta proposta. Lookup V1 e diagnóstico continuam separados.
+
+**Rotas propostas, não operacionais:**
+
+| Rota | Finalidade | Regra |
+|---|---|---|
+| POST /v1/assist/consultations | Abrir sessão remota temporária | Após consentimento; ID opaco/revisão. |
+| POST /v1/assist/consultations/{id}/turns | Mensagem/resposta/resultado | Idempotency key + revisão esperada. |
+| GET /v1/assist/consultations/{id}/turns/{turnID} | Recuperar tentativa | Proprietário autenticado; retenção curta. |
+| POST /v1/assist/consultations/{id}/cancel | Cancelar ativa | Best effort, sem prometer evitar custo ocorrido. |
+| DELETE /v1/assist/consultations/{id} | Apagar temporário | Idempotente; limites do processador à parte. |
+
+Não misturar com `/v2/assist`. Configuração/capabilities pode divulgar modelos/processadores aprovados para transparência, sem permitir substituição pelo cliente.
+
+Secrets de provedor só no servidor. Identidade de instalação/sessão com escopo limitado e auth inspecionada; nunca chave estática compartilhada no binário. Validar propriedade, token, expiração, replay e entitlement no servidor. Flag/booleano de consentimento não autenticam. Atestação pode complementar, não substituir autorização por recurso/entitlement nem provar medição. Ambiente de desenvolvimento isolado, sem bypass em produção; Mac requer auth aprovada própria.
+
+**Idempotência:** reservar `(identidade, sessão, requestID, hashDoPayload)` antes do provedor em transação/coordenador por sessão. Mesma chave+payload recuperam tentativa; payload diferente conflita. Cache simples não garante exclusão mútua. Não prometer execução física exatamente uma vez no provedor. Timeout com resultado desconhecido exige recuperar tentativa ou nova ação explícita, não duplicar geração silenciosamente.
+
+Erros: unauthorized / not_entitled / consent_required / revision_conflict / unsupported_schema / invalid_input / tool_unavailable / provider_unavailable / budget_exhausted / cancelled / result_expired. Inconclusive é resultado válido, não HTTP500. Erro do backend não diagnostica rede doméstica.
+
+**Incremental:** MVP pode retornar JSON final e progresso real. Se stream, eventos accepted / context_checked / retrieving_sources / generating / validating / completed. Não dizer pesquisando sem pesquisa; não expor texto técnico não validado como conclusão nem raciocínio interno. Interrupção preserva último resultado válido; recuperar tentativa sem duplicar geração. Funciona também com provedor sem stream.
+
+<a id="assist-v4-seguranca"></a>
+### V4-T9 Segurança e dados
+
+Páginas/ferramentas/saída são não confiáveis. Separar instruções e dados, schema fechado, ferramentas permitidas, referências/escopo conferidos. RAG/prompt/fine-tuning não eliminam prompt injection. [V4-T7]
+
+Se houver fetch próprio de documentos, só HTTPS de origens públicas aprovadas, resolução e redirects validados, bloqueio de loopback/privados/link-local/metadados/IPv6 equivalentes, limites de MIME/tamanho/tempo; nunca painel de roteador como manual, execução de script/HTML ou destino livre determinado pela IA. Reusar lookup sem alterar suas fronteiras.
+
+Renderizar blocos tipados e links selecionados no backend, sem HTML/imagem remota arbitrários ou markdown de exfiltração. Abrir link externo requer gesto. Resultado de pesquisa nunca vira comando DNS/roteador.
+
+Recibo de consentimento versionado: finalidade, processadores, categorias, perfil, data e estado. App registra e backend confere escopo quando aplicável. Pergunta genérica remota continua exigindo autorização do texto mesmo sem contexto da rede. Permissão do sistema, IA e teste são independentes. Revogação invalida novos envios e respostas tardias, tenta cancelar atividade sem prometer apagar processamento já feito. [V4-T8]
+
+Não enviar por padrão nomes de cômodos, SSID, IP local, serial, credencial, endereço. Mensalidade somente quando necessária à intenção plano e autorizada. Redação automática não detecta tudo; não prometer anonimização universal.
+
+Desabilitar captura de prompt/resposta em gateway, SDK e observabilidade e conferir defaults. Gateway não implica zero armazenamento. Auditoria de retenção de infraestrutura e processadores é gate próprio. [V4-T9]
+
+<a id="assist-v4-persistencia"></a>
+### V4-T10 Persistência, memória e exclusão
+
+Repositório local de consultas separado do histórico de medições, schema/migração, gravação atômica e preservação de bytes em erro. Proteção de arquivo adequada à plataforma; credenciais fora do transcript.
+
+Salvar referências e projeção mínima necessária para explicar orientação, conforme consentimento/política. Excluir medição remove valores da projeção e invalida conclusão dependente; resumo não ressuscita dado. Excluir consulta não apaga teste original. Alterar Minha Rede requer confirmação própria, não atualização pelo resumo da IA.
+
+Desenho remoto proposto: transcript completo fica local; resultado terminal recuperável por até 10 minutos e metadados mínimos de sessão/idempotência até24h. Acesso por proprietário, proteção em repouso, expiração e limpeza testadas. Isso é armazenamento de conteúdo; nunca declarar zero retenção. Fornecedor tem política distinta a informar.
+
+Sessão remota expirada: criar outro transportSessionID ao retomar por ação da pessoa, recompor contexto autorizado, sem reaplicar aprovação antiga de teste. Resposta irrecuperável exige geração explícita; rascunho/ações locais permanecem.
+
+Resumo versionado só contém fatos referenciados, respostas, hipóteses descartadas e tentativas. Sem treinamento contínuo ou memória compartilhada entre usuários com produção.
+
+Parâmetros de retenção **propostos**, a aprovar: rascunho local7dias; salvo até exclusão; conteúdo remoto10min; recibos operacionais24h; telemetria agregada sem conteúdo30dias. Não são configuração comprovada; logs/fornecedor auditados à parte.
+
+### V4-T11 Limites técnicos, custo e recuperação
+
+Valores iniciais da documentação, sujeitos à prova técnica; não são quotas comerciais ou capacidades garantidas:
+
+| Parâmetro | Proposta |
+|---|---|
+| Mensagem | Até2.000 pontos de código Unicode, normalização definida. |
+| Payload entrada/saída | 256KiB /64KiB, validação prévia. |
+| Evidência histórica | Até8 medições elegíveis, sem envio obrigatório de todas. |
+| Pesquisa/turno | Até1 consulta pública e3 documentos pertinentes. |
+| Chamadas de modelo/turno | Até4, incluindo reparo de schema/retries. |
+| Ferramentas remotas/turno | Até3; local requer autorização separada. |
+| Deadline remoto | 45s servidor/55s cliente novo, configurável e independente do legado. |
+| Retry automático IA | Até1 em falha transitória seguramente repetível e dentro do orçamento. |
+| Parada | Inconclusivo/orientação limitada quando não houver passo útil. |
+
+Duração do teste e tempo da pessoa não entram no deadline remoto. Lookup de fichas existente tem outros prazos: não encaixar sua operação longa silenciosamente no turno; adaptar como tarefa própria ou retornar estado recuperável e exigir contrato validado.
+
+Custo inclui tokens, pesquisa, infraestrutura e retries, por turno/consulta/tarefa concluída. Estimativa mensal: consultas × custo médio + fixos, com preços reais do fornecedor escolhido. Worker não implica gratuidade; assinatura anual não comprova viabilidade.
+
+Orçamento de consultoria requer decisão explícita dentro do escopo; preservar autorizações anteriores sem ampliá-las por inferência. Reservar custo antes de dispatch e reconciliar depois; timeout pode ter custo e mantém reserva conservadora enquanto incerto. Teto aprovado atingido bloqueia novas gerações e mantém local. Proteção técnica contra abuso não é franquia de produto.
+
+Fallback de fornecedor somente aprovado, avaliado e coberto por consentimento; senão indisponibilidade honesta e referências locais. Configurar retries de gateway/cliente para não multiplicar chamadas. [V4-T10]
+
+### V4-T12 Regras de domínio e gates
+
+Reutilizar avaliadores e oportunidades; novas regras têm ID, versão, entradas/saídas e testes de fronteira. Não duplicar thresholds no prompt/UI. Ausência de teste não impede conceito geral; jitter/perda têm método; PHY não é throughput; porta nominal não prova negociação; fibra/SFP não comprova terminação GPON; Wi-Fi antigo não implica troca; catálogo não informa instalação; antes/depois não prova causalidade.
+
+Reinício manual precisa de motivo e aviso, nunca reflexo universal de queda de desempenho. Não orientar desativar segurança, acesso de terceiros, reset de fábrica ou manipulação de fibra como passo genérico. Consultoria não se implementa ligando `mayInferRootCause` ou ignorando `mustGroundInProvidedData`.
+
+Fechamento: contratos/fixtures #311, orquestrador #320, UI #312, jornadas #313–#316/#319, acompanhamento #317, Oportunidades #321 e QA #318. Procedimentos, rubricas, prova técnica e rollback estão em [Operação](OPERACAO.md#assist-contextual-v4), sem declarar execução por este documento. Auth, provedor, orçamento, retenção, consentimento e disponibilidade Mac permanecem gates humanos; #310 não é fechada por documentação.
+
+### V4-T13 Referências da documentação de origem
+
+Base das fontes de código: commit `8268dac778bbdd8b2ed9eab7ec5a463597cf0f7a`; não equivale à build distribuída. Fontes externas registradas em09/10/2026 devem ser conferidas antes da implementação dependente.
+
+- V4-T1: [NetworkAssist.swift](https://github.com/gmmattey/linka/blob/8268dac778bbdd8b2ed9eab7ec5a463597cf0f7a/aplicativo-ios/NetworkAssist/Sources/NetworkAssist.swift).
+- V4-T2: [AssistViewModel.swift](https://github.com/gmmattey/linka/blob/8268dac778bbdd8b2ed9eab7ec5a463597cf0f7a/aplicativo-ios/LinkaApp/Sources/Adapters/AssistViewModel.swift).
+- V4-T3: [AssistContainer.swift](https://github.com/gmmattey/linka/blob/8268dac778bbdd8b2ed9eab7ec5a463597cf0f7a/aplicativo-ios/LinkaApp/Sources/Adapters/AssistContainer.swift).
+- V4-T4: [HouseholdRepository.swift](https://github.com/gmmattey/linka/blob/8268dac778bbdd8b2ed9eab7ec5a463597cf0f7a/aplicativo-ios/NetworkInventory/Sources/HouseholdRepository.swift).
+- V4-T5: [Anthropic — Building effective agents](https://www.anthropic.com/engineering/building-effective-agents).
+- V4-T6: [Anthropic — Writing effective tools for agents](https://www.anthropic.com/engineering/writing-tools-for-agents).
+- V4-T7: [OWASP — Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/).
+- V4-T8: [Apple — App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) e [App Privacy](https://developer.apple.com/app-store/app-privacy-details/).
+- V4-T9: [Cloudflare — AI Gateway logging](https://developers.cloudflare.com/ai-gateway/observability/logging/).
+- V4-T10: [Cloudflare — Request handling](https://developers.cloudflare.com/ai-gateway/configuration/request-handling/).
+
+As referências não certificam configuração nem homologação do backend do Linka. Nenhuma API, ferramenta, quota, política ou estado futuro é ativado por esta alteração documental.
