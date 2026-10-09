@@ -10,29 +10,17 @@ import AVFoundation
 struct MyNetworkView: View {
     @StateObject private var store = LinkaInventoryStore()
     @State private var editing: RegisteredNetworkDevice?
+    @State private var editingPlan = false
+
     var body: some View {
         List {
-            if store.devices.isEmpty {
-                Section {
-                    Text(LinkaCopy.value("inventory.empty"))
-                    Button(LinkaCopy.value("inventory.add")) { add() }
-                        .accessibilityIdentifier("inventory.add")
-                }
-            } else {
-                ForEach(store.devices) { device in
-                    NavigationLink {
-                        DeviceDetailView(deviceID: device.id, store: store)
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(device.inventoryTitle).font(.headline)
-                            Text(LinkaCopy.value("inventory.kind.\(device.kind.rawValue)"))
-                                .font(.subheadline).foregroundStyle(.secondary)
-                        }
-                    }
-                    .accessibilityIdentifier("inventory.device.\(device.id.uuidString)")
-                }
+            planSection
+
+            devicesSection
+
+            Section {
+                Text(LinkaCopy.value("inventory.local")).font(.footnote).foregroundStyle(.secondary)
             }
-            Section { Text(LinkaCopy.value("inventory.local")).font(.footnote).foregroundStyle(.secondary) }
             if let error = store.error {
                 Section {
                     Text(error).foregroundStyle(.red)
@@ -57,9 +45,123 @@ struct MyNetworkView: View {
                 .frame(minWidth: 580, idealWidth: 640, minHeight: 520, idealHeight: 650)
                 #endif
         }
-
+        .sheet(isPresented: $editingPlan) {
+            ServicePlanEditorView(plan: store.activePlan, store: store)
+                #if os(macOS)
+                .frame(minWidth: 520, idealWidth: 600, minHeight: 500)
+                #endif
+        }
     }
-    private func add() { editing = RegisteredNetworkDevice(kind: .other, identity: .init(model: "")) }
+
+    private var planSection: some View {
+        Section(LinkaCopy.value("inventory.plan.section")) {
+            if let plan = store.activePlan {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(plan.ispName)
+                                .font(.headline)
+                            if let name = plan.planName {
+                                Text(name)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer()
+                        Button(LinkaCopy.value("inventory.edit")) {
+                            editingPlan = true
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .accessibilityIdentifier("inventory.plan.editButton")
+                    }
+
+                    HStack(spacing: 16) {
+                        if let dl = plan.nominalDownloadMbps {
+                            Label(String(format: LinkaCopy.value("inventory.plan.downloadDisplay"), "\(formatSpeed(dl)) Mbps"), systemImage: "arrow.down.circle")
+                                .font(.caption.weight(.medium))
+                        }
+                        if let ul = plan.nominalUploadMbps {
+                            Label(String(format: LinkaCopy.value("inventory.plan.uploadDisplay"), "\(formatSpeed(ul)) Mbps"), systemImage: "arrow.up.circle")
+                                .font(.caption.weight(.medium))
+                        }
+                    }
+                    .foregroundStyle(.secondary)
+
+                    HStack {
+                        Text(LinkaCopy.value("inventory.technology.\(plan.technology.rawValue)"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        if let cents = plan.monthlyCostCents {
+                            Spacer()
+                            Text(formatCost(cents))
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    editingPlan = true
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(LinkaCopy.value("inventory.plan.card.empty"))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Button(LinkaCopy.value("inventory.plan.add")) {
+                        editingPlan = true
+                    }
+                    .accessibilityIdentifier("inventory.plan.add")
+                }
+                .padding(.vertical, 4)
+            }
+        }
+    }
+
+    private var devicesSection: some View {
+        Group {
+            if store.devices.isEmpty {
+                Section {
+                    Text(LinkaCopy.value("inventory.empty"))
+                    Button(LinkaCopy.value("inventory.add")) { add() }
+                        .accessibilityIdentifier("inventory.add")
+                }
+            } else {
+                Section(LinkaCopy.value("inventory.identity")) {
+                    ForEach(store.devices) { device in
+                        NavigationLink {
+                            DeviceDetailView(deviceID: device.id, store: store)
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(device.inventoryTitle).font(.headline)
+                                Text(LinkaCopy.value("inventory.kind.\(device.kind.rawValue)"))
+                                    .font(.subheadline).foregroundStyle(.secondary)
+                            }
+                        }
+                        .accessibilityIdentifier("inventory.device.\(device.id.uuidString)")
+                    }
+                }
+            }
+        }
+    }
+
+    private func add() {
+        editing = RegisteredNetworkDevice(kind: .other, identity: .init(model: ""))
+    }
+
+    private func formatSpeed(_ speed: Double) -> String {
+        if speed.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(format: "%.0f", speed)
+        }
+        return String(format: "%.1f", speed)
+    }
+
+    private func formatCost(_ cents: Int) -> String {
+        let value = Double(cents) / 100.0
+        return String(format: LinkaCopy.value("inventory.plan.monthCostDisplay"), String(format: "%.2f", value))
+    }
 }
 
 private struct DeviceDetailView: View {
@@ -68,6 +170,10 @@ private struct DeviceDetailView: View {
     @State private var editing: RegisteredNetworkDevice?
     @State private var deleting: RegisteredNetworkDevice?
     @State private var completing: RegisteredNetworkDevice?
+    @State private var editingConnection: DeviceConnection?
+    @State private var connectingWithDevice: RegisteredNetworkDevice?
+    @State private var dismissedConnectionPrompt = false
+
     var body: some View {
         Group {
             if let device = store.devices.first(where: { $0.id == deviceID }) {
@@ -106,6 +212,7 @@ private struct DeviceDetailView: View {
                                 }.padding(.top, 12).frame(maxWidth: .infinity, alignment: .leading)
                             }
                         }
+                        connectionsSection(device)
                         if let snapshot = device.specifications {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text(LinkaCopy.value("inventory.specs.title")).font(.headline)
@@ -145,6 +252,22 @@ private struct DeviceDetailView: View {
                 .frame(minWidth: 520, idealWidth: 600, minHeight: 500)
                 #endif
         }
+        .sheet(item: $editingConnection) { conn in
+            DeviceConnectionEditorView(connection: conn, store: store)
+                #if os(macOS)
+                .frame(minWidth: 520, idealWidth: 600, minHeight: 480)
+                #endif
+        }
+        .sheet(item: $connectingWithDevice) { target in
+            DeviceConnectionEditorView(
+                connection: nil,
+                preselectedDeviceA: target.id,
+                store: store
+            )
+            #if os(macOS)
+            .frame(minWidth: 520, idealWidth: 600, minHeight: 480)
+            #endif
+        }
         .alert(LinkaCopy.value("inventory.delete.title"), isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
             Button(LinkaCopy.value("inventory.delete"), role: .destructive) {
                 if let device = deleting { Task { await store.delete(device) } }; deleting = nil
@@ -152,6 +275,140 @@ private struct DeviceDetailView: View {
             Button(LinkaCopy.value("common.cancel"), role: .cancel) { deleting = nil }
         } message: { Text(LinkaCopy.value("inventory.delete.message")) }
     }
+
+    private func connectionsSection(_ device: RegisteredNetworkDevice) -> some View {
+        let linkedConnections = store.connections(for: device.id)
+        return VStack(alignment: .leading, spacing: 12) {
+            Text(LinkaCopy.value("inventory.connection.section.title"))
+                .font(.headline)
+
+            if linkedConnections.isEmpty && store.devices.count >= 2 && !dismissedConnectionPrompt {
+                connectionPromptCard(for: device)
+            } else if linkedConnections.isEmpty {
+                Text(LinkaCopy.value("inventory.connection.empty"))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(linkedConnections) { conn in
+                    connectionCard(conn, currentDevice: device)
+                }
+            }
+
+            if store.devices.count >= 2 && (!linkedConnections.isEmpty || dismissedConnectionPrompt) {
+                Button {
+                    connectingWithDevice = device
+                } label: {
+                    Label(LinkaCopy.value("inventory.connection.add"), systemImage: "plus")
+                }
+                .buttonStyle(.bordered)
+                .frame(minHeight: 44)
+                .accessibilityIdentifier("inventory.connection.addButton")
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg))
+    }
+
+    private func connectionPromptCard(for device: RegisteredNetworkDevice) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "point.3.connected.trianglepath.dotted")
+                    .font(.title3)
+                    .foregroundStyle(.tint)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(LinkaCopy.value("inventory.connection.prompt.title"))
+                        .font(.headline)
+                    Text(LinkaCopy.value("inventory.connection.prompt.message"))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            HStack(spacing: 8) {
+                Button(LinkaCopy.value("inventory.connection.prompt.connect")) {
+                    connectingWithDevice = device
+                }
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("inventory.connection.prompt.connectButton")
+
+                Button(LinkaCopy.value("inventory.connection.prompt.notNow")) {
+                    dismissedConnectionPrompt = true
+                }
+                .buttonStyle(.bordered)
+
+                Button(LinkaCopy.value("inventory.connection.prompt.dontKnow")) {
+                    dismissedConnectionPrompt = true
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .font(.footnote)
+            }
+            .padding(.top, 4)
+        }
+    }
+
+    private func connectionCard(_ conn: DeviceConnection, currentDevice: RegisteredNetworkDevice) -> some View {
+        let otherID = (conn.endpointADeviceID == currentDevice.id) ? conn.endpointBDeviceID : conn.endpointADeviceID
+        let otherDevice = store.devices.first(where: { $0.id == otherID })
+        let otherTitle = otherDevice?.inventoryTitle ?? LinkaCopy.value("inventory.unknown")
+
+        return HStack(alignment: .center, spacing: 12) {
+            Image(systemName: mediumIcon(conn.medium))
+                .font(.title3)
+                .foregroundStyle(.tint)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(otherTitle)
+                    .font(.subheadline.weight(.semibold))
+                HStack(spacing: 6) {
+                    Text(LinkaCopy.value("inventory.medium.\(conn.medium.rawValue)"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text("·")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(directionLabel(conn, currentID: currentDevice.id, otherTitle: otherTitle))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer()
+
+            Button(LinkaCopy.value("inventory.edit")) {
+                editingConnection = conn
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .accessibilityIdentifier("inventory.connection.edit.\(conn.id.uuidString)")
+        }
+        .padding(10)
+        .background(Color.surfacePage, in: RoundedRectangle(cornerRadius: LinkaRadius.md))
+    }
+
+    private func mediumIcon(_ medium: LinkMedium) -> String {
+        switch medium {
+        case .ethernet: return "cable.connector"
+        case .wifi: return "wifi"
+        case .fiber: return "point.3.connected.trianglepath.dotted"
+        case .other: return "ellipsis.circle"
+        case .unknown: return "questionmark.circle"
+        }
+    }
+
+    private func directionLabel(_ conn: DeviceConnection, currentID: UUID, otherTitle: String) -> String {
+        guard let sourceID = conn.sourceDeviceID else {
+            return LinkaCopy.value("inventory.connection.direction.unspecified")
+        }
+        if sourceID == currentID {
+            return String(format: LinkaCopy.value("inventory.connection.direction.sendsTo"), otherTitle)
+        } else {
+            return String(format: LinkaCopy.value("inventory.connection.direction.receivesFrom"), otherTitle)
+        }
+    }
+
     private func location(_ device: RegisteredNetworkDevice) -> String? {
         store.environments.first(where: { $0.id == device.installation.environmentID })?.name ?? device.installation.locationLabel
     }
@@ -167,6 +424,7 @@ private struct DeviceDetailView: View {
         }
     }
 }
+
 
 struct DeviceSpecificationSections: View {
     let snapshot: DeviceSpecificationSnapshot
@@ -542,13 +800,6 @@ private struct DeviceInstallationEditor: View {
     }
     private func optional(_ value: Binding<String?>) -> Binding<String> {
         Binding(get: { value.wrappedValue ?? "" }, set: { value.wrappedValue = $0.isEmpty ? nil : $0 })
-    }
-}
-
-private extension RegisteredNetworkDevice {
-    var inventoryTitle: String {
-        if let nickname, !nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return nickname }
-        return [identity.brand, identity.model].filter { !$0.isEmpty }.joined(separator: " ")
     }
 }
 

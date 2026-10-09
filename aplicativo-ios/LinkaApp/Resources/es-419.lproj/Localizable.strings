@@ -930,3 +930,87 @@
 "inventory.kind.fiberEquipment" = "Equipo de fibra";
 
 "inventory.summary.cablePorts" = "Conexiones por cable";
+
+/* Minha Rede V2 - Plan de Internet */
+"inventory.plan.title" = "Plan de Internet";
+"inventory.plan.section" = "Plan contratado";
+"inventory.plan.add" = "Agregar plan de internet";
+"inventory.plan.edit" = "Editar plan de internet";
+"inventory.plan.card.empty" = "Ingresa las velocidades contratadas con tu proveedor para comparar con tus pruebas.";
+"inventory.plan.notice" = "Internet fijo de tu hogar (fibra, cable, línea telefónica, radio, satélite o módem 4G/5G fijo residencial). No ingreses planes de telefonía móvil.";
+"inventory.plan.isp" = "Proveedor o compañía";
+"inventory.plan.isp.placeholder" = "Ej.: Claro Fibra, Telefónica, Proveedor local";
+"inventory.plan.name" = "Nombre del plan (opcional)";
+"inventory.plan.name.placeholder" = "Ej.: Fibra 500 Megas";
+"inventory.plan.technology" = "Tecnología de acceso";
+"inventory.plan.speeds" = "Velocidades contratadas";
+"inventory.plan.download" = "Velocidad de descarga (Mbps)";
+"inventory.plan.download.placeholder" = "Ej.: 500";
+"inventory.plan.upload" = "Velocidad de subida (Mbps)";
+"inventory.plan.upload.placeholder" = "Ej.: 250";
+"inventory.plan.cost" = "Valor mensual (opcional)";
+"inventory.plan.cost.placeholder" = "Ej.: 99.90";
+"inventory.plan.notes" = "Notas (opcional)";
+"inventory.plan.notes.placeholder" = "Ej.: Contrato de 12 meses";
+"inventory.plan.save" = "Guardar plan";
+"inventory.plan.saveCorrections" = "Guardar correcciones";
+"inventory.plan.replace" = "Cambié de plan…";
+"inventory.plan.replace.title" = "¿Registrar cambio de plan?";
+"inventory.plan.replace.message" = "El plan anterior finalizará con la fecha de hoy y este nuevo plan pasará a ser el plan activo de tu hogar.";
+"inventory.plan.replace.confirm" = "Confirmar cambio";
+"inventory.plan.delete" = "Eliminar plan registrado";
+"inventory.plan.delete.title" = "¿Eliminar plan registrado?";
+"inventory.plan.delete.message" = "El plan se desvinculará de tu red. Las mediciones anteriores no se modificarán.";
+"inventory.plan.invalidError" = "Ingresa el nombre del proveedor y velocidades válidas mayores a cero.";
+"inventory.plan.downloadDisplay" = "Descarga: %@";
+"inventory.plan.uploadDisplay" = "Subida: %@";
+"inventory.plan.monthCostDisplay" = "%@/mes";
+
+/* Minha Rede V2 - Tecnologías de Acceso */
+"inventory.technology.fiber" = "Fibra óptica";
+"inventory.technology.cable" = "Cable coaxial";
+"inventory.technology.dsl" = "Línea telefónica (DSL/VDSL)";
+"inventory.technology.fixedWireless" = "Radio / Inalámbrico fijo";
+"inventory.technology.cellularCpe" = "Módem 4G/5G fijo residencial";
+"inventory.technology.satellite" = "Satélite";
+"inventory.technology.other" = "Otra tecnología";
+"inventory.technology.unknown" = "No sé";
+
+/* Minha Rede V2 - Conexiones entre Equipos */
+"inventory.connection.title" = "Conectar Equipos";
+"inventory.connection.add" = "Conectar a otro equipo";
+"inventory.connection.edit" = "Editar conexión";
+"inventory.connection.deviceA" = "Primer equipo";
+"inventory.connection.deviceB" = "Segundo equipo";
+"inventory.connection.medium" = "Tipo de enlace";
+"inventory.connection.direction" = "Origen del internet";
+"inventory.connection.direction.unknown" = "No sé indicar";
+"inventory.connection.direction.fromA" = "El internet proviene de %@";
+"inventory.connection.direction.fromB" = "El internet proviene de %@";
+"inventory.connection.direction.receivesFrom" = "Recibe internet de %@";
+"inventory.connection.direction.sendsTo" = "Envía internet a %@";
+"inventory.connection.direction.unspecified" = "Sentido no indicado";
+"inventory.connection.save" = "Guardar conexión";
+"inventory.connection.delete" = "Eliminar conexión";
+"inventory.connection.delete.title" = "¿Eliminar esta conexión?";
+"inventory.connection.delete.message" = "El enlace entre estos dos equipos será eliminado.";
+"inventory.connection.duplicateError" = "Ya existe un enlace registrado entre estos dos equipos con este medio.";
+"inventory.connection.invalidError" = "Elige dos equipos diferentes para crear la conexión.";
+"inventory.connection.prompt.title" = "Mapear conexión de este equipo";
+"inventory.connection.prompt.message" = "Indica a qué equipo está conectado para trazar el camino de tu red.";
+"inventory.connection.prompt.connect" = "Conectar a otro equipo";
+"inventory.connection.prompt.notNow" = "Ahora no";
+"inventory.connection.prompt.dontKnow" = "No sé responder";
+"inventory.connection.section.title" = "Conexiones de este equipo";
+"inventory.connection.empty" = "No hay conexiones mapeadas para este equipo.";
+"inventory.connection.devicesHeader" = "Equipos conectados";
+
+/* Minha Rede V2 - Medios de Enlace */
+"inventory.medium.ethernet" = "Cable de red (Ethernet)";
+"inventory.medium.wifi" = "Wi-Fi (inalámbrico)";
+"inventory.medium.fiber" = "Cable de fibra óptica";
+"inventory.medium.other" = "Otro tipo de enlace";
+"inventory.medium.unknown" = "No sé";
+
+/* Minha Rede V2 - Perfil y Errores */
+"inventory.profile.invalidError" = "No se pudo guardar el perfil de la red del hogar.";

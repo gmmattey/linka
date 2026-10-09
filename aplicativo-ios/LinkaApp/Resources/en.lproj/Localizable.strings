@@ -930,3 +930,87 @@
 "inventory.kind.fiberEquipment" = "Fiber equipment";
 
 "inventory.summary.cablePorts" = "Wired connections";
+
+/* Minha Rede V2 - Internet Service Plan */
+"inventory.plan.title" = "Internet Plan";
+"inventory.plan.section" = "Subscribed plan";
+"inventory.plan.add" = "Add internet plan";
+"inventory.plan.edit" = "Edit internet plan";
+"inventory.plan.card.empty" = "Enter the speeds contracted from your provider to compare with your tests.";
+"inventory.plan.notice" = "Fixed home internet (fiber, cable, telephone line, fixed wireless, satellite, or fixed 4G/5G residential modem). Do not enter mobile cellular plans.";
+"inventory.plan.isp" = "Provider or carrier";
+"inventory.plan.isp.placeholder" = "e.g. Fiber Provider, Local ISP";
+"inventory.plan.name" = "Plan name (optional)";
+"inventory.plan.name.placeholder" = "e.g. 500 Mbps Fiber";
+"inventory.plan.technology" = "Access technology";
+"inventory.plan.speeds" = "Contracted speeds";
+"inventory.plan.download" = "Download speed (Mbps)";
+"inventory.plan.download.placeholder" = "e.g. 500";
+"inventory.plan.upload" = "Upload speed (Mbps)";
+"inventory.plan.upload.placeholder" = "e.g. 250";
+"inventory.plan.cost" = "Monthly cost (optional)";
+"inventory.plan.cost.placeholder" = "e.g. 49.99";
+"inventory.plan.notes" = "Notes (optional)";
+"inventory.plan.notes.placeholder" = "e.g. 12-month agreement";
+"inventory.plan.save" = "Save plan";
+"inventory.plan.saveCorrections" = "Save corrections";
+"inventory.plan.replace" = "I changed plans…";
+"inventory.plan.replace.title" = "Record plan change?";
+"inventory.plan.replace.message" = "The previous plan will end as of today and this new plan will become your home's active plan.";
+"inventory.plan.replace.confirm" = "Confirm change";
+"inventory.plan.delete" = "Remove registered plan";
+"inventory.plan.delete.title" = "Remove registered plan?";
+"inventory.plan.delete.message" = "The plan will be unlinked from your network. Past measurements will not be altered.";
+"inventory.plan.invalidError" = "Enter a valid provider name and speeds greater than zero.";
+"inventory.plan.downloadDisplay" = "Download: %@";
+"inventory.plan.uploadDisplay" = "Upload: %@";
+"inventory.plan.monthCostDisplay" = "%@/mo";
+
+/* Minha Rede V2 - Access Technologies */
+"inventory.technology.fiber" = "Fiber optic";
+"inventory.technology.cable" = "Coaxial cable";
+"inventory.technology.dsl" = "Telephone line (DSL/VDSL)";
+"inventory.technology.fixedWireless" = "Fixed wireless / Radio";
+"inventory.technology.cellularCpe" = "Fixed 4G/5G residential modem";
+"inventory.technology.satellite" = "Satellite";
+"inventory.technology.other" = "Other technology";
+"inventory.technology.unknown" = "I don't know";
+
+/* Minha Rede V2 - Device Connections */
+"inventory.connection.title" = "Connect Devices";
+"inventory.connection.add" = "Connect to another device";
+"inventory.connection.edit" = "Edit connection";
+"inventory.connection.deviceA" = "First device";
+"inventory.connection.deviceB" = "Second device";
+"inventory.connection.medium" = "Connection type";
+"inventory.connection.direction" = "Internet source";
+"inventory.connection.direction.unknown" = "I don't know";
+"inventory.connection.direction.fromA" = "Internet comes from %@";
+"inventory.connection.direction.fromB" = "Internet comes from %@";
+"inventory.connection.direction.receivesFrom" = "Receives internet from %@";
+"inventory.connection.direction.sendsTo" = "Sends internet to %@";
+"inventory.connection.direction.unspecified" = "Direction not specified";
+"inventory.connection.save" = "Save connection";
+"inventory.connection.delete" = "Delete connection";
+"inventory.connection.delete.title" = "Delete this connection?";
+"inventory.connection.delete.message" = "The link between these two devices will be removed.";
+"inventory.connection.duplicateError" = "A link between these two devices using this medium already exists.";
+"inventory.connection.invalidError" = "Choose two different devices to create a connection.";
+"inventory.connection.prompt.title" = "Map this device's connection";
+"inventory.connection.prompt.message" = "Tell us which equipment this device connects to so we can map your home network path.";
+"inventory.connection.prompt.connect" = "Connect to another device";
+"inventory.connection.prompt.notNow" = "Not now";
+"inventory.connection.prompt.dontKnow" = "I don't know";
+"inventory.connection.section.title" = "Connections for this device";
+"inventory.connection.empty" = "No connections mapped for this device.";
+"inventory.connection.devicesHeader" = "Connected devices";
+
+/* Minha Rede V2 - Link Mediums */
+"inventory.medium.ethernet" = "Network cable (Ethernet)";
+"inventory.medium.wifi" = "Wi-Fi (wireless)";
+"inventory.medium.fiber" = "Fiber optic cable";
+"inventory.medium.other" = "Other connection type";
+"inventory.medium.unknown" = "I don't know";
+
+/* Minha Rede V2 - Profile and Errors */
+"inventory.profile.invalidError" = "The home network profile could not be saved.";
