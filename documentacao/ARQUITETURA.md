@@ -233,3 +233,10 @@ Integrada na main pelas PRs #296 (Core e Guarda B1), #297 (UI de Planos e Conex�
 - **Guarda de Isolamento Celular B1 (`ResidentialPlanEligibility`):** Ponto único e exaustivo de decisão arquitetural. Isola o plano residencial contra medições em interfaces móveis (`.cellular`), hotspots pessoais (`isPersonalHotspot`) ou rotas caras/restritas (`isExpensive`). Apenas conexões comprovadamente residenciais locais (`.wifi` ou `.ethernet`) são elegíveis para correlação futura.
 - **Integridade Relacional no Ator (`HouseholdRepository`):** A exclusão de qualquer equipamento expurga em cascata atômica todas as conexões dependentes. A exclusão de plano anula o `activePlanID` no perfil doméstico. Ambientes (`NetworkProfiles`) permanecem locais e independentes; associar aparelho a um ambiente não move nem reatribui medições passadas.
 - **Privacidade Absoluta:** Dados de plano, preço, topologia e ambientes são estritamente locais. Nenhum desses campos é compartilhado com o serviço remoto de busca de especificações da V1, Assist ou telemetria.
+
+### Minha Rede V3 — Avaliação de plano residencial (`ResidentialPlanEvaluator`)
+
+- **Motor puro no pacote `NetworkInventory`:** Avaliação pura e determinística em `ResidentialPlanEvaluator.swift`, sem acoplamento a UI e sem poluir `NetworkInsights`.
+- **Isolamento B1 e Temporal:** `ResidentialPlanEligibility` filtra interfaces móveis, hotspots e redes restritas. Janelas `effectiveFrom` e `effectiveTo` impedem contaminação por medições anteriores ou posteriores à vigência do plano ativo.
+- **Independência Download/Upload e Ausência != 0:** Avaliação desacoplada de direções (um campo nulo no plano não anula o outro). Ausência de dados retorna `.noData`, sem gerar `0 Mbps` fictício, divisão por zero ou `NaN`/`Inf`.
+- **Integração Reativa:** `LinkaInventoryStore` injeta `MeasurementHistoryRepository`, alimenta o motor sob `@MainActor` e expõe `planEvaluation` reativo para a seção `planPerformanceSection` na `MyNetworkView`.

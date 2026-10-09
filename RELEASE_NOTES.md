@@ -1,18 +1,14 @@
-# Linka 1.1.7 (59) — desenvolvimento Minha Rede V2
+# Linka 1.1.6 (59) — candidata TestFlight interno
 
-- Adiciona perfil doméstico de internet fixa com cadastro honesto de plano, velocidades de download/upload nominais independentes e tecnologia de acesso residencial.
-- Permite mapear conexões declaradas entre equipamentos com convite não-intrusivo para redes com dois ou mais aparelhos.
-- Reestrutura Minha Rede em quatro seções nativas e harmoniosas: Meu plano, Equipamentos, Como estão conectados e Ambientes.
-- Implementa guarda de isolamento estrito impedindo qualquer confusão ou contaminação entre internet residencial e dados de celular móvel.
+- **Minha Rede Fase 3 (Desempenho e Avaliação Factual):**
+  - Avaliação automática e honesta da entrega do plano residencial com base nos testes recentes do usuário.
+  - Guarda B1 de isolamento celular: apenas medições em Wi-Fi e cabo Ethernet locais são correlacionadas ao plano residencial; conexões celulares, hotspots pessoais e redes onerosas são rigorosamente ignoradas.
+  - Respeito à vigência temporal do contrato (evitando comparar medições antigas com planos novos).
+  - Diagnóstico claro de entrega com 4 estados calibrados e microcopy explicativa sem jargões ou falsas acusações contra operadoras.
+- **Minha Rede Fase 2 (Perfil e Conexões):**
+  - Perfil doméstico com cadastro de plano de internet, velocidades de download/upload nominais independentes e tecnologia residencial.
+  - Mapeamento de conexões declaradas entre aparelhos e visualização consolidada em 4 seções nativas na MyNetworkView.
 - Mantém Minha Rede 100% gratuita, local e offline em iPhone, iPad e Mac.
-
-# Linka 1.1.6 (58) — disponível no TestFlight interno
-
-- Simplifica o cadastro para identificar, buscar e confirmar/salvar, com ficha preenchida pela pesquisa na internet.
-- Remove as restrições de marcas e os campos obrigatórios de revisão/região; mantém modelos semelhantes separados.
-- Mostra andamento e resultado no mesmo editor, preserva identificação ao cancelar e descarta respostas atrasadas.
-- Mantém leitura da etiqueta no aparelho, detalhes técnicos expansíveis e mensagens claras de falha.
-- Serviço v2 publicado com compatibilidade v1; beta disponível no grupo Projeto Adonis; validação no iPhone físico pendente.
 
 # Linka 1.1.6 (57) — disponível no TestFlight interno
 

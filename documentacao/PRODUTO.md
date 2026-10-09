@@ -173,8 +173,15 @@ Entregue e consolidada na main pelas PRs #296 (Core), #297 (UI de Plano e Conex�
 - **Visão consolidada em 4 seções:** `MyNetworkView` organiza harmonicamente: *Meu plano*, *Equipamentos* (exibindo tipo e cômodo/local na mesma linha), *Como estão conectados* (oculta se `< 2` aparelhos) e *Ambientes* (atalho para gestão existente, com nota de rodapé explícita desvinculando medições passadas).
 - **Acesso gratuito:** Minha Rede permanece 100% Free no iPhone, iPad e Mac, sem paywall, sem login e com dados estritamente locais.
 
-### Evolução preservada para V3 e V4
+### Minha Rede V3 — Desempenho do plano residencial e correlação com testes
 
-- **V3** poderá comparar declarações/capacidades com medições elegíveis, utilizando a guarda B1 (`ResidentialPlanEligibility`) que restringe a comparação a interfaces Wi-Fi/Ethernet locais não-restritas. Ficha ou plano sozinhos não provam gargalo, defeito ou necessidade de troca.
-- **V4** poderá oferecer Assist contextual com consentimento/projeção explícita, ações e reteste.
+Entregue e integrada ao `NetworkInventory` e `LinkaApp`:
+- **Avaliação factual:** O app correlaciona as medições elegíveis com o plano residencial ativo, exibindo os percentuais de entrega de download e upload e a quantidade de testes considerados.
+- **Hierarquia de estados e ausência:** Diferencia categoricamente *Sem testes elegíveis* (`noData`), *Desempenho condizente* (`meetingPlan`, >= 80%), *Superou o plano* (`exceeding`, >= 105%), *Desempenho parcial* (`partiallyMeeting`, 50% ..< 80%) e *Abaixo do contratado* (`belowPlan`, < 50%).
+- **Microcopy orientativa e honesta:** Zero acusações levianas contra a operadora e zero recomendações comerciais; orientações físicas transparentes sobre atenuação Wi-Fi, distância e bandas de 2,4 GHz vs. 5 GHz.
+- **Acesso gratuito mantido:** 100% Free no iPhone, iPad e Mac, local-first.
+
+### Evolução preservada para V4
+
+- **V4** poderá oferecer Assist contextual com consentimento/projeção explícita, ações guiadas e reteste.
 - Não estão implementadas por esta decisão: ofertas/afiliados, sincronização CloudKit e monetização avançada.

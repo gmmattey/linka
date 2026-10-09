@@ -76,6 +76,11 @@ public enum LinkaMeasurementHistory {
         }
     }
 
+    public static func makeRepository() -> SyncingHistoryRepository {
+        let snapshot = LinkaEntitlementSnapshotResolver.resolve()
+        return makeRepository(entitlements: StaticLinkaEntitlementProvider(snapshot: snapshot))
+    }
+
     private static let repositoryCache = RepositoryCache()
 
     /// Cache thread-safe (lock simples, sem `async`: `makeRepository`

@@ -1,6 +1,8 @@
 import XCTest
 import NetworkInventory
 import NetworkProfiles
+import MeasurementHistory
+import NetworkCore
 @testable import LinkaApp
 
 @MainActor
@@ -208,5 +210,46 @@ final class LinkaInventoryStoreV2Tests: XCTestCase {
 
         let retrievedBtoA = store.connections.first(where: { $0.id == connBtoA.id })
         XCTAssertEqual(retrievedBtoA?.sourceDeviceID, devB.id)
+    }
+
+    func testPlanEvaluationComputedWithMeasurementsAndActivePlan() async throws {
+        let fakeHistory = InMemoryMeasurementHistoryRepository()
+        let measurement1 = NetworkMeasurement(
+            measuredAt: Date(),
+            downloadMbps: 480.0,
+            uploadMbps: 240.0,
+            connectionKind: .wifi
+        )
+        let measurement2 = NetworkMeasurement(
+            measuredAt: Date(),
+            downloadMbps: 510.0,
+            uploadMbps: 260.0,
+            connectionKind: .wifi
+        )
+        try await fakeHistory.save(measurement1)
+        try await fakeHistory.save(measurement2)
+
+        let testStore = LinkaInventoryStore(
+            repository: repository,
+            historyRepository: fakeHistory
+        )
+
+        let plan = NetworkServicePlan(
+            ispName: "Fibra Teste",
+            planName: "500 Mega",
+            nominalDownloadMbps: 500,
+            nominalUploadMbps: 250,
+            technology: .fiber
+        )
+
+        XCTAssertNil(testStore.planEvaluation)
+
+        let saved = await testStore.savePlan(plan, makeActive: true)
+        XCTAssertTrue(saved)
+
+        XCTAssertNotNil(testStore.planEvaluation)
+        XCTAssertEqual(testStore.planEvaluation?.eligibleMeasurementsCount, 2)
+        XCTAssertTrue(testStore.planEvaluation?.downloadEvaluation.isEvaluated == true)
+        XCTAssertTrue(testStore.planEvaluation?.uploadEvaluation.isEvaluated == true)
     }
 }

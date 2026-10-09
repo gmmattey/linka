@@ -41,7 +41,7 @@ Não apagar caches como primeira reação, criar pastas com timestamp a cada tes
 3. Conferir diff, commit/PR e merge dentro da autorização recebida. Beta exige `main` limpa e igual a `origin/main`; não ocultar WIP com limpeza.
 4. Depois de autorização para TestFlight daquela candidata, executar `bundle exec fastlane ios beta authorized:true`, mantendo UDID e variáveis do Bundler da mesma sessão.
 
-A candidata para a beta interna de Minha Rede é iOS/widget 1.1.6 (57); Mac permanece em 1.1.5 (54). A Apple recusou a validação de 1.1.5 (56) porque a versão estava encerrada para novas submissões. O archive 1.1.6 (57), gerado pelo Xcode em 08/10/2026, passou na validação Apple com avisos de dSYM dos SDKs de publicidade. O upload pelo Organizer em modo TestFlight Internal Only foi concluído às 18h00 (Brasília); App Store Connect concluiu o processamento e confirmou a build 57 em “Em testes”, associada ao grupo interno Projeto Adonis (um testador). As orientações da beta foram salvas.
+A candidata para a beta interna de Minha Rede é iOS/widget 1.1.6 (59); Mac permanece em 1.1.5 (54). A build 1.1.6 (57) foi distribuída em 08/10/2026. A build 1.1.6 (59), incorporando Minha Rede V2 (perfil e conexões) e Minha Rede V3 (avaliação factual de plano residencial com isolamento B1 e motor puro), foi arquivada via xcodebuild com scheme LinkaApp-InternalBeta e enviada via exportArchive diretamente para o TestFlight em modo Internal Only em 09/10/2026 às 00h45 (Brasília). O upload foi concluído com sucesso e o pacote entrou em processamento no App Store Connect.
 
 ### Minha Rede — beta interna pelo Xcode
 

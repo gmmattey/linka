@@ -1041,3 +1041,20 @@
 "inventory.medium.short.fiber" = "Fiber";
 "inventory.medium.short.other" = "Other";
 "inventory.medium.short.unknown" = "Unspecified";
+
+/* Minha Rede V3 - Plan Performance */
+"inventory.evaluation.section" = "Plan performance";
+"inventory.evaluation.noData.title" = "No eligible tests on this network";
+"inventory.evaluation.noData.message" = "To evaluate your plan, run a complete test connected to home Wi-Fi or ethernet.";
+"inventory.evaluation.meeting.title" = "Performance meets plan";
+"inventory.evaluation.meeting.message" = "Your home network delivers the contracted capacity in recent tests.";
+"inventory.evaluation.partiallyMeeting.title" = "Partial plan delivery";
+"inventory.evaluation.partiallyMeeting.message" = "Speed reaches part of your plan. Coverage limitations or interference may be present.";
+"inventory.evaluation.below.title" = "Speed below plan";
+"inventory.evaluation.below.message" = "Tests recorded lower speeds than contracted. Router distance, walls, and frequency band (2.4 GHz vs. 5 GHz) often reduce speeds.";
+"inventory.evaluation.exceeding.title" = "Tests exceeded your plan";
+"inventory.evaluation.exceeding.message" = "Measured speeds are higher than contracted, common in favorable delivery or plan upgrades.";
+"inventory.evaluation.sampleCount" = "Based on %d eligible home test(s)";
+"inventory.evaluation.download" = "Download";
+"inventory.evaluation.upload" = "Upload";
+"inventory.evaluation.delivered" = "%@ of %@ contracted (%@)";
