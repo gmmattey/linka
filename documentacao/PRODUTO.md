@@ -185,3 +185,242 @@ Entregue e integrada ao `NetworkInventory` e `LinkaApp`:
 
 - **V4** poderá oferecer Assist contextual com consentimento/projeção explícita, ações guiadas e reteste.
 - Não estão implementadas por esta decisão: ofertas/afiliados, sincronização CloudKit e monetização avançada.
+
+<a id="assist-contextual-v4"></a>
+## Assist Contextual V4 — documentação funcional do agente especialista
+
+**Integração documental:** 09/10/2026, versão 1.0. **Status:** proposta funcional para revisão e implementação; não representa funcionalidade implantada. Origem: documentação funcional elaborada com Luiz nesta conversa. Conteúdo incorporado a esta fonte, sem criar outro manual por feature.
+
+**Responsável pelo produto:** Luiz. **Programa:** Minha Rede, Fase 4. Execução: [épico #301](https://github.com/gmmattey/linka/issues/301) e issues #310–#321. Arquitetura, contratos e limites em [Arquitetura — Assist V4](ARQUITETURA.md#assist-contextual-v4); testes, ativação e reversão em [Operação — Assist V4](OPERACAO.md#assist-contextual-v4).
+
+O estado existente descrito acima continua válido para a modalidade de medição. Esta proposta amplia o Assist, sem substituir o motor, liberar novos envios ou certificar as fases anteriores. A base de referência da documentação é `8268dac778bbdd8b2ed9eab7ec5a463597cf0f7a`.
+
+### V4.1 Decisão de produto, objetivos e limites
+
+O Assist será o técnico pessoal da rede: conhece os dados cadastrados e autorizados, consulta referências técnicas pertinentes, utiliza medições elegíveis e ajuda a investigar problemas e decidir melhorias. Não depende de o usuário conhecer backhaul, latência, AP ou gateway.
+
+A escolha proposta é **um agente especialista supervisionado**, não vários agentes conversando entre si. Combina instruções de domínio, procedimentos, documentação recuperada, ferramentas delimitadas e memória explícita da consulta. Não requer treinamento de modelo próprio nem nova identidade visual. É o agente de atendimento do produto, não os agentes de desenvolvimento do Codex.
+
+O modelo interpreta a pergunta, relaciona evidências e propõe a próxima etapa; o software controla leitura, envio, execução, orçamento e apresentação. O agente pode orientar além de parafrasear regras existentes, mas não declarar fatos sobre a residência sem base nem criar poderes que o aplicativo não possui. A distinção entre workflows e agentes embasa esta escolha de arquitetura, não uma promessa de superioridade universal. [V4-R2]
+
+| Modalidade no mesmo Assist | Exige medição? | Comportamento |
+|---|---|---|
+| Entender uma medição — “O que significa esse resultado?” | Sim, para interpretar aquele resultado | Preservar diagnóstico e regras existentes. |
+| Consultoria contextual — “Meu roteador é adequado?” | Não para iniciar | Usar cadastro, fontes e perguntas; solicitar teste apenas quando necessário. |
+
+Não haverá dois chats nem escolha técnica obrigatória de modo. A origem e a intenção determinam o contexto. “O que é um ponto de acesso?” recebe explicação sem cadastro ou teste obrigatório.
+
+**Objetivos:** reduzir orientações genéricas; não repetir cadastros; evitar compras desnecessárias; oferecer próxima ação executável; registrar tentativas; admitir insuficiência; preservar minimalismo.
+
+**Entrega inicial:** pergunta aberta; quatro jornadas guiadas; entrada por Oportunidades; consulta à ficha/documentação; solicitação autorizada de testes existentes; resposta estruturada; ações e histórico local de consultas.
+
+**Fora da entrega inicial:** alteração automática de roteador/DNS, reinício remoto, reset de fábrica, atualização automática de firmware, scanner arbitrário, monitoramento contínuo, compras/contratação, agentes em segundo plano e sincronização de conversas. Comparação automática de ofertas fica desligada até haver fonte confiável e autorização operacional.
+
+**Plataformas:** desenhar e homologar a nova experiência em iPhone/iPad. Preservar Assist e Minha Rede existentes no Mac. Ativar a consultoria no Mac exige homologação própria de interface, autenticação e ferramentas; não presumir paridade nem remover capacidades anteriores.
+
+### V4.2 Autoridade e requisitos funcionais
+
+| Participante | Responsabilidade | Limite |
+|---|---|---|
+| Usuário | Relatar sintomas, confirmar instalação, autorizar envio/testes, aceitar ações | Declaração não vira medição ou confirmação do fabricante. |
+| Linka e motor | Produzir e armazenar resultados com método/contexto | Não inferir equipamento, cômodo ou causa sem evidência. |
+| Avaliadores determinísticos | Validar unidades, elegibilidade, comparação e achados | Não reduzir toda investigação a causas previamente cadastradas. |
+| Agente especialista | Entender intenção, formular hipóteses qualificadas, consultar referências e orientar | Não executar diretamente nem promover hipótese a causa comprovada. |
+| Validador de saída | Conferir esquema, referências, valores e ações | JSON válido não garante a verdade de toda frase. |
+
+**RF-01 — Entrada aberta:** “Pergunte sobre sua rede...” na entrada, perguntas guiadas, resultados e acompanhamento; os quatro atalhos são alternativas, não uma limitação de assuntos.
+
+**RF-02 — Contexto opcional:** conversar sem equipamento, plano ou teste. Solicitar informação apenas quando sua ausência limita a pergunta atual. Cadastro completo não é barreira à medição nem à explicação geral; acesso comercial permanece separado.
+
+**RF-03 — Rede correta:** usar instalação escolhida/confirmada. Um único perfil, gateway repetido ou nome Wi-Fi semelhante não comprova vínculo entre teste e casa.
+
+**RF-04 — Consentimento:** antes do primeiro envio, informar processadores, categorias e finalidade. A pergunta também é dado enviado; desligar contexto não torna a pergunta local. Consentimento de contexto não autoriza testar, configurar ou comprar. Conferir o requisito de compartilhamento com IA de terceiros nas diretrizes Apple antes da ativação. [V4-R3]
+
+**RF-05 — Pergunta adaptativa:** uma pergunta relevante por vez, opções, “Não sei” e texto livre. Não repetir fato confirmado e pertinente; mudança/contradição justifica perguntar novamente, explicando o motivo.
+
+**RF-06 — Encerramento útil:** parar quando houver resposta suficiente, ação segura ou ausência de investigação viável. Após repetidos “Não sei”, oferecer orientação limitada ou teste opcional, não prolongar artificialmente.
+
+**RF-07 — Teste autorizado:** mostrar finalidade, impacto e condições antes da medição. Gesto explícito inicia; IA propõe. Recusa/impossibilidade mantém a consulta utilizável.
+
+**RF-08 — Resposta fundamentada:** distinguir observação, declaração, especificação, conhecimento geral e hipótese. Ausência de evidência não significa ausência de problema.
+
+**RF-09 — Pesquisa real:** especificação desconhecida, variante ou condição comercial atual exige ferramenta e fonte rastreável. Conhecimento interno do modelo não equivale a pesquisa realizada.
+
+**RF-10 — Acompanhamento:** ação aceita tem identidade; pode ser concluída, ignorada, impossível ou retestada. Não repetir tentativa malsucedida sem nova razão.
+
+**RF-11 — Continuidade:** voltar, fechar, interromper, editar e retomar não apagam a sessão. Nova pergunta pode complementar; mudança que abandone ação pendente pede confirmação.
+
+**RF-12 — Histórico/exclusão:** rascunhos e orientações seguem política local proposta. Excluir consulta não apaga medições. Excluir medição invalida referências futuras e remove projeções/caches correspondentes, sem ressuscitar valores pelo resumo.
+
+**RF-13 — Erro não é diagnóstico:** falha da IA, timeout, indisponibilidade ou bloqueio de acesso são estados do Assist, não evidência de defeito da rede do usuário.
+
+**RF-14 — Uso comercial preservado:** reutilizar política atual de acesso. Esta especificação não cria preço, franquia diária ou nova liberação Free/Plus. Leitura, cópia e exclusão de orientações já salvas não exigem nova compra.
+
+### V4.3 Jornada comum de ponta a ponta
+
+```text
+Pergunta aberta / atalho / medição / equipamento / oportunidade
+  → sessão local + contexto pertinente
+  → acesso + consentimento antes do envio
+  → resposta direta OU pergunta OU pesquisa OU proposta de teste
+  → validação e autorização de execução
+  → resposta estruturada + evidências + próxima ação
+  → salvar / perguntar / seguir ação / retestar
+  → comparação qualificada + histórico / retomada / exclusão
+```
+
+Sem consentimento, conservar rascunho e ferramentas locais. Com autorização, enviar resumo tipado, não cópia irrestrita do banco. Perguntas e testes admitem recusa. Pesquisa pública não recebe cômodo, endereço, senha ou conversa completa como termos de busca.
+
+No reteste, classificar melhora observada, piora, ausência de mudança relevante ou inconclusivo. Melhorar após uma ação não prova que ela foi a causa. Falha de transporte preserva o último estado estável e a última resposta validada.
+
+<a id="assist-v4-lentidao"></a>
+### V4.4 Minha internet está lenta
+
+**Intenção:** entender o sintoma e escolher próximo passo, sem culpar automaticamente Wi-Fi ou operadora. Contexto: interface, data/método, medições elegíveis, ambiente confirmado, plano, equipamentos e conexões relevantes. Histórico não representa automaticamente o estado atual.
+
+Perguntar apenas lacunas: casa inteira ou um lugar; todos os aparelhos ou um; todos os usos ou só um aplicativo; horário e situação comparável quando relevantes.
+
+| Situação | Próxima etapa | Limite |
+|---|---|---|
+| Um cômodo | Comparação controlada perto do roteador e no ponto afetado | Diferença não isola distância, interferência ou defeito. |
+| Um aparelho | Comparar outro aparelho no mesmo local por declaração ou teste compatível | Não afirmar ter testado outro aparelho pelo iPhone atual. |
+| Um serviço | Investigar sintoma específico; status externo só com integração/fonte | Teste geral normal não prova saúde daquele serviço. |
+| Piora sob uso simultâneo | Consultar responsividade sob carga; teste controlado | Ping isolado não descreve carga. |
+| Download abaixo do plano | Conferir condições, portas, caminho e comparação | Wi-Fi isolado não prova descumprimento contratual. |
+| Sem conectividade para IA | Preservar triagem local e rascunho | Não simular resposta remota. |
+
+Saídas: indício com próximo teste; ação simples compatível; evidência insuficiente; encaminhamento fundamentado. Não recomendar 5 GHz sem disponibilidade/seleção confirmadas nem reinício universal.
+
+**Aceite:** início útil sem medição; teste recusado não bloqueia; local/data corretos; origem não confirmada continua hipótese; ação/reteste retornam à mesma sessão. Execução: [#313](https://github.com/gmmattey/linka/issues/313).
+
+<a id="assist-v4-roteador"></a>
+### V4.5 Meu roteador é adequado
+
+Avaliar necessidade real, não classificar geração como boa/ruim. Selecionar aparelho ambíguo, confirmar variante e papel; perguntar objetivo. Considerar portas no caminho, capacidades documentadas, upload/download, simultaneidade declarada, experiências por ambiente e estabilidade.
+
+Avaliação preventiva sem teste pode dizer “As especificações são compatíveis com esse uso; ainda não avaliamos o desempenho na sua casa”. Ausência de problema relatado ou teste não comprova adequação.
+
+Wi-Fi 5 não implica troca; taxa PHY não é velocidade garantida; porta importa quando está no caminho; firmware publicado não comprova firmware instalado; equipamento da operadora não comprova bloqueio; suporte a modo não comprova configuração atual.
+
+Saídas: manter, ajustar, investigar, atualização como candidata por limitação relevante ou insuficiência. Considerar aproveitar o equipamento e AP antes de substituição. Sem ofertas específicas nesta etapa.
+
+**Aceite:** iniciar sem teste; modelo ambíguo gera pergunta; especificação com procedência; condição não vira garantia. Execução: [#314](https://github.com/gmmattey/linka/issues/314).
+
+<a id="assist-v4-mesh"></a>
+### V4.6 Preciso de uma rede mesh
+
+Avaliar distribuição de cobertura e mobilidade; mesh é alternativa, não conclusão padrão. Identificar locais afetados e distinguir diferença local de problema do acesso à internet. Perguntar possibilidade de cabo, posição e deslocamento quando relevantes.
+
+Um ponto afetado favorece avaliar reposicionamento/AP antes de sistema inteiro; vários pontos justificam comparar distribuição. Cabo permite AP ou mesh cabeada, sem obrigar uma alternativa.
+
+Não determinar nós apenas por metragem, assumir interoperabilidade, garantir capacidade de enlace intermediário ou tratar cômodos cadastrados como cobertura medida. Explicar backhaul como “a ligação entre os pontos da rede”.
+
+Saídas: mesh não justificada pelos dados; reposicionamento; AP candidato; mesh candidata; teste adicional. Explicar vantagens relativas e alternativas mais simples, sem obrigação de compra.
+
+**Aceite:** comparar alternativas; cabo/compatibilidade confirmados ou desconhecidos; sem alcance ou sinal inventado. Execução: [#315](https://github.com/gmmattey/linka/issues/315).
+
+<a id="assist-v4-plano"></a>
+### V4.7 Meu plano vale a pena
+
+Distinguir adequação técnica, adequação ao uso e avaliação de preço. Usar capacidade/mensalidade declaradas, vigência, satisfação, simultaneidade e medições elegíveis. Perguntar objetivo: economizar, estabilidade, capacidade ou alternativas. Sem preço, avaliar capacidade; sem referência externa atual, não afirmar caro/justo frente ao mercado.
+
+**Sem catálogo:** explicar compatibilidade com uso, lacunas e necessidade de investigar Wi-Fi antes de upgrade. Preparar negociação sem inventar uma oferta melhor.
+
+**Extensão de mercado:** desligada até auditar catálogo/termos. Oferta precisa de fonte, data, vigência promocional, preço posterior, instalação, fidelidade, multas informadas e cobertura confirmada ou pendente. Cidade/CEP não garantem endereço elegível; avaliação básica não exige endereço completo.
+
+**Cálculo:** código soma mensalidades do horizonte, taxas conhecidas e custo de saída informado, subtrai descontos comprovados; IA explica. Informação ausente torna comparação parcial, não zero presumido. Custo/Mbps é secundário, não qualidade.
+
+Saídas: uso compatível; avaliar redução; capacidade adicional candidata; considerar negociação; dados comerciais insuficientes; investigação técnica antes da troca. Não declarar obrigação contratual, multa ou direito sem informação verificável e revisão específica.
+
+**Aceite:** funcionar sem ofertas; economia com premissas; teste antigo não recebe plano novo; mensalidade só nesta intenção e com autorização. Execução: [#316](https://github.com/gmmattey/linka/issues/316).
+
+<a id="assist-v4-pergunta-aberta"></a>
+### V4.8 Pergunta aberta
+
+Exemplos: aproveitar roteador antigo como AP, explicar bandas, melhorar videochamadas. Não forçar tudo às quatro jornadas. Identificar explicação geral, instrução específica, investigação ou decisão comercial; aproveitar procedimentos sem reiniciar assunto. Esclarecimento não zera investigação.
+
+Instrução específica exige modelo/revisão/documento aplicável; incerteza gera condição ou pergunta. Explicação geral não exige medição. Mudança durante ação oferece “Continuar nesta consulta” ou “Iniciar outra”. Editar pergunta anterior cria revisão e invalida conclusões dependentes, sem reescrever silenciosamente histórico. Fora de redes, informar limite brevemente.
+
+**Aceite:** envio real; múltiplos turnos; referências pertinentes; cadastro vazio; cancelamento/erro/retomada/exclusão. Execução: [#319](https://github.com/gmmattey/linka/issues/319).
+
+<a id="assist-v4-oportunidades"></a>
+### V4.9 Oportunidades de melhoria
+
+Preservar motor determinístico existente. Oportunidade comunica achado; Assist aprofunda. “Investigar com Assist” transfere ID da oportunidade, versão da regra e referências; destino revalida. Ação sugerida pelo motor é candidata a revisão contextual, não ordem nem prova causal.
+
+Consulta existente para o contexto pode ser retomada; taps repetidos não duplicam sessão. Medição apagada não reaparece: preservar pergunta e explicar falta. Modalidade desligada mantém navegação antiga funcional. DNS/Ambientes usam componentes existentes, sem novo cadastro ou mudança de configuração para alimentar consulta. Execução: [#321](https://github.com/gmmattey/linka/issues/321).
+
+<a id="assist-v4-ux"></a>
+### V4.10 Direção visual e experiência de resposta
+
+Conservar hierarquia discutida: contexto compacto, pergunta clara, seleção simples, resposta organizada e campo livre persistente. PNGs/SVGs anteriores são reconstruções, não screenshots originais nem aceite pixel a pixel. Referências já registradas: [#312](https://github.com/gmmattey/linka/issues/312), [#319](https://github.com/gmmattey/linka/issues/319), [#321](https://github.com/gmmattey/linka/issues/321). Validar na build pretendida, conforme Governança.
+
+**Entrada:** Assist, linha/seção compacta de contexto, quatro sugestões e campo aberto. Sem números fictícios/zeros decorativos. “Usar dados da minha rede” reflete autorização real.
+
+**Investigação:** uma pergunta, opções acessíveis e texto. “2 de 4” apenas com percurso conhecido; no adaptativo usar “Investigando” ou etapa. Voltar preserva escolhas; alterar recalcula dependências.
+
+**Resposta:** conclusão → justificativa curta → equipamento/plano/medição pertinente → uma próxima ação principal → “Dados usados na resposta” recolhível → pergunta complementar se necessária → Copiar/Salvar discretos → campo livre no rodapé. Blocos ausentes não deixam buracos. Insuficiência é resultado, não erro vermelho. Copiar exclui identificadores desnecessários; Salvar confirma gravação e trata erro.
+
+**Acessibilidade:** controles/tokens nativos do Linka; claro/escuro, tipografia semântica, foco, teclado, VoiceOver e texto ampliado. Não diminuir fonte para caber. Rótulo e estado selecionado nas opções; não depender só da cor. Campo não encobre conteúdo/evidências. Cobrir telas pequenas, teclado aberto, texto longo e orientações iPad.
+
+### V4.11 Memória, ações, reteste e proteção
+
+**Memória da consulta:** intenção, respostas confirmadas, referências, hipóteses, tentativas e resultados. Não persistir raciocínio interno. Resumo não altera consentimento nem transforma hipótese em fato.
+
+**Memória da residência:** “Troquei de roteador” pode propor edição, mas Minha Rede só muda por confirmação separada. Sessão anterior continua ligada ao contexto anterior.
+
+**Política local proposta:** rascunhos retomáveis por sete dias; orientações salvas até exclusão; sem sincronização nesta versão. Prazos são proposta a aprovar e implementar, não configuração operacional comprovada. Permitir exclusão imediata.
+
+**Ações:** pendente, concluída por declaração, verificada por evidência, ignorada, impossível. Concluir não prova melhora. Assist não reinicia nem altera DNS. Orientação manual com risco de interrupção requer justificativa, aviso e momento adequado.
+
+**Reteste:** registrar objetivo/variável alterada. Comparar metodologia e condições compatíveis; ambientes distintos podem ser a variável de comparação controlada. Interrupção, caminho incerto ou várias mudanças limitam a conclusão. Reutilizar #317, não criar comparador concorrente.
+
+Não solicitar credenciais, serial, MAC, CPF ou endereço completo. Texto pode conter segredo: avisar/minimizar sem prometer filtro perfeito. Separar uso local, envio a processador, teste e ação manual. Mudança de fornecedor/categorias exige informação e autorização aplicáveis. Revogar bloqueia novos envios/tenta cancelar ativos, sem desfazer processamento já realizado. [V4-R3]
+
+Páginas, resultados e saída da IA são dados não confiáveis. Não abrir endpoint local nem executar conteúdo de manual por ordem da IA. Controles reduzem, não eliminam, alucinação e prompt injection. [V4-R5]
+
+<a id="assist-v4-aceite"></a>
+### V4.12 Critérios de aceite e rastreabilidade
+
+| ID | Cenário | Resultado necessário | Issues |
+|---|---|---|---|
+| AC-01 | Pergunta aberta sem teste/cadastro | Explicação ou pergunta útil; não erro sem medição | #311, #319, #320 |
+| AC-02 | Envio recusado com contexto disponível | Nenhum envio; rascunho/ferramentas locais preservados | #311, #312 |
+| AC-03 | Lentidão em um cômodo | Propor comparação; não inventar RSSI/causa | #313 |
+| AC-04 | Variante desconhecida | Pedir confirmação ou qualificar | #314 |
+| AC-05 | Mesh com cabo disponível | Comparar alternativas; sem compra automática | #315 |
+| AC-06 | Plano sem fonte comercial | Avaliar uso; não afirmar preço justo/oferta disponível | #316 |
+| AC-07 | Oportunidade válida | Abrir/retomar com evidências corretas | #321 |
+| AC-08 | Teste recusado/falhou/interrompido | Orientação limitada e sessão consistente | #317, #320 |
+| AC-09 | App fechado e reaberto | Restaurar localmente, sem envio/teste automático | #317, #320 |
+| AC-10 | IA inventa valor/fonte/ferramenta | Bloquear conteúdo inválido e tratar fallback | #311, #318 |
+| AC-11 | Excluir consulta | Remover consulta; preservar medições | #317 |
+| AC-12 | Excluir medição | Invalidar referências/caches; não ressuscitar valores | #311, #317 |
+| AC-13 | Assinatura muda durante consulta | Reavaliar acesso; preservar dados salvos | #312, #320 |
+| AC-14 | Reteste não comparável | Inconclusivo com explicação | #317 |
+| AC-15 | Teclado, texto grande, VoiceOver | Jornada completa sem cortar ações | #312, #318 |
+
+Aceite exige percurso completo e evidência de execução. Matriz de testes e rollout em [Operação](OPERACAO.md#assist-contextual-v4). Publicar documentação não encerra estas issues.
+
+### V4.13 Decisões pendentes e fontes
+
+| Decisão | Responsável | Condição de fechamento |
+|---|---|---|
+| Provedor/modelo e orçamento de consultoria | Luiz + backend | Avaliação técnica e autorização financeira antes de tráfego pago; autorizações de outros serviços não se ampliam por inferência. |
+| API/autenticação | Backend | Inspeção e homologação reais; comentário no app não basta. |
+| Free/Plus da modalidade | Luiz | Mapeamento explícito preservando direitos atuais. |
+| Retenção/processadores | Luiz + privacidade | Configuração, política pública e consentimento coerentes. |
+| Consultoria no Mac | Produto + QA | Interface, autenticação e ferramentas homologadas. |
+| Ofertas | Produto + backend | Cobertura, atualização e condições verificáveis. |
+
+Pendências não impedem contratos e testes locais; impedem ativar ou anunciar o que delas depende. #310 permanece aberta enquanto gates operacionais não estiverem comprovados.
+
+**Referências do documento de origem (registradas em 09/10/2026; conferir requisitos vigentes antes de ativar):**
+
+- V4-R1: [Governança](GOVERNANCA.md), autoridade e incorporação nas quatro fontes.
+- V4-R2: [Anthropic — Building effective agents](https://www.anthropic.com/engineering/building-effective-agents).
+- V4-R3: [Apple — App Review Guidelines, 5.1.2(i)](https://developer.apple.com/app-store/review/guidelines/).
+- V4-R4: issues de UI #312/#319 e protótipos referenciados nelas; reconstruções não certificam runtime.
+- V4-R5: [OWASP — Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/).
+
+Fontes externas embasam práticas e restrições; não certificam o Linka. Nenhum código, política comercial, endpoint ou configuração de produção é alterado por esta integração documental.
