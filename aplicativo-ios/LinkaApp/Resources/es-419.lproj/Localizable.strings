@@ -1041,3 +1041,20 @@
 "inventory.medium.short.fiber" = "Fibra";
 "inventory.medium.short.other" = "Otro";
 "inventory.medium.short.unknown" = "No especificado";
+
+/* Minha Rede V3 - Rendimiento del Plan */
+"inventory.evaluation.section" = "Rendimiento del plan";
+"inventory.evaluation.noData.title" = "Ninguna prueba elegible en esta red";
+"inventory.evaluation.noData.message" = "Para evaluar el plan contratado, realiza una prueba completa conectado al Wi-Fi o cable de red del hogar.";
+"inventory.evaluation.meeting.title" = "Rendimiento acorde al plan";
+"inventory.evaluation.meeting.message" = "Tu red del hogar alcanza la capacidad contratada en las pruebas recientes.";
+"inventory.evaluation.partiallyMeeting.title" = "Rendimiento parcial del plan";
+"inventory.evaluation.partiallyMeeting.message" = "La velocidad alcanza parte de lo contratado. Podría haber oscilaciones o limitaciones de cobertura.";
+"inventory.evaluation.below.title" = "Velocidad por debajo de lo contratado";
+"inventory.evaluation.below.message" = "Las pruebas registraron valores inferiores a lo contratado. La distancia del router, paredes y la frecuencia (2.4 GHz vs. 5 GHz) suelen reducir la velocidad.";
+"inventory.evaluation.exceeding.title" = "Las pruebas superaron el plan registrado";
+"inventory.evaluation.exceeding.message" = "La velocidad medida es superior a la contratada, común en entregas favorables o mejoras de plan.";
+"inventory.evaluation.sampleCount" = "Con base en %d prueba(s) del hogar elegible(s)";
+"inventory.evaluation.download" = "Descarga";
+"inventory.evaluation.upload" = "Subida";
+"inventory.evaluation.delivered" = "%@ de %@ contratados (%@)";

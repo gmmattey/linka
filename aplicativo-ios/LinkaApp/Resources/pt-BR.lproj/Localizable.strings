@@ -1041,3 +1041,20 @@
 "inventory.medium.short.fiber" = "Fibra";
 "inventory.medium.short.other" = "Outro";
 "inventory.medium.short.unknown" = "Não informado";
+
+/* Minha Rede V3 - Desempenho do Plano */
+"inventory.evaluation.section" = "Desempenho do plano";
+"inventory.evaluation.noData.title" = "Nenhum teste elegível nesta rede";
+"inventory.evaluation.noData.message" = "Para avaliar o plano contratado, faça um teste completo conectado ao Wi-Fi ou cabo de rede residencial.";
+"inventory.evaluation.meeting.title" = "Desempenho condizente com o plano";
+"inventory.evaluation.meeting.message" = "Sua rede residencial atinge a capacidade contratada nos testes recentes.";
+"inventory.evaluation.partiallyMeeting.title" = "Desempenho parcial do plano";
+"inventory.evaluation.partiallyMeeting.message" = "A velocidade atinge parte do contratado. Pode haver oscilações ou limitações na cobertura.";
+"inventory.evaluation.below.title" = "Velocidade abaixo do contratado";
+"inventory.evaluation.below.message" = "Os testes registraram valores inferiores ao contratado. Distância do roteador, paredes e a frequência da rede (2,4 GHz vs. 5 GHz) costumam reduzir a velocidade.";
+"inventory.evaluation.exceeding.title" = "Testes superaram o plano informado";
+"inventory.evaluation.exceeding.message" = "A velocidade aferida é superior ao contratado, comum em entregas favoráveis ou upgrade de plano.";
+"inventory.evaluation.sampleCount" = "Com base em %d teste(s) residencial(is) elegível(is)";
+"inventory.evaluation.download" = "Download";
+"inventory.evaluation.upload" = "Upload";
+"inventory.evaluation.delivered" = "%@ de %@ contratados (%@)";

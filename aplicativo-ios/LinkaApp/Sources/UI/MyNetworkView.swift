@@ -33,6 +33,10 @@ struct MyNetworkView: View {
         List {
             planSection
 
+            if store.activePlan != nil {
+                planPerformanceSection
+            }
+
             devicesSection
 
             if store.devices.count >= 2 {
@@ -192,6 +196,136 @@ struct MyNetworkView: View {
                 }
                 .padding(.vertical, 4)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var planPerformanceSection: some View {
+        if let evaluation = store.planEvaluation {
+            Section(LinkaCopy.value("inventory.evaluation.section")) {
+                VStack(alignment: .leading, spacing: 12) {
+                    let statusInfo = evaluationStatusInfo(evaluation)
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(systemName: statusInfo.icon)
+                            .font(.title2)
+                            .foregroundStyle(statusInfo.iconColor)
+                            .accessibilityHidden(true)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(statusInfo.title)
+                                .font(.headline)
+                                .foregroundStyle(Color.textPrimary)
+
+                            Text(statusInfo.message)
+                                .font(.subheadline)
+                                .foregroundStyle(Color.textSecondary)
+                        }
+                    }
+
+                    if evaluation.eligibleMeasurementsCount > 0 {
+                        Divider()
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            if let dl = evaluation.downloadAggregate {
+                                HStack {
+                                    Label(LinkaCopy.value("inventory.evaluation.download"), systemImage: "arrow.down.circle")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(Color.textPrimary)
+                                    Spacer()
+                                    Text(
+                                        LinkaCopy.format(
+                                            "inventory.evaluation.delivered",
+                                            "\(formatSpeed(dl.averageMbps)) Mbps",
+                                            "\(formatSpeed(dl.nominalMbps)) Mbps",
+                                            "\(Int(round(dl.averageDeliveredPercent)))%"
+                                        )
+                                    )
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(Color.textSecondary)
+                                }
+                            }
+
+                            if let ul = evaluation.uploadAggregate {
+                                HStack {
+                                    Label(LinkaCopy.value("inventory.evaluation.upload"), systemImage: "arrow.up.circle")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(Color.textPrimary)
+                                    Spacer()
+                                    Text(
+                                        LinkaCopy.format(
+                                            "inventory.evaluation.delivered",
+                                            "\(formatSpeed(ul.averageMbps)) Mbps",
+                                            "\(formatSpeed(ul.nominalMbps)) Mbps",
+                                            "\(Int(round(ul.averageDeliveredPercent)))%"
+                                        )
+                                    )
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(Color.textSecondary)
+                                }
+                            }
+                        }
+
+                        Text(String(format: LinkaCopy.value("inventory.evaluation.sampleCount"), evaluation.eligibleMeasurementsCount))
+                            .font(.caption)
+                            .foregroundStyle(Color.textSecondary)
+                    }
+                }
+                .padding(.vertical, 4)
+                .accessibilityElement(children: .combine)
+            }
+        }
+    }
+
+    private struct EvaluationStatusInfo {
+        let icon: String
+        let iconColor: Color
+        let title: String
+        let message: String
+    }
+
+    private func evaluationStatusInfo(_ evaluation: ResidentialPlanAggregateEvaluation) -> EvaluationStatusInfo {
+        if evaluation.eligibleMeasurementsCount == 0 ||
+            (evaluation.downloadEvaluation.isNoData && evaluation.uploadEvaluation.isNoData) {
+            return EvaluationStatusInfo(
+                icon: "network.badge.shield.half.filled",
+                iconColor: Color.textSecondary,
+                title: LinkaCopy.value("inventory.evaluation.noData.title"),
+                message: LinkaCopy.value("inventory.evaluation.noData.message")
+            )
+        }
+
+        let dlStatus = evaluation.downloadAggregate?.status
+        let ulStatus = evaluation.uploadAggregate?.status
+        let statuses = [dlStatus, ulStatus].compactMap { $0 }
+
+        if statuses.contains(.belowPlan) {
+            return EvaluationStatusInfo(
+                icon: "info.circle.fill",
+                iconColor: Color.statusAttention,
+                title: LinkaCopy.value("inventory.evaluation.below.title"),
+                message: LinkaCopy.value("inventory.evaluation.below.message")
+            )
+        } else if statuses.contains(.partiallyMeeting) {
+            return EvaluationStatusInfo(
+                icon: "info.circle.fill",
+                iconColor: Color.statusAttention,
+                title: LinkaCopy.value("inventory.evaluation.partiallyMeeting.title"),
+                message: LinkaCopy.value("inventory.evaluation.partiallyMeeting.message")
+            )
+        } else if !statuses.isEmpty && statuses.allSatisfy({ $0 == .exceeding }) {
+            return EvaluationStatusInfo(
+                icon: "checkmark.circle.fill",
+                iconColor: Color.statusGood,
+                title: LinkaCopy.value("inventory.evaluation.exceeding.title"),
+                message: LinkaCopy.value("inventory.evaluation.exceeding.message")
+            )
+        } else {
+            return EvaluationStatusInfo(
+                icon: "checkmark.circle.fill",
+                iconColor: Color.statusGood,
+                title: LinkaCopy.value("inventory.evaluation.meeting.title"),
+                message: LinkaCopy.value("inventory.evaluation.meeting.message")
+            )
         }
     }
 

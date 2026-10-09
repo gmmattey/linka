@@ -1,7 +1,9 @@
 import Foundation
 import Combine
+import MeasurementHistory
 import NetworkInventory
 import NetworkProfiles
+import LinkaModules
 
 /// One household store per process; all environment writers use this composition.
 enum LinkaHousehold {
@@ -27,15 +29,21 @@ final class LinkaInventoryStore: ObservableObject {
     @Published private(set) var environments: [NetworkEnvironment] = []
     @Published private(set) var homeProfile: HomeNetworkProfile?
     @Published private(set) var activePlan: NetworkServicePlan?
+    @Published private(set) var planEvaluation: ResidentialPlanAggregateEvaluation?
     @Published private(set) var plans: [NetworkServicePlan] = []
     @Published private(set) var connections: [DeviceConnection] = []
     @Published var error: String?
     @Published private(set) var loading = false
 
     private let repository: HouseholdRepository
+    private let historyRepository: any MeasurementHistoryRepository
 
-    init(repository: HouseholdRepository = LinkaHousehold.repository) {
+    init(
+        repository: HouseholdRepository = LinkaHousehold.repository,
+        historyRepository: any MeasurementHistoryRepository = LinkaMeasurementHistory.makeRepository()
+    ) {
         self.repository = repository
+        self.historyRepository = historyRepository
     }
 
     func reload() async {
@@ -47,10 +55,14 @@ final class LinkaInventoryStore: ObservableObject {
             homeProfile = try await repository.homeProfile()
             plans = try await repository.plans()
             connections = try await repository.connections()
-            if let activePlanID = homeProfile?.activePlanID {
-                activePlan = plans.first(where: { $0.id == activePlanID })
+            if let activePlanID = homeProfile?.activePlanID,
+               let plan = plans.first(where: { $0.id == activePlanID }) {
+                activePlan = plan
+                let measurements = try await historyRepository.measurements(matching: MeasurementQuery(connectionKinds: [.wifi, .ethernet]))
+                planEvaluation = ResidentialPlanEvaluator.evaluateAggregate(plan: plan, measurements: measurements)
             } else {
                 activePlan = nil
+                planEvaluation = nil
             }
             error = nil
         } catch {
