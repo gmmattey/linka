@@ -115,6 +115,7 @@ targets:
       - package: NetworkProfiles
       - package: NetworkInventory
       - package: NetworkDNSBenchmark
+      - package: AssistConsultation
       - package: GoogleMobileAds
         product: GoogleMobileAds
       - package: UserMessagingPlatform
@@ -327,6 +328,8 @@ packages:
     path: NetworkProfiles
   NetworkDNSBenchmark:
     path: NetworkDNSBenchmark
+  AssistConsultation:
+    path: AssistConsultation
   GoogleMobileAds:
     url: https://github.com/googleads/swift-package-manager-google-mobile-ads.git
     from: 12.0.0
