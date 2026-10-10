@@ -554,7 +554,7 @@ public struct QuestionAnswer: Codable, Equatable, Sendable {
         self.text = text
     }
 
-    fileprivate func validate() throws {
+    func validate() throws {
         let hasText = !(text?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
         guard (optionID != nil) != hasText, (text?.unicodeScalars.count ?? 0) <= 2_000 else {
             throw ContractError.invalid("Resposta exige exatamente uma opção ou texto válido.")
