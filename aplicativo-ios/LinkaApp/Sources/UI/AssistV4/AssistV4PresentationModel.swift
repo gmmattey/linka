@@ -139,6 +139,44 @@ final class AssistV4PresentationModel: ObservableObject {
         updateSuggestedAction(status: .ignored)
     }
 
+    func reviseSlowConnectionAnswers() {
+        guard case .localOrientation = state,
+              let location = slowConnectionAnswers.location,
+              let usage = slowConnectionAnswers.usage else { return }
+        do {
+            var coordinator = try localCoordinator(for: .slowConnection)
+            try coordinator.apply(.start, at: Date())
+
+            let firstQuestion = try slowQuestion(after: SlowConnectionAnswers())
+            try coordinator.apply(.askLocal(firstQuestion), at: Date())
+            guard let locationOption = firstQuestion.options.first(where: { $0.text == slowLocationText(location) }) else {
+                throw ContractError.invalid("Opção de local não encontrada ao revisar a investigação.")
+            }
+            try coordinator.apply(
+                .answer(
+                    QuestionAnswer(questionID: firstQuestion.id, optionID: locationOption.id),
+                    turnID: reference(prefix: "local-turn")
+                ),
+                at: Date()
+            )
+
+            slowConnectionAnswers = try SlowConnectionLocalJourney.applying(locationOption, to: SlowConnectionAnswers())
+            let usageQuestion = try slowQuestion(after: slowConnectionAnswers)
+            try coordinator.apply(.askLocal(usageQuestion), at: Date())
+            guard let usageOption = usageQuestion.options.first(where: { $0.text == slowUsageText(usage) }) else {
+                throw ContractError.invalid("Opção de uso não encontrada ao revisar a investigação.")
+            }
+
+            self.coordinator = coordinator
+            turns = [Turn(role: .user, text: locationOption.text)]
+            guidedAnswers = [locationOption.text]
+            selectedOptionID = usageOption.id
+            state = .guided(intent: .slowConnection, question: usageQuestion)
+        } catch {
+            state = .limitation("Não foi possível revisar esta investigação local. Nenhum dado foi enviado.")
+        }
+    }
+
     private func localCoordinator(for intent: ConsultationIntent) throws -> ConsultationCoordinator {
         let now = Date()
         let consent = ConsentReceipt(
@@ -169,6 +207,30 @@ final class AssistV4PresentationModel: ObservableObject {
             break
         }
         return nil
+    }
+
+    private func slowQuestion(after answers: SlowConnectionAnswers) throws -> ConsultationQuestion {
+        guard case let .question(question) = SlowConnectionLocalJourney.next(after: answers) else {
+            throw ContractError.invalid("A investigação local não encontrou a pergunta esperada.")
+        }
+        return question
+    }
+
+    private func slowLocationText(_ location: SlowConnectionLocation) -> String {
+        switch location {
+        case .home: "Na casa inteira"
+        case .room: "Em um cômodo"
+        case .device: "Em um aparelho"
+        case .unknown: "Não sei"
+        }
+    }
+
+    private func slowUsageText(_ usage: SlowConnectionUsage) -> String {
+        switch usage {
+        case .all: "Em tudo"
+        case .service: "Só em um app ou serviço"
+        case .unknown: "Não sei"
+        }
     }
 
     private func continueSlowConnection(option: QuestionOption, coordinator: inout ConsultationCoordinator) throws {

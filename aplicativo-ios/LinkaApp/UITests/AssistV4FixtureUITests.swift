@@ -56,6 +56,26 @@ final class AssistV4FixtureUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Continuar"].isEnabled)
     }
 
+    func testResultCanRevisitTheLastGuidedChoiceWithoutSendingData() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
+        app.launch()
+
+        app.buttons["assist-v4.shortcut.slow_connection"].tap()
+        app.buttons["Em um cômodo"].tap()
+        app.buttons["Continuar"].tap()
+        app.buttons["Em tudo"].tap()
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.buttons["assist-v4.action.revise-answers"].waitForExistence(timeout: 3))
+
+        app.buttons["assist-v4.action.revise-answers"].tap()
+        XCTAssertTrue(app.staticTexts["Acontece em tudo ou só em um app ou serviço?"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Continuar"].isEnabled)
+        app.buttons["Só em um app ou serviço"].tap()
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.staticTexts["Dados insuficientes para continuar"].waitForExistence(timeout: 3))
+    }
+
     func testFixtureKeepsTheLocalBoundariesOnExpandedTextIpad() throws {
         let app = XCUIApplication()
         app.launchArguments = [

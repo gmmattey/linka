@@ -146,6 +146,9 @@ struct AssistV4Screen: View {
             }
             orientationEvidence(orientation)
             suggestedActionFeedback(orientation.actionProgress.status)
+            Button("Revisar respostas") { model.reviseSlowConnectionAnswers() }
+                .buttonStyle(.linkaSecondary)
+                .accessibilityIdentifier("assist-v4.action.revise-answers")
             if orientation.actionProgress.status == .pending {
                 Button("Voltar às sugestões") { model.returnHome() }.buttonStyle(.linkaSecondary)
             } else {

@@ -62,6 +62,29 @@ final class AssistV4PresentationModelTests: XCTestCase {
         XCTAssertEqual(model.state, .guided(intent: intent, question: question))
     }
 
+    func testSlowConnectionResultCanRevisitTheLastGuidedAnswerLocally() {
+        let model = AssistV4PresentationModel()
+        model.start(.slowConnection)
+        guard case let .guided(_, firstQuestion) = model.state else { return XCTFail("Expected first local question") }
+        model.selectedOptionID = firstQuestion.options.first(where: { $0.text == "Em um cômodo" })?.id
+        model.continueGuided()
+        guard case let .guided(_, usageQuestion) = model.state else { return XCTFail("Expected usage question") }
+        model.selectedOptionID = usageQuestion.options.first(where: { $0.text == "Em tudo" })?.id
+        model.continueGuided()
+
+        model.reviseSlowConnectionAnswers()
+        guard case let .guided(intent, revisedQuestion) = model.state else { return XCTFail("Expected the revised local question") }
+        XCTAssertEqual(intent, .slowConnection)
+        XCTAssertEqual(revisedQuestion.text, "Acontece em tudo ou só em um app ou serviço?")
+        XCTAssertEqual(model.selectedOptionID, revisedQuestion.options.first(where: { $0.text == "Em tudo" })?.id)
+        XCTAssertEqual(model.turns.map(\.text), ["Em um cômodo"])
+
+        model.selectedOptionID = revisedQuestion.options.first(where: { $0.text == "Só em um app ou serviço" })?.id
+        model.continueGuided()
+        guard case let .limitation(detail) = model.state else { return XCTFail("Expected local evidence limitation") }
+        XCTAssertTrue(detail.contains("teste geral não comprova"))
+    }
+
     func testRouterAndMeshStayInEvidenceLimitedLocalPaths() {
         let router = AssistV4PresentationModel()
         router.start(.routerAdequacy)
