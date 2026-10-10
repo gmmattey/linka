@@ -74,6 +74,26 @@ final class AssistV4PresentationModelTests: XCTestCase {
         XCTAssertNil(completedOrientation.actionProgress.evidenceRef)
     }
 
+    func testBackgroundPauseRequiresAnExplicitResumeAndPreservesTheGuidedChoice() {
+        let model = AssistV4PresentationModel()
+        model.start(.slowConnection)
+        guard case let .guided(intent, question) = model.state else { return XCTFail("Expected guided question") }
+        model.selectedOptionID = question.options[1].id
+
+        model.pauseForBackground()
+
+        XCTAssertEqual(model.state, .paused)
+        XCTAssertEqual(model.selectedOptionID, question.options[1].id)
+        model.continueGuided()
+        XCTAssertEqual(model.state, .paused)
+
+        model.resumePausedInvestigation()
+
+        XCTAssertEqual(model.state, .guided(intent: intent, question: question))
+        XCTAssertEqual(model.selectedOptionID, question.options[1].id)
+        XCTAssertTrue(model.turns.isEmpty)
+    }
+
     func testDeferringSuggestedActionDoesNotCreateRetestEvidence() {
         let model = AssistV4PresentationModel()
         model.start(.slowConnection)

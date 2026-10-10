@@ -35,6 +35,7 @@ final class AssistV4PresentationModel: ObservableObject {
         case unavailableOpenQuestion(String, canResumeGuidance: Bool)
         case limitation(String)
         case localOrientation(LocalOrientation)
+        case paused
         case cancelled
     }
 
@@ -56,6 +57,7 @@ final class AssistV4PresentationModel: ObservableObject {
     private var planValueAnswers = PlanValueAnswers()
     private var guidedAnswers: [String] = []
     private var suspendedLocalFlow: SuspendedLocalFlow?
+    private var pausedPresentationState: State?
     private let submitOpenQuestionRemote: @Sendable (ConsultationPayload) async -> AssistV4OpenQuestionSubmission
     private var pendingRemotePayload: ConsultationPayload?
 
@@ -80,6 +82,7 @@ final class AssistV4PresentationModel: ObservableObject {
         }
         guidedAnswers = []
         suspendedLocalFlow = nil
+        pausedPresentationState = nil
         do {
             var coordinator = try localCoordinator(for: intent)
             try coordinator.apply(.start, at: Date())
@@ -330,6 +333,7 @@ final class AssistV4PresentationModel: ObservableObject {
             try coordinator.apply(.cancellationFinished, at: Date())
             self.coordinator = nil
             suspendedLocalFlow = nil
+            pausedPresentationState = nil
             slowConnectionAnswers = SlowConnectionAnswers()
             planValueAnswers = PlanValueAnswers()
             clearPlanDeclaration()
@@ -344,11 +348,47 @@ final class AssistV4PresentationModel: ObservableObject {
 
     func returnHome() {
         suspendedLocalFlow = nil
+        pausedPresentationState = nil
         selectedOptionID = nil
         clearPlanDeclaration()
         pendingRemotePayload = nil
         coordinator = nil
         state = .home
+    }
+
+    /// Background nunca retoma uma investigação por conta própria. O redutor
+    /// preserva a sessão local e a UI pede um gesto novo para retomá-la.
+    func pauseForBackground() {
+        switch state {
+        case .guided, .planDeclaration, .localOrientation:
+            break
+        default:
+            return
+        }
+        guard var coordinator else { return }
+        do {
+            try coordinator.apply(.pause, at: Date())
+            self.coordinator = coordinator
+            pausedPresentationState = state
+            state = .paused
+        } catch {
+            // A transição não pode substituir a tela atual por uma alegação de
+            // pausa quando o coordenador não conseguiu registrá-la.
+        }
+    }
+
+    func resumePausedInvestigation() {
+        guard state == .paused,
+              let pausedPresentationState,
+              var coordinator else { return }
+        do {
+            try coordinator.apply(.resume, at: Date())
+            self.coordinator = coordinator
+            self.pausedPresentationState = nil
+            state = pausedPresentationState
+        } catch {
+            state = .limitation("Não foi possível retomar esta investigação local. Nenhum dado foi enviado.")
+        }
     }
 
     func resumeGuidance() {
