@@ -53,6 +53,7 @@ struct AssistV4Screen: View {
         .background(Color.surfaceCard)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("assist-v4.network-context")
     }
 
     @ViewBuilder private var turns: some View {
@@ -102,8 +103,19 @@ struct AssistV4Screen: View {
     }
 
     private func shortcut(_ title: String, _ intent: ConsultationIntent) -> some View {
-        Button { model.start(intent) } label: { HStack { Text(title); Spacer(); Image(systemName: "chevron.right") } }
-            .font(.bodyRegularStrong).buttonStyle(.plain).padding(.vertical, 8)
+        Button(action: { model.start(intent) }) {
+            HStack {
+                Text(title)
+                Spacer()
+                Image(systemName: "chevron.right")
+            }
+            .contentShape(Rectangle())
+        }
+            .font(.bodyRegularStrong)
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .padding(.vertical, 8)
             .accessibilityIdentifier("assist-v4.shortcut.\(intent.rawValue)")
     }
 

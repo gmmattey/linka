@@ -49,4 +49,27 @@ final class AssistV4FixtureUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Em um cômodo"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["Continuar"].isEnabled)
     }
+
+    func testFixtureKeepsTheLocalBoundariesOnExpandedTextIpad() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "--assist-v4-fixture",
+            "-AppleLanguages", "(pt-BR)",
+            "-AppleLocale", "pt_BR",
+            "-AppleInterfaceStyle", "Dark",
+            "-UIPreferredContentSizeCategory", "UICTContentSizeCategoryAccessibilityXXXL"
+        ]
+        app.launch()
+
+        XCTAssertTrue(app.descendants(matching: .any)["assist-v4.network-context"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["assist-v4.shortcut.router_adequacy"].exists)
+        XCTAssertTrue(app.textFields["assist-v4.composer"].exists)
+
+        app.buttons["assist-v4.shortcut.router_adequacy"].tap()
+        XCTAssertTrue(app.buttons["Selecionar um equipamento"].waitForExistence(timeout: 3))
+        app.buttons["Selecionar um equipamento"].tap()
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.staticTexts["Dados insuficientes para continuar"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["assist-v4.evidence-boundary"].exists)
+    }
 }
