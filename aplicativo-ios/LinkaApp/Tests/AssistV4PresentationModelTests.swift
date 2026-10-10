@@ -35,4 +35,36 @@ final class AssistV4PresentationModelTests: XCTestCase {
         XCTAssertEqual(title, "Próxima etapa sugerida")
         XCTAssertTrue(detail.contains("Medir o cenário de forma controlada"))
     }
+
+    func testRouterAndMeshStayInEvidenceLimitedLocalPaths() {
+        let router = AssistV4PresentationModel()
+        router.start(.routerAdequacy)
+        guard case let .guided(_, routerQuestion) = router.state,
+              let selectedEquipment = routerQuestion.options.first(where: { $0.text == "Selecionar um equipamento" }) else {
+            return XCTFail("Expected equipment selection")
+        }
+        router.selectedOptionID = selectedEquipment.id
+        router.continueGuided()
+        guard case let .limitation(routerDetail) = router.state else { return XCTFail("Expected verified-evidence limitation") }
+        XCTAssertTrue(routerDetail.contains("identidade, a revisão e a fonte"))
+
+        let mesh = AssistV4PresentationModel()
+        mesh.start(.meshNeed)
+        guard case let .guided(_, meshQuestion) = mesh.state,
+              let affectedArea = meshQuestion.options.first(where: { $0.text == "Em vários ambientes" }) else {
+            return XCTFail("Expected affected-area selection")
+        }
+        mesh.selectedOptionID = affectedArea.id
+        mesh.continueGuided()
+        guard case let .limitation(meshDetail) = mesh.state else { return XCTFail("Expected coverage-evidence limitation") }
+        XCTAssertTrue(meshDetail.contains("Sem evidência de cobertura"))
+    }
+
+    func testPlanValueDoesNotClaimOffersWithoutDeclaredData() {
+        let model = AssistV4PresentationModel()
+        model.start(.planValue)
+        guard case let .limitation(detail) = model.state else { return XCTFail("Expected declared-plan limitation") }
+        XCTAssertTrue(detail.contains("plano e o preço atuais precisam ser declarados"))
+        XCTAssertTrue(model.turns.isEmpty)
+    }
 }

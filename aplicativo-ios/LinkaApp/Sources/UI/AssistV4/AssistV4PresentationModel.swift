@@ -30,10 +30,21 @@ final class AssistV4PresentationModel: ObservableObject {
     func start(_ intent: ConsultationIntent) {
         guard intent != .openQuestion else { return }
         if intent == .slowConnection { slowConnectionAnswers = SlowConnectionAnswers() }
-        guard let question = firstQuestion(for: intent) else { return }
         do {
             var coordinator = try localCoordinator(for: intent)
             try coordinator.apply(.start, at: Date())
+            if intent == .planValue {
+                try coordinator.apply(.markInsufficientEvidence, at: Date())
+                self.coordinator = coordinator
+                turns = []
+                selectedOptionID = nil
+                state = .limitation(planLimitation())
+                return
+            }
+            guard let question = firstQuestion(for: intent) else {
+                state = .limitation("A investigação local não encontrou uma próxima pergunta. Nenhum dado foi enviado.")
+                return
+            }
             try coordinator.apply(.askLocal(question), at: Date())
             self.coordinator = coordinator
             turns = []
@@ -71,6 +82,10 @@ final class AssistV4PresentationModel: ObservableObject {
             selectedOptionID = nil
             if intent == .slowConnection {
                 try continueSlowConnection(option: option, coordinator: &coordinator)
+            } else if intent == .routerAdequacy {
+                try continueRouterAdequacy(option: option, coordinator: &coordinator)
+            } else if intent == .meshNeed {
+                try continueMeshNeed(option: option, coordinator: &coordinator)
             } else {
                 try coordinator.apply(.markInsufficientEvidence, at: Date())
                 self.coordinator = coordinator
@@ -105,11 +120,17 @@ final class AssistV4PresentationModel: ObservableObject {
     }
 
     private func firstQuestion(for intent: ConsultationIntent) -> ConsultationQuestion? {
-        if intent == .slowConnection,
-           case let .question(question) = SlowConnectionLocalJourney.next(after: slowConnectionAnswers) {
-            return question
+        switch intent {
+        case .slowConnection:
+            if case let .question(question) = SlowConnectionLocalJourney.next(after: slowConnectionAnswers) { return question }
+        case .routerAdequacy:
+            if case let .question(question) = RouterAdequacyLocalJourney.next(after: RouterAdequacyAnswers()) { return question }
+        case .meshNeed:
+            if case let .question(question) = MeshNeedLocalJourney.next(after: MeshNeedAnswers()) { return question }
+        case .planValue, .openQuestion:
+            break
         }
-        return GuidedJourney.firstQuestion(for: intent)
+        return nil
     }
 
     private func continueSlowConnection(option: QuestionOption, coordinator: inout ConsultationCoordinator) throws {
@@ -128,6 +149,49 @@ final class AssistV4PresentationModel: ObservableObject {
             self.coordinator = coordinator
             state = .limitation(limitations.joined(separator: " "))
         }
+    }
+
+    private func continueRouterAdequacy(option: QuestionOption, coordinator: inout ConsultationCoordinator) throws {
+        guard option.text == "Selecionar um equipamento" else {
+            try coordinator.apply(.markInsufficientEvidence, at: Date())
+            self.coordinator = coordinator
+            state = .limitation("Selecione o equipamento e confirme sua identidade, revisão e fonte antes de avaliar capacidade.")
+            return
+        }
+        switch RouterAdequacyLocalJourney.next(after: RouterAdequacyAnswers(equipmentSelected: true)) {
+        case let .requiresVerifiedEvidence(limitations):
+            try coordinator.apply(.markInsufficientEvidence, at: Date())
+            self.coordinator = coordinator
+            state = .limitation(limitations.joined(separator: " "))
+        default:
+            throw ContractError.invalid("Triagem local de roteador retornou uma etapa inesperada.")
+        }
+    }
+
+    private func continueMeshNeed(option: QuestionOption, coordinator: inout ConsultationCoordinator) throws {
+        let area: MeshAffectedArea
+        switch option.text {
+        case "Em um ambiente": area = .one
+        case "Em vários ambientes": area = .many
+        case "Na casa toda": area = .all
+        case "Não sei": area = .unknown
+        default: throw ContractError.invalid("Opção não pertence à triagem de cobertura.")
+        }
+        switch MeshNeedLocalJourney.next(after: MeshNeedAnswers(affectedArea: area)) {
+        case let .requiresCoverageEvidence(limitations), let .result(_, limitations):
+            try coordinator.apply(.markInsufficientEvidence, at: Date())
+            self.coordinator = coordinator
+            state = .limitation(limitations.joined(separator: " "))
+        default:
+            throw ContractError.invalid("Triagem local de cobertura retornou uma etapa inesperada.")
+        }
+    }
+
+    private func planLimitation() -> String {
+        guard case let .requiresDeclaredPlanData(limitations) = PlanValueLocalJourney.next(after: PlanValueAnswers()) else {
+            return "Faltam dados declarados para avaliar o plano localmente."
+        }
+        return limitations.joined(separator: " ")
     }
 
     private func reference(prefix: String) -> PseudonymousReference {
