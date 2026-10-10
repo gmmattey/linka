@@ -304,6 +304,72 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertEqual(limitations.count, 3)
     }
 
+    func testOpportunityHandoffRequiresClosedTypedReferences() throws {
+        let baseline = ref("measurement-001")
+        let evidence = ref("measurement-002")
+        let valid = OpportunityHandoff(
+            opportunityID: ref("opportunity-001"),
+            kind: .unstableConnection,
+            ruleVersion: "optimization/1",
+            baselineMeasurementRef: baseline,
+            evidenceMeasurementRefs: [baseline, evidence],
+            suggestedAction: .reduceConcurrentUse,
+            createdAt: now
+        )
+        try OpportunityHandoffValidator.validateShape(valid, at: now)
+
+        let missingBaseline = OpportunityHandoff(
+            opportunityID: ref("opportunity-002"),
+            kind: .unstableConnection,
+            ruleVersion: "optimization/1",
+            baselineMeasurementRef: baseline,
+            evidenceMeasurementRefs: [evidence],
+            suggestedAction: .reduceConcurrentUse,
+            createdAt: now
+        )
+        XCTAssertThrowsError(try OpportunityHandoffValidator.validateShape(missingBaseline, at: now))
+    }
+
+    func testOpportunityHandoffRevalidatesAgeAvailabilityEligibilityAndContext() {
+        let baseline = ref("measurement-001")
+        let evidence = ref("measurement-002")
+        let handoff = OpportunityHandoff(
+            opportunityID: ref("opportunity-001"),
+            kind: .belowUsualQuality,
+            ruleVersion: "optimization/1",
+            baselineMeasurementRef: baseline,
+            evidenceMeasurementRefs: [baseline, evidence],
+            suggestedAction: .restartRouter,
+            createdAt: now.addingTimeInterval(-60)
+        )
+        let references: Set<PseudonymousReference> = [baseline, evidence]
+        XCTAssertEqual(
+            OpportunityHandoffValidator.revalidate(
+                handoff,
+                availableMeasurementRefs: references,
+                eligibleMeasurementRefs: references,
+                contextMatches: true,
+                acceptedRuleVersions: ["optimization/1"],
+                maximumAge: 300,
+                at: now
+            ),
+            .eligible
+        )
+
+        guard case let .unavailable(limitations) = OpportunityHandoffValidator.revalidate(
+            handoff,
+            availableMeasurementRefs: [baseline],
+            eligibleMeasurementRefs: [baseline],
+            contextMatches: false,
+            acceptedRuleVersions: ["optimization/2"],
+            maximumAge: 30,
+            at: now
+        ) else {
+            return XCTFail("Expected unavailable handoff")
+        }
+        XCTAssertEqual(limitations.count, 5)
+    }
+
     func testRefusedAndRevokedConsentRejectSubmission() {
         for state in [ConsentState.refused, .revoked] {
             XCTAssertThrowsError(try payload(snapshot: snapshot(consent: consent(state: state))).validate(at: now)) { error in
