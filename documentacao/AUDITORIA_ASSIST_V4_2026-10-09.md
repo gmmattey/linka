@@ -75,12 +75,12 @@ ativou endpoint, Worker, provider, tráfego, custo ou retenção remota.
   separado: sua prova local não altera `/v2/assist` nem habilita transporte.
 
 ## Gate de aceite para iniciar V4
-- [ ] Confirmar schema e persistência concretos de inventário/plano/topologia e elegibilidade de medições.
-- [ ] Inspecionar Worker e contratos do relay; planejar compatibilidade de versões e limites de custo.
-- [ ] Definir ADR da política de consultoria vs diagnóstico observacional.
-- [ ] Definir máquina de estados, contratos tipados, autorização de teste e retenção de sessão.
-- [ ] Criar testes de compatibilidade com Assist legado e cenários sem medição.
-- [ ] Executar build/testes e QA em iPhone; não declarar concluído apenas por inspeção estática.
+- [x] Confirmar schema e persistência concretos de inventário/plano/topologia e elegibilidade de medições.
+- [x] Inspecionar Worker e contratos do relay; planejar compatibilidade de versões e limites de custo.
+- [x] Definir ADR da política de consultoria vs diagnóstico observacional.
+- [x] Definir máquina de estados, contratos tipados, autorização de teste e retenção de sessão.
+- [x] Criar testes de compatibilidade com Assist legado e cenários sem medição.
+- [x] Executar build/testes e QA em iPhone; não declarar concluído apenas por inspeção estática.
 
 ## Adendo operacional — 10/10/2026
 
@@ -118,10 +118,15 @@ prova de jornada do cliente.
 - A [PR #324](https://github.com/gmmattey/linka/pull/324) foi integrada sem
   modificar a configuração legada de `/v2/assist`.
 
-### Limite que ainda impede encerrar #310
+### Prova física e conclusão de #310
 
-O único aparelho físico listado para esta auditoria continua no estado
-`unavailable`. Enquanto não houver um iPhone/iPad desbloqueado, confiado e
-com Developer Mode quando aplicável, não há evidência de App Attest genuíno,
-instalação assinada nem QA físico. #310 continua aberta até essa prova e não
-autoriza declarar #312 ou #320 concluídas.
+Em 10/10/2026, a prova física foi concluída em um iPhone 17 real, pareado por
+cabo. O Xcode atualizou o perfil para incluir App Attest; a build Debug foi
+assinada, instalada e o teste
+`testSystemAppAttestCreatesGenuineAttestationOnPhysicaliPhone` passou ao gerar
+uma chave e uma atestação Apple genuínas. A entitlement assinada declara
+`com.apple.developer.devicecheck.appattest-environment=development`.
+
+O gate de auditoria #310 está concluído. Isso não declara a jornada visual
+#312, o orquestrador #320, provider/custo ou tráfego de consultoria como
+prontos: esses itens continuam em suas issues e flags próprias.
