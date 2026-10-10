@@ -221,6 +221,70 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertThrowsError(try AssistConsultationContract.encodeResponse(unavailableProposal, for: unavailableRequest, now: now))
     }
 
+    func testCoordinatorRequiresExplicitTestApprovalAndTracksOnlyValidatedEvidence() throws {
+        let initialConsent = consent(scope: .questionAndContext)
+        let session = try InvestigationSession(
+            id: ref("investigation-001"), intent: .slowConnection, contextSnapshotVersion: 1,
+            consentSnapshot: initialConsent, createdAt: now
+        )
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: initialConsent, requiresConsent: false), at: now)
+        let proposal = ToolProposal(
+            id: ref("proposal-001"), tool: .runExistingTest, objective: "Executar teste previamente aprovado.",
+            risk: .low, expiresAt: now.addingTimeInterval(60), revision: 1
+        )
+        try coordinator.apply(.proposeTest(proposal), at: now)
+        XCTAssertEqual(coordinator.session.state, .awaitingTestPermission)
+        XCTAssertThrowsError(try coordinator.apply(.testFinished(InvestigationToolResult(
+            requestID: proposal.id, status: .completed, evidenceRefs: [ref("evidence-001")]
+        )), at: now))
+
+        try coordinator.apply(.approveTest(proposalID: proposal.id), at: now)
+        try coordinator.apply(.testFinished(InvestigationToolResult(
+            requestID: proposal.id, status: .completed, evidenceRefs: [ref("evidence-001")]
+        )), at: now)
+        XCTAssertEqual(coordinator.session.state, .generatingResult)
+        let action = ActionProposal(
+            id: ref("action-001"), kind: .inspect, title: "Verificar o cabo",
+            steps: ["Confirme que o cabo está firme."], evidenceRefs: [ref("evidence-001")]
+        )
+        let recommendation = InvestigationRecommendation(
+            assessment: ConsultationAssessment(conclusion: .safeAction, summary: "Há uma ação reversível para tentar.", evidenceRefs: [ref("evidence-001")]),
+            actions: [action]
+        )
+        try coordinator.apply(.showRecommendation(recommendation), at: now)
+        try coordinator.apply(.acceptAction(action), at: now)
+        XCTAssertEqual(coordinator.session.state, .actionPending)
+    }
+
+    func testCoordinatorRejectsForeignAndRepeatedAnswersAndResumesOnlyByEvent() throws {
+        let session = try InvestigationSession(
+            id: ref("investigation-002"), intent: .openQuestion, contextSnapshotVersion: 1,
+            consentSnapshot: consent(), createdAt: now
+        )
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: consent(), requiresConsent: false), at: now)
+        let question = ConsultationQuestion(id: ref("question-001"), text: "Qual é o cômodo?", rationale: "Contexto mínimo.")
+        try coordinator.apply(.ask(question), at: now)
+        XCTAssertThrowsError(try coordinator.apply(.answer(QuestionAnswer(questionID: ref("question-foreign"), text: "Sala"), turnID: ref("turn-001")), at: now))
+        try coordinator.apply(.answer(QuestionAnswer(questionID: question.id, text: "Sala"), turnID: ref("turn-001")), at: now)
+        try coordinator.apply(.beginPlanning, at: now)
+        try coordinator.apply(.ask(question), at: now)
+        XCTAssertThrowsError(try coordinator.apply(.answer(QuestionAnswer(questionID: question.id, text: "Sala"), turnID: ref("turn-002")), at: now))
+
+        try coordinator.apply(.pause, at: now)
+        XCTAssertEqual(coordinator.session.state, .paused)
+        try coordinator.apply(.resume, at: now)
+        XCTAssertEqual(coordinator.session.state, .awaitingUserAnswer)
+
+        let revoked = consent(state: .revoked)
+        try coordinator.apply(.revokeConsent(revoked), at: now)
+        XCTAssertEqual(coordinator.session.state, .awaitingConsent)
+        XCTAssertThrowsError(try coordinator.apply(.beginPlanning, at: now))
+    }
+
     func testExpiredAndConflictedEvidenceBecomeExplicitAbsence() throws {
         let base = EvidenceFact(
             id: ref("evidence-router"), subjectRef: ref("device-001"), property: "wifi_standard",
