@@ -11,7 +11,8 @@ enum AssistOpportunityHandoffFactory {
     static func make(
         opportunity: OptimizationOpportunity,
         baselineMeasurementID: UUID,
-        createdAt: Date
+        createdAt: Date,
+        validatedAt: Date = Date()
     ) throws -> OpportunityHandoff {
         let baseline = try measurementReference(baselineMeasurementID)
         let evidence = try opportunity.evidenceMeasurementIDs.map(measurementReference)
@@ -28,7 +29,7 @@ enum AssistOpportunityHandoffFactory {
             suggestedAction: suggestedAction(for: opportunity.action),
             createdAt: createdAt
         )
-        try OpportunityHandoffValidator.validateShape(handoff, at: createdAt)
+        try OpportunityHandoffValidator.validateShape(handoff, at: validatedAt)
         return handoff
     }
 

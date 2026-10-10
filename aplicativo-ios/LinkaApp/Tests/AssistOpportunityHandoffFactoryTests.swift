@@ -52,5 +52,24 @@ final class AssistOpportunityHandoffFactoryTests: XCTestCase {
             createdAt: Date()
         ))
     }
+
+    func testRejectsHandoffCreatedInTheFuture() {
+        let baseline = UUID(uuidString: "11111111-1111-1111-1111-111111111111")!
+        let opportunity = OptimizationOpportunity(
+            id: "responsiveness-under-load-v1",
+            kind: .responsivenessUnderLoad,
+            action: .reduceConcurrentUse,
+            evidenceMeasurementIDs: [baseline],
+            confidence: 0.5
+        )
+        let now = Date(timeIntervalSince1970: 1_791_547_200)
+
+        XCTAssertThrowsError(try AssistOpportunityHandoffFactory.make(
+            opportunity: opportunity,
+            baselineMeasurementID: baseline,
+            createdAt: now.addingTimeInterval(1),
+            validatedAt: now
+        ))
+    }
 }
 #endif
