@@ -291,6 +291,8 @@ Perguntar apenas lacunas: casa inteira ou um lugar; todos os aparelhos ou um; to
 
 Saídas: indício com próximo teste; ação simples compatível; evidência insuficiente; encaminhamento fundamentado. Não recomendar 5 GHz sem disponibilidade/seleção confirmadas nem reinício universal.
 
+**Implementação parcial iOS:** depois de declarar contexto local compatível, a pessoa pode tocar em **Fazer teste agora**. O app informa antes que haverá tráfego e que o resultado concluído entra no histórico normal do Linka; a medição formal devolve à mesma sessão somente seus fatos, tipo de conexão e data. Isso não envia a investigação ao Assist, não cria comparação por si só e não permite separar LAN, Internet, DNS ou operadora.
+
 **Aceite:** início útil sem medição; teste recusado não bloqueia; local/data corretos; origem não confirmada continua hipótese; ação/reteste retornam à mesma sessão. Execução: [#313](https://github.com/gmmattey/linka/issues/313).
 
 <a id="assist-v4-roteador"></a>
