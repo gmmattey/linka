@@ -954,6 +954,82 @@ final class AssistConsultationTests: XCTestCase {
         }
     }
 
+    func testContextAssemblerKeepsOnlyAuthorizedCurrentEvidence() throws {
+        let source = ContextSource(id: ref("source-assembly"), kind: .userDeclaration, retrievedAt: now)
+        let profile = ConsultationEntity(id: ref("profile-assembly"), kind: .profile, sourceRefs: [source.id])
+        let current = EvidenceFact(
+            id: ref("evidence-current"), subjectRef: profile.id, property: "plan_name",
+            value: .text("Fibra 500"), sourceType: .userDeclared, sourceRefs: [source.id],
+            observedAt: now, validUntil: now.addingTimeInterval(60),
+            consentScope: .questionAndContext
+        )
+        let expired = EvidenceFact(
+            id: ref("evidence-expired"), subjectRef: profile.id, property: "old_plan_name",
+            value: .text("Legado"), sourceType: .userDeclared, sourceRefs: [source.id],
+            observedAt: now.addingTimeInterval(-120), validUntil: now.addingTimeInterval(-1),
+            consentScope: .questionAndContext
+        )
+
+        let snapshot = try ContextSnapshotAssembler.assemble(
+            ContextSnapshotAssemblyRequest(
+                snapshotID: ref("snapshot-assembly"), revision: 1, intent: .planValue,
+                consent: consent(scope: .questionAndContext), selectedProfileRef: profile.id,
+                sources: [source], entities: [profile],
+                evidence: [EvidenceCandidate(fact: current), EvidenceCandidate(fact: expired)]
+            ),
+            at: now
+        )
+
+        XCTAssertEqual(snapshot.facts, [current])
+        XCTAssertEqual(snapshot.absences.count, 1)
+        XCTAssertEqual(snapshot.absences.first?.property, "old_plan_name")
+        XCTAssertEqual(snapshot.absences.first?.reason, .expired)
+    }
+
+    func testContextAssemblerRedactsAllContextWithoutConsent() throws {
+        let source = ContextSource(id: ref("source-redacted"), kind: .userDeclaration, retrievedAt: now)
+        let profile = ConsultationEntity(id: ref("profile-redacted"), kind: .profile, sourceRefs: [source.id])
+        let fact = EvidenceFact(
+            id: ref("evidence-redacted"), subjectRef: profile.id, property: "plan_name",
+            value: .text("Dado que não pode sair"), sourceType: .userDeclared, sourceRefs: [source.id],
+            observedAt: now, consentScope: .questionAndContext
+        )
+
+        let snapshot = try ContextSnapshotAssembler.assemble(
+            ContextSnapshotAssemblyRequest(
+                snapshotID: ref("snapshot-redacted"), revision: 1, intent: .openQuestion,
+                consent: consent(state: .refused, scope: .none), selectedProfileRef: profile.id,
+                sources: [source], entities: [profile], evidence: [EvidenceCandidate(fact: fact)]
+            ),
+            at: now
+        )
+
+        XCTAssertNil(snapshot.selectedProfileRef)
+        XCTAssertTrue(snapshot.sources.isEmpty)
+        XCTAssertTrue(snapshot.entities.isEmpty)
+        XCTAssertTrue(snapshot.facts.isEmpty)
+        XCTAssertTrue(snapshot.absences.isEmpty)
+        XCTAssertTrue(snapshot.measurements.isEmpty)
+    }
+
+    func testEphemeralSnapshotCacheExpiresAndDoesNotRetainTheEntry() async throws {
+        let cache = ExpiringContextSnapshotCache()
+        let snapshot = try ContextSnapshotAssembler.assemble(
+            ContextSnapshotAssemblyRequest(
+                snapshotID: ref("snapshot-cache"), revision: 1, intent: .openQuestion,
+                consent: consent(scope: .questionAndContext)
+            ),
+            at: now
+        )
+        try await cache.store(snapshot, expiresAt: now.addingTimeInterval(60), at: now)
+        let stored = await cache.snapshot(for: snapshot.snapshotID, at: now.addingTimeInterval(59))
+        XCTAssertEqual(stored, snapshot)
+        let expired = await cache.snapshot(for: snapshot.snapshotID, at: now.addingTimeInterval(60))
+        XCTAssertNil(expired)
+        let discarded = await cache.snapshot(for: snapshot.snapshotID, at: now.addingTimeInterval(61))
+        XCTAssertNil(discarded)
+    }
+
     private func fixture(_ name: String) throws -> Data {
         guard let url = Bundle.module.url(forResource: name, withExtension: "json") else {
             throw XCTSkip("Fixture ausente: \(name)")
