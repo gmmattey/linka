@@ -210,6 +210,51 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertTrue(wirelessLimitations.contains { $0.localizedCaseInsensitiveContains("não há promessa de cobertura") })
     }
 
+    func testPlanValueJourneyRequiresDeclaredDataThenCollectsOnlyPriorityAndSatisfaction() {
+        guard case let .requiresDeclaredPlanData(limitations) = PlanValueLocalJourney.next(after: PlanValueAnswers()) else {
+            return XCTFail("Expected declared-plan-data requirement")
+        }
+        XCTAssertFalse(limitations.isEmpty)
+
+        let declared = PlanValueAnswers(hasDeclaredPlan: true, hasDeclaredPrice: true)
+        guard case let .question(priority) = PlanValueLocalJourney.next(after: declared) else {
+            return XCTFail("Expected priority question")
+        }
+        XCTAssertEqual(priority.text, "O que mais importa para você?")
+        XCTAssertTrue(priority.allowUnknown)
+
+        guard case let .question(satisfaction) = PlanValueLocalJourney.next(after: PlanValueAnswers(
+            hasDeclaredPlan: true,
+            hasDeclaredPrice: true,
+            priority: .economy
+        )) else {
+            return XCTFail("Expected satisfaction question")
+        }
+        XCTAssertEqual(satisfaction.text, "O plano atual atende ao que você precisa?")
+    }
+
+    func testPlanValueJourneyDoesNotConsultOffersOrClaimCommercialAvailability() {
+        guard case let .result(conclusion, limitations) = PlanValueLocalJourney.next(after: PlanValueAnswers(
+            hasDeclaredPlan: true,
+            hasDeclaredPrice: true,
+            priority: .offers
+        )) else {
+            return XCTFail("Expected missing-commercial-data result")
+        }
+        XCTAssertEqual(conclusion, .commercialDataMissing)
+        XCTAssertTrue(limitations.contains { $0.localizedCaseInsensitiveContains("nenhuma oferta é consultada") })
+
+        guard case let .requiresComparableMeasurements(measurementLimitations) = PlanValueLocalJourney.next(after: PlanValueAnswers(
+            hasDeclaredPlan: true,
+            hasDeclaredPrice: true,
+            priority: .speed,
+            satisfaction: .dissatisfied
+        )) else {
+            return XCTFail("Expected comparable-measurement requirement")
+        }
+        XCTAssertFalse(measurementLimitations.isEmpty)
+    }
+
     func testRefusedAndRevokedConsentRejectSubmission() {
         for state in [ConsentState.refused, .revoked] {
             XCTAssertThrowsError(try payload(snapshot: snapshot(consent: consent(state: state))).validate(at: now)) { error in
