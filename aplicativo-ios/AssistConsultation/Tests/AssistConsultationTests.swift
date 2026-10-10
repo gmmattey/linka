@@ -241,6 +241,15 @@ final class AssistConsultationTests: XCTestCase {
         )), at: now))
 
         try coordinator.apply(.approveTest(proposalID: proposal.id), at: now)
+        XCTAssertThrowsError(try coordinator.apply(.pause, at: now))
+        try coordinator.apply(.recoverableFailure, at: now)
+        XCTAssertEqual(coordinator.session.state, .recoverableError)
+        try coordinator.apply(.retry, at: now)
+        XCTAssertEqual(coordinator.session.state, .collectingContext)
+
+        try coordinator.apply(.beginPlanning, at: now)
+        try coordinator.apply(.proposeTest(proposal), at: now)
+        try coordinator.apply(.approveTest(proposalID: proposal.id), at: now)
         try coordinator.apply(.testFinished(InvestigationToolResult(
             requestID: proposal.id, status: .completed, evidenceRefs: [ref("evidence-001")]
         )), at: now)
@@ -266,9 +275,10 @@ final class AssistConsultationTests: XCTestCase {
         var coordinator = ConsultationCoordinator(session: session)
         try coordinator.apply(.start, at: now)
         try coordinator.apply(.contextCollected(revision: 1, consent: consent(), requiresConsent: false), at: now)
-        let question = ConsultationQuestion(id: ref("question-001"), text: "Qual é o cômodo?", rationale: "Contexto mínimo.")
+        let question = ConsultationQuestion(id: ref("question-001"), text: "Qual é o cômodo?", options: [QuestionOption(id: ref("option-001"), text: "Sala")], allowFreeText: true, rationale: "Contexto mínimo.")
         try coordinator.apply(.ask(question), at: now)
         XCTAssertThrowsError(try coordinator.apply(.answer(QuestionAnswer(questionID: ref("question-foreign"), text: "Sala"), turnID: ref("turn-001")), at: now))
+        XCTAssertThrowsError(try coordinator.apply(.answer(QuestionAnswer(questionID: question.id, optionID: ref("option-foreign")), turnID: ref("turn-001")), at: now))
         try coordinator.apply(.answer(QuestionAnswer(questionID: question.id, text: "Sala"), turnID: ref("turn-001")), at: now)
         try coordinator.apply(.beginPlanning, at: now)
         try coordinator.apply(.ask(question), at: now)
@@ -283,6 +293,22 @@ final class AssistConsultationTests: XCTestCase {
         try coordinator.apply(.revokeConsent(revoked), at: now)
         XCTAssertEqual(coordinator.session.state, .awaitingConsent)
         XCTAssertThrowsError(try coordinator.apply(.beginPlanning, at: now))
+    }
+
+    func testCoordinatorRejectsExpiredOrNonExecutableTestProposal() throws {
+        let sharedConsent = consent(scope: .questionAndContext)
+        let session = try InvestigationSession(id: ref("investigation-003"), intent: .slowConnection, contextSnapshotVersion: 1, consentSnapshot: sharedConsent, createdAt: now)
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: sharedConsent, requiresConsent: false), at: now)
+        let proposalOnly = ToolProposal(id: ref("proposal-only"), tool: .proposeNetworkTest, objective: "Somente propor.", risk: .low, expiresAt: now.addingTimeInterval(60), revision: 1)
+        XCTAssertThrowsError(try coordinator.apply(.proposeTest(proposalOnly), at: now))
+
+        let expiresAt = now.addingTimeInterval(1)
+        let executable = ToolProposal(id: ref("proposal-expired"), tool: .runExistingTest, objective: "Executar teste existente.", risk: .low, expiresAt: expiresAt, revision: 1)
+        try coordinator.apply(.proposeTest(executable), at: now)
+        XCTAssertThrowsError(try coordinator.apply(.approveTest(proposalID: executable.id), at: now.addingTimeInterval(2)))
+        XCTAssertEqual(coordinator.session.state, .awaitingTestPermission)
     }
 
     func testExpiredAndConflictedEvidenceBecomeExplicitAbsence() throws {

@@ -43,13 +43,15 @@ public struct InvestigationToolRequest: Codable, Equatable, Sendable, Identifiab
     public let arguments: [ToolArgument]
     public let userApprovalRequired: Bool
     public let revision: Int
+    public let expiresAt: Date
 
-    public init(id: PseudonymousReference, toolType: ConsultationTool, arguments: [ToolArgument], userApprovalRequired: Bool, revision: Int) {
+    public init(id: PseudonymousReference, toolType: ConsultationTool, arguments: [ToolArgument], userApprovalRequired: Bool, revision: Int, expiresAt: Date) {
         self.id = id
         self.toolType = toolType
         self.arguments = arguments
         self.userApprovalRequired = userApprovalRequired
         self.revision = revision
+        self.expiresAt = expiresAt
     }
 }
 
@@ -92,7 +94,7 @@ public struct InvestigationSession: Codable, Equatable, Sendable, Identifiable {
     public internal(set) var pendingToolRequest: InvestigationToolRequest?
     public internal(set) var recommendation: InvestigationRecommendation?
     var resumeState: InvestigationState?
-    var pendingQuestionID: PseudonymousReference?
+    var pendingQuestion: ConsultationQuestion?
 
     public init(id: PseudonymousReference, intent: ConsultationIntent, contextSnapshotVersion: Int, consentSnapshot: ConsentReceipt, createdAt: Date) throws {
         guard contextSnapshotVersion > 0 else { throw ContractError.invalid("Sessão exige revisão inicial válida.") }
@@ -109,7 +111,7 @@ public struct InvestigationSession: Codable, Equatable, Sendable, Identifiable {
         self.turns = []
         self.pendingToolRequest = nil
         self.recommendation = nil
-        self.pendingQuestionID = nil
+        self.pendingQuestion = nil
     }
 }
 
@@ -165,7 +167,7 @@ public struct ConsultationCoordinator: Sendable {
             guard session.state != .idle, session.state != .completed, session.state != .cancelled, consent.state == .revoked else { throw invalidTransition() }
             session.consentSnapshot = consent
             session.pendingToolRequest = nil
-            session.pendingQuestionID = nil
+            session.pendingQuestion = nil
             try transition(to: .awaitingConsent, at: now)
         case .denyConsent:
             try transition(from: [.awaitingConsent], to: .insufficientEvidence, at: now)
@@ -174,26 +176,31 @@ public struct ConsultationCoordinator: Sendable {
         case let .ask(question):
             guard session.state == .planning else { throw invalidTransition() }
             guard question.nextState == .awaitingAnswer else { throw ContractError.invalid("Pergunta com próximo estado inválido.") }
-            session.pendingQuestionID = question.id
+            session.pendingQuestion = question
             try transition(to: .awaitingUserAnswer, at: now)
         case let .answer(answer, turnID):
-            guard session.state == .awaitingUserAnswer, session.pendingQuestionID == answer.questionID else { throw invalidTransition() }
+            guard session.state == .awaitingUserAnswer, let question = session.pendingQuestion, question.id == answer.questionID else { throw invalidTransition() }
             try answer.validate()
+            if let optionID = answer.optionID, !question.options.contains(where: { $0.id == optionID }) { throw ContractError.invalid("Opção não pertence à pergunta ativa.") }
+            if answer.text != nil, !question.allowFreeText { throw ContractError.invalid("Pergunta não aceita texto livre.") }
             guard !session.answers.contains(where: { $0.questionID == answer.questionID }) else { throw ContractError.invalid("Resposta repetida para a mesma pergunta.") }
             session.answers.append(answer)
-            session.pendingQuestionID = nil
+            session.pendingQuestion = nil
             session.turns.append(InvestigationTurn(id: turnID, role: .user, structuredPayload: .answer(answer), createdAt: now))
             try transition(to: .collectingContext, at: now)
         case let .proposeTest(proposal):
             guard session.state == .planning, session.consentSnapshot.state == .granted, session.consentSnapshot.scope.permitsContext,
                   proposal.revision == session.contextSnapshotVersion, proposal.expiresAt > now,
-                  proposal.tool == .proposeNetworkTest || proposal.tool == .runExistingTest else { throw invalidTransition() }
+                  proposal.tool == .runExistingTest else { throw invalidTransition() }
             guard session.pendingToolRequest == nil else { throw ContractError.invalid("Já existe uma proposta de teste ativa.") }
-            session.pendingToolRequest = InvestigationToolRequest(id: proposal.id, toolType: proposal.tool, arguments: proposal.arguments, userApprovalRequired: true, revision: proposal.revision)
+            session.pendingToolRequest = InvestigationToolRequest(id: proposal.id, toolType: proposal.tool, arguments: proposal.arguments, userApprovalRequired: true, revision: proposal.revision, expiresAt: proposal.expiresAt)
             try transition(to: .awaitingTestPermission, at: now)
         case let .approveTest(proposalID):
-            guard session.state == .awaitingTestPermission, session.pendingToolRequest?.id == proposalID,
-                  session.pendingToolRequest?.revision == session.contextSnapshotVersion else { throw invalidTransition() }
+            guard session.state == .awaitingTestPermission,
+                  let request = session.pendingToolRequest,
+                  request.id == proposalID,
+                  request.revision == session.contextSnapshotVersion,
+                  request.expiresAt > now else { throw invalidTransition() }
             try transition(to: .executingTest, at: now)
         case let .denyTest(proposalID):
             guard session.state == .awaitingTestPermission, session.pendingToolRequest?.id == proposalID else { throw invalidTransition() }
@@ -224,7 +231,7 @@ public struct ConsultationCoordinator: Sendable {
         case .complete:
             try transition(from: [.showingResult, .actionPending, .awaitingRetest, .insufficientEvidence, .unavailable], to: .completed, at: now)
         case .pause:
-            guard session.state != .idle, session.state != .completed, session.state != .cancelled else { throw invalidTransition() }
+            guard session.state != .idle, session.state != .completed, session.state != .cancelled, session.state != .executingTest else { throw invalidTransition() }
             session.resumeState = session.state
             try transition(to: .paused, at: now)
         case .resume:
@@ -237,7 +244,12 @@ public struct ConsultationCoordinator: Sendable {
             try transition(to: .cancelled, at: now)
         case .recoverableFailure:
             guard session.state != .idle, session.state != .completed, session.state != .cancelled else { throw invalidTransition() }
-            session.resumeState = session.state
+            if session.state == .executingTest {
+                session.pendingToolRequest = nil
+                session.resumeState = .collectingContext
+            } else {
+                session.resumeState = session.state
+            }
             try transition(to: .recoverableError, at: now)
         case .retry:
             guard session.state == .recoverableError, let resumeState = session.resumeState, resumeState != .executingTest else { throw invalidTransition() }
