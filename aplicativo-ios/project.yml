@@ -202,6 +202,8 @@ targets:
     platform: iOS
     settings:
       base:
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: "2Z4T8228GR"
         GENERATE_INFOPLIST_FILE: YES
     deploymentTarget: 16.0
     dependencies:
@@ -217,6 +219,8 @@ targets:
     deploymentTarget: 16.0
     settings:
       base:
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: "2Z4T8228GR"
         GENERATE_INFOPLIST_FILE: YES
     sources:
       - path: LinkaApp/Tests

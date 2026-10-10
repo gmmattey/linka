@@ -202,6 +202,31 @@ final class AssistConsultationTransportTests: XCTestCase {
         XCTAssertEqual(assertionChallengeCount, 0)
     }
 
+    /// Não tenta falar com o relay: esta é a prova de que uma instalação
+    /// assinada, em hardware Apple real, consegue obter a atestação genuína.
+    /// Simulador e macOS não implementam o serviço e devem continuar verdes
+    /// por meio de skip explícito, nunca por uma atestação falsa.
+    func testSystemAppAttestCreatesGenuineAttestationOnPhysicaliPhone() async throws {
+        #if os(iOS)
+        #if targetEnvironment(simulator)
+        throw XCTSkip("App Attest só é comprovado em dispositivo físico.")
+        #else
+        let provider = AssistConsultationSystemAppAttestProvider()
+        let supported = await provider.isSupported()
+        try XCTSkipUnless(supported, "Este dispositivo não oferece App Attest.")
+
+        let keyID = try await provider.generateKey()
+        XCTAssertFalse(keyID.isEmpty)
+
+        let challenge = Data(SHA256.hash(data: Data("linka-assist-v4-physical-attestation".utf8)))
+        let attestation = try await provider.attestKey(keyID, clientDataHash: challenge)
+        XCTAssertFalse(attestation.isEmpty)
+        #endif
+        #else
+        throw XCTSkip("App Attest é um serviço exclusivo de iOS.")
+        #endif
+    }
+
     private func expectedAssertionHash(body: Data, nonce: String, timestamp: String) -> Data {
         let fields = [
             Data("linka.assist.consultation.app-attest/1".utf8),
