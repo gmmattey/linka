@@ -181,6 +181,8 @@ public enum InvestigationEvent: Sendable {
     case beginPlanning
     case beginRemoteTurn(ConsultationPayload)
     case receiveRemoteResponse(ConsultationResponse, for: ConsultationPayload)
+    case askLocal(ConsultationQuestion)
+    case recordLocalMessage(String, turnID: PseudonymousReference)
     case ask(ConsultationQuestion)
     case answer(QuestionAnswer, turnID: PseudonymousReference)
     case proposeTest(ToolProposal)
@@ -293,6 +295,17 @@ public struct ConsultationCoordinator: Sendable {
                     throw invalidTransition()
                 }
             }
+        case let .askLocal(question):
+            guard session.state == .collectingContext, question.nextState == .awaitingAnswer else { throw invalidTransition() }
+            session.pendingQuestion = question
+            try transition(to: .awaitingUserAnswer, at: now)
+        case let .recordLocalMessage(text, turnID):
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard session.state == .collectingContext,
+                  !trimmed.isEmpty,
+                  trimmed.unicodeScalars.count <= 2_000 else { throw invalidTransition() }
+            session.turns.append(InvestigationTurn(id: turnID, role: .user, structuredPayload: .userMessage(trimmed), createdAt: now))
+            try transition(to: .collectingContext, at: now)
         case let .ask(question):
             guard session.state == .planning else { throw invalidTransition() }
             guard question.nextState == .awaitingAnswer else { throw ContractError.invalid("Pergunta com próximo estado inválido.") }
@@ -397,9 +410,9 @@ public struct ConsultationCoordinator: Sendable {
             session.resumeState = nil
             try transition(to: resumeState, at: now)
         case .markUnavailable:
-            try transition(from: [.planning, .generatingResult], to: .unavailable, at: now)
+            try transition(from: [.collectingContext, .planning, .generatingResult], to: .unavailable, at: now)
         case .markInsufficientEvidence:
-            try transition(from: [.planning, .generatingResult], to: .insufficientEvidence, at: now)
+            try transition(from: [.collectingContext, .planning, .generatingResult], to: .insufficientEvidence, at: now)
         }
     }
 

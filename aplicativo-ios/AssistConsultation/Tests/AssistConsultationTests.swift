@@ -675,6 +675,26 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertEqual(coordinator.session.state, .generatingResult)
     }
 
+    func testLocalQuestionAndDraftNeverNeedConsentForRemoteSending() throws {
+        let refused = consent(state: .refused, scope: .none)
+        let session = try InvestigationSession(id: ref("local-session-fixture"), intent: .slowConnection, contextSnapshotVersion: 1, consentSnapshot: refused, createdAt: now)
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        let question = ConsultationQuestion(id: ref("question-local"), text: "Onde a conexão está lenta?", options: [QuestionOption(id: ref("option-local"), text: "Em um cômodo")], allowFreeText: false, rationale: "Triagem local.")
+        try coordinator.apply(.askLocal(question), at: now)
+        try coordinator.apply(.answer(QuestionAnswer(questionID: question.id, optionID: ref("option-local")), turnID: ref("turn-local")), at: now)
+        try coordinator.apply(.markInsufficientEvidence, at: now)
+        XCTAssertEqual(coordinator.session.state, .insufficientEvidence)
+
+        let messageSession = try InvestigationSession(id: ref("local-session-draft"), intent: .openQuestion, contextSnapshotVersion: 1, consentSnapshot: refused, createdAt: now)
+        var draftCoordinator = ConsultationCoordinator(session: messageSession)
+        try draftCoordinator.apply(.start, at: now)
+        try draftCoordinator.apply(.recordLocalMessage("Posso usar um roteador antigo como AP?", turnID: ref("turn-draft")), at: now)
+        try draftCoordinator.apply(.markUnavailable, at: now)
+        XCTAssertEqual(draftCoordinator.session.state, .unavailable)
+        XCTAssertEqual(draftCoordinator.session.turns.last?.structuredPayload, .userMessage("Posso usar um roteador antigo como AP?"))
+    }
+
     func testRetestRequiresAValidProposalAndCancellationDoesNotProjectAResult() throws {
         let sharedConsent = consent(scope: .questionAndContext)
         let session = try InvestigationSession(id: ref("investigation-retest"), intent: .slowConnection, contextSnapshotVersion: 1, consentSnapshot: sharedConsent, createdAt: now)

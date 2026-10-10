@@ -10,7 +10,9 @@ final class AssistV4PresentationModelTests: XCTestCase {
         model.submitOpenQuestion()
         XCTAssertEqual(model.state, .unavailableOpenQuestion("Posso usar um roteador antigo como AP?"))
         XCTAssertEqual(model.draft, "Posso usar um roteador antigo como AP?")
-        XCTAssertTrue(model.turns.isEmpty)
+        XCTAssertEqual(model.turns.count, 1)
+        XCTAssertEqual(model.turns.first?.role, .user)
+        XCTAssertEqual(model.turns.first?.text, "Posso usar um roteador antigo como AP?")
     }
 
     func testGuidedEntryShowsOneQuestionAndDoesNotSendAnything() {
