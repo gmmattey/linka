@@ -1013,6 +1013,11 @@ final class AssistConsultationTests: XCTestCase {
         }
     }
 
+    func testBackendResponseFixturePassesTheSameSwiftReducerContract() throws {
+        let response = try JSONDecoder().decode(ConsultationResponse.self, from: fixture("linka-valid-response"))
+        try response.validate(for: payload(), at: now)
+    }
+
     func testContextAssemblerKeepsOnlyAuthorizedCurrentEvidence() throws {
         let source = ContextSource(id: ref("source-assembly"), kind: .userDeclaration, retrievedAt: now)
         let profile = ConsultationEntity(id: ref("profile-assembly"), kind: .profile, sourceRefs: [source.id])

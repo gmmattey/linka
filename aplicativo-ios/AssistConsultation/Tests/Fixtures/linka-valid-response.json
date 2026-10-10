@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "assist.consultation/1.0",
+  "requestID": {"value": "request-001"},
+  "transportSessionID": {"value": "session-001"},
+  "turnID": {"value": "turn-001"},
+  "revision": 1,
+  "outcome": {
+    "kind": "turn",
+    "turn": {
+      "intent": "open_question",
+      "disposition": "answered",
+      "claims": [],
+      "limitations": [],
+      "assessment": {
+        "conclusion": "explained",
+        "summary": "Um ponto de acesso amplia a cobertura Wi-Fi.",
+        "observations": [],
+        "hypotheses": [],
+        "unknowns": [],
+        "evidenceRefs": [],
+        "actionIDs": [],
+        "alternatives": [],
+        "limitations": []
+      },
+      "next": {"kind": "none"}
+    }
+  }
+}
