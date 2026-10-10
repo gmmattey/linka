@@ -16,6 +16,7 @@ final class AssistV4PresentationModel: ObservableObject {
 
     enum State: Equatable {
         case home
+        case planDeclaration
         case guided(intent: ConsultationIntent, question: ConsultationQuestion)
         case unavailableOpenQuestion(String, canResumeGuidance: Bool)
         case limitation(String)
@@ -33,25 +34,36 @@ final class AssistV4PresentationModel: ObservableObject {
     @Published private(set) var state: State = .home
     @Published private(set) var turns: [Turn] = []
     @Published var selectedOptionID: PseudonymousReference?
+    @Published var declaredPlanName = ""
+    @Published var declaredPlanPrice = ""
     private var coordinator: ConsultationCoordinator?
     private var slowConnectionAnswers = SlowConnectionAnswers()
+    private var planValueAnswers = PlanValueAnswers()
     private var guidedAnswers: [String] = []
-    private var suspendedGuidance: (intent: ConsultationIntent, question: ConsultationQuestion)?
+    private var suspendedLocalFlow: SuspendedLocalFlow?
+
+    private enum SuspendedLocalFlow {
+        case guided(intent: ConsultationIntent, question: ConsultationQuestion)
+        case planDeclaration
+    }
 
     func start(_ intent: ConsultationIntent) {
         guard intent != .openQuestion else { return }
         if intent == .slowConnection { slowConnectionAnswers = SlowConnectionAnswers() }
+        if intent == .planValue {
+            planValueAnswers = PlanValueAnswers()
+            clearPlanDeclaration()
+        }
         guidedAnswers = []
-        suspendedGuidance = nil
+        suspendedLocalFlow = nil
         do {
             var coordinator = try localCoordinator(for: intent)
             try coordinator.apply(.start, at: Date())
             if intent == .planValue {
-                try coordinator.apply(.markInsufficientEvidence, at: Date())
                 self.coordinator = coordinator
                 turns = []
                 selectedOptionID = nil
-                state = .limitation(planLimitation())
+                state = .planDeclaration
                 return
             }
             guard let question = firstQuestion(for: intent) else {
@@ -71,14 +83,22 @@ final class AssistV4PresentationModel: ObservableObject {
     func submitOpenQuestion() {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
-        if case let .guided(intent, question) = state {
+        switch state {
+        case let .guided(intent, question):
             // A pergunta livre não atravessa o contrato da pergunta guiada nem é
             // enviada. Guardamos somente a apresentação da escolha local para que
             // o usuário possa retornar sem reiniciar a investigação.
-            suspendedGuidance = (intent, question)
+            suspendedLocalFlow = .guided(intent: intent, question: question)
             turns.append(Turn(role: .user, text: text))
             state = .unavailableOpenQuestion(text, canResumeGuidance: true)
             return
+        case .planDeclaration:
+            suspendedLocalFlow = .planDeclaration
+            turns.append(Turn(role: .user, text: text))
+            state = .unavailableOpenQuestion(text, canResumeGuidance: true)
+            return
+        default:
+            break
         }
         do {
             var coordinator = try localCoordinator(for: .openQuestion)
@@ -109,6 +129,8 @@ final class AssistV4PresentationModel: ObservableObject {
                 try continueRouterAdequacy(option: option, coordinator: &coordinator)
             } else if intent == .meshNeed {
                 try continueMeshNeed(option: option, coordinator: &coordinator)
+            } else if intent == .planValue {
+                try continuePlanValue(option: option, coordinator: &coordinator)
             } else {
                 try coordinator.apply(.markInsufficientEvidence, at: Date())
                 self.coordinator = coordinator
@@ -120,15 +142,40 @@ final class AssistV4PresentationModel: ObservableObject {
     }
 
     func returnHome() {
-        suspendedGuidance = nil
+        suspendedLocalFlow = nil
         selectedOptionID = nil
+        clearPlanDeclaration()
         state = .home
     }
 
     func resumeGuidance() {
-        guard let suspendedGuidance else { return }
-        self.suspendedGuidance = nil
-        state = .guided(intent: suspendedGuidance.intent, question: suspendedGuidance.question)
+        guard let suspendedLocalFlow else { return }
+        self.suspendedLocalFlow = nil
+        switch suspendedLocalFlow {
+        case let .guided(intent, question):
+            state = .guided(intent: intent, question: question)
+        case .planDeclaration:
+            state = .planDeclaration
+        }
+    }
+
+    func continuePlanDeclaration() {
+        guard !declaredPlanName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              !declaredPlanPrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              var coordinator else { return }
+        do {
+            planValueAnswers = PlanValueAnswers(hasDeclaredPlan: true, hasDeclaredPrice: true)
+            guard case let .question(question) = PlanValueLocalJourney.next(after: planValueAnswers) else {
+                throw ContractError.invalid("A declaração de plano não produziu a próxima pergunta esperada.")
+            }
+            try coordinator.apply(.askLocal(question), at: Date())
+            self.coordinator = coordinator
+            clearPlanDeclaration()
+            selectedOptionID = nil
+            state = .guided(intent: .planValue, question: question)
+        } catch {
+            state = .limitation("Não foi possível iniciar a avaliação local do plano. Nenhum dado foi enviado.")
+        }
     }
 
     func completeSuggestedAction() {
@@ -299,11 +346,63 @@ final class AssistV4PresentationModel: ObservableObject {
         }
     }
 
-    private func planLimitation() -> String {
-        guard case let .requiresDeclaredPlanData(limitations) = PlanValueLocalJourney.next(after: PlanValueAnswers()) else {
-            return "Faltam dados declarados para avaliar o plano localmente."
+    private func continuePlanValue(option: QuestionOption, coordinator: inout ConsultationCoordinator) throws {
+        if planValueAnswers.priority == nil {
+            let priority: PlanValuePriority
+            switch option.text {
+            case "Economia": priority = .economy
+            case "Estabilidade": priority = .stability
+            case "Velocidade": priority = .speed
+            case "Entender ofertas": priority = .offers
+            case "Não sei": priority = .unknown
+            default: throw ContractError.invalid("Opção não pertence à triagem de valor do plano.")
+            }
+            planValueAnswers = PlanValueAnswers(hasDeclaredPlan: true, hasDeclaredPrice: true, priority: priority)
+            if priority == .unknown {
+                try coordinator.apply(.markInsufficientEvidence, at: Date())
+                self.coordinator = coordinator
+                state = .limitation("Falta definir o que importa no plano antes de avaliar valor. Nenhuma oferta foi consultada.")
+                return
+            }
+        } else if planValueAnswers.satisfaction == nil {
+            let satisfaction: PlanSatisfaction
+            switch option.text {
+            case "Sim": satisfaction = .satisfied
+            case "Não": satisfaction = .dissatisfied
+            case "Não sei": satisfaction = .unknown
+            default: throw ContractError.invalid("Opção não pertence à satisfação com o plano.")
+            }
+            planValueAnswers = PlanValueAnswers(
+                hasDeclaredPlan: true,
+                hasDeclaredPrice: true,
+                priority: planValueAnswers.priority,
+                satisfaction: satisfaction
+            )
+            if satisfaction == .unknown {
+                try coordinator.apply(.markInsufficientEvidence, at: Date())
+                self.coordinator = coordinator
+                state = .limitation("Falta saber se o plano atende ao uso antes de avaliar valor. Nenhuma oferta foi consultada.")
+                return
+            }
+        } else {
+            throw ContractError.invalid("A triagem local de plano já coletou as respostas disponíveis.")
         }
-        return limitations.joined(separator: " ")
+
+        switch PlanValueLocalJourney.next(after: planValueAnswers) {
+        case let .question(question):
+            try coordinator.apply(.askLocal(question), at: Date())
+            self.coordinator = coordinator
+            state = .guided(intent: .planValue, question: question)
+        case let .requiresComparableMeasurements(limitations), let .requiresDeclaredPlanData(limitations), let .result(_, limitations):
+            try coordinator.apply(.markInsufficientEvidence, at: Date())
+            self.coordinator = coordinator
+            state = .limitation(limitations.joined(separator: " "))
+        }
+    }
+
+    private func clearPlanDeclaration() {
+        declaredPlanName = ""
+        declaredPlanPrice = ""
     }
 
     private func updateSuggestedAction(status: LocalActionStatus) {

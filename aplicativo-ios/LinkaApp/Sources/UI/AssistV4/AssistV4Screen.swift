@@ -77,6 +77,8 @@ struct AssistV4Screen: View {
                 shortcut("Preciso de uma rede Mesh?", .meshNeed)
                 shortcut("Meu plano vale a pena?", .planValue)
             }
+        case .planDeclaration:
+            planDeclaration
         case let .guided(_, question):
             VStack(alignment: .leading, spacing: 12) {
                 Text(question.text).font(.displayMedium)
@@ -99,6 +101,27 @@ struct AssistV4Screen: View {
             limitation("Dados insuficientes para continuar", detail: text)
         case let .localOrientation(orientation):
             localOrientation(orientation)
+        }
+    }
+
+    private var planDeclaration: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Qual é seu plano atual?").font(.displayMedium)
+            Text("Esses dados ficam só nesta sessão local e não serão enviados nem salvos.")
+                .font(.bodyRegular)
+                .foregroundColor(.textSecondary)
+            TextField("Nome do plano", text: $model.declaredPlanName)
+                .textFieldStyle(.roundedBorder)
+                .accessibilityIdentifier("assist-v4.plan.name")
+            TextField("Preço mensal", text: $model.declaredPlanPrice)
+                .textFieldStyle(.roundedBorder)
+                .keyboardType(.decimalPad)
+                .accessibilityIdentifier("assist-v4.plan.price")
+            Button("Continuar") { model.continuePlanDeclaration() }
+                .buttonStyle(.linkaPrimary)
+                .disabled(model.declaredPlanName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || model.declaredPlanPrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            Button("Voltar às sugestões") { model.returnHome() }
+                .buttonStyle(.linkaSecondary)
         }
     }
 
@@ -164,7 +187,7 @@ struct AssistV4Screen: View {
                 .font(.bodyRegular)
                 .foregroundColor(.textSecondary)
             if canResumeGuidance {
-                Text("Sua pergunta guiada e a escolha anterior continuam no aparelho.")
+                Text("Sua etapa local continua no aparelho.")
                     .font(.bodyRegular)
                     .foregroundColor(.textSecondary)
                 Button("Continuar investigação") { model.resumeGuidance() }

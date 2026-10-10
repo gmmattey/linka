@@ -76,6 +76,27 @@ final class AssistV4FixtureUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Dados insuficientes para continuar"].waitForExistence(timeout: 3))
     }
 
+    func testPlanDeclarationStaysLocalAndDoesNotConsultOffers() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
+        app.launch()
+
+        app.buttons["assist-v4.shortcut.plan_value"].tap()
+        let name = app.textFields["assist-v4.plan.name"]
+        XCTAssertTrue(name.waitForExistence(timeout: 3))
+        name.tap()
+        name.typeText("Fibra 500")
+        let price = app.textFields["assist-v4.plan.price"]
+        price.tap()
+        price.typeText("99,90")
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.buttons["Entender ofertas"].waitForExistence(timeout: 3))
+        app.buttons["Entender ofertas"].tap()
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.staticTexts["Dados insuficientes para continuar"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "nenhuma oferta é consultada")).firstMatch.exists)
+    }
+
     func testFixtureKeepsTheLocalBoundariesOnExpandedTextIpad() throws {
         let app = XCUIApplication()
         app.launchArguments = [

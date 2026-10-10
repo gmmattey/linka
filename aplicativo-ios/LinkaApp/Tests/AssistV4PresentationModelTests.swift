@@ -112,8 +112,35 @@ final class AssistV4PresentationModelTests: XCTestCase {
     func testPlanValueDoesNotClaimOffersWithoutDeclaredData() {
         let model = AssistV4PresentationModel()
         model.start(.planValue)
-        guard case let .limitation(detail) = model.state else { return XCTFail("Expected declared-plan limitation") }
-        XCTAssertTrue(detail.contains("plano e o preço atuais precisam ser declarados"))
-        XCTAssertTrue(model.turns.isEmpty)
+        XCTAssertEqual(model.state, .planDeclaration)
+        model.declaredPlanName = "Fibra 500"
+        model.declaredPlanPrice = "99,90"
+        model.continuePlanDeclaration()
+        guard case let .guided(intent, question) = model.state else { return XCTFail("Expected declared-plan priority question") }
+        XCTAssertEqual(intent, .planValue)
+        XCTAssertEqual(question.text, "O que mais importa para você?")
+        XCTAssertTrue(model.declaredPlanName.isEmpty)
+        XCTAssertTrue(model.declaredPlanPrice.isEmpty)
+
+        model.selectedOptionID = question.options.first(where: { $0.text == "Entender ofertas" })?.id
+        model.continueGuided()
+        guard case let .limitation(detail) = model.state else { return XCTFail("Expected commercial-data limitation") }
+        XCTAssertTrue(detail.contains("nenhuma oferta é consultada"))
+        XCTAssertFalse(model.turns.contains { $0.text.contains("Fibra 500") || $0.text.contains("99,90") })
+    }
+
+    func testPlanDeclarationSurvivesAnUnsentOpenQuestion() {
+        let model = AssistV4PresentationModel()
+        model.start(.planValue)
+        model.declaredPlanName = "Fibra 500"
+        model.declaredPlanPrice = "99,90"
+        model.draft = "Existe alguma oferta mais barata?"
+        model.submitOpenQuestion()
+        XCTAssertEqual(model.state, .unavailableOpenQuestion("Existe alguma oferta mais barata?", canResumeGuidance: true))
+
+        model.resumeGuidance()
+        XCTAssertEqual(model.state, .planDeclaration)
+        XCTAssertEqual(model.declaredPlanName, "Fibra 500")
+        XCTAssertEqual(model.declaredPlanPrice, "99,90")
     }
 }
