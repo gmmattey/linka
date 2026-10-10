@@ -4,15 +4,44 @@ import AssistConsultation
 
 @MainActor
 final class AssistV4PresentationModelTests: XCTestCase {
-    func testOpenQuestionStaysLocalAndHonestWhenNoEngineIsAuthorized() {
+    func testOpenQuestionRequiresConsentAndCanStayLocal() {
         let model = AssistV4PresentationModel()
         model.draft = "Posso usar um roteador antigo como AP?"
         model.submitOpenQuestion()
+        XCTAssertEqual(model.state, .awaitingConsent(question: "Posso usar um roteador antigo como AP?"))
+        XCTAssertTrue(model.turns.isEmpty)
+        model.declineOpenQuestionConsent()
         XCTAssertEqual(model.state, .unavailableOpenQuestion("Posso usar um roteador antigo como AP?", canResumeGuidance: false))
         XCTAssertEqual(model.draft, "Posso usar um roteador antigo como AP?")
-        XCTAssertEqual(model.turns.count, 1)
-        XCTAssertEqual(model.turns.first?.role, .user)
-        XCTAssertEqual(model.turns.first?.text, "Posso usar um roteador antigo como AP?")
+        XCTAssertTrue(model.turns.isEmpty)
+    }
+
+    func testQuestionOnlyConsentUsesNoContextAndFailsClosedWhenDisabled() async {
+        let model = AssistV4PresentationModel()
+        model.draft = "Posso usar um roteador antigo como AP?"
+        model.submitOpenQuestion()
+        model.sendOpenQuestionOnly()
+
+        for _ in 0..<10 { await Task.yield() }
+
+        XCTAssertEqual(model.state, .remoteUnavailable("A consulta protegida ainda não está habilitada. Sua pergunta não foi enviada."))
+        XCTAssertEqual(model.turns.map(\.text), ["Posso usar um roteador antigo como AP?"])
+    }
+
+    func testRecoverableRemoteFailureKeepsTheSameQuestionForRetry() async {
+        let model = AssistV4PresentationModel(submitOpenQuestionRemote: { _ in
+            .recoverableFailure("A rede caiu durante a consulta.")
+        })
+        model.draft = "Posso usar um roteador antigo como AP?"
+        model.submitOpenQuestion()
+        model.sendOpenQuestionOnly()
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(model.state, .remoteRecoverableError("A rede caiu durante a consulta."))
+
+        model.retryOpenQuestion()
+        for _ in 0..<10 { await Task.yield() }
+        XCTAssertEqual(model.state, .remoteRecoverableError("A rede caiu durante a consulta."))
+        XCTAssertEqual(model.turns.map(\.text), ["Posso usar um roteador antigo como AP?"])
     }
 
     func testGuidedEntryShowsOneQuestionAndDoesNotSendAnything() {

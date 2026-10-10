@@ -28,13 +28,24 @@ final class AssistV4FixtureUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Ação marcada como concluída nesta sessão local."].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Não foi executado teste nem salvo histórico."].exists)
 
-        app.buttons["Voltar às sugestões"].tap()
+    }
+
+    func testOpenQuestionRequiresQuestionOnlyConsentAndFailsClosedInFixture() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
+        app.launch()
+
         let composer = app.textFields["assist-v4.composer"]
+        XCTAssertTrue(composer.waitForExistence(timeout: 5))
         composer.tap()
         composer.typeText("Posso usar um roteador antigo como AP?")
         app.buttons["assist-v4.send"].tap()
-        XCTAssertTrue(app.staticTexts["A pergunta não foi enviada"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "continua no rascunho")).firstMatch.exists)
+        XCTAssertTrue(app.buttons["assist-v4.consent.question-only"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Plano, equipamentos, medições")).firstMatch.exists)
+        app.buttons["assist-v4.consent.question-only"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["assist-v4.remote-unavailable"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Consulta indisponível"].exists)
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "não foi enviada")).firstMatch.exists)
     }
 
     func testOpenQuestionCanReturnToAnUnsentGuidedInvestigation() throws {
