@@ -69,6 +69,20 @@ public struct InvestigationToolResult: Codable, Equatable, Sendable {
     }
 }
 
+public struct InvestigationRemoteTurn: Codable, Equatable, Sendable {
+    public let requestID: PseudonymousReference
+    public let transportSessionID: PseudonymousReference
+    public let turnID: PseudonymousReference
+    public let revision: Int
+
+    public init(requestID: PseudonymousReference, transportSessionID: PseudonymousReference, turnID: PseudonymousReference, revision: Int) {
+        self.requestID = requestID
+        self.transportSessionID = transportSessionID
+        self.turnID = turnID
+        self.revision = revision
+    }
+}
+
 public struct InvestigationRecommendation: Codable, Equatable, Sendable {
     public let assessment: ConsultationAssessment
     public let actions: [ActionProposal]
@@ -92,6 +106,7 @@ public struct InvestigationSession: Codable, Equatable, Sendable, Identifiable {
     public internal(set) var updatedAt: Date
     public internal(set) var turns: [InvestigationTurn]
     public internal(set) var pendingToolRequest: InvestigationToolRequest?
+    public internal(set) var pendingRemoteTurn: InvestigationRemoteTurn?
     public internal(set) var recommendation: InvestigationRecommendation?
     var resumeState: InvestigationState?
     var pendingQuestion: ConsultationQuestion?
@@ -110,6 +125,7 @@ public struct InvestigationSession: Codable, Equatable, Sendable, Identifiable {
         self.updatedAt = createdAt
         self.turns = []
         self.pendingToolRequest = nil
+        self.pendingRemoteTurn = nil
         self.recommendation = nil
         self.pendingQuestion = nil
     }
@@ -122,6 +138,8 @@ public enum InvestigationEvent: Sendable {
     case revokeConsent(ConsentReceipt)
     case denyConsent
     case beginPlanning
+    case beginRemoteTurn(ConsultationPayload)
+    case receiveRemoteResponse(ConsultationResponse, for: ConsultationPayload)
     case ask(ConsultationQuestion)
     case answer(QuestionAnswer, turnID: PseudonymousReference)
     case proposeTest(ToolProposal)
@@ -167,12 +185,64 @@ public struct ConsultationCoordinator: Sendable {
             guard session.state != .idle, session.state != .completed, session.state != .cancelled, consent.state == .revoked else { throw invalidTransition() }
             session.consentSnapshot = consent
             session.pendingToolRequest = nil
+            session.pendingRemoteTurn = nil
             session.pendingQuestion = nil
             try transition(to: .awaitingConsent, at: now)
         case .denyConsent:
             try transition(from: [.awaitingConsent], to: .insufficientEvidence, at: now)
         case .beginPlanning:
             try transition(from: [.collectingContext, .awaitingUserAnswer, .actionPending, .awaitingRetest, .recoverableError], to: .planning, at: now)
+        case let .beginRemoteTurn(payload):
+            guard session.state == .planning, session.pendingRemoteTurn == nil,
+                  payload.localSessionID == session.id,
+                  payload.contextSnapshot.intent == session.intent,
+                  payload.expectedRevision == session.contextSnapshotVersion else { throw invalidTransition() }
+            try payload.validate(at: now)
+            session.pendingRemoteTurn = InvestigationRemoteTurn(requestID: payload.requestID, transportSessionID: payload.transportSessionID, turnID: payload.turnID, revision: payload.expectedRevision)
+            try transition(to: .generatingResult, at: now)
+        case let .receiveRemoteResponse(response, payload):
+            guard session.state == .generatingResult,
+                  let pending = session.pendingRemoteTurn,
+                  payload.localSessionID == session.id,
+                  payload.requestID == pending.requestID,
+                  payload.transportSessionID == pending.transportSessionID,
+                  payload.turnID == pending.turnID,
+                  payload.expectedRevision == pending.revision,
+                  pending.requestID == response.requestID,
+                  pending.transportSessionID == response.transportSessionID,
+                  pending.turnID == response.turnID,
+                  pending.revision == response.revision else { throw invalidTransition() }
+            try response.validate(for: payload, at: now)
+            session.pendingRemoteTurn = nil
+            switch response.outcome {
+            case .error(let error):
+                if error.recoverable {
+                    session.resumeState = .planning
+                    try transition(to: .recoverableError, at: now)
+                } else {
+                    try transition(to: .unavailable, at: now)
+                }
+            case .turn(let turn):
+                guard turn.intent == session.intent else { throw invalidTransition() }
+                switch (turn.disposition, turn.next) {
+                case (.awaitingAnswer, .question(let question)):
+                    session.pendingQuestion = question
+                    try transition(to: .awaitingUserAnswer, at: now)
+                case (.awaitingApproval, .toolProposal(let proposal)):
+                    guard proposal.tool == .runExistingTest, proposal.revision == session.contextSnapshotVersion, proposal.expiresAt > now else { throw invalidTransition() }
+                    session.pendingToolRequest = InvestigationToolRequest(id: proposal.id, toolType: proposal.tool, arguments: proposal.arguments, userApprovalRequired: true, revision: proposal.revision, expiresAt: proposal.expiresAt)
+                    try transition(to: .awaitingTestPermission, at: now)
+                case (_, .none), (_, .actionProposal):
+                    guard let assessment = turn.assessment else { throw invalidTransition() }
+                    let actions: [ActionProposal]
+                    if case .actionProposal(let action) = turn.next { actions = [action] } else { actions = [] }
+                    session.recommendation = InvestigationRecommendation(assessment: assessment, actions: actions)
+                    session.recommendedActionIDs = actions.map(\.id)
+                    try transition(to: turn.disposition == .unavailable ? .unavailable : .showingResult, at: now)
+                default:
+                    throw invalidTransition()
+                }
+            }
         case let .ask(question):
             guard session.state == .planning else { throw invalidTransition() }
             guard question.nextState == .awaitingAnswer else { throw ContractError.invalid("Pergunta com próximo estado inválido.") }
@@ -241,6 +311,7 @@ public struct ConsultationCoordinator: Sendable {
         case .cancel:
             guard session.state != .completed, session.state != .cancelled else { throw invalidTransition() }
             session.pendingToolRequest = nil
+            session.pendingRemoteTurn = nil
             try transition(to: .cancelled, at: now)
         case .recoverableFailure:
             guard session.state != .idle, session.state != .completed, session.state != .cancelled else { throw invalidTransition() }
@@ -248,6 +319,7 @@ public struct ConsultationCoordinator: Sendable {
                 session.pendingToolRequest = nil
                 session.resumeState = .collectingContext
             } else {
+                session.pendingRemoteTurn = nil
                 session.resumeState = session.state
             }
             try transition(to: .recoverableError, at: now)

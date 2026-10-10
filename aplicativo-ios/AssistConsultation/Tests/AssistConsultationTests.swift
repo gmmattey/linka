@@ -26,10 +26,11 @@ final class AssistConsultationTests: XCTestCase {
         )
     }
 
-    private func payload(snapshot: ContextSnapshot? = nil, input: ConsultationInput = .userMessage("O que é um ponto de acesso?")) -> ConsultationPayload {
+    private func payload(snapshot: ContextSnapshot? = nil, input: ConsultationInput = .userMessage("O que é um ponto de acesso?"), localSessionID: PseudonymousReference? = nil) -> ConsultationPayload {
         let context = snapshot ?? self.snapshot()
         return ConsultationPayload(
             requestID: ref("request-001"),
+            localSessionID: localSessionID,
             transportSessionID: ref("session-001"),
             turnID: ref("turn-001"),
             expectedRevision: 1,
@@ -309,6 +310,21 @@ final class AssistConsultationTests: XCTestCase {
         try coordinator.apply(.proposeTest(executable), at: now)
         XCTAssertThrowsError(try coordinator.apply(.approveTest(proposalID: executable.id), at: now.addingTimeInterval(2)))
         XCTAssertEqual(coordinator.session.state, .awaitingTestPermission)
+    }
+
+    func testCoordinatorCorrelatesRemoteResponseBeforeChangingState() throws {
+        let localSession = ref("local-session-001")
+        let session = try InvestigationSession(id: localSession, intent: .openQuestion, contextSnapshotVersion: 1, consentSnapshot: consent(), createdAt: now)
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: consent(), requiresConsent: false), at: now)
+        let request = payload(localSessionID: localSession)
+        try coordinator.apply(.beginRemoteTurn(request), at: now)
+        let remoteQuestion = ConsultationQuestion(id: ref("question-remote"), text: "Qual ambiente?", rationale: "Falta contexto.")
+        let reply = response(for: request, outcome: .turn(ConsultationTurnResponse(intent: .openQuestion, disposition: .awaitingAnswer, next: .question(remoteQuestion))))
+        try coordinator.apply(.receiveRemoteResponse(reply, for: request), at: now)
+        XCTAssertEqual(coordinator.session.state, .awaitingUserAnswer)
+        XCTAssertThrowsError(try coordinator.apply(.receiveRemoteResponse(reply, for: request), at: now))
     }
 
     func testExpiredAndConflictedEvidenceBecomeExplicitAbsence() throws {
