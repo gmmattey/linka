@@ -201,6 +201,7 @@ targets:
     sources:
       - path: ../store/app-store/screenshots/AppStoreScreenshotsUITests.swift
       - path: ../store/app-store/screenshots/MyNetworkUITests.swift
+      - path: LinkaApp/UITests
 
   LinkaAppTests:
     type: bundle.unit-test

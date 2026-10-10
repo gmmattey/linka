@@ -1,0 +1,27 @@
+import XCTest
+
+final class AssistV4FixtureUITests: XCTestCase {
+    func testGuidedAndOpenQuestionStayLocalInFixture() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
+        app.launch()
+
+        XCTAssertTrue(app.buttons["assist-v4.shortcut.slow_connection"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.textFields["assist-v4.composer"].exists)
+
+        app.buttons["assist-v4.shortcut.slow_connection"].tap()
+        let room = app.buttons["Em um cômodo"]
+        XCTAssertTrue(room.waitForExistence(timeout: 3))
+        room.tap()
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.staticTexts["Dados insuficientes para continuar"].waitForExistence(timeout: 3))
+
+        app.buttons["Voltar às sugestões"].tap()
+        let composer = app.textFields["assist-v4.composer"]
+        composer.tap()
+        composer.typeText("Posso usar um roteador antigo como AP?")
+        app.buttons["assist-v4.send"].tap()
+        XCTAssertTrue(app.staticTexts["A pergunta não foi enviada"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "continua no rascunho")).firstMatch.exists)
+    }
+}
