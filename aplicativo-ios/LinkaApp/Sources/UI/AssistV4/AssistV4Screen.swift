@@ -13,6 +13,7 @@ struct AssistV4Screen: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         header
+                        networkContext
                         turns
                         content
                     }
@@ -36,6 +37,21 @@ struct AssistV4Screen: View {
                 .font(.bodyRegular)
                 .foregroundColor(.textSecondary)
         }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var networkContext: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Sua rede")
+                .font(.bodyRegularStrong)
+            Text("Nenhum plano, equipamento ou medição foi autorizado nesta prova local.")
+                .font(.caption)
+                .foregroundColor(.textSecondary)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.surfaceCard)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .combine)
     }
 
@@ -76,8 +92,8 @@ struct AssistV4Screen: View {
                     .buttonStyle(.linkaPrimary)
                     .disabled(model.selectedOptionID == nil)
             }
-        case let .unavailableOpenQuestion(text):
-            limitation("A pergunta não foi enviada", detail: "\"\(text)\" continua no rascunho. A consulta livre precisa de um motor V4 autorizado.")
+        case let .unavailableOpenQuestion(text, canResumeGuidance):
+            unavailableOpenQuestion(text, canResumeGuidance: canResumeGuidance)
         case let .limitation(text):
             limitation("Dados insuficientes para continuar", detail: text)
         case let .guidance(title, detail):
@@ -95,8 +111,37 @@ struct AssistV4Screen: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title).font(.displayMedium)
             Text(detail).font(.bodyRegular).foregroundColor(.textSecondary)
+            evidenceBoundary
             Button("Voltar às sugestões") { model.returnHome() }.buttonStyle(.linkaPrimary)
         }
+    }
+
+    private func unavailableOpenQuestion(_ text: String, canResumeGuidance: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("A pergunta não foi enviada").font(.displayMedium)
+            Text("\"\(text)\" continua no rascunho. A consulta livre precisa de um motor V4 autorizado.")
+                .font(.bodyRegular)
+                .foregroundColor(.textSecondary)
+            if canResumeGuidance {
+                Text("Sua pergunta guiada e a escolha anterior continuam no aparelho.")
+                    .font(.bodyRegular)
+                    .foregroundColor(.textSecondary)
+                Button("Continuar investigação") { model.resumeGuidance() }
+                    .buttonStyle(.linkaPrimary)
+            }
+            Button("Voltar às sugestões") { model.returnHome() }
+                .buttonStyle(.linkaSecondary)
+        }
+    }
+
+    private var evidenceBoundary: some View {
+        DisclosureGroup("Dados e limites desta orientação") {
+            Text("Nenhuma medição, especificação, oferta ou fonte externa foi consultada nesta prova local.")
+                .font(.caption)
+                .foregroundColor(.textSecondary)
+        }
+        .font(.bodyRegularStrong)
+        .accessibilityIdentifier("assist-v4.evidence-boundary")
     }
 
     private var composer: some View {

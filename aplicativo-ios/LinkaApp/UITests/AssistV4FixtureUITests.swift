@@ -28,4 +28,25 @@ final class AssistV4FixtureUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["A pergunta não foi enviada"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "continua no rascunho")).firstMatch.exists)
     }
+
+    func testOpenQuestionCanReturnToAnUnsentGuidedInvestigation() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
+        app.launch()
+
+        app.buttons["assist-v4.shortcut.slow_connection"].tap()
+        let room = app.buttons["Em um cômodo"]
+        XCTAssertTrue(room.waitForExistence(timeout: 3))
+        room.tap()
+
+        let composer = app.textFields["assist-v4.composer"]
+        composer.tap()
+        composer.typeText("E em videochamadas?")
+        app.buttons["assist-v4.send"].tap()
+        XCTAssertTrue(app.buttons["Continuar investigação"].waitForExistence(timeout: 3))
+
+        app.buttons["Continuar investigação"].tap()
+        XCTAssertTrue(app.buttons["Em um cômodo"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Continuar"].isEnabled)
+    }
 }

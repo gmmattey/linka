@@ -8,7 +8,7 @@ final class AssistV4PresentationModelTests: XCTestCase {
         let model = AssistV4PresentationModel()
         model.draft = "Posso usar um roteador antigo como AP?"
         model.submitOpenQuestion()
-        XCTAssertEqual(model.state, .unavailableOpenQuestion("Posso usar um roteador antigo como AP?"))
+        XCTAssertEqual(model.state, .unavailableOpenQuestion("Posso usar um roteador antigo como AP?", canResumeGuidance: false))
         XCTAssertEqual(model.draft, "Posso usar um roteador antigo como AP?")
         XCTAssertEqual(model.turns.count, 1)
         XCTAssertEqual(model.turns.first?.role, .user)
@@ -34,6 +34,23 @@ final class AssistV4PresentationModelTests: XCTestCase {
         guard case let .guidance(title, detail) = model.state else { return XCTFail("Expected a controlled local comparison") }
         XCTAssertEqual(title, "Próxima etapa sugerida")
         XCTAssertTrue(detail.contains("Medir o cenário de forma controlada"))
+    }
+
+    func testOpenQuestionDuringGuidancePreservesTheLocalQuestionAndSelection() {
+        let model = AssistV4PresentationModel()
+        model.start(.slowConnection)
+        guard case let .guided(intent, question) = model.state else { return XCTFail("Expected guided question") }
+        model.selectedOptionID = question.options[1].id
+        model.draft = "Isso acontece quando alguém faz videochamada?"
+
+        model.submitOpenQuestion()
+        XCTAssertEqual(model.state, .unavailableOpenQuestion("Isso acontece quando alguém faz videochamada?", canResumeGuidance: true))
+        XCTAssertEqual(model.selectedOptionID, question.options[1].id)
+        XCTAssertEqual(model.turns.last?.text, "Isso acontece quando alguém faz videochamada?")
+
+        model.resumeGuidance()
+        XCTAssertEqual(model.selectedOptionID, question.options[1].id)
+        XCTAssertEqual(model.state, .guided(intent: intent, question: question))
     }
 
     func testRouterAndMeshStayInEvidenceLimitedLocalPaths() {

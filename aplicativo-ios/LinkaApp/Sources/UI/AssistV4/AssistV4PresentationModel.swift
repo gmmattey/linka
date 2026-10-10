@@ -8,7 +8,7 @@ final class AssistV4PresentationModel: ObservableObject {
     enum State: Equatable {
         case home
         case guided(intent: ConsultationIntent, question: ConsultationQuestion)
-        case unavailableOpenQuestion(String)
+        case unavailableOpenQuestion(String, canResumeGuidance: Bool)
         case limitation(String)
         case guidance(title: String, detail: String)
     }
@@ -26,10 +26,12 @@ final class AssistV4PresentationModel: ObservableObject {
     @Published var selectedOptionID: PseudonymousReference?
     private var coordinator: ConsultationCoordinator?
     private var slowConnectionAnswers = SlowConnectionAnswers()
+    private var suspendedGuidance: (intent: ConsultationIntent, question: ConsultationQuestion)?
 
     func start(_ intent: ConsultationIntent) {
         guard intent != .openQuestion else { return }
         if intent == .slowConnection { slowConnectionAnswers = SlowConnectionAnswers() }
+        suspendedGuidance = nil
         do {
             var coordinator = try localCoordinator(for: intent)
             try coordinator.apply(.start, at: Date())
@@ -58,14 +60,23 @@ final class AssistV4PresentationModel: ObservableObject {
     func submitOpenQuestion() {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
+        if case let .guided(intent, question) = state {
+            // A pergunta livre não atravessa o contrato da pergunta guiada nem é
+            // enviada. Guardamos somente a apresentação da escolha local para que
+            // o usuário possa retornar sem reiniciar a investigação.
+            suspendedGuidance = (intent, question)
+            turns.append(Turn(role: .user, text: text))
+            state = .unavailableOpenQuestion(text, canResumeGuidance: true)
+            return
+        }
         do {
             var coordinator = try localCoordinator(for: .openQuestion)
             try coordinator.apply(.start, at: Date())
             try coordinator.apply(.recordLocalMessage(text, turnID: reference(prefix: "local-turn")), at: Date())
             try coordinator.apply(.markUnavailable, at: Date())
             self.coordinator = coordinator
-            turns = [Turn(role: .user, text: text)]
-            state = .unavailableOpenQuestion(text)
+            turns.append(Turn(role: .user, text: text))
+            state = .unavailableOpenQuestion(text, canResumeGuidance: false)
         } catch {
             state = .limitation("A pergunta continua no rascunho. Nenhum dado foi enviado.")
         }
@@ -97,8 +108,15 @@ final class AssistV4PresentationModel: ObservableObject {
     }
 
     func returnHome() {
+        suspendedGuidance = nil
         selectedOptionID = nil
         state = .home
+    }
+
+    func resumeGuidance() {
+        guard let suspendedGuidance else { return }
+        self.suspendedGuidance = nil
+        state = .guided(intent: suspendedGuidance.intent, question: suspendedGuidance.question)
     }
 
     private func localCoordinator(for intent: ConsultationIntent) throws -> ConsultationCoordinator {
