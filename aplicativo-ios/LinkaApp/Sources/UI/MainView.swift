@@ -135,6 +135,7 @@ struct MainView: View {
     @State private var purchaseEntryPoint: PurchaseEntryPoint = .settings
     @State private var showAssistProblemSelection: Bool = false
     @State private var showAssistResult: Bool = false
+    @State private var showAssistV4Local: Bool = false
     @State private var showNetscopeAnalysis: Bool = false
     @State private var assistEntryPoint: AssistEntryPoint = .fresh
     @State private var pendingAssistMeasurement = false
@@ -354,6 +355,11 @@ struct MainView: View {
                     entitlements: entitlements
                 )
             }
+            #if os(iOS)
+            .sheet(isPresented: $showAssistV4Local) {
+                AssistV4Screen()
+            }
+            #endif
             .sheet(isPresented: $showNetscopeAnalysis) {
                 if let currentMeasurement {
                     NetscopeAnalysisView(
@@ -847,6 +853,31 @@ struct MainView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+
+            #if os(iOS)
+            Button {
+                showAssistV4Local = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "sparkles")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.brandAccentWarm)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Consultoria local")
+                            .font(.bodyRegular)
+                            .foregroundColor(.textSecondary)
+                        Text("Sem enviar dados nesta versão")
+                            .font(.captionSmall)
+                            .foregroundColor(.textSecondary)
+                    }
+                    Spacer()
+                }
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("home.assist-v4-local")
+            #endif
 
             if let latest = viewModel.latestFinishedMeasurement {
                 Button {
