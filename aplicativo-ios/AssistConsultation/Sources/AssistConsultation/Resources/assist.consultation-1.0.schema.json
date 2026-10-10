@@ -1,111 +1,49 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "assist.consultation/1.0",
-  "type": "object",
-  "additionalProperties": false,
-  "required": ["schemaVersion", "requestID", "transportSessionID", "turnID", "expectedRevision", "locale", "input", "contextSnapshot", "consentReceiptRef"],
+  "type": "object", "additionalProperties": false,
+  "required": ["schemaVersion", "requestID", "localSessionID", "transportSessionID", "turnID", "expectedRevision", "locale", "input", "contextSnapshot", "consentReceiptRef"],
   "properties": {
-    "schemaVersion": {"const": "assist.consultation/1.0"},
-    "requestID": {"$ref": "#/$defs/reference"},
-    "transportSessionID": {"$ref": "#/$defs/reference"},
-    "turnID": {"$ref": "#/$defs/reference"},
-    "expectedRevision": {"type": "integer"},
-    "locale": {"type": "string", "pattern": "^[a-z]{2,3}(-[A-Z]{2})?$"},
-    "input": {"$ref": "#/$defs/input"},
-    "contextSnapshot": {"$ref": "#/$defs/contextSnapshot"},
-    "consentReceiptRef": {"$ref": "#/$defs/reference"}
+    "schemaVersion": {"const": "assist.consultation/1.0"}, "requestID": {"$ref": "#/$defs/reference"},
+    "localSessionID": {"$ref": "#/$defs/reference"}, "transportSessionID": {"$ref": "#/$defs/reference"}, "turnID": {"$ref": "#/$defs/reference"},
+    "expectedRevision": {"type": "integer"}, "locale": {"type": "string", "pattern": "^[a-z]{2,3}(-[A-Z]{2})?$"},
+    "input": {"$ref": "#/$defs/input"}, "contextSnapshot": {"$ref": "#/$defs/contextSnapshot"}, "consentReceiptRef": {"$ref": "#/$defs/reference"}
   },
   "$defs": {
-    "reference": {
-      "type": "object", "additionalProperties": false, "required": ["value"],
-      "properties": {"value": {"type": "string", "pattern": "^[a-z][a-z0-9]*-[A-Za-z0-9_-]{1,96}$"}}
-    },
+    "reference": {"type": "object", "additionalProperties": false, "required": ["value"], "properties": {"value": {"type": "string", "pattern": "^[a-z][a-z0-9]*-[A-Za-z0-9_-]{1,96}$"}}},
     "date": {"type": "string", "minLength": 20},
-    "consent": {
-      "type": "object", "additionalProperties": false, "required": ["ref", "state", "scope", "recordedAt"],
-      "properties": {
-        "ref": {"$ref": "#/$defs/reference"},
-        "state": {"enum": ["granted", "refused", "revoked"]},
-        "scope": {"enum": ["none", "question", "context", "question_and_context"]},
-        "recordedAt": {"$ref": "#/$defs/date"}
-      }
-    },
-    "evidenceValue": {
-      "oneOf": [
-        {"type": "object", "additionalProperties": false, "required": ["kind", "text"], "properties": {"kind": {"const": "text"}, "text": {"type": "string", "maxLength": 2000}}},
-        {"type": "object", "additionalProperties": false, "required": ["kind", "number"], "properties": {"kind": {"const": "number"}, "number": {"type": "number"}}},
-        {"type": "object", "additionalProperties": false, "required": ["kind", "boolean"], "properties": {"kind": {"const": "boolean"}, "boolean": {"type": "boolean"}}}
-      ]
-    },
-    "evidenceFact": {
-      "type": "object", "additionalProperties": false,
-      "required": ["id", "subjectRef", "property", "value", "sourceType", "sourceRefs", "observedAt", "consentScope", "qualityStatus", "derivedFrom"],
-      "properties": {
-        "id": {"$ref": "#/$defs/reference"}, "subjectRef": {"$ref": "#/$defs/reference"},
-        "property": {"type": "string", "minLength": 1, "maxLength": 120}, "value": {"$ref": "#/$defs/evidenceValue"},
-        "unit": {"type": ["string", "null"], "maxLength": 32},
-        "sourceType": {"enum": ["user_declared", "system_observed", "manufacturer_documented", "curated_knowledge", "derived"]},
-        "sourceRefs": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"$ref": "#/$defs/reference"}},
-        "observedAt": {"$ref": "#/$defs/date"}, "validUntil": {"type": ["string", "null"]},
-        "consentScope": {"enum": ["none", "question", "context", "question_and_context"]},
-        "qualityStatus": {"enum": ["usable", "partial", "stale", "conflicted", "unavailable"]},
-        "derivedFrom": {"type": "array", "maxItems": 8, "items": {"$ref": "#/$defs/reference"}}
-      }
-    },
-    "source": {
-      "type": "object", "additionalProperties": false, "required": ["id", "kind", "retrievedAt"],
-      "properties": {
-        "id": {"$ref": "#/$defs/reference"},
-        "kind": {"enum": ["user_declaration", "system_measurement", "official_document", "curated_reference"]},
-        "url": {"type": ["string", "null"], "maxLength": 2048},
-        "retrievedAt": {"$ref": "#/$defs/date"}
-      }
-    },
-    "hypothesis": {
-      "type": "object", "additionalProperties": false, "required": ["id", "text", "evidenceRefs", "limitations"],
-      "properties": {
-        "id": {"$ref": "#/$defs/reference"}, "text": {"type": "string", "minLength": 1, "maxLength": 1000},
-        "evidenceRefs": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"$ref": "#/$defs/reference"}},
-        "limitations": {"type": "array", "maxItems": 8, "items": {"type": "string", "maxLength": 500}}
-      }
-    },
-    "absence": {
-      "type": "object", "additionalProperties": false, "required": ["id", "subjectRef", "property", "reason", "observedAt", "sourceRefs"],
-      "properties": {
-        "id": {"$ref": "#/$defs/reference"}, "subjectRef": {"$ref": "#/$defs/reference"},
-        "property": {"type": "string", "minLength": 1, "maxLength": 120},
-        "reason": {"enum": ["not_collected", "expired", "conflicted", "deleted", "unavailable", "ineligible_measurement", "consent_not_granted"]},
-        "observedAt": {"$ref": "#/$defs/date"},
-        "sourceRefs": {"type": "array", "maxItems": 8, "items": {"$ref": "#/$defs/reference"}}
-      }
-    },
-    "measurement": {
-      "type": "object", "additionalProperties": false, "required": ["id", "profileRef", "measuredAt", "validUntil", "method", "values"],
-      "properties": {
-        "id": {"$ref": "#/$defs/reference"}, "profileRef": {"$ref": "#/$defs/reference"},
-        "measuredAt": {"$ref": "#/$defs/date"}, "validUntil": {"$ref": "#/$defs/date"},
-        "method": {"const": "app_measurement"},
-        "values": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"$ref": "#/$defs/evidenceFact"}}
-      }
-    },
-    "contextSnapshot": {
-      "type": "object", "additionalProperties": false,
-      "required": ["schemaVersion", "snapshotID", "revision", "intent", "consent", "createdAt", "sources", "facts", "hypotheses", "absences", "measurements"],
-      "properties": {
-        "schemaVersion": {"const": "assist.consultation/1.0"}, "snapshotID": {"$ref": "#/$defs/reference"},
-        "revision": {"type": "integer"},
-        "intent": {"enum": ["open_question", "slow_connection", "router_adequacy", "mesh_need", "plan_value"]},
-        "consent": {"$ref": "#/$defs/consent"}, "createdAt": {"$ref": "#/$defs/date"},
-        "sources": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/source"}},
-        "facts": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/evidenceFact"}},
-        "hypotheses": {"type": "array", "maxItems": 16, "items": {"$ref": "#/$defs/hypothesis"}},
-        "absences": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/absence"}},
-        "measurements": {"type": "array", "maxItems": 8, "items": {"$ref": "#/$defs/measurement"}}
-      }
-    },
-    "input": {
-      "type": "object", "additionalProperties": false, "required": ["kind", "text"],
-      "properties": {"kind": {"const": "user_message"}, "text": {"type": "string", "minLength": 1, "maxLength": 2000}}
-    }
+    "consent": {"type": "object", "additionalProperties": false, "required": ["ref", "state", "scope", "recordedAt"], "properties": {"ref": {"$ref": "#/$defs/reference"}, "state": {"enum": ["granted", "refused", "revoked"]}, "scope": {"enum": ["none", "question", "context", "question_and_context"]}, "recordedAt": {"$ref": "#/$defs/date"}}},
+    "evidenceValue": {"oneOf": [
+      {"type": "object", "additionalProperties": false, "required": ["kind", "text"], "properties": {"kind": {"const": "text"}, "text": {"type": "string", "maxLength": 2000}}},
+      {"type": "object", "additionalProperties": false, "required": ["kind", "number"], "properties": {"kind": {"const": "number"}, "number": {"type": "number"}}},
+      {"type": "object", "additionalProperties": false, "required": ["kind", "boolean"], "properties": {"kind": {"const": "boolean"}, "boolean": {"type": "boolean"}}}
+    ]},
+    "argumentValue": {"oneOf": [
+      {"type": "object", "additionalProperties": false, "required": ["kind", "text"], "properties": {"kind": {"const": "text"}, "text": {"type": "string", "maxLength": 2000}}},
+      {"type": "object", "additionalProperties": false, "required": ["kind", "number"], "properties": {"kind": {"const": "number"}, "number": {"type": "number"}}},
+      {"type": "object", "additionalProperties": false, "required": ["kind", "boolean"], "properties": {"kind": {"const": "boolean"}, "boolean": {"type": "boolean"}}},
+      {"type": "object", "additionalProperties": false, "required": ["kind", "reference"], "properties": {"kind": {"const": "reference"}, "reference": {"$ref": "#/$defs/reference"}}}
+    ]},
+    "argument": {"type": "object", "additionalProperties": false, "required": ["name", "value"], "properties": {"name": {"type": "string", "minLength": 1, "maxLength": 120}, "value": {"$ref": "#/$defs/argumentValue"}}},
+    "evidenceFact": {"type": "object", "additionalProperties": false, "required": ["id", "subjectRef", "property", "value", "sourceType", "sourceRefs", "observedAt", "consentScope", "qualityStatus", "derivedFrom"], "properties": {
+      "id": {"$ref": "#/$defs/reference"}, "subjectRef": {"$ref": "#/$defs/reference"}, "property": {"type": "string", "minLength": 1, "maxLength": 120}, "value": {"$ref": "#/$defs/evidenceValue"}, "unit": {"type": ["string", "null"], "maxLength": 32},
+      "sourceType": {"enum": ["user_declared", "system_observed", "manufacturer_documented", "curated_knowledge", "derived"]}, "sourceRefs": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"$ref": "#/$defs/reference"}},
+      "observedAt": {"$ref": "#/$defs/date"}, "validFrom": {"type": ["string", "null"]}, "validUntil": {"type": ["string", "null"]}, "consentScope": {"enum": ["none", "question", "context", "question_and_context"]}, "qualityStatus": {"enum": ["usable", "partial", "stale", "conflicted", "unavailable"]}, "derivedFrom": {"type": "array", "maxItems": 8, "items": {"$ref": "#/$defs/reference"}}
+    }},
+    "source": {"type": "object", "additionalProperties": false, "required": ["id", "kind", "retrievedAt"], "properties": {"id": {"$ref": "#/$defs/reference"}, "kind": {"enum": ["user_declaration", "system_measurement", "official_document", "curated_reference"]}, "url": {"type": ["string", "null"], "maxLength": 2048}, "revision": {"type": ["string", "null"], "maxLength": 120}, "retrievedAt": {"$ref": "#/$defs/date"}}},
+    "entity": {"type": "object", "additionalProperties": false, "required": ["id", "kind", "sourceRefs"], "properties": {"id": {"$ref": "#/$defs/reference"}, "kind": {"enum": ["profile", "device", "plan", "connection", "environment", "room"]}, "sourceRefs": {"type": "array", "maxItems": 8, "items": {"$ref": "#/$defs/reference"}}}},
+    "capability": {"type": "object", "additionalProperties": false, "required": ["tool", "availability"], "properties": {"tool": {"enum": ["read_network_context", "select_measurement_evidence", "evaluate_opportunities", "lookup_device_specs", "retrieve_network_guidance", "propose_network_test", "run_existing_test", "compare_measurements", "save_consultation"]}, "availability": {"enum": ["available", "unavailable", "not_authorized"]}, "limitation": {"type": ["string", "null"], "maxLength": 2000}}},
+    "hypothesis": {"type": "object", "additionalProperties": false, "required": ["id", "text", "evidenceRefs", "limitations"], "properties": {"id": {"$ref": "#/$defs/reference"}, "text": {"type": "string", "minLength": 1, "maxLength": 1000}, "evidenceRefs": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"$ref": "#/$defs/reference"}}, "limitations": {"type": "array", "maxItems": 8, "items": {"type": "string", "maxLength": 500}}}},
+    "absence": {"type": "object", "additionalProperties": false, "required": ["id", "subjectRef", "property", "reason", "observedAt", "sourceRefs"], "properties": {"id": {"$ref": "#/$defs/reference"}, "subjectRef": {"$ref": "#/$defs/reference"}, "property": {"type": "string", "minLength": 1, "maxLength": 120}, "reason": {"enum": ["not_collected", "expired", "conflicted", "deleted", "unavailable", "ineligible_measurement", "consent_not_granted"]}, "observedAt": {"$ref": "#/$defs/date"}, "sourceRefs": {"type": "array", "maxItems": 8, "items": {"$ref": "#/$defs/reference"}}}},
+    "measurement": {"type": "object", "additionalProperties": false, "required": ["id", "profileRef", "measuredAt", "validUntil", "method", "platform", "values"], "properties": {"id": {"$ref": "#/$defs/reference"}, "profileRef": {"$ref": "#/$defs/reference"}, "measuredAt": {"$ref": "#/$defs/date"}, "validUntil": {"$ref": "#/$defs/date"}, "method": {"const": "app_measurement"}, "platform": {"enum": ["ios", "ipados", "macos", "unknown"]}, "values": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"$ref": "#/$defs/evidenceFact"}}}},
+    "contextSnapshot": {"type": "object", "additionalProperties": false, "required": ["schemaVersion", "snapshotID", "revision", "purpose", "intent", "consent", "consentReceiptRef", "entities", "createdAt", "sources", "capabilities", "facts", "hypotheses", "absences", "measurements"], "properties": {
+      "schemaVersion": {"const": "assist.consultation/1.0"}, "snapshotID": {"$ref": "#/$defs/reference"}, "revision": {"type": "integer"}, "purpose": {"const": "consultation"}, "intent": {"enum": ["open_question", "slow_connection", "router_adequacy", "mesh_need", "plan_value"]}, "consent": {"$ref": "#/$defs/consent"}, "consentReceiptRef": {"$ref": "#/$defs/reference"}, "selectedProfileRef": {"anyOf": [{"$ref": "#/$defs/reference"}, {"type": "null"}]}, "entities": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/entity"}}, "createdAt": {"$ref": "#/$defs/date"}, "sources": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/source"}}, "capabilities": {"type": "array", "maxItems": 9, "items": {"$ref": "#/$defs/capability"}}, "facts": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/evidenceFact"}}, "hypotheses": {"type": "array", "maxItems": 16, "items": {"$ref": "#/$defs/hypothesis"}}, "absences": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/absence"}}, "measurements": {"type": "array", "maxItems": 8, "items": {"$ref": "#/$defs/measurement"}}
+    }},
+    "input": {"oneOf": [
+      {"type": "object", "additionalProperties": false, "required": ["kind", "text"], "properties": {"kind": {"const": "user_message"}, "text": {"type": "string", "minLength": 1, "maxLength": 2000}}},
+      {"type": "object", "additionalProperties": false, "required": ["kind", "answer"], "properties": {"kind": {"const": "answer"}, "answer": {"type": "object", "additionalProperties": false, "required": ["questionID"], "properties": {"questionID": {"$ref": "#/$defs/reference"}, "optionID": {"anyOf": [{"$ref": "#/$defs/reference"}, {"type": "null"}]}, "text": {"type": ["string", "null"], "maxLength": 2000}}}}},
+      {"type": "object", "additionalProperties": false, "required": ["kind", "tool_result"], "properties": {"kind": {"const": "tool_result"}, "tool_result": {"type": "object", "additionalProperties": false, "required": ["proposalID", "tool", "status", "output"], "properties": {"proposalID": {"$ref": "#/$defs/reference"}, "tool": {"enum": ["read_network_context", "select_measurement_evidence", "evaluate_opportunities", "lookup_device_specs", "retrieve_network_guidance", "propose_network_test", "run_existing_test", "compare_measurements", "save_consultation"]}, "status": {"enum": ["completed", "partial", "cancelled", "denied", "unavailable", "failed"]}, "reason": {"type": ["string", "null"], "maxLength": 2000}, "output": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/argument"}}}}}},
+      {"type": "object", "additionalProperties": false, "required": ["kind", "action_feedback"], "properties": {"kind": {"const": "action_feedback"}, "action_feedback": {"type": "object", "additionalProperties": false, "required": ["actionID", "status"], "properties": {"actionID": {"$ref": "#/$defs/reference"}, "status": {"enum": ["accepted", "completed", "ignored", "impossible", "retest_requested"]}, "note": {"type": ["string", "null"], "maxLength": 2000}}}}}
+    ]}
   }
 }

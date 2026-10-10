@@ -1,6 +1,7 @@
 {
   "schemaVersion": "assist.consultation/1.0",
   "requestID": {"value": "request-001"},
+  "localSessionID": {"value": "local-session-001"},
   "transportSessionID": {"value": "session-001"},
   "turnID": {"value": "turn-001"},
   "expectedRevision": 1,
@@ -10,6 +11,7 @@
     "schemaVersion": "assist.consultation/1.0",
     "snapshotID": {"value": "snapshot-001"},
     "revision": 1,
+    "purpose": "consultation",
     "intent": "open_question",
     "consent": {
       "ref": {"value": "consent-001"},
@@ -17,8 +19,11 @@
       "scope": "question",
       "recordedAt": "2026-10-09T12:00:00Z"
     },
+    "consentReceiptRef": {"value": "consent-001"},
+    "entities": [],
     "createdAt": "2026-10-09T12:00:00Z",
     "sources": [],
+    "capabilities": [],
     "facts": [],
     "hypotheses": [],
     "absences": [],
