@@ -80,6 +80,25 @@ final class AssistV4PresentationModelTests: XCTestCase {
         XCTAssertEqual(model.state, .guided(intent: intent, question: question))
     }
 
+    func testOpenQuestionAfterOrientationCanReturnToTheLocalResult() {
+        let model = AssistV4PresentationModel()
+        model.start(.slowConnection)
+        guard case let .guided(_, locationQuestion) = model.state else { return XCTFail("Expected location question") }
+        model.selectedOptionID = locationQuestion.options.first(where: { $0.text == "Em um cômodo" })?.id
+        model.continueGuided()
+        guard case let .guided(_, usageQuestion) = model.state else { return XCTFail("Expected usage question") }
+        model.selectedOptionID = usageQuestion.options.first(where: { $0.text == "Em tudo" })?.id
+        model.continueGuided()
+        guard case let .localOrientation(orientation) = model.state else { return XCTFail("Expected local orientation") }
+
+        model.draft = "E se eu usar outro roteador?"
+        model.submitOpenQuestion()
+        XCTAssertEqual(model.state, .unavailableOpenQuestion("E se eu usar outro roteador?", canResumeGuidance: true))
+
+        model.resumeGuidance()
+        XCTAssertEqual(model.state, .localOrientation(orientation))
+    }
+
     func testSlowConnectionResultCanRevisitTheLastGuidedAnswerLocally() {
         let model = AssistV4PresentationModel()
         model.start(.slowConnection)

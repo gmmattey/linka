@@ -46,6 +46,7 @@ final class AssistV4PresentationModel: ObservableObject {
     private enum SuspendedLocalFlow {
         case guided(intent: ConsultationIntent, question: ConsultationQuestion)
         case planDeclaration
+        case localOrientation(LocalOrientation)
     }
 
     func start(_ intent: ConsultationIntent) {
@@ -95,6 +96,14 @@ final class AssistV4PresentationModel: ObservableObject {
             return
         case .planDeclaration:
             suspendedLocalFlow = .planDeclaration
+            turns.append(Turn(role: .user, text: text))
+            state = .unavailableOpenQuestion(text, canResumeGuidance: true)
+            return
+        case let .localOrientation(orientation):
+            // Sem motor autorizado, a pergunta fica somente nesta apresentação.
+            // Preservamos a orientação local em vez de reiniciar silenciosamente a
+            // investigação que a pessoa acabara de concluir.
+            suspendedLocalFlow = .localOrientation(orientation)
             turns.append(Turn(role: .user, text: text))
             state = .unavailableOpenQuestion(text, canResumeGuidance: true)
             return
@@ -191,6 +200,8 @@ final class AssistV4PresentationModel: ObservableObject {
             state = .guided(intent: intent, question: question)
         case .planDeclaration:
             state = .planDeclaration
+        case let .localOrientation(orientation):
+            state = .localOrientation(orientation)
         }
     }
 

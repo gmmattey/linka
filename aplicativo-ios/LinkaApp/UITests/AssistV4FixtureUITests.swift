@@ -78,6 +78,28 @@ final class AssistV4FixtureUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Dados insuficientes para continuar"].waitForExistence(timeout: 3))
     }
 
+    func testOpenQuestionAfterOrientationCanReturnToTheLocalResult() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
+        app.launch()
+
+        app.buttons["assist-v4.shortcut.slow_connection"].tap()
+        app.buttons["Em um cômodo"].tap()
+        app.buttons["Continuar"].tap()
+        app.buttons["Em tudo"].tap()
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["assist-v4.local-orientation"].waitForExistence(timeout: 3))
+
+        let composer = app.textFields["assist-v4.composer"]
+        composer.tap()
+        composer.typeText("E se eu usar outro roteador?")
+        app.buttons["assist-v4.send"].tap()
+        XCTAssertTrue(app.buttons["Continuar investigação"].waitForExistence(timeout: 3))
+
+        app.buttons["Continuar investigação"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["assist-v4.local-orientation"].waitForExistence(timeout: 3))
+    }
+
     func testGuidedBackPreservesThePreviousLocalChoice() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
