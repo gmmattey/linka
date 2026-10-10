@@ -357,7 +357,12 @@ struct MainView: View {
             }
             #if os(iOS)
             .sheet(isPresented: $showAssistV4Local) {
-                AssistV4Screen()
+                AssistV4Screen(
+                    latestMeasurement: viewModel.latestFinishedMeasurement,
+                    isSpeedTestRunning: viewModel.isTesting,
+                    canStartSpeedTest: true,
+                    startSpeedTest: beginSpeedTest
+                )
             }
             #endif
             .sheet(isPresented: $showNetscopeAnalysis) {

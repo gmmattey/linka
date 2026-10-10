@@ -74,6 +74,28 @@ final class AssistV4FixtureUITests: XCTestCase {
 
     }
 
+    func testExplicitSlowConnectionMeasurementReturnsToTheLocalSession() throws {
+        guard ProcessInfo.processInfo.environment["LINKA_RUN_LIVE_ASSIST_V4_TEST"] == "1" else {
+            throw XCTSkip("Teste físico de tráfego só roda quando autorizado explicitamente.")
+        }
+
+        let app = XCUIApplication()
+        app.launchArguments = ["-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
+        app.launch()
+
+        let entry = app.buttons["home.assist-v4-local"]
+        XCTAssertTrue(entry.waitForExistence(timeout: 10))
+        entry.tap()
+        reachSlowConnectionOrientation(in: app)
+
+        let runTest = app.buttons["assist-v4.action.run-test"]
+        XCTAssertTrue(runTest.waitForExistence(timeout: 5))
+        runTest.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["assist-v4.measurement.running"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["assist-v4.measurement.result"].waitForExistence(timeout: 120))
+        XCTAssertTrue(app.staticTexts["Medição concluída no Linka"].exists)
+    }
+
     func testOpenQuestionRequiresQuestionOnlyConsentAndFailsClosedInFixture() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]

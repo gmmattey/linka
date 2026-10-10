@@ -21,6 +21,18 @@ final class AssistV4PresentationModel: ObservableObject {
         let supportingConditions: [String]
         let declaredAnswers: [String]
         let actionProgress: LocalActionProgress
+        let measurement: LocalMeasurementEvidence?
+    }
+
+    /// Resultado factual de uma medição explicitamente iniciada nesta tela.
+    /// Ele pertence apenas à apresentação atual: não é um novo contrato de
+    /// consulta, não é serializado e não é enviado ao relay.
+    struct LocalMeasurementEvidence: Equatable {
+        let measuredAt: Date
+        let downloadMbps: Double?
+        let uploadMbps: Double?
+        let latencyMs: Double?
+        let connectionKind: String?
     }
 
     enum State: Equatable {
@@ -436,6 +448,37 @@ final class AssistV4PresentationModel: ObservableObject {
         updateSuggestedAction(status: .ignored)
     }
 
+    func recordSuggestedMeasurement(_ measurement: LocalMeasurementEvidence) {
+        guard case let .localOrientation(orientation) = state,
+              orientation.actionProgress.status == .pending else { return }
+        let progress = LocalActionProgress(
+            actionID: orientation.actionProgress.actionID,
+            status: .completed,
+            confirmedAt: Date(),
+            evidenceRef: reference(prefix: "local-measurement")
+        )
+        do {
+            try ActionRetestLocalPolicy.validate(progress, at: Date())
+            state = .localOrientation(
+                LocalOrientation(
+                    title: orientation.title,
+                    reason: orientation.reason,
+                    nextAction: orientation.nextAction,
+                    supportingConditions: orientation.supportingConditions,
+                    declaredAnswers: orientation.declaredAnswers,
+                    actionProgress: progress,
+                    measurement: measurement
+                )
+            )
+        } catch {
+            state = .limitation("O resultado da medição não pôde ser associado a esta investigação. Nenhum dado foi enviado.")
+        }
+    }
+
+    func markSuggestedMeasurementUnavailable() {
+        updateSuggestedAction(status: .unavailable)
+    }
+
     func reviseSlowConnectionAnswers() {
         guard case .localOrientation = state,
               slowConnectionAnswers.access != nil else { return }
@@ -613,7 +656,8 @@ final class AssistV4PresentationModel: ObservableObject {
                     actionProgress: LocalActionProgress(
                         actionID: reference(prefix: "local-action"),
                         status: .pending
-                    )
+                    ),
+                    measurement: nil
                 )
             )
         case let .result(_, limitations):
@@ -735,7 +779,8 @@ final class AssistV4PresentationModel: ObservableObject {
                     nextAction: orientation.nextAction,
                     supportingConditions: orientation.supportingConditions,
                     declaredAnswers: orientation.declaredAnswers,
-                    actionProgress: progress
+                    actionProgress: progress,
+                    measurement: orientation.measurement
                 )
             )
         } catch {

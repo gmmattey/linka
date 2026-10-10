@@ -131,6 +131,31 @@ final class AssistV4PresentationModelTests: XCTestCase {
         XCTAssertNil(orientation.actionProgress.evidenceRef)
     }
 
+    func testEligibleMeasurementIsAttachedOnlyToTheCurrentLocalOrientation() {
+        let model = AssistV4PresentationModel()
+        reachSlowConnectionOrientation(on: model)
+        let measuredAt = Date(timeIntervalSince1970: 1_700_000_000)
+
+        model.recordSuggestedMeasurement(
+            .init(
+                measuredAt: measuredAt,
+                downloadMbps: 123.4,
+                uploadMbps: 45.6,
+                latencyMs: 12.0,
+                connectionKind: "wifi"
+            )
+        )
+
+        guard case let .localOrientation(orientation) = model.state else {
+            return XCTFail("Expected local orientation with a measurement")
+        }
+        XCTAssertEqual(orientation.actionProgress.status, .completed)
+        XCTAssertNotNil(orientation.actionProgress.evidenceRef)
+        XCTAssertEqual(orientation.measurement?.measuredAt, measuredAt)
+        XCTAssertEqual(orientation.measurement?.downloadMbps, 123.4)
+        XCTAssertEqual(orientation.measurement?.connectionKind, "wifi")
+    }
+
     func testOpenQuestionDuringGuidancePreservesTheLocalQuestionAndSelection() {
         let model = AssistV4PresentationModel()
         model.start(.slowConnection)

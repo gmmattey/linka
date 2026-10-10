@@ -1,11 +1,31 @@
 #if os(iOS)
 import SwiftUI
 import AssistConsultation
+import NetworkCore
 
 struct AssistV4Screen: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = AssistV4PresentationModel()
+    @State private var measurementRequestInFlight = false
+    @State private var requestedMeasurementAt: Date?
+
+    private let latestMeasurement: NetworkMeasurement?
+    private let isSpeedTestRunning: Bool
+    private let canStartSpeedTest: Bool
+    private let startSpeedTest: () -> Void
+
+    init(
+        latestMeasurement: NetworkMeasurement? = nil,
+        isSpeedTestRunning: Bool = false,
+        canStartSpeedTest: Bool = false,
+        startSpeedTest: @escaping () -> Void = {}
+    ) {
+        self.latestMeasurement = latestMeasurement
+        self.isSpeedTestRunning = isSpeedTestRunning
+        self.canStartSpeedTest = canStartSpeedTest
+        self.startSpeedTest = startSpeedTest
+    }
 
     var body: some View {
         NavigationStack {
@@ -30,6 +50,9 @@ struct AssistV4Screen: View {
                 guard phase == .background else { return }
                 model.pauseForBackground()
             }
+            .onChange(of: isSpeedTestRunning) { running in
+                finishRequestedMeasurementIfNeeded(running: running)
+            }
         }
     }
 
@@ -49,7 +72,9 @@ struct AssistV4Screen: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Sua rede")
                 .font(.bodyRegularStrong)
-            Text("Nenhum plano, equipamento ou medição foi autorizado nesta prova local.")
+            Text(canStartSpeedTest
+                 ? "Uma medição só começa se você tocar em Fazer teste. A consulta não envia dados nesta versão."
+                 : "Nenhum plano, equipamento ou medição foi autorizado nesta prova local.")
                 .font(.caption)
                 .foregroundColor(.textSecondary)
         }
@@ -329,7 +354,7 @@ struct AssistV4Screen: View {
                 }
             }
             orientationEvidence(orientation)
-            suggestedActionFeedback(orientation.actionProgress.status)
+            suggestedActionFeedback(orientation)
             Button("Revisar conexão usada") { model.reviseSlowConnectionAnswers() }
                 .buttonStyle(.linkaSecondary)
                 .accessibilityIdentifier("assist-v4.action.revise-answers")
@@ -412,30 +437,64 @@ struct AssistV4Screen: View {
                     .font(.caption)
                     .foregroundColor(.textSecondary)
             }
-            Text("Nenhuma medição, especificação, oferta ou fonte externa foi consultada nesta prova local. Ela não permite atribuir a causa à operadora.")
-                .font(.caption)
-                .foregroundColor(.textSecondary)
+            if let measurement = orientation.measurement {
+                Text("Medição formal do Linka, concluída em \(measurement.measuredAt.formatted(date: .abbreviated, time: .shortened)).")
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+                Text(measurementSummary(measurement))
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+                Text("Nenhuma especificação, oferta ou fonte externa foi consultada. Esta medição não permite atribuir a causa à operadora.")
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+            } else {
+                Text("Nenhuma medição, especificação, oferta ou fonte externa foi consultada nesta prova local. Ela não permite atribuir a causa à operadora.")
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+            }
         }
         .font(.bodyRegularStrong)
         .accessibilityIdentifier("assist-v4.evidence-boundary")
     }
 
-    @ViewBuilder private func suggestedActionFeedback(_ status: LocalActionStatus) -> some View {
-        switch status {
+    @ViewBuilder private func suggestedActionFeedback(_ orientation: AssistV4PresentationModel.LocalOrientation) -> some View {
+        switch orientation.actionProgress.status {
         case .pending:
             VStack(alignment: .leading, spacing: 8) {
-                Text("Quando terminar essa ação fora do app, confirme aqui.")
-                    .font(.bodyRegular)
-                    .foregroundColor(.textSecondary)
-                Button("Marcar como concluída") { model.completeSuggestedAction() }
-                    .buttonStyle(.linkaPrimary)
-                    .accessibilityIdentifier("assist-v4.action.complete")
-                Button("Agora não") { model.deferSuggestedAction() }
-                    .buttonStyle(.linkaSecondary)
-                    .accessibilityIdentifier("assist-v4.action.defer")
+                if canStartSpeedTest {
+                    Text("O teste usa tráfego de rede e, se concluir, entra no histórico do Linka. Ele não envia esta investigação ao Assist.")
+                        .font(.bodyRegular)
+                        .foregroundColor(.textSecondary)
+                    if measurementRequestInFlight {
+                        ProgressView("Medindo sua conexão…")
+                            .accessibilityIdentifier("assist-v4.measurement.running")
+                    } else {
+                        Button("Fazer teste agora") { startSuggestedMeasurement() }
+                            .buttonStyle(.linkaPrimary)
+                            .disabled(isSpeedTestRunning)
+                            .accessibilityIdentifier("assist-v4.action.run-test")
+                    }
+                    Button("Agora não") { model.deferSuggestedAction() }
+                        .buttonStyle(.linkaSecondary)
+                        .accessibilityIdentifier("assist-v4.action.defer")
+                } else {
+                    Text("Quando terminar essa ação fora do app, confirme aqui.")
+                        .font(.bodyRegular)
+                        .foregroundColor(.textSecondary)
+                    Button("Marcar como concluída") { model.completeSuggestedAction() }
+                        .buttonStyle(.linkaPrimary)
+                        .accessibilityIdentifier("assist-v4.action.complete")
+                    Button("Agora não") { model.deferSuggestedAction() }
+                        .buttonStyle(.linkaSecondary)
+                        .accessibilityIdentifier("assist-v4.action.defer")
+                }
             }
         case .completed:
-            actionFeedback("Ação marcada como concluída nesta sessão local.")
+            if let measurement = orientation.measurement {
+                measurementFeedback(measurement)
+            } else {
+                actionFeedback("Ação marcada como concluída nesta sessão local.")
+            }
         case .ignored:
             actionFeedback("Ação adiada nesta sessão local.")
         case .unavailable:
@@ -451,6 +510,76 @@ struct AssistV4Screen: View {
                 .foregroundColor(.textSecondary)
         }
         .accessibilityIdentifier("assist-v4.action-feedback")
+    }
+
+    private func measurementFeedback(_ measurement: AssistV4PresentationModel.LocalMeasurementEvidence) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Medição concluída no Linka")
+                .font(.bodyRegularStrong)
+            Text(measurementSummary(measurement))
+                .font(.bodyRegular)
+                .foregroundColor(.textSecondary)
+            Text("Origem: teste formal do Linka em \(measurement.measuredAt.formatted(date: .abbreviated, time: .shortened)). Esse resultado não identifica sozinho LAN, Internet, DNS ou operadora.")
+                .font(.caption)
+                .foregroundColor(.textSecondary)
+        }
+        .accessibilityIdentifier("assist-v4.measurement.result")
+    }
+
+    private func startSuggestedMeasurement() {
+        guard canStartSpeedTest, !isSpeedTestRunning else { return }
+        requestedMeasurementAt = Date()
+        measurementRequestInFlight = true
+        startSpeedTest()
+    }
+
+    private func finishRequestedMeasurementIfNeeded(running: Bool) {
+        guard measurementRequestInFlight, !running else { return }
+        defer {
+            measurementRequestInFlight = false
+            requestedMeasurementAt = nil
+        }
+        guard let requestedMeasurementAt,
+              let latestMeasurement,
+              latestMeasurement.measuredAt >= requestedMeasurementAt else {
+            model.markSuggestedMeasurementUnavailable()
+            return
+        }
+        model.recordSuggestedMeasurement(
+            .init(
+                measuredAt: latestMeasurement.measuredAt,
+                downloadMbps: latestMeasurement.downloadMbps,
+                uploadMbps: latestMeasurement.uploadMbps,
+                latencyMs: latestMeasurement.latencyMs,
+                connectionKind: latestMeasurement.connectionKind?.rawValue
+            )
+        )
+    }
+
+    private func measurementSummary(_ measurement: AssistV4PresentationModel.LocalMeasurementEvidence) -> String {
+        [
+            measurement.connectionKind.map(connectionLabel),
+            metric("Download", measurement.downloadMbps, suffix: "Mbps"),
+            metric("Upload", measurement.uploadMbps, suffix: "Mbps"),
+            metric("Latência", measurement.latencyMs, suffix: "ms")
+        ]
+        .compactMap { $0 }
+        .joined(separator: " · ")
+    }
+
+    private func metric(_ label: String, _ value: Double?, suffix: String) -> String {
+        guard let value else { return "\(label): não medido" }
+        return "\(label): \(value.formatted(.number.precision(.fractionLength(1)))) \(suffix)"
+    }
+
+    private func connectionLabel(_ connectionKind: String) -> String {
+        switch connectionKind {
+        case "wifi": "Wi-Fi"
+        case "ethernet": "Cabo de rede"
+        case "cellular": "Dados móveis"
+        case "other": "Outra conexão"
+        default: "Conexão não identificada"
+        }
     }
 
     private var composer: some View {
