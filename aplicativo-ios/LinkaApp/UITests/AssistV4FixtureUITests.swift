@@ -94,6 +94,19 @@ final class AssistV4FixtureUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Acontece em tudo ou só em um app ou serviço?"].waitForExistence(timeout: 3))
     }
 
+    func testGuidedInvestigationCanBeCancelledWithoutSavingOrSending() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
+        app.launch()
+
+        app.buttons["assist-v4.shortcut.slow_connection"].tap()
+        XCTAssertTrue(app.buttons["assist-v4.cancel"].waitForExistence(timeout: 3))
+        app.buttons["assist-v4.cancel"].tap()
+        XCTAssertTrue(app.staticTexts["Investigação encerrada"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["As informações desta sessão local foram descartadas. Nada foi enviado ou salvo."].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["assist-v4.cancelled"].exists)
+    }
+
     func testPlanDeclarationStaysLocalAndDoesNotConsultOffers() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]

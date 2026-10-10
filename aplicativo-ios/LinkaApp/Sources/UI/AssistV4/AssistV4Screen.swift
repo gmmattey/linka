@@ -107,6 +107,9 @@ struct AssistV4Screen: View {
                 Button("Voltar") { model.goBackFromGuidedQuestion() }
                     .buttonStyle(.linkaSecondary)
                     .accessibilityIdentifier("assist-v4.guided.back")
+                Button("Encerrar investigação") { model.cancelLocalInvestigation() }
+                    .buttonStyle(.linkaSecondary)
+                    .accessibilityIdentifier("assist-v4.cancel")
             }
         case let .unavailableOpenQuestion(text, canResumeGuidance):
             unavailableOpenQuestion(text, canResumeGuidance: canResumeGuidance)
@@ -114,6 +117,8 @@ struct AssistV4Screen: View {
             limitation("Dados insuficientes para continuar", detail: text)
         case let .localOrientation(orientation):
             localOrientation(orientation)
+        case .cancelled:
+            cancelledInvestigation
         }
     }
 
@@ -156,6 +161,9 @@ struct AssistV4Screen: View {
                 .disabled(model.declaredPlanName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || model.declaredPlanPrice.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             Button("Voltar às sugestões") { model.returnHome() }
                 .buttonStyle(.linkaSecondary)
+            Button("Encerrar investigação") { model.cancelLocalInvestigation() }
+                .buttonStyle(.linkaSecondary)
+                .accessibilityIdentifier("assist-v4.cancel")
         }
     }
 
@@ -211,7 +219,22 @@ struct AssistV4Screen: View {
             } else {
                 Button("Voltar às sugestões") { model.returnHome() }.buttonStyle(.linkaPrimary)
             }
+            Button("Encerrar investigação") { model.cancelLocalInvestigation() }
+                .buttonStyle(.linkaSecondary)
+                .accessibilityIdentifier("assist-v4.cancel")
         }
+    }
+
+    private var cancelledInvestigation: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Investigação encerrada").font(.displayMedium)
+            Text("As informações desta sessão local foram descartadas. Nada foi enviado ou salvo.")
+                .font(.bodyRegular)
+                .foregroundColor(.textSecondary)
+            Button("Voltar às sugestões") { model.returnHome() }
+                .buttonStyle(.linkaPrimary)
+        }
+        .accessibilityIdentifier("assist-v4.cancelled")
     }
 
     private func unavailableOpenQuestion(_ text: String, canResumeGuidance: Bool) -> some View {
@@ -229,6 +252,9 @@ struct AssistV4Screen: View {
             }
             Button("Voltar às sugestões") { model.returnHome() }
                 .buttonStyle(.linkaSecondary)
+            Button("Encerrar investigação") { model.cancelLocalInvestigation() }
+                .buttonStyle(.linkaSecondary)
+                .accessibilityIdentifier("assist-v4.cancel")
         }
     }
 

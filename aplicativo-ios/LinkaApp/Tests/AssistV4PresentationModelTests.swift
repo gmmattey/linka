@@ -105,6 +105,20 @@ final class AssistV4PresentationModelTests: XCTestCase {
         XCTAssertEqual(nextQuestion.text, "Acontece em tudo ou só em um app ou serviço?")
     }
 
+    func testCancelDiscardsTheEphemeralLocalInvestigation() {
+        let model = AssistV4PresentationModel()
+        model.start(.slowConnection)
+        guard case let .guided(_, question) = model.state else { return XCTFail("Expected local question") }
+        model.selectedOptionID = question.options.first?.id
+        model.continueGuided()
+        XCTAssertFalse(model.turns.isEmpty)
+
+        model.cancelLocalInvestigation()
+        XCTAssertEqual(model.state, .cancelled)
+        XCTAssertTrue(model.turns.isEmpty)
+        XCTAssertNil(model.selectedOptionID)
+    }
+
     func testRouterAndMeshStayInEvidenceLimitedLocalPaths() {
         let router = AssistV4PresentationModel()
         router.start(.routerAdequacy)

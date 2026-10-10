@@ -21,6 +21,7 @@ final class AssistV4PresentationModel: ObservableObject {
         case unavailableOpenQuestion(String, canResumeGuidance: Bool)
         case limitation(String)
         case localOrientation(LocalOrientation)
+        case cancelled
     }
 
     struct Turn: Equatable, Identifiable {
@@ -150,6 +151,28 @@ final class AssistV4PresentationModel: ObservableObject {
             restartPlanValueAtPriorityQuestion()
         default:
             returnHome()
+        }
+    }
+
+    func cancelLocalInvestigation() {
+        guard var coordinator else {
+            returnHome()
+            return
+        }
+        do {
+            try coordinator.apply(.cancel, at: Date())
+            try coordinator.apply(.cancellationFinished, at: Date())
+            self.coordinator = nil
+            suspendedLocalFlow = nil
+            slowConnectionAnswers = SlowConnectionAnswers()
+            planValueAnswers = PlanValueAnswers()
+            clearPlanDeclaration()
+            selectedOptionID = nil
+            turns = []
+            guidedAnswers = []
+            state = .cancelled
+        } catch {
+            state = .limitation("Não foi possível encerrar esta investigação local. Nenhum dado foi enviado.")
         }
     }
 
