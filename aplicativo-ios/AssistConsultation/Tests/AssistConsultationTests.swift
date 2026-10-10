@@ -164,6 +164,52 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertTrue(limitations.contains { $0.localizedCaseInsensitiveContains("não comprovam desempenho") })
     }
 
+    func testMeshJourneyRequiresAffectedAreaAndCoverageEvidence() {
+        guard case let .question(area) = MeshNeedLocalJourney.next(after: MeshNeedAnswers()) else {
+            return XCTFail("Expected affected-area question")
+        }
+        XCTAssertEqual(area.text, "Onde a conexão falha?")
+        XCTAssertTrue(area.allowUnknown)
+
+        guard case let .result(conclusion, _) = MeshNeedLocalJourney.next(after: MeshNeedAnswers(affectedArea: .unknown)) else {
+            return XCTFail("Expected insufficient evidence for unknown area")
+        }
+        XCTAssertEqual(conclusion, .insufficient)
+
+        guard case let .requiresCoverageEvidence(limitations) = MeshNeedLocalJourney.next(after: MeshNeedAnswers(affectedArea: .many)) else {
+            return XCTFail("Expected coverage-evidence requirement")
+        }
+        XCTAssertFalse(limitations.isEmpty)
+    }
+
+    func testMeshJourneyOffersOnlyConditionalAlternativesAfterEvidenceAndCablingContext() {
+        let context = MeshNeedAnswers(affectedArea: .many, hasVerifiedCoverageEvidence: true)
+        guard case let .question(cabling) = MeshNeedLocalJourney.next(after: context) else {
+            return XCTFail("Expected cabling question")
+        }
+        XCTAssertEqual(cabling.text, "Há possibilidade de passar cabo até a área afetada?")
+
+        guard case let .candidateAlternatives(withCable, wiredLimitations) = MeshNeedLocalJourney.next(after: MeshNeedAnswers(
+            affectedArea: .many,
+            hasVerifiedCoverageEvidence: true,
+            cabling: .available
+        )) else {
+            return XCTFail("Expected alternatives with cabling")
+        }
+        XCTAssertEqual(withCable, [.reposition, .wiredAccessPoint])
+        XCTAssertTrue(wiredLimitations.contains { $0.localizedCaseInsensitiveContains("não prova alcance") })
+
+        guard case let .candidateAlternatives(withoutCable, wirelessLimitations) = MeshNeedLocalJourney.next(after: MeshNeedAnswers(
+            affectedArea: .many,
+            hasVerifiedCoverageEvidence: true,
+            cabling: .unavailable
+        )) else {
+            return XCTFail("Expected alternatives without cabling")
+        }
+        XCTAssertEqual(withoutCable, [.reposition, .mesh, .repeater])
+        XCTAssertTrue(wirelessLimitations.contains { $0.localizedCaseInsensitiveContains("não há promessa de cobertura") })
+    }
+
     func testRefusedAndRevokedConsentRejectSubmission() {
         for state in [ConsentState.refused, .revoked] {
             XCTAssertThrowsError(try payload(snapshot: snapshot(consent: consent(state: state))).validate(at: now)) { error in
