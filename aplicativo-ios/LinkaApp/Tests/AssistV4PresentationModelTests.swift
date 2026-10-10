@@ -85,6 +85,26 @@ final class AssistV4PresentationModelTests: XCTestCase {
         XCTAssertTrue(detail.contains("teste geral não comprova"))
     }
 
+    func testGuidedBackRebuildsTheSlowConnectionQuestionWithoutReusingTheAnswer() {
+        let model = AssistV4PresentationModel()
+        model.start(.slowConnection)
+        guard case let .guided(_, locationQuestion) = model.state else { return XCTFail("Expected location question") }
+        model.selectedOptionID = locationQuestion.options.first(where: { $0.text == "Em um cômodo" })?.id
+        model.continueGuided()
+        guard case .guided = model.state else { return XCTFail("Expected usage question") }
+
+        model.goBackFromGuidedQuestion()
+        guard case let .guided(intent, rebuiltQuestion) = model.state else { return XCTFail("Expected rebuilt location question") }
+        XCTAssertEqual(intent, .slowConnection)
+        XCTAssertEqual(rebuiltQuestion.text, "Onde a conexão está lenta?")
+        XCTAssertEqual(model.selectedOptionID, rebuiltQuestion.options.first(where: { $0.text == "Em um cômodo" })?.id)
+        XCTAssertTrue(model.turns.isEmpty)
+
+        model.continueGuided()
+        guard case let .guided(_, nextQuestion) = model.state else { return XCTFail("Expected usage question after rebuilding") }
+        XCTAssertEqual(nextQuestion.text, "Acontece em tudo ou só em um app ou serviço?")
+    }
+
     func testRouterAndMeshStayInEvidenceLimitedLocalPaths() {
         let router = AssistV4PresentationModel()
         router.start(.routerAdequacy)

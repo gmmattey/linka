@@ -78,6 +78,22 @@ final class AssistV4FixtureUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Dados insuficientes para continuar"].waitForExistence(timeout: 3))
     }
 
+    func testGuidedBackPreservesThePreviousLocalChoice() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
+        app.launch()
+
+        app.buttons["assist-v4.shortcut.slow_connection"].tap()
+        app.buttons["Em um cômodo"].tap()
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.buttons["assist-v4.guided.back"].waitForExistence(timeout: 3))
+        app.buttons["assist-v4.guided.back"].tap()
+        XCTAssertTrue(app.staticTexts["Onde a conexão está lenta?"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Continuar"].isEnabled)
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.staticTexts["Acontece em tudo ou só em um app ou serviço?"].waitForExistence(timeout: 3))
+    }
+
     func testPlanDeclarationStaysLocalAndDoesNotConsultOffers() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]

@@ -141,6 +141,18 @@ final class AssistV4PresentationModel: ObservableObject {
         }
     }
 
+    func goBackFromGuidedQuestion() {
+        guard case let .guided(intent, _) = state else { return }
+        switch intent {
+        case .slowConnection where slowConnectionAnswers.location != nil:
+            restartSlowConnectionAtLocationQuestion()
+        case .planValue where planValueAnswers.priority != nil:
+            restartPlanValueAtPriorityQuestion()
+        default:
+            returnHome()
+        }
+    }
+
     func returnHome() {
         suspendedLocalFlow = nil
         selectedOptionID = nil
@@ -263,6 +275,57 @@ final class AssistV4PresentationModel: ObservableObject {
         return question
     }
 
+    private func restartSlowConnectionAtLocationQuestion() {
+        guard let previousLocation = slowConnectionAnswers.location else {
+            returnHome()
+            return
+        }
+        do {
+            var coordinator = try localCoordinator(for: .slowConnection)
+            try coordinator.apply(.start, at: Date())
+            let question = try slowQuestion(after: SlowConnectionAnswers())
+            try coordinator.apply(.askLocal(question), at: Date())
+            guard let option = question.options.first(where: { $0.text == slowLocationText(previousLocation) }) else {
+                throw ContractError.invalid("Opção de local não encontrada ao voltar na investigação.")
+            }
+            self.coordinator = coordinator
+            slowConnectionAnswers = SlowConnectionAnswers()
+            turns = []
+            guidedAnswers = []
+            selectedOptionID = option.id
+            state = .guided(intent: .slowConnection, question: question)
+        } catch {
+            state = .limitation("Não foi possível voltar nesta investigação local. Nenhum dado foi enviado.")
+        }
+    }
+
+    private func restartPlanValueAtPriorityQuestion() {
+        guard let previousPriority = planValueAnswers.priority else {
+            returnHome()
+            return
+        }
+        do {
+            var coordinator = try localCoordinator(for: .planValue)
+            try coordinator.apply(.start, at: Date())
+            let declared = PlanValueAnswers(hasDeclaredPlan: true, hasDeclaredPrice: true)
+            guard case let .question(question) = PlanValueLocalJourney.next(after: declared) else {
+                throw ContractError.invalid("A declaração de plano não produziu a pergunta de prioridade esperada.")
+            }
+            try coordinator.apply(.askLocal(question), at: Date())
+            guard let option = question.options.first(where: { $0.text == planPriorityText(previousPriority) }) else {
+                throw ContractError.invalid("Opção de prioridade não encontrada ao voltar na avaliação do plano.")
+            }
+            self.coordinator = coordinator
+            planValueAnswers = declared
+            turns = []
+            guidedAnswers = []
+            selectedOptionID = option.id
+            state = .guided(intent: .planValue, question: question)
+        } catch {
+            state = .limitation("Não foi possível voltar nesta avaliação local do plano. Nenhum dado foi enviado.")
+        }
+    }
+
     private func slowLocationText(_ location: SlowConnectionLocation) -> String {
         switch location {
         case .home: "Na casa inteira"
@@ -276,6 +339,16 @@ final class AssistV4PresentationModel: ObservableObject {
         switch usage {
         case .all: "Em tudo"
         case .service: "Só em um app ou serviço"
+        case .unknown: "Não sei"
+        }
+    }
+
+    private func planPriorityText(_ priority: PlanValuePriority) -> String {
+        switch priority {
+        case .economy: "Economia"
+        case .stability: "Estabilidade"
+        case .speed: "Velocidade"
+        case .offers: "Entender ofertas"
         case .unknown: "Não sei"
         }
     }

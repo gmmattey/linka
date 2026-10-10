@@ -104,6 +104,9 @@ struct AssistV4Screen: View {
                 Button("Continuar") { model.continueGuided() }
                     .buttonStyle(.linkaPrimary)
                     .disabled(model.selectedOptionID == nil)
+                Button("Voltar") { model.goBackFromGuidedQuestion() }
+                    .buttonStyle(.linkaSecondary)
+                    .accessibilityIdentifier("assist-v4.guided.back")
             }
         case let .unavailableOpenQuestion(text, canResumeGuidance):
             unavailableOpenQuestion(text, canResumeGuidance: canResumeGuidance)
