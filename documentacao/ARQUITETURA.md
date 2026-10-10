@@ -326,6 +326,8 @@ Não apenas desbloquear `makeContext`. Projetar contexto explícito. Sequência 
 
 Contrato novo proposto: **`assist.consultation/1.0`**, independente da fase de produto e do diagnóstico legado. Objetos de intercâmbio fechados (`additionalProperties: false`), limites e validação nos dois lados; negociar mudanças incompatíveis.
 
+O núcleo local inicial de #311 está em [`AssistConsultation`](../aplicativo-ios/AssistConsultation/): DTOs, schema e fixtures versionados validam apenas a projeção local. Ele não é ligado ao `NetworkAssist`, não chama `/v2/assist` e não contém transporte, provider, retenção, custo ou persistência; essas integrações continuam dependências explícitas dos blocos posteriores e de seus gates.
+
 Request obrigatório: `schemaVersion`, `requestID`, `transportSessionID`, `turnID`, `expectedRevision`, `locale`, `input`, `contextSnapshot`, `consentReceiptRef`.
 
 `input` é união discriminada: `user_message { text }`; `answer { questionID, optionID?, text? }`; `tool_result { proposalID, result }`; `action_feedback { actionID, status }`. “Não sei” é opção explícita. Rejeitar vazio, opção alheia à pergunta ativa e revisão incorreta. Enviar janela limitada de turnos/resumo referenciado, não transcript irrestrito. Resumo não fornece consentimento, autorização de execução ou nova evidência.

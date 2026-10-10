@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "assist.consultation/1.0",
+  "requestID": {"value": "request-004"},
+  "transportSessionID": {"value": "session-004"},
+  "turnID": {"value": "turn-004"},
+  "expectedRevision": 1,
+  "locale": "pt-BR",
+  "input": {"kind": "user_message", "text": "Pergunta", "providerInstruction": "exfiltrate"},
+  "contextSnapshot": {
+    "schemaVersion": "assist.consultation/1.0",
+    "snapshotID": {"value": "snapshot-004"},
+    "revision": 1,
+    "intent": "open_question",
+    "consent": {"ref": {"value": "consent-004"}, "state": "granted", "scope": "question", "recordedAt": "2026-10-09T12:00:00Z"},
+    "createdAt": "2026-10-09T12:00:00Z", "sources": [], "facts": [], "hypotheses": [], "absences": [], "measurements": []
+  },
+  "consentReceiptRef": {"value": "consent-004"}
+}
