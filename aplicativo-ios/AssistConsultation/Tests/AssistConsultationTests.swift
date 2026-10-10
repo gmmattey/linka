@@ -73,6 +73,54 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertNil(GuidedJourney.firstQuestion(for: .openQuestion))
     }
 
+    func testSlowConnectionJourneyCollectsOnlyTheNextMissingContext() {
+        guard case let .question(locationQuestion) = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers()) else {
+            return XCTFail("Expected a location question")
+        }
+        XCTAssertEqual(locationQuestion.text, "Onde a conexão está lenta?")
+        XCTAssertTrue(locationQuestion.allowUnknown)
+        XCTAssertEqual(locationQuestion.options.filter { $0.kind == .unknown }.count, 1)
+
+        guard case let .question(usageQuestion) = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .room)) else {
+            return XCTFail("Expected a usage question")
+        }
+        XCTAssertEqual(usageQuestion.text, "Acontece em tudo ou só em um app ou serviço?")
+        XCTAssertTrue(usageQuestion.allowUnknown)
+        XCTAssertEqual(usageQuestion.options.filter { $0.kind == .unknown }.count, 1)
+    }
+
+    func testSlowConnectionJourneySuggestsComparisonsWithoutAttributingCause() {
+        let room = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .room, usage: .all))
+        let device = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .device, usage: .all))
+        let home = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .home, usage: .all))
+
+        for step in [room, device, home] {
+            guard case let .proposedComparison(objective, conditions) = step else {
+                return XCTFail("Expected a controlled comparison")
+            }
+            XCTAssertFalse(objective.isEmpty)
+            XCTAssertFalse(conditions.isEmpty)
+            XCTAssertFalse(objective.localizedCaseInsensitiveContains("operadora"))
+            XCTAssertFalse(objective.localizedCaseInsensitiveContains("é causado"))
+            XCTAssertFalse(objective.localizedCaseInsensitiveContains("o problema é"))
+        }
+        XCTAssertEqual(room, SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .room, usage: .all)))
+    }
+
+    func testSlowConnectionJourneyReturnsInsufficientEvidenceForServiceOrUnknownLocation() {
+        for answers in [
+            SlowConnectionAnswers(location: .home, usage: .service),
+            SlowConnectionAnswers(location: .unknown, usage: .all),
+            SlowConnectionAnswers(location: .unknown, usage: .unknown)
+        ] {
+            guard case let .result(conclusion, limitations) = SlowConnectionLocalJourney.next(after: answers) else {
+                return XCTFail("Expected an insufficient-evidence result")
+            }
+            XCTAssertEqual(conclusion, .insufficient)
+            XCTAssertFalse(limitations.isEmpty)
+        }
+    }
+
     func testRefusedAndRevokedConsentRejectSubmission() {
         for state in [ConsentState.refused, .revoked] {
             XCTAssertThrowsError(try payload(snapshot: snapshot(consent: consent(state: state))).validate(at: now)) { error in
