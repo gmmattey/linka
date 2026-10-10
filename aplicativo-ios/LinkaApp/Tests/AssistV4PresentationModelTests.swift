@@ -45,6 +45,24 @@ final class AssistV4PresentationModelTests: XCTestCase {
         XCTAssertNil(completedOrientation.actionProgress.evidenceRef)
     }
 
+    func testDeferringSuggestedActionDoesNotCreateRetestEvidence() {
+        let model = AssistV4PresentationModel()
+        model.start(.slowConnection)
+        guard case let .guided(_, locationQuestion) = model.state else { return XCTFail("Expected location question") }
+        model.selectedOptionID = locationQuestion.options.first(where: { $0.text == "Em um cômodo" })?.id
+        model.continueGuided()
+        guard case let .guided(_, usageQuestion) = model.state else { return XCTFail("Expected usage question") }
+        model.selectedOptionID = usageQuestion.options.first(where: { $0.text == "Em tudo" })?.id
+        model.continueGuided()
+
+        model.deferSuggestedAction()
+
+        guard case let .localOrientation(orientation) = model.state else { return XCTFail("Expected local orientation") }
+        XCTAssertEqual(orientation.actionProgress.status, .ignored)
+        XCTAssertNotNil(orientation.actionProgress.confirmedAt)
+        XCTAssertNil(orientation.actionProgress.evidenceRef)
+    }
+
     func testOpenQuestionDuringGuidancePreservesTheLocalQuestionAndSelection() {
         let model = AssistV4PresentationModel()
         model.start(.slowConnection)
