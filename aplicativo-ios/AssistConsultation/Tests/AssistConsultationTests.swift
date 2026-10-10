@@ -62,6 +62,17 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertTrue(decoded.contextSnapshot.measurements.isEmpty)
     }
 
+    func testGuidedJourneysStartWithOneExplicitQuestionAndOpenQuestionStaysFree() {
+        for intent in [ConsultationIntent.slowConnection, .routerAdequacy, .meshNeed, .planValue] {
+            let question = GuidedJourney.firstQuestion(for: intent)
+            XCTAssertNotNil(question)
+            XCTAssertEqual(question?.nextState, .awaitingAnswer)
+            XCTAssertTrue(question?.allowUnknown == true)
+            XCTAssertEqual(question?.options.filter { $0.kind == .unknown }.count, 1)
+        }
+        XCTAssertNil(GuidedJourney.firstQuestion(for: .openQuestion))
+    }
+
     func testRefusedAndRevokedConsentRejectSubmission() {
         for state in [ConsentState.refused, .revoked] {
             XCTAssertThrowsError(try payload(snapshot: snapshot(consent: consent(state: state))).validate(at: now)) { error in
