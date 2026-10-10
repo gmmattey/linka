@@ -667,6 +667,37 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertThrowsError(try coordinator.apply(.receiveRemoteResponse(reply, for: request), at: now))
     }
 
+    func testCoordinatorRetriesTheSameRemoteTurnWithoutDuplicatingHistory() throws {
+        let localSession = ref("local-session-retry")
+        let session = try InvestigationSession(
+            id: localSession, intent: .openQuestion, contextSnapshotVersion: 1,
+            consentSnapshot: consent(), createdAt: now
+        )
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: consent(), requiresConsent: false), at: now)
+        let request = payload(localSessionID: localSession)
+        try coordinator.apply(.beginRemoteTurn(request), at: now)
+        XCTAssertEqual(coordinator.session.turns.count, 1)
+
+        try coordinator.apply(.recoverableFailure, at: now)
+        try coordinator.apply(.retry, at: now)
+        XCTAssertEqual(coordinator.session.state, .generatingResult)
+
+        let divergent = ConsultationPayload(
+            requestID: ref("request-retry-divergent"), localSessionID: localSession,
+            transportSessionID: request.transportSessionID, turnID: request.turnID,
+            expectedRevision: request.expectedRevision, locale: request.locale,
+            input: .userMessage("Texto diferente não pode reutilizar o mesmo turno."),
+            contextSnapshot: request.contextSnapshot, consentReceiptRef: request.consentReceiptRef
+        )
+        XCTAssertThrowsError(try coordinator.apply(.beginRemoteTurn(divergent), at: now))
+
+        try coordinator.apply(.beginRemoteTurn(request), at: now)
+        XCTAssertEqual(coordinator.session.turns.count, 1)
+        XCTAssertEqual(coordinator.session.turns.first?.id, request.turnID)
+    }
+
     func testCoordinatorBindsRemoteInputToCurrentConsentAndSessionHistory() throws {
         let sharedConsent = consent(scope: .questionAndContext)
         let localSession = ref("local-session-history")

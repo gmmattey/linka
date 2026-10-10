@@ -248,7 +248,13 @@ public struct ConsultationCoordinator: Sendable {
             try payload.validate(at: now)
             try validateRemoteInput(payload.input)
             if case .userMessage = payload.input {
-                session.turns.append(InvestigationTurn(id: payload.turnID, role: .user, structuredPayload: payload.input, createdAt: now))
+                if let existing = session.turns.first(where: { $0.id == payload.turnID }) {
+                    guard existing.role == .user, existing.structuredPayload == payload.input else {
+                        throw ContractError.invalid("Retry reutiliza um turno com conteúdo divergente.")
+                    }
+                } else {
+                    session.turns.append(InvestigationTurn(id: payload.turnID, role: .user, structuredPayload: payload.input, createdAt: now))
+                }
             }
             session.pendingRemoteTurn = InvestigationRemoteTurn(requestID: payload.requestID, transportSessionID: payload.transportSessionID, turnID: payload.turnID, revision: payload.expectedRevision)
             try transition(to: .generatingResult, at: now)
