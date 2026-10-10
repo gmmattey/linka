@@ -90,6 +90,25 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertEqual(usageQuestion.options.filter { $0.kind == .unknown }.count, 1)
     }
 
+    func testSlowConnectionJourneyAcceptsOnlyTheOptionFromItsActiveStep() throws {
+        guard case let .question(locationQuestion) = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers()) else {
+            return XCTFail("Expected a location question")
+        }
+        let room = try XCTUnwrap(locationQuestion.options.first { $0.text == "Em um cômodo" })
+        let afterLocation = try SlowConnectionLocalJourney.applying(room, to: SlowConnectionAnswers())
+        XCTAssertEqual(afterLocation.location, .room)
+        XCTAssertNil(afterLocation.usage)
+
+        guard case let .question(usageQuestion) = SlowConnectionLocalJourney.next(after: afterLocation) else {
+            return XCTFail("Expected a usage question")
+        }
+        let all = try XCTUnwrap(usageQuestion.options.first { $0.text == "Em tudo" })
+        let complete = try SlowConnectionLocalJourney.applying(all, to: afterLocation)
+        XCTAssertEqual(complete.location, .room)
+        XCTAssertEqual(complete.usage, .all)
+        XCTAssertThrowsError(try SlowConnectionLocalJourney.applying(room, to: afterLocation))
+    }
+
     func testSlowConnectionJourneySuggestsComparisonsWithoutAttributingCause() {
         let room = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .room, usage: .all))
         let device = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .device, usage: .all))

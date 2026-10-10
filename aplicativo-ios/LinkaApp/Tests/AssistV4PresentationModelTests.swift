@@ -24,6 +24,15 @@ final class AssistV4PresentationModelTests: XCTestCase {
         model.selectedOptionID = question.options[0].id
         model.continueGuided()
         XCTAssertEqual(model.turns.count, 1)
-        guard case .limitation = model.state else { return XCTFail("Expected local limitation") }
+        guard case let .guided(nextIntent, nextQuestion) = model.state else { return XCTFail("Expected the next local question") }
+        XCTAssertEqual(nextIntent, .slowConnection)
+        XCTAssertEqual(nextQuestion.text, "Acontece em tudo ou só em um app ou serviço?")
+
+        model.selectedOptionID = nextQuestion.options[0].id
+        model.continueGuided()
+        XCTAssertEqual(model.turns.count, 2)
+        guard case let .guidance(title, detail) = model.state else { return XCTFail("Expected a controlled local comparison") }
+        XCTAssertEqual(title, "Próxima etapa sugerida")
+        XCTAssertTrue(detail.contains("Medir o cenário de forma controlada"))
     }
 }

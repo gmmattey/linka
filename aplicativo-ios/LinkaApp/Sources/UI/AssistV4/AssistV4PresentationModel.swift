@@ -10,6 +10,7 @@ final class AssistV4PresentationModel: ObservableObject {
         case guided(intent: ConsultationIntent, question: ConsultationQuestion)
         case unavailableOpenQuestion(String)
         case limitation(String)
+        case guidance(title: String, detail: String)
     }
 
     struct Turn: Equatable, Identifiable {
@@ -24,9 +25,12 @@ final class AssistV4PresentationModel: ObservableObject {
     @Published private(set) var turns: [Turn] = []
     @Published var selectedOptionID: PseudonymousReference?
     private var coordinator: ConsultationCoordinator?
+    private var slowConnectionAnswers = SlowConnectionAnswers()
 
     func start(_ intent: ConsultationIntent) {
-        guard intent != .openQuestion, let question = GuidedJourney.firstQuestion(for: intent) else { return }
+        guard intent != .openQuestion else { return }
+        if intent == .slowConnection { slowConnectionAnswers = SlowConnectionAnswers() }
+        guard let question = firstQuestion(for: intent) else { return }
         do {
             var coordinator = try localCoordinator(for: intent)
             try coordinator.apply(.start, at: Date())
@@ -57,17 +61,21 @@ final class AssistV4PresentationModel: ObservableObject {
     }
 
     func continueGuided() {
-        guard case let .guided(_, question) = state,
+        guard case let .guided(intent, question) = state,
               let id = selectedOptionID,
               let option = question.options.first(where: { $0.id == id }),
               var coordinator else { return }
         do {
             try coordinator.apply(.answer(QuestionAnswer(questionID: question.id, optionID: option.id), turnID: reference(prefix: "local-turn")), at: Date())
-            try coordinator.apply(.markInsufficientEvidence, at: Date())
-            self.coordinator = coordinator
             turns.append(Turn(role: .user, text: option.text))
             selectedOptionID = nil
-            state = .limitation("Esta etapa local registrou sua escolha, mas ainda não executa testes nem envia dados. A continuação integrada depende do motor V4 autorizado.")
+            if intent == .slowConnection {
+                try continueSlowConnection(option: option, coordinator: &coordinator)
+            } else {
+                try coordinator.apply(.markInsufficientEvidence, at: Date())
+                self.coordinator = coordinator
+                state = .limitation("Esta etapa local registrou sua escolha, mas ainda não executa testes nem envia dados. A continuação integrada depende do motor V4 autorizado.")
+            }
         } catch {
             state = .limitation("Não foi possível registrar esta escolha localmente. Nenhum dado foi enviado.")
         }
@@ -94,6 +102,32 @@ final class AssistV4PresentationModel: ObservableObject {
             createdAt: now
         )
         return ConsultationCoordinator(session: session)
+    }
+
+    private func firstQuestion(for intent: ConsultationIntent) -> ConsultationQuestion? {
+        if intent == .slowConnection,
+           case let .question(question) = SlowConnectionLocalJourney.next(after: slowConnectionAnswers) {
+            return question
+        }
+        return GuidedJourney.firstQuestion(for: intent)
+    }
+
+    private func continueSlowConnection(option: QuestionOption, coordinator: inout ConsultationCoordinator) throws {
+        slowConnectionAnswers = try SlowConnectionLocalJourney.applying(option, to: slowConnectionAnswers)
+        switch SlowConnectionLocalJourney.next(after: slowConnectionAnswers) {
+        case let .question(question):
+            try coordinator.apply(.askLocal(question), at: Date())
+            self.coordinator = coordinator
+            state = .guided(intent: .slowConnection, question: question)
+        case let .proposedComparison(objective, conditions):
+            try coordinator.apply(.markInsufficientEvidence, at: Date())
+            self.coordinator = coordinator
+            state = .guidance(title: "Próxima etapa sugerida", detail: ([objective] + conditions).joined(separator: " "))
+        case let .result(_, limitations):
+            try coordinator.apply(.markInsufficientEvidence, at: Date())
+            self.coordinator = coordinator
+            state = .limitation(limitations.joined(separator: " "))
+        }
     }
 
     private func reference(prefix: String) -> PseudonymousReference {

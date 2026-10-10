@@ -14,7 +14,11 @@ final class AssistV4FixtureUITests: XCTestCase {
         XCTAssertTrue(room.waitForExistence(timeout: 3))
         room.tap()
         app.buttons["Continuar"].tap()
-        XCTAssertTrue(app.staticTexts["Dados insuficientes para continuar"].waitForExistence(timeout: 3))
+        let usage = app.buttons["Em tudo"]
+        XCTAssertTrue(usage.waitForExistence(timeout: 3))
+        usage.tap()
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.staticTexts["Próxima etapa sugerida"].waitForExistence(timeout: 3))
 
         app.buttons["Voltar às sugestões"].tap()
         let composer = app.textFields["assist-v4.composer"]

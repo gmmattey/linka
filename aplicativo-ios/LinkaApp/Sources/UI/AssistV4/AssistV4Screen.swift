@@ -80,6 +80,8 @@ struct AssistV4Screen: View {
             limitation("A pergunta não foi enviada", detail: "\"\(text)\" continua no rascunho. A consulta livre precisa de um motor V4 autorizado.")
         case let .limitation(text):
             limitation("Dados insuficientes para continuar", detail: text)
+        case let .guidance(title, detail):
+            limitation(title, detail: detail)
         }
     }
 

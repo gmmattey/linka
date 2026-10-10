@@ -30,7 +30,7 @@ public enum SlowConnectionLocalJourney {
             return .question(question(
                 "question-slow-location",
                 "Onde a conexão está lenta?",
-                ["Casa inteira", "Um cômodo", "Um aparelho", "Não sei"]
+                ["Na casa inteira", "Em um cômodo", "Em um aparelho", "Não sei"]
             ))
         }
         guard let usage = answers.usage else {
@@ -62,6 +62,33 @@ public enum SlowConnectionLocalJourney {
         case .unknown:
             return .result(.insufficient, limitations: ["Falta saber onde o problema ocorre para sugerir uma comparação útil."])
         }
+    }
+
+    /// Converte somente a opção da pergunta local corrente. Nenhuma resposta
+    /// é inferida a partir do rótulo; opções fora da etapa ativa são rejeitadas.
+    public static func applying(_ option: QuestionOption, to answers: SlowConnectionAnswers) throws -> SlowConnectionAnswers {
+        if answers.location == nil {
+            let location: SlowConnectionLocation
+            switch option.text {
+            case "Na casa inteira": location = .home
+            case "Em um cômodo": location = .room
+            case "Em um aparelho": location = .device
+            case "Não sei": location = .unknown
+            default: throw ContractError.invalid("Opção não pertence à triagem de local da conexão.")
+            }
+            return SlowConnectionAnswers(location: location, usage: answers.usage)
+        }
+        if answers.usage == nil {
+            let usage: SlowConnectionUsage
+            switch option.text {
+            case "Em tudo": usage = .all
+            case "Só em um app ou serviço": usage = .service
+            case "Não sei": usage = .unknown
+            default: throw ContractError.invalid("Opção não pertence à triagem de uso da conexão.")
+            }
+            return SlowConnectionAnswers(location: answers.location, usage: usage)
+        }
+        throw ContractError.invalid("A triagem local de lentidão já foi concluída.")
     }
 
     private static func question(_ id: String, _ text: String, _ labels: [String]) -> ConsultationQuestion {
