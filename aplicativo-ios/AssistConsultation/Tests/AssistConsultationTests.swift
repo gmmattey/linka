@@ -132,17 +132,62 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertNoThrow(try AssistConsultationContract.encode(payload(snapshot: context), now: now))
     }
 
-    func testManufacturerFactRequiresPublicOfficialSource() {
+    func testManufacturerFactRequiresPublicOfficialSource() throws {
         let fact = EvidenceFact(
             id: ref("evidence-router"), subjectRef: ref("device-001"), property: "wifi_standard",
             value: .text("Wi-Fi 5"), sourceType: .manufacturerDocumented, sourceRefs: [ref("source-001")],
             observedAt: now, validUntil: now.addingTimeInterval(600), consentScope: .questionAndContext
         )
-        let invalidSource = ContextSource(id: ref("source-001"), kind: .officialDocument, retrievedAt: now)
-        XCTAssertThrowsError(try payload(snapshot: snapshot(consent: consent(scope: .questionAndContext), sources: [invalidSource], facts: [fact])).validate(at: now))
+        let contextConsent = consent(scope: .questionAndContext)
+        for invalidURL in [
+            nil,
+            "http://manufacturer.example/spec",
+            "https://router/spec",
+            "https://printer/spec",
+            "https://local/spec",
+            "https://localhost/spec",
+            "https://localhost./spec",
+            "https://printer.localhost/spec",
+            "https://router.local/spec",
+            "https://router.local./spec",
+            "https://127.0.0.1/spec",
+            "https://127.1/spec",
+            "https://127.0.1/spec",
+            "https://127.000.000.001/spec",
+            "https://0177.0.0.1/spec",
+            "https://10.0.0.1/spec",
+            "https://172.16.0.1/spec",
+            "https://192.168.0.1/spec",
+            "https://169.254.1.1/spec",
+            "https://[::1]/spec",
+            "https://[fe80::1]/spec",
+            "https://[fd00::1]/spec",
+            "https://[::ffff:127.0.0.1]/spec",
+            "https://2130706433/spec",
+            "https://0x7f000001/spec",
+            "https://0x7f.0.0.1/spec",
+            "https://017700000001/spec",
+            "https://user:password@manufacturer.example/spec"
+        ] {
+            let invalidSource = ContextSource(
+                id: ref("source-001"),
+                kind: .officialDocument,
+                url: invalidURL,
+                retrievedAt: now
+            )
+            let invalidPayload = payload(snapshot: snapshot(consent: contextConsent, sources: [invalidSource], facts: [fact]))
+            XCTAssertThrowsError(
+                try AssistConsultationContract.encode(invalidPayload, now: now),
+                "Fonte local ou não HTTPS não pode ser declarada pública: \(invalidURL ?? "nil")"
+            )
+            let rawEncoder = JSONEncoder()
+            rawEncoder.dateEncodingStrategy = .iso8601
+            let rawPayload = try rawEncoder.encode(invalidPayload)
+            XCTAssertThrowsError(try AssistConsultationContract.decode(rawPayload, now: now))
+        }
 
         let validSource = ContextSource(id: ref("source-001"), kind: .officialDocument, url: "https://manufacturer.example/spec", retrievedAt: now)
-        XCTAssertNoThrow(try payload(snapshot: snapshot(consent: consent(scope: .questionAndContext), sources: [validSource], facts: [fact])).validate(at: now))
+        XCTAssertNoThrow(try payload(snapshot: snapshot(consent: contextConsent, sources: [validSource], facts: [fact])).validate(at: now))
     }
 
     func testFixturesValidateOrRejectThroughClosedSchema() throws {

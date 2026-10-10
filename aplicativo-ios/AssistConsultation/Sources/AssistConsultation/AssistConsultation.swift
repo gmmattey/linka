@@ -390,8 +390,38 @@ public struct ContextSnapshot: Codable, Equatable, Sendable {
 
     private func isPublicHTTPSURL(_ value: String?) -> Bool {
         guard let value, let url = URL(string: value), url.scheme == "https", let host = url.host,
-              host.lowercased() != "localhost", !host.hasPrefix("127.") else { return false }
+              url.user == nil, url.password == nil else {
+            return false
+        }
+        let normalizedHost = host.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "."))
+        guard !normalizedHost.isEmpty,
+              normalizedHost.contains("."),
+              normalizedHost != "localhost",
+              !normalizedHost.hasSuffix(".localhost"),
+              !normalizedHost.hasSuffix(".local"),
+              !isIPLiteral(normalizedHost) else {
+            return false
+        }
         return true
+    }
+
+    /// Este contrato não resolve nem acessa a URL. Ele recusa literais de IP,
+    /// notação numérica ambígua e hosts locais no payload; a validação de DNS,
+    /// redirects e destino público pertence à ferramenta que vier a buscar a
+    /// fonte em um bloco posterior.
+    private func isIPLiteral(_ host: String) -> Bool {
+        if host.contains(":") { return true }
+
+        let labels = host.split(separator: ".", omittingEmptySubsequences: false)
+        return !labels.isEmpty && labels.allSatisfy(isNumericAddressLabel)
+    }
+
+    private func isNumericAddressLabel(_ label: Substring) -> Bool {
+        guard !label.isEmpty else { return false }
+        if label.lowercased().hasPrefix("0x") {
+            return UInt64(label.dropFirst(2), radix: 16) != nil
+        }
+        return UInt64(label) != nil
     }
 }
 
