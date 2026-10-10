@@ -43,6 +43,10 @@
 	</array>
 	<key>LinkaAdsEnabled</key>
 	<string>$(LINKA_ADS_ENABLED)</string>
+	<key>LinkaAssistConsultationEnabled</key>
+	<string>NO</string>
+	<key>LinkaAssistConsultationEndpoint</key>
+	<string>https://linka-assist-relay.buildealabs.workers.dev/v1/assist/consultations</string>
 	<key>LinkaServiceStatusEndpoint</key>
 	<string>https://linka-assist-relay.buildealabs.workers.dev/v1/service-status</string>
 	<key>NDAssistRelayEndpoint</key>

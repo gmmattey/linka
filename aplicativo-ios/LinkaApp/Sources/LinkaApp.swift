@@ -144,6 +144,7 @@ struct LinkaApp: App {
                 }
             }
             .task {
+                guard !isAssistV4Fixture else { return }
                 await entitlements.refreshSnapshot()
                 await serviceStatus.refresh()
                 // Consentimento e request de anúncio são disparados apenas
@@ -179,7 +180,22 @@ struct LinkaApp: App {
         #if os(macOS)
         MacMainView()
         #else
-        MainView()
+        if isAssistV4Fixture {
+            AssistV4Screen()
+        } else {
+            MainView()
+        }
+        #endif
+    }
+
+    /// Entrada exclusiva para prova visual local. Nunca é uma flag de produto:
+    /// não persiste, não habilita V4 em distribuição e desvia antes das tarefas
+    /// que poderiam consultar serviços ao abrir o app.
+    private var isAssistV4Fixture: Bool {
+        #if os(iOS)
+        ProcessInfo.processInfo.arguments.contains("--assist-v4-fixture")
+        #else
+        false
         #endif
     }
 

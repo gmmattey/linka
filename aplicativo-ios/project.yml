@@ -32,6 +32,7 @@ targets:
         # explicitamente liberada. O código falha fechado quando esta flag não
         # for verdadeira.
         LINKA_ADS_ENABLED: NO
+        APP_ATTEST_ENVIRONMENT: production
         CODE_SIGN_ENTITLEMENTS: LinkaApp/LinkaApp.entitlements
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: "2Z4T8228GR"
@@ -42,6 +43,7 @@ targets:
       configs:
         Debug:
           APS_ENVIRONMENT: development
+          APP_ATTEST_ENVIRONMENT: development
           # O Debug não solicita inventário do AdMob. Os IDs de teste ficam
           # no código apenas para um smoke explícito, quando esta flag for
           # habilitada localmente num esquema que não é distribuído.
@@ -68,6 +70,11 @@ targets:
         LSApplicationQueriesSchemes:
           - shortcuts
         NDAssistRelayEndpoint: "https://linka-assist-relay.buildealabs.workers.dev/v2/assist"
+        # Consulta V4 é um contrato e transporte independentes. A chave fica
+        # fora do target macOS e começa desligada até App Attest, backend e QA
+        # físico estarem completos.
+        LinkaAssistConsultationEndpoint: "https://linka-assist-relay.buildealabs.workers.dev/v1/assist/consultations"
+        LinkaAssistConsultationEnabled: "NO"
         LinkaServiceStatusEndpoint: "https://linka-assist-relay.buildealabs.workers.dev/v1/service-status"
         GADApplicationIdentifier: "ca-app-pub-5542349230926522~6717355071"
         LinkaAdsEnabled: "$(LINKA_ADS_ENABLED)"
@@ -115,6 +122,8 @@ targets:
       - package: NetworkProfiles
       - package: NetworkInventory
       - package: NetworkDNSBenchmark
+      - package: AssistConsultation
+      - package: AssistConsultationTransport
       - package: GoogleMobileAds
         product: GoogleMobileAds
       - package: UserMessagingPlatform
@@ -200,6 +209,7 @@ targets:
     sources:
       - path: ../store/app-store/screenshots/AppStoreScreenshotsUITests.swift
       - path: ../store/app-store/screenshots/MyNetworkUITests.swift
+      - path: LinkaApp/UITests
 
   LinkaAppTests:
     type: bundle.unit-test
@@ -210,8 +220,16 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
     sources:
       - path: LinkaApp/Tests
+      - path: AssistConsultationTransport/Tests
     dependencies:
       - target: LinkaApp
+      # Os testes V4 exercitam o contrato sem herdar symbols dinamicamente do
+      # app host. Continuam dependências do bundle de teste iOS, nunca do Mac.
+      - package: NetworkCore
+      - package: NetworkProfiles
+      - package: NetworkInventory
+      - package: AssistConsultation
+      - package: AssistConsultationTransport
   LinkaWidgetExtension:
     type: app-extension
     platform: iOS
@@ -303,6 +321,8 @@ schemes:
     archive:
       config: InternalBeta
 packages:
+  NetworkCore:
+    path: NetworkCore
   NetworkInventory:
     path: NetworkInventory
   LinkaEngine:
@@ -327,6 +347,10 @@ packages:
     path: NetworkProfiles
   NetworkDNSBenchmark:
     path: NetworkDNSBenchmark
+  AssistConsultation:
+    path: AssistConsultation
+  AssistConsultationTransport:
+    path: AssistConsultationTransport
   GoogleMobileAds:
     url: https://github.com/googleads/swift-package-manager-google-mobile-ads.git
     from: 12.0.0

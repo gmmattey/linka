@@ -6,21 +6,21 @@ Este documento reúne em uma única página os quatro wireframes visuais registr
 
 ## 1. Entrada do Assist e pergunta aberta
 
-![Entrada do Assist](documentacao/wireframes/assist-v4-entrada.svg)
+![Entrada do Assist](wireframes/assist-v4-entrada.svg)
 
 - Pergunta aberta sempre acessível; quatro jornadas guiadas como atalhos.
 - [Issue #312](https://github.com/gmmattey/linka/issues/312) · [Issue #319](https://github.com/gmmattey/linka/issues/319)
 
 ## 2. Investigação guiada
 
-![Investigação guiada](documentacao/wireframes/assist-v4-investigacao.svg)
+![Investigação guiada](wireframes/assist-v4-investigacao.svg)
 
 - Pergunta progressiva, opções selecionáveis, 'Não sei', voltar/continuar e texto livre.
 - [Issue #312](https://github.com/gmmattey/linka/issues/312) · [Issue #320](https://github.com/gmmattey/linka/issues/320)
 
 ## 3. Resposta contextual
 
-![Resposta contextual](documentacao/wireframes/assist-v4-resposta.svg)
+![Resposta contextual](wireframes/assist-v4-resposta.svg)
 
 - Conclusão direta, justificativa, equipamento/plano/medição quando pertinente, evidências recolhíveis, orientação, pergunta complementar, copiar/salvar.
 - [Issue #312](https://github.com/gmmattey/linka/issues/312) · [Issue #319](https://github.com/gmmattey/linka/issues/319) · [Issue #317](https://github.com/gmmattey/linka/issues/317)

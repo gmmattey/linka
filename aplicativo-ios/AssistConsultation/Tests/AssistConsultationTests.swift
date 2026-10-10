@@ -11,7 +11,7 @@ final class AssistConsultationTests: XCTestCase {
         ConsentReceipt(ref: ref("consent-001"), state: state, scope: scope, recordedAt: now)
     }
 
-    private func snapshot(consent: ConsentReceipt? = nil, sources: [ContextSource] = [], facts: [EvidenceFact] = [], absences: [KnownAbsence] = [], measurements: [ConsultationMeasurement] = []) -> ContextSnapshot {
+    private func snapshot(consent: ConsentReceipt? = nil, sources: [ContextSource] = [], entities: [ConsultationEntity] = [], facts: [EvidenceFact] = [], absences: [KnownAbsence] = [], measurements: [ConsultationMeasurement] = [], capabilities: [ConsultationCapability] = []) -> ContextSnapshot {
         ContextSnapshot(
             snapshotID: ref("snapshot-001"),
             revision: 1,
@@ -19,24 +19,41 @@ final class AssistConsultationTests: XCTestCase {
             consent: consent ?? self.consent(),
             createdAt: now,
             sources: sources,
+            entities: entities,
             facts: facts,
             absences: absences,
-            measurements: measurements
+            measurements: measurements,
+            capabilities: capabilities
         )
     }
 
-    private func payload(snapshot: ContextSnapshot? = nil) -> ConsultationPayload {
+    private func payload(snapshot: ContextSnapshot? = nil, input: ConsultationInput = .userMessage("O que é um ponto de acesso?"), localSessionID: PseudonymousReference? = nil) -> ConsultationPayload {
         let context = snapshot ?? self.snapshot()
         return ConsultationPayload(
             requestID: ref("request-001"),
+            localSessionID: localSessionID,
             transportSessionID: ref("session-001"),
             turnID: ref("turn-001"),
             expectedRevision: 1,
             locale: "pt-BR",
-            input: .userMessage("O que é um ponto de acesso?"),
+            input: input,
             contextSnapshot: context,
             consentReceiptRef: context.consent.ref
         )
+    }
+
+    private func response(for payload: ConsultationPayload, revision: Int? = nil, outcome: ConsultationResponseOutcome) -> ConsultationResponse {
+        ConsultationResponse(
+            requestID: payload.requestID,
+            transportSessionID: payload.transportSessionID,
+            turnID: payload.turnID,
+            revision: revision ?? payload.expectedRevision,
+            outcome: outcome
+        )
+    }
+
+    private func assessment() -> ConsultationAssessment {
+        ConsultationAssessment(conclusion: .safeAction, summary: "Ação local segura, sem inferir uma causa da rede.")
     }
 
     func testOpenQuestionHasValidMinimalPayloadWithoutMeasurement() throws {
@@ -46,12 +63,694 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertTrue(decoded.contextSnapshot.measurements.isEmpty)
     }
 
+    func testGuidedJourneysStartWithOneExplicitQuestionAndOpenQuestionStaysFree() {
+        for intent in [ConsultationIntent.slowConnection, .routerAdequacy, .meshNeed, .planValue] {
+            let question = GuidedJourney.firstQuestion(for: intent)
+            XCTAssertNotNil(question)
+            XCTAssertEqual(question?.nextState, .awaitingAnswer)
+            XCTAssertTrue(question?.allowUnknown == true)
+            XCTAssertEqual(question?.options.filter { $0.kind == .unknown }.count, 1)
+        }
+        XCTAssertNil(GuidedJourney.firstQuestion(for: .openQuestion))
+    }
+
+    func testSlowConnectionJourneyCollectsOnlyTheNextMissingContext() {
+        guard case let .question(locationQuestion) = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers()) else {
+            return XCTFail("Expected a location question")
+        }
+        XCTAssertEqual(locationQuestion.text, "Onde a conexão está lenta?")
+        XCTAssertTrue(locationQuestion.allowUnknown)
+        XCTAssertEqual(locationQuestion.options.filter { $0.kind == .unknown }.count, 1)
+
+        guard case let .question(usageQuestion) = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .room)) else {
+            return XCTFail("Expected a usage question")
+        }
+        XCTAssertEqual(usageQuestion.text, "Acontece em tudo ou só em um app ou serviço?")
+        XCTAssertTrue(usageQuestion.allowUnknown)
+        XCTAssertEqual(usageQuestion.options.filter { $0.kind == .unknown }.count, 1)
+    }
+
+    func testSlowConnectionJourneyAcceptsOnlyTheOptionFromItsActiveStep() throws {
+        guard case let .question(locationQuestion) = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers()) else {
+            return XCTFail("Expected a location question")
+        }
+        let room = try XCTUnwrap(locationQuestion.options.first { $0.text == "Em um cômodo" })
+        let afterLocation = try SlowConnectionLocalJourney.applying(room, to: SlowConnectionAnswers())
+        XCTAssertEqual(afterLocation.location, .room)
+        XCTAssertNil(afterLocation.usage)
+
+        guard case let .question(usageQuestion) = SlowConnectionLocalJourney.next(after: afterLocation) else {
+            return XCTFail("Expected a usage question")
+        }
+        let all = try XCTUnwrap(usageQuestion.options.first { $0.text == "Em tudo" })
+        let complete = try SlowConnectionLocalJourney.applying(all, to: afterLocation)
+        XCTAssertEqual(complete.location, .room)
+        XCTAssertEqual(complete.usage, .all)
+        XCTAssertThrowsError(try SlowConnectionLocalJourney.applying(room, to: afterLocation))
+    }
+
+    func testSlowConnectionJourneySuggestsComparisonsWithoutAttributingCause() {
+        let room = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .room, usage: .all))
+        let device = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .device, usage: .all))
+        let home = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .home, usage: .all))
+
+        for step in [room, device, home] {
+            guard case let .proposedComparison(objective, conditions) = step else {
+                return XCTFail("Expected a controlled comparison")
+            }
+            XCTAssertFalse(objective.isEmpty)
+            XCTAssertFalse(conditions.isEmpty)
+            XCTAssertFalse(objective.localizedCaseInsensitiveContains("operadora"))
+            XCTAssertFalse(objective.localizedCaseInsensitiveContains("é causado"))
+            XCTAssertFalse(objective.localizedCaseInsensitiveContains("o problema é"))
+        }
+        XCTAssertEqual(room, SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .room, usage: .all)))
+    }
+
+    func testSlowConnectionJourneyReturnsInsufficientEvidenceForServiceOrUnknownLocation() {
+        for answers in [
+            SlowConnectionAnswers(location: .home, usage: .service),
+            SlowConnectionAnswers(location: .unknown, usage: .all),
+            SlowConnectionAnswers(location: .unknown, usage: .unknown)
+        ] {
+            guard case let .result(conclusion, limitations) = SlowConnectionLocalJourney.next(after: answers) else {
+                return XCTFail("Expected an insufficient-evidence result")
+            }
+            XCTAssertEqual(conclusion, .insufficient)
+            XCTAssertFalse(limitations.isEmpty)
+        }
+    }
+
+    func testRouterAdequacyJourneyRequiresSelectionAndVerifiedEvidenceBeforeAssessment() {
+        guard case let .question(selection) = RouterAdequacyLocalJourney.next(after: RouterAdequacyAnswers()) else {
+            return XCTFail("Expected equipment selection")
+        }
+        XCTAssertEqual(selection.text, "Qual equipamento você quer avaliar?")
+        XCTAssertTrue(selection.allowUnknown)
+
+        for evidenceStatus in [RouterEvidenceStatus.unverified, .unavailable] {
+            guard case let .requiresVerifiedEvidence(limitations) = RouterAdequacyLocalJourney.next(after: RouterAdequacyAnswers(
+                equipmentSelected: true,
+                evidenceStatus: evidenceStatus
+            )) else {
+                return XCTFail("Expected verified evidence requirement")
+            }
+            XCTAssertFalse(limitations.isEmpty)
+        }
+    }
+
+    func testRouterAdequacyJourneyCollectsRoleAndGoalThenStaysInconclusiveWithoutMeasurements() {
+        let verified = RouterAdequacyAnswers(equipmentSelected: true, evidenceStatus: .verified)
+        guard case let .question(role) = RouterAdequacyLocalJourney.next(after: verified) else {
+            return XCTFail("Expected network-role question")
+        }
+        XCTAssertEqual(role.text, "Qual é o papel desse equipamento na rede?")
+
+        let withRole = RouterAdequacyAnswers(equipmentSelected: true, evidenceStatus: .verified, role: .mainRouter)
+        guard case let .question(goal) = RouterAdequacyLocalJourney.next(after: withRole) else {
+            return XCTFail("Expected goal question")
+        }
+        XCTAssertEqual(goal.text, "O que você quer melhorar?")
+
+        guard case let .result(conclusion, limitations) = RouterAdequacyLocalJourney.next(after: RouterAdequacyAnswers(
+            equipmentSelected: true,
+            evidenceStatus: .verified,
+            role: .mainRouter,
+            goal: .speed
+        )) else {
+            return XCTFail("Expected an inconclusive result without measurements")
+        }
+        XCTAssertEqual(conclusion, .insufficient)
+        XCTAssertTrue(limitations.contains { $0.localizedCaseInsensitiveContains("não comprovam desempenho") })
+    }
+
+    func testMeshJourneyRequiresAffectedAreaAndCoverageEvidence() {
+        guard case let .question(area) = MeshNeedLocalJourney.next(after: MeshNeedAnswers()) else {
+            return XCTFail("Expected affected-area question")
+        }
+        XCTAssertEqual(area.text, "Onde a conexão falha?")
+        XCTAssertTrue(area.allowUnknown)
+
+        guard case let .result(conclusion, _) = MeshNeedLocalJourney.next(after: MeshNeedAnswers(affectedArea: .unknown)) else {
+            return XCTFail("Expected insufficient evidence for unknown area")
+        }
+        XCTAssertEqual(conclusion, .insufficient)
+
+        guard case let .requiresCoverageEvidence(limitations) = MeshNeedLocalJourney.next(after: MeshNeedAnswers(affectedArea: .many)) else {
+            return XCTFail("Expected coverage-evidence requirement")
+        }
+        XCTAssertFalse(limitations.isEmpty)
+    }
+
+    func testMeshJourneyOffersOnlyConditionalAlternativesAfterEvidenceAndCablingContext() {
+        let context = MeshNeedAnswers(affectedArea: .many, hasVerifiedCoverageEvidence: true)
+        guard case let .question(cabling) = MeshNeedLocalJourney.next(after: context) else {
+            return XCTFail("Expected cabling question")
+        }
+        XCTAssertEqual(cabling.text, "Há possibilidade de passar cabo até a área afetada?")
+
+        guard case let .candidateAlternatives(withCable, wiredLimitations) = MeshNeedLocalJourney.next(after: MeshNeedAnswers(
+            affectedArea: .many,
+            hasVerifiedCoverageEvidence: true,
+            cabling: .available
+        )) else {
+            return XCTFail("Expected alternatives with cabling")
+        }
+        XCTAssertEqual(withCable, [.reposition, .wiredAccessPoint])
+        XCTAssertTrue(wiredLimitations.contains { $0.localizedCaseInsensitiveContains("não prova alcance") })
+
+        guard case let .candidateAlternatives(withoutCable, wirelessLimitations) = MeshNeedLocalJourney.next(after: MeshNeedAnswers(
+            affectedArea: .many,
+            hasVerifiedCoverageEvidence: true,
+            cabling: .unavailable
+        )) else {
+            return XCTFail("Expected alternatives without cabling")
+        }
+        XCTAssertEqual(withoutCable, [.reposition, .mesh, .repeater])
+        XCTAssertTrue(wirelessLimitations.contains { $0.localizedCaseInsensitiveContains("não há promessa de cobertura") })
+    }
+
+    func testPlanValueJourneyRequiresDeclaredDataThenCollectsOnlyPriorityAndSatisfaction() {
+        guard case let .requiresDeclaredPlanData(limitations) = PlanValueLocalJourney.next(after: PlanValueAnswers()) else {
+            return XCTFail("Expected declared-plan-data requirement")
+        }
+        XCTAssertFalse(limitations.isEmpty)
+
+        let declared = PlanValueAnswers(hasDeclaredPlan: true, hasDeclaredPrice: true)
+        guard case let .question(priority) = PlanValueLocalJourney.next(after: declared) else {
+            return XCTFail("Expected priority question")
+        }
+        XCTAssertEqual(priority.text, "O que mais importa para você?")
+        XCTAssertTrue(priority.allowUnknown)
+
+        guard case let .question(satisfaction) = PlanValueLocalJourney.next(after: PlanValueAnswers(
+            hasDeclaredPlan: true,
+            hasDeclaredPrice: true,
+            priority: .economy
+        )) else {
+            return XCTFail("Expected satisfaction question")
+        }
+        XCTAssertEqual(satisfaction.text, "O plano atual atende ao que você precisa?")
+    }
+
+    func testPlanValueJourneyDoesNotConsultOffersOrClaimCommercialAvailability() {
+        guard case let .result(conclusion, limitations) = PlanValueLocalJourney.next(after: PlanValueAnswers(
+            hasDeclaredPlan: true,
+            hasDeclaredPrice: true,
+            priority: .offers
+        )) else {
+            return XCTFail("Expected missing-commercial-data result")
+        }
+        XCTAssertEqual(conclusion, .commercialDataMissing)
+        XCTAssertTrue(limitations.contains { $0.localizedCaseInsensitiveContains("nenhuma oferta é consultada") })
+
+        guard case let .requiresComparableMeasurements(measurementLimitations) = PlanValueLocalJourney.next(after: PlanValueAnswers(
+            hasDeclaredPlan: true,
+            hasDeclaredPrice: true,
+            priority: .speed,
+            satisfaction: .dissatisfied
+        )) else {
+            return XCTFail("Expected comparable-measurement requirement")
+        }
+        XCTAssertFalse(measurementLimitations.isEmpty)
+    }
+
+    func testLocalActionProgressRequiresExplicitDatedConfirmationOnlyAfterPending() throws {
+        let actionID = ref("action-001")
+        try ActionRetestLocalPolicy.validate(LocalActionProgress(actionID: actionID, status: .pending), at: now)
+        XCTAssertThrowsError(try ActionRetestLocalPolicy.validate(LocalActionProgress(
+            actionID: actionID,
+            status: .pending,
+            confirmedAt: now
+        ), at: now))
+        XCTAssertThrowsError(try ActionRetestLocalPolicy.validate(LocalActionProgress(
+            actionID: actionID,
+            status: .completed
+        ), at: now))
+        try ActionRetestLocalPolicy.validate(LocalActionProgress(
+            actionID: actionID,
+            status: .completed,
+            confirmedAt: now,
+            evidenceRef: ref("measurement-002")
+        ), at: now)
+    }
+
+    func testRetestComparisonIsInconclusiveWhenAnyConditionChanges() {
+        let baseline = ref("measurement-001")
+        let retest = ref("measurement-002")
+        XCTAssertEqual(
+            ActionRetestLocalPolicy.evaluate(RetestComparisonConditions(
+                baselineMeasurementRef: baseline,
+                retestMeasurementRef: retest,
+                sameInterface: true,
+                sameEnvironment: true,
+                sameMethod: true,
+                sameDevice: true,
+                comparablePeriod: true
+            )),
+            .comparable
+        )
+        guard case let .inconclusive(limitations) = ActionRetestLocalPolicy.evaluate(RetestComparisonConditions(
+            baselineMeasurementRef: baseline,
+            retestMeasurementRef: retest,
+            sameInterface: false,
+            sameEnvironment: true,
+            sameMethod: false,
+            sameDevice: true,
+            comparablePeriod: false
+        )) else {
+            return XCTFail("Expected an inconclusive comparison")
+        }
+        XCTAssertEqual(limitations.count, 3)
+    }
+
+    func testOpportunityHandoffRequiresClosedTypedReferences() throws {
+        let baseline = ref("measurement-001")
+        let evidence = ref("measurement-002")
+        let valid = OpportunityHandoff(
+            opportunityID: ref("opportunity-001"),
+            kind: .unstableConnection,
+            ruleVersion: "optimization/1",
+            baselineMeasurementRef: baseline,
+            evidenceMeasurementRefs: [baseline, evidence],
+            suggestedAction: .reduceConcurrentUse,
+            createdAt: now
+        )
+        try OpportunityHandoffValidator.validateShape(valid, at: now)
+
+        let missingBaseline = OpportunityHandoff(
+            opportunityID: ref("opportunity-002"),
+            kind: .unstableConnection,
+            ruleVersion: "optimization/1",
+            baselineMeasurementRef: baseline,
+            evidenceMeasurementRefs: [evidence],
+            suggestedAction: .reduceConcurrentUse,
+            createdAt: now
+        )
+        XCTAssertThrowsError(try OpportunityHandoffValidator.validateShape(missingBaseline, at: now))
+    }
+
+    func testOpportunityHandoffRevalidatesAgeAvailabilityEligibilityAndContext() {
+        let baseline = ref("measurement-001")
+        let evidence = ref("measurement-002")
+        let handoff = OpportunityHandoff(
+            opportunityID: ref("opportunity-001"),
+            kind: .belowUsualQuality,
+            ruleVersion: "optimization/1",
+            baselineMeasurementRef: baseline,
+            evidenceMeasurementRefs: [baseline, evidence],
+            suggestedAction: .restartRouter,
+            createdAt: now.addingTimeInterval(-60)
+        )
+        let references: Set<PseudonymousReference> = [baseline, evidence]
+        XCTAssertEqual(
+            OpportunityHandoffValidator.revalidate(
+                handoff,
+                availableMeasurementRefs: references,
+                eligibleMeasurementRefs: references,
+                contextMatches: true,
+                acceptedRuleVersions: ["optimization/1"],
+                maximumAge: 300,
+                at: now
+            ),
+            .eligible
+        )
+
+        guard case let .unavailable(limitations) = OpportunityHandoffValidator.revalidate(
+            handoff,
+            availableMeasurementRefs: [baseline],
+            eligibleMeasurementRefs: [baseline],
+            contextMatches: false,
+            acceptedRuleVersions: ["optimization/2"],
+            maximumAge: 30,
+            at: now
+        ) else {
+            return XCTFail("Expected unavailable handoff")
+        }
+        XCTAssertEqual(limitations.count, 5)
+    }
+
+    func testCoordinatorStatesProjectToTheCanonicalV4Lifecycle() {
+        XCTAssertEqual(InvestigationState.idle.lifecycleState, .draft)
+        XCTAssertEqual(InvestigationState.collectingContext.lifecycleState, .contextReady)
+        XCTAssertEqual(InvestigationState.planning.lifecycleState, .processingTurn)
+        XCTAssertEqual(InvestigationState.awaitingUserAnswer.lifecycleState, .awaitingAnswer)
+        XCTAssertEqual(InvestigationState.awaitingTestPermission.lifecycleState, .awaitingTestApproval)
+        XCTAssertEqual(InvestigationState.awaitingRetest.lifecycleState, .awaitingTestApproval)
+        XCTAssertEqual(InvestigationState.executingTest.lifecycleState, .measuring)
+        XCTAssertEqual(InvestigationState.showingResult.lifecycleState, .resultReady)
+        XCTAssertEqual(InvestigationState.cancelling.lifecycleState, .cancelling)
+    }
+
     func testRefusedAndRevokedConsentRejectSubmission() {
         for state in [ConsentState.refused, .revoked] {
             XCTAssertThrowsError(try payload(snapshot: snapshot(consent: consent(state: state))).validate(at: now)) { error in
                 XCTAssertEqual(error as? ContractError, .consentNotGranted)
             }
         }
+    }
+
+    func testAllInputKindsRoundTripThroughClosedSchema() throws {
+        let inputs: [ConsultationInput] = [
+            .userMessage("O que é um ponto de acesso?"),
+            .answer(QuestionAnswer(questionID: ref("question-001"), text: "Não sei.")),
+            .toolResult(ToolResultPayload(
+                proposalID: ref("proposal-001"),
+                tool: .runExistingTest,
+                status: .completed,
+                output: [ToolArgument(name: "result", value: .text("concluído"))]
+            )),
+            .actionFeedback(ActionFeedbackPayload(actionID: ref("action-001"), status: .completed, note: "Concluído pelo usuário."))
+        ]
+
+        for input in inputs {
+            let request = payload(input: input)
+            let roundTripped = try AssistConsultationContract.decode(
+                AssistConsultationContract.encode(request, now: now),
+                now: now
+            )
+            XCTAssertEqual(roundTripped.input, input)
+        }
+    }
+
+    func testAllInputKindsRejectWithoutQuestionConsent() {
+        let inputs: [ConsultationInput] = [
+            .userMessage("Ainda quero preservar este rascunho."),
+            .answer(QuestionAnswer(questionID: ref("question-001"), text: "Não sei.")),
+            .toolResult(ToolResultPayload(proposalID: ref("proposal-001"), tool: .runExistingTest, status: .denied)),
+            .actionFeedback(ActionFeedbackPayload(actionID: ref("action-001"), status: .ignored))
+        ]
+        let refused = snapshot(consent: consent(state: .refused))
+
+        for input in inputs {
+            XCTAssertThrowsError(try AssistConsultationContract.encode(payload(snapshot: refused, input: input), now: now)) { error in
+                XCTAssertEqual(error as? ContractError, .consentNotGranted)
+            }
+        }
+    }
+
+    func testResponsesForQuestionApprovalConclusionActionAndErrorRoundTrip() throws {
+        let questionRequest = payload()
+        let question = response(for: questionRequest, outcome: .turn(ConsultationTurnResponse(
+            intent: .openQuestion,
+            disposition: .awaitingAnswer,
+            next: .question(ConsultationQuestion(
+                id: ref("question-001"),
+                text: "Você sabe onde o roteador fica?",
+                rationale: "A posição pode mudar a orientação seguinte.")
+            )
+        )))
+
+        let approvalRequest = payload(snapshot: snapshot(capabilities: [
+            ConsultationCapability(tool: .runExistingTest, availability: .available)
+        ]))
+        let approval = response(for: approvalRequest, outcome: .turn(ConsultationTurnResponse(
+            intent: .openQuestion,
+            disposition: .awaitingApproval,
+            next: .toolProposal(ToolProposal(
+                id: ref("proposal-001"),
+                tool: .runExistingTest,
+                objective: "Executar um teste já disponível para comparar o cenário.",
+                risk: .low,
+                expiresAt: now.addingTimeInterval(60),
+                revision: 1
+            ))
+        )))
+
+        let conclusionRequest = payload()
+        let conclusion = response(for: conclusionRequest, outcome: .turn(ConsultationTurnResponse(
+            intent: .openQuestion,
+            disposition: .answered,
+            assessment: assessment(),
+            next: .none
+        )))
+        let action = response(for: conclusionRequest, outcome: .turn(ConsultationTurnResponse(
+            intent: .openQuestion,
+            disposition: .answered,
+            assessment: assessment(),
+            next: .actionProposal(ActionProposal(
+                id: ref("action-001"),
+                kind: .inspect,
+                title: "Verificar a posição do roteador",
+                steps: ["Observe se há barreiras físicas ao redor do roteador."],
+                expiresAt: now.addingTimeInterval(60)
+            ))
+        )))
+        let error = response(for: questionRequest, outcome: .error(ConsultationErrorPayload(
+            code: .unavailable,
+            message: "A consulta está indisponível agora.",
+            recoverable: true,
+            fallback: .retry,
+            currentRevision: 1
+        )))
+
+        for (request, item) in [(questionRequest, question), (approvalRequest, approval), (conclusionRequest, conclusion), (conclusionRequest, action), (questionRequest, error)] {
+            let data = try AssistConsultationContract.encodeResponse(item, for: request, now: now)
+            XCTAssertEqual(try AssistConsultationContract.decodeResponse(data, for: request, now: now), item)
+        }
+    }
+
+    func testResponseRejectsClosedOffersCatalogAndInvalidReferencesRevisionOrCapability() throws {
+        let availableRequest = payload(snapshot: snapshot(capabilities: [
+            ConsultationCapability(tool: .runExistingTest, availability: .available)
+        ]))
+        let validProposal = response(for: availableRequest, outcome: .turn(ConsultationTurnResponse(
+            intent: .openQuestion,
+            disposition: .awaitingApproval,
+            next: .toolProposal(ToolProposal(
+                id: ref("proposal-001"),
+                tool: .runExistingTest,
+                objective: "Executar teste existente.",
+                risk: .low,
+                expiresAt: now.addingTimeInterval(60),
+                revision: 1
+            ))
+        )))
+        let validData = try AssistConsultationContract.encodeResponse(validProposal, for: availableRequest, now: now)
+        var object = try XCTUnwrap(try JSONSerialization.jsonObject(with: validData) as? [String: Any])
+        var outcome = try XCTUnwrap(object["outcome"] as? [String: Any])
+        var turn = try XCTUnwrap(outcome["turn"] as? [String: Any])
+        var next = try XCTUnwrap(turn["next"] as? [String: Any])
+        var proposal = try XCTUnwrap(next["tool_proposal"] as? [String: Any])
+        proposal["tool"] = "compare_offers"
+        next["tool_proposal"] = proposal
+        turn["next"] = next
+        outcome["turn"] = turn
+        object["outcome"] = outcome
+        XCTAssertThrowsError(try AssistConsultationContract.decodeResponse(
+            try JSONSerialization.data(withJSONObject: object),
+            for: availableRequest,
+            now: now
+        ))
+
+        let wrongRevision = response(for: availableRequest, revision: 2, outcome: validProposal.outcome)
+        XCTAssertThrowsError(try AssistConsultationContract.encodeResponse(wrongRevision, for: availableRequest, now: now))
+
+        let unknownReference = response(for: availableRequest, outcome: .turn(ConsultationTurnResponse(
+            intent: .openQuestion,
+            disposition: .answered,
+            claims: [ConsultationClaim(id: ref("claim-001"), kind: .observation, text: "Observação sem referência conhecida.", evidenceRefs: [ref("evidence-unknown")], appliesToRefs: [ref("evidence-unknown")])],
+            assessment: assessment(),
+            next: .none
+        )))
+        XCTAssertThrowsError(try AssistConsultationContract.encodeResponse(unknownReference, for: availableRequest, now: now))
+
+        let unavailableRequest = payload(snapshot: snapshot(capabilities: [
+            ConsultationCapability(tool: .runExistingTest, availability: .unavailable)
+        ]))
+        let unavailableProposal = response(for: unavailableRequest, outcome: validProposal.outcome)
+        XCTAssertThrowsError(try AssistConsultationContract.encodeResponse(unavailableProposal, for: unavailableRequest, now: now))
+    }
+
+    func testCoordinatorRequiresExplicitTestApprovalAndTracksOnlyValidatedEvidence() throws {
+        let initialConsent = consent(scope: .questionAndContext)
+        let session = try InvestigationSession(
+            id: ref("investigation-001"), intent: .slowConnection, contextSnapshotVersion: 1,
+            consentSnapshot: initialConsent, createdAt: now
+        )
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: initialConsent, requiresConsent: false), at: now)
+        let proposal = ToolProposal(
+            id: ref("proposal-001"), tool: .runExistingTest, objective: "Executar teste previamente aprovado.",
+            risk: .low, expiresAt: now.addingTimeInterval(60), revision: 1
+        )
+        try coordinator.apply(.proposeTest(proposal), at: now)
+        XCTAssertEqual(coordinator.session.state, .awaitingTestPermission)
+        XCTAssertThrowsError(try coordinator.apply(.testFinished(InvestigationToolResult(
+            requestID: proposal.id, status: .completed, evidenceRefs: [ref("evidence-001")]
+        )), at: now))
+
+        try coordinator.apply(.approveTest(proposalID: proposal.id), at: now)
+        XCTAssertThrowsError(try coordinator.apply(.pause, at: now))
+        try coordinator.apply(.recoverableFailure, at: now)
+        XCTAssertEqual(coordinator.session.state, .recoverableError)
+        try coordinator.apply(.retry, at: now)
+        XCTAssertEqual(coordinator.session.state, .collectingContext)
+
+        try coordinator.apply(.beginPlanning, at: now)
+        try coordinator.apply(.proposeTest(proposal), at: now)
+        try coordinator.apply(.approveTest(proposalID: proposal.id), at: now)
+        try coordinator.apply(.testFinished(InvestigationToolResult(
+            requestID: proposal.id, status: .completed, evidenceRefs: [ref("evidence-001")]
+        )), at: now)
+        XCTAssertEqual(coordinator.session.state, .generatingResult)
+        let action = ActionProposal(
+            id: ref("action-001"), kind: .inspect, title: "Verificar o cabo",
+            steps: ["Confirme que o cabo está firme."], evidenceRefs: [ref("evidence-001")]
+        )
+        let recommendation = InvestigationRecommendation(
+            assessment: ConsultationAssessment(conclusion: .safeAction, summary: "Há uma ação reversível para tentar.", evidenceRefs: [ref("evidence-001")]),
+            actions: [action]
+        )
+        try coordinator.apply(.showRecommendation(recommendation), at: now)
+        try coordinator.apply(.acceptAction(action), at: now)
+        XCTAssertEqual(coordinator.session.state, .actionPending)
+    }
+
+    func testCoordinatorRejectsForeignAndRepeatedAnswersAndResumesOnlyByEvent() throws {
+        let session = try InvestigationSession(
+            id: ref("investigation-002"), intent: .openQuestion, contextSnapshotVersion: 1,
+            consentSnapshot: consent(), createdAt: now
+        )
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: consent(), requiresConsent: false), at: now)
+        let question = ConsultationQuestion(id: ref("question-001"), text: "Qual é o cômodo?", options: [QuestionOption(id: ref("option-001"), text: "Sala")], allowFreeText: true, rationale: "Contexto mínimo.")
+        try coordinator.apply(.ask(question), at: now)
+        XCTAssertThrowsError(try coordinator.apply(.answer(QuestionAnswer(questionID: ref("question-foreign"), text: "Sala"), turnID: ref("turn-001")), at: now))
+        XCTAssertThrowsError(try coordinator.apply(.answer(QuestionAnswer(questionID: question.id, optionID: ref("option-foreign")), turnID: ref("turn-001")), at: now))
+        try coordinator.apply(.answer(QuestionAnswer(questionID: question.id, text: "Sala"), turnID: ref("turn-001")), at: now)
+        try coordinator.apply(.beginPlanning, at: now)
+        try coordinator.apply(.ask(question), at: now)
+        XCTAssertThrowsError(try coordinator.apply(.answer(QuestionAnswer(questionID: question.id, text: "Sala"), turnID: ref("turn-002")), at: now))
+
+        try coordinator.apply(.pause, at: now)
+        XCTAssertEqual(coordinator.session.state, .paused)
+        try coordinator.apply(.resume, at: now)
+        XCTAssertEqual(coordinator.session.state, .awaitingUserAnswer)
+
+        let revoked = consent(state: .revoked)
+        try coordinator.apply(.revokeConsent(revoked), at: now)
+        XCTAssertEqual(coordinator.session.state, .awaitingConsent)
+        XCTAssertThrowsError(try coordinator.apply(.beginPlanning, at: now))
+    }
+
+    func testCoordinatorRejectsExpiredOrNonExecutableTestProposal() throws {
+        let sharedConsent = consent(scope: .questionAndContext)
+        let session = try InvestigationSession(id: ref("investigation-003"), intent: .slowConnection, contextSnapshotVersion: 1, consentSnapshot: sharedConsent, createdAt: now)
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: sharedConsent, requiresConsent: false), at: now)
+        let proposalOnly = ToolProposal(id: ref("proposal-only"), tool: .proposeNetworkTest, objective: "Somente propor.", risk: .low, expiresAt: now.addingTimeInterval(60), revision: 1)
+        XCTAssertThrowsError(try coordinator.apply(.proposeTest(proposalOnly), at: now))
+
+        let expiresAt = now.addingTimeInterval(1)
+        let executable = ToolProposal(id: ref("proposal-expired"), tool: .runExistingTest, objective: "Executar teste existente.", risk: .low, expiresAt: expiresAt, revision: 1)
+        try coordinator.apply(.proposeTest(executable), at: now)
+        XCTAssertThrowsError(try coordinator.apply(.approveTest(proposalID: executable.id), at: now.addingTimeInterval(2)))
+        XCTAssertEqual(coordinator.session.state, .awaitingTestPermission)
+    }
+
+    func testCoordinatorCorrelatesRemoteResponseBeforeChangingState() throws {
+        let localSession = ref("local-session-001")
+        let session = try InvestigationSession(id: localSession, intent: .openQuestion, contextSnapshotVersion: 1, consentSnapshot: consent(), createdAt: now)
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: consent(), requiresConsent: false), at: now)
+        let request = payload(localSessionID: localSession)
+        try coordinator.apply(.beginRemoteTurn(request), at: now)
+        let remoteQuestion = ConsultationQuestion(id: ref("question-remote"), text: "Qual ambiente?", rationale: "Falta contexto.")
+        let reply = response(for: request, outcome: .turn(ConsultationTurnResponse(intent: .openQuestion, disposition: .awaitingAnswer, next: .question(remoteQuestion))))
+        try coordinator.apply(.receiveRemoteResponse(reply, for: request), at: now)
+        XCTAssertEqual(coordinator.session.state, .awaitingUserAnswer)
+        XCTAssertThrowsError(try coordinator.apply(.receiveRemoteResponse(reply, for: request), at: now))
+    }
+
+    func testCoordinatorBindsRemoteInputToCurrentConsentAndSessionHistory() throws {
+        let sharedConsent = consent(scope: .questionAndContext)
+        let localSession = ref("local-session-history")
+        let session = try InvestigationSession(id: localSession, intent: .openQuestion, contextSnapshotVersion: 1, consentSnapshot: sharedConsent, createdAt: now)
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: sharedConsent, requiresConsent: false), at: now)
+
+        let foreignConsent = ConsentReceipt(ref: ref("consent-foreign"), state: .granted, scope: .questionAndContext, recordedAt: now)
+        let foreignPayload = payload(snapshot: snapshot(consent: foreignConsent), localSessionID: localSession)
+        XCTAssertThrowsError(try coordinator.apply(.beginRemoteTurn(foreignPayload), at: now))
+
+        let question = ConsultationQuestion(id: ref("question-history"), text: "Qual ambiente?", options: [QuestionOption(id: ref("option-history"), text: "Sala")], allowFreeText: false, rationale: "Falta contexto.")
+        try coordinator.apply(.ask(question), at: now)
+        let answer = QuestionAnswer(questionID: question.id, optionID: ref("option-history"))
+        try coordinator.apply(.answer(answer, turnID: ref("turn-answer-history")), at: now)
+        try coordinator.apply(.beginPlanning, at: now)
+
+        let context = snapshot(consent: sharedConsent)
+        let foreignAnswer = payload(snapshot: context, input: .answer(QuestionAnswer(questionID: question.id, text: "Outra resposta")), localSessionID: localSession)
+        XCTAssertThrowsError(try coordinator.apply(.beginRemoteTurn(foreignAnswer), at: now))
+
+        let matchingAnswer = payload(snapshot: context, input: .answer(answer), localSessionID: localSession)
+        XCTAssertNoThrow(try coordinator.apply(.beginRemoteTurn(matchingAnswer), at: now))
+        XCTAssertEqual(coordinator.session.state, .generatingResult)
+    }
+
+    func testLocalQuestionAndDraftNeverNeedConsentForRemoteSending() throws {
+        let refused = consent(state: .refused, scope: .none)
+        let session = try InvestigationSession(id: ref("local-session-fixture"), intent: .slowConnection, contextSnapshotVersion: 1, consentSnapshot: refused, createdAt: now)
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        let question = ConsultationQuestion(id: ref("question-local"), text: "Onde a conexão está lenta?", options: [QuestionOption(id: ref("option-local"), text: "Em um cômodo")], allowFreeText: false, rationale: "Triagem local.")
+        try coordinator.apply(.askLocal(question), at: now)
+        try coordinator.apply(.answer(QuestionAnswer(questionID: question.id, optionID: ref("option-local")), turnID: ref("turn-local")), at: now)
+        try coordinator.apply(.markInsufficientEvidence, at: now)
+        XCTAssertEqual(coordinator.session.state, .insufficientEvidence)
+
+        let messageSession = try InvestigationSession(id: ref("local-session-draft"), intent: .openQuestion, contextSnapshotVersion: 1, consentSnapshot: refused, createdAt: now)
+        var draftCoordinator = ConsultationCoordinator(session: messageSession)
+        try draftCoordinator.apply(.start, at: now)
+        try draftCoordinator.apply(.recordLocalMessage("Posso usar um roteador antigo como AP?", turnID: ref("turn-draft")), at: now)
+        try draftCoordinator.apply(.markUnavailable, at: now)
+        XCTAssertEqual(draftCoordinator.session.state, .unavailable)
+        XCTAssertEqual(draftCoordinator.session.turns.last?.structuredPayload, .userMessage("Posso usar um roteador antigo como AP?"))
+    }
+
+    func testRetestRequiresAValidProposalAndCancellationDoesNotProjectAResult() throws {
+        let sharedConsent = consent(scope: .questionAndContext)
+        let session = try InvestigationSession(id: ref("investigation-retest"), intent: .slowConnection, contextSnapshotVersion: 1, consentSnapshot: sharedConsent, createdAt: now)
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: sharedConsent, requiresConsent: false), at: now)
+        try coordinator.apply(.beginGenerating, at: now)
+        try coordinator.apply(.showRecommendation(InvestigationRecommendation(assessment: assessment())), at: now)
+
+        let expired = ToolProposal(id: ref("proposal-retest-expired"), tool: .runExistingTest, objective: "Refazer medição comparável.", risk: .low, expiresAt: now, revision: 1)
+        XCTAssertThrowsError(try coordinator.apply(.requestRetest(expired), at: now))
+
+        let valid = ToolProposal(id: ref("proposal-retest-valid"), tool: .runExistingTest, objective: "Refazer medição comparável.", risk: .low, expiresAt: now.addingTimeInterval(60), revision: 1)
+        try coordinator.apply(.requestRetest(valid), at: now)
+        XCTAssertEqual(coordinator.session.state, .awaitingRetest)
+        XCTAssertEqual(coordinator.session.pendingToolRequest?.id, valid.id)
+        try coordinator.apply(.approveTest(proposalID: valid.id), at: now)
+        XCTAssertEqual(coordinator.session.state, .executingTest)
+        XCTAssertEqual(InvestigationState.cancelled.lifecycleState, .completed)
+    }
+
+    func testCancellationKeepsPendingIdentityOnlyUntilCancellationFinishes() throws {
+        let localSession = ref("local-session-002")
+        let session = try InvestigationSession(id: localSession, intent: .openQuestion, contextSnapshotVersion: 1, consentSnapshot: consent(), createdAt: now)
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: consent(), requiresConsent: false), at: now)
+        let request = payload(localSessionID: localSession)
+        try coordinator.apply(.beginRemoteTurn(request), at: now)
+        let response = response(for: request, outcome: .error(ConsultationErrorPayload(code: .unavailable, message: "Indisponível.", recoverable: true, fallback: .retry)))
+        try coordinator.apply(.cancel, at: now)
+        XCTAssertEqual(coordinator.session.state, .cancelling)
+        XCTAssertNotNil(coordinator.session.pendingRemoteTurn)
+        XCTAssertThrowsError(try coordinator.apply(.receiveRemoteResponse(response, for: request), at: now))
+        try coordinator.apply(.cancellationFinished, at: now)
+        XCTAssertEqual(coordinator.session.state, .cancelled)
+        XCTAssertNil(coordinator.session.pendingRemoteTurn)
     }
 
     func testExpiredAndConflictedEvidenceBecomeExplicitAbsence() throws {
@@ -113,6 +812,7 @@ final class AssistConsultationTests: XCTestCase {
     func testExplicitEligibleMeasurementKeepsOnlyPseudonymousReferences() {
         let candidate = MeasurementCandidate(
             reference: ref("measurement-wifi"),
+            sourceRef: ref("source-measurement-001"),
             measurement: NetworkMeasurement(measuredAt: now, outcome: .complete, downloadMbps: 120, uploadMbps: 40, connectionKind: .wifi),
             profileRef: ref("profile-001"), validUntil: now.addingTimeInterval(600),
             consent: consent(scope: .questionAndContext)
@@ -123,13 +823,64 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertEqual(projected.id.value, "measurement-wifi")
         XCTAssertEqual(projected.profileRef.value, "profile-001")
         XCTAssertEqual(projected.values.map { $0.property }, ["download_mbps", "upload_mbps"])
+        XCTAssertEqual(projected.values.flatMap(\.sourceRefs), [ref("source-measurement-001"), ref("source-measurement-001")])
+        XCTAssertFalse(projected.values.flatMap(\.sourceRefs).contains(candidate.reference))
 
         let context = snapshot(
             consent: consent(scope: .questionAndContext),
-            sources: [ContextSource(id: candidate.reference, kind: .systemMeasurement, retrievedAt: now)],
+            sources: [ContextSource(id: ref("source-measurement-001"), kind: .systemMeasurement, retrievedAt: now)],
+            entities: [ConsultationEntity(id: ref("profile-001"), kind: .profile)],
             measurements: [projected]
         )
         XCTAssertNoThrow(try AssistConsultationContract.encode(payload(snapshot: context), now: now))
+
+        let fusedContext = snapshot(
+            consent: consent(scope: .questionAndContext),
+            sources: [ContextSource(id: candidate.reference, kind: .systemMeasurement, retrievedAt: now)],
+            entities: [ConsultationEntity(id: ref("profile-001"), kind: .profile)],
+            measurements: [projected]
+        )
+        XCTAssertThrowsError(try AssistConsultationContract.encode(payload(snapshot: fusedContext), now: now))
+    }
+
+    func testEvidenceScopeAndClaimApplicabilityMustResolveIndependently() throws {
+        let source = ContextSource(id: ref("source-user-001"), kind: .userDeclaration, retrievedAt: now)
+        let device = ConsultationEntity(id: ref("device-001"), kind: .device, sourceRefs: [source.id])
+        let plan = ConsultationEntity(id: ref("plan-001"), kind: .plan, sourceRefs: [source.id])
+        let validFact = EvidenceFact(
+            id: ref("evidence-device-001"), subjectRef: device.id, property: "router_role",
+            value: .text("principal"), sourceType: .userDeclared, sourceRefs: [source.id],
+            observedAt: now, scope: EvidenceScope(appliesToRefs: [device.id]), consentScope: .questionAndContext
+        )
+        let context = snapshot(consent: consent(scope: .questionAndContext), sources: [source], entities: [device, plan], facts: [validFact])
+        let request = payload(snapshot: context)
+        XCTAssertNoThrow(try AssistConsultationContract.encode(request, now: now))
+
+        let invalidScope = EvidenceFact(
+            id: ref("evidence-device-002"), subjectRef: device.id, property: "router_role",
+            value: .text("principal"), sourceType: .userDeclared, sourceRefs: [source.id],
+            observedAt: now, scope: EvidenceScope(appliesToRefs: [plan.id]), consentScope: .questionAndContext
+        )
+        let invalidContext = snapshot(consent: consent(scope: .questionAndContext), sources: [source], entities: [device, plan], facts: [invalidScope])
+        XCTAssertThrowsError(try AssistConsultationContract.encode(payload(snapshot: invalidContext), now: now))
+
+        let validResponse = response(for: request, outcome: .turn(ConsultationTurnResponse(
+            intent: .openQuestion,
+            disposition: .answered,
+            claims: [ConsultationClaim(id: ref("claim-general-001"), kind: .generalKnowledge, text: "Um ponto de acesso amplia uma rede existente.", evidenceRefs: [], appliesToRefs: [context.snapshotID])],
+            assessment: assessment(),
+            next: .none
+        )))
+        XCTAssertNoThrow(try AssistConsultationContract.encodeResponse(validResponse, for: request, now: now))
+
+        let unresolvedClaim = response(for: request, outcome: .turn(ConsultationTurnResponse(
+            intent: .openQuestion,
+            disposition: .answered,
+            claims: [ConsultationClaim(id: ref("claim-general-002"), kind: .generalKnowledge, text: "Um ponto de acesso amplia uma rede existente.", evidenceRefs: [], appliesToRefs: [ref("entity-missing")])],
+            assessment: assessment(),
+            next: .none
+        )))
+        XCTAssertThrowsError(try AssistConsultationContract.encodeResponse(unresolvedClaim, for: request, now: now))
     }
 
     func testManufacturerFactRequiresPublicOfficialSource() throws {
@@ -187,7 +938,8 @@ final class AssistConsultationTests: XCTestCase {
         }
 
         let validSource = ContextSource(id: ref("source-001"), kind: .officialDocument, url: "https://manufacturer.example/spec", retrievedAt: now)
-        XCTAssertNoThrow(try payload(snapshot: snapshot(consent: contextConsent, sources: [validSource], facts: [fact])).validate(at: now))
+        let device = ConsultationEntity(id: ref("device-001"), kind: .device)
+        XCTAssertNoThrow(try payload(snapshot: snapshot(consent: contextConsent, sources: [validSource], entities: [device], facts: [fact])).validate(at: now))
     }
 
     func testFixturesValidateOrRejectThroughClosedSchema() throws {
