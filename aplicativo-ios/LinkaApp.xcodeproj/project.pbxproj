@@ -96,6 +96,7 @@
 		604BB99D0B8DFA3EEF29145B /* LinkaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C35725E79C96780D745AB7 /* LinkaApp.swift */; };
 		637810EBEB63A3121E07FEEE /* MetricRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 179DA64F9C7059B7A140B92E /* MetricRing.swift */; };
 		637BF2B640D3CBDF7EEE47B7 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 28F283D852B193F2358515D4 /* Localizable.strings */; };
+		65E7034350B2A4EAB1ECC7B2 /* AssistOpportunityHandoffFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90D79DD30F467F20E3424599 /* AssistOpportunityHandoffFactoryTests.swift */; };
 		6882F59A3F151C8F60DFDAE6 /* NetworkProfilesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391C474559F68EE0F41A987D /* NetworkProfilesSection.swift */; };
 		6ACF1B8A4BAB5DCF06F6F805 /* LinkaPlusWordmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D579EFF3B620AD5DF92A3A87 /* LinkaPlusWordmarkView.swift */; };
 		6C26089846FA7EE4D5A15EDF /* AssistContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DD4A980DC574793818E97A1 /* AssistContainer.swift */; };
@@ -111,6 +112,7 @@
 		7C1E0A53B7850ADDAE15A682 /* AssistV4PresentationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28283696C9F6FEBF0674EE17 /* AssistV4PresentationModel.swift */; };
 		7C80510290141EF10AA29DC8 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C60A040FE4E49231CD858102 /* MainView.swift */; };
 		7D5ACB59AE3B1D2BE7DAE683 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43FDC4D087897BC1FC0C88DD /* DesignSystem.swift */; };
+		7D98B9103BE37F1D22F2B588 /* AssistOpportunityHandoffFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C8949DE2B954BF11DDE2F66 /* AssistOpportunityHandoffFactory.swift */; };
 		7F7970BA85081796F66C73DB /* PhaseDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E5050B3CBDDCC2A9F2BA57 /* PhaseDots.swift */; };
 		80AB1C5BBB464B51B69E5637 /* NetscopeAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507667BB6A4302947545C8D2 /* NetscopeAnalysisView.swift */; };
 		810B4B27AA449A9F301E610E /* StatDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 240C677AB8218C3DE05600FB /* StatDisplay.swift */; };
@@ -174,6 +176,7 @@
 		D023E595162ADE7D1452F5EC /* LinkaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C35725E79C96780D745AB7 /* LinkaApp.swift */; };
 		D0716D6A4A358B964448A5DE /* MeasurementDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8549C59760252CA889B5156 /* MeasurementDetailView.swift */; };
 		D188691379C8139876B72CC4 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = DAF4C758A27DB86B27A8A164 /* GoogleMobileAds */; };
+		D503DB27820B79164ABBD90A /* AssistOpportunityHandoffFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C8949DE2B954BF11DDE2F66 /* AssistOpportunityHandoffFactory.swift */; };
 		D56E580B360BFB6CA8653118 /* ServicePlanEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1002043A934769A0090BD328 /* ServicePlanEditorView.swift */; };
 		D6446648E2A4A8652046EFC7 /* LinkaWidgetShared in Frameworks */ = {isa = PBXBuildFile; productRef = 5DF4E7D682987E0812DC7371 /* LinkaWidgetShared */; };
 		D7BE5A2EE2B1E0BF691CEE43 /* ConnectionPathDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4781F293BF600F767AD519F6 /* ConnectionPathDetailView.swift */; };
@@ -309,6 +312,7 @@
 		66CBF1A76A2700A86FB6D257 /* LinkaSpeedTestWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaSpeedTestWidget.swift; sourceTree = "<group>"; };
 		67A921C4B0BDC839130F101C /* OptimizationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptimizationView.swift; sourceTree = "<group>"; };
 		6935758C28176CC335C491C7 /* AppStoreScreenshotsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreScreenshotsUITests.swift; sourceTree = "<group>"; };
+		6C8949DE2B954BF11DDE2F66 /* AssistOpportunityHandoffFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistOpportunityHandoffFactory.swift; sourceTree = "<group>"; };
 		6DA4FD46BFBEE2619FDDD282 /* NetscopeEvidence */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NetscopeEvidence; path = NetscopeEvidence; sourceTree = SOURCE_ROOT; };
 		72C35725E79C96780D745AB7 /* LinkaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaApp.swift; sourceTree = "<group>"; };
 		736F109DF0DF1C50DFAF202C /* SettingsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSheet.swift; sourceTree = "<group>"; };
@@ -321,6 +325,7 @@
 		8B466168E5335F4FDD7C68E3 /* LinkaInventoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaInventoryStore.swift; sourceTree = "<group>"; };
 		8BB509E33711C1EAAB7390AA /* AssistV4PresentationModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistV4PresentationModelTests.swift; sourceTree = "<group>"; };
 		8DD4A980DC574793818E97A1 /* AssistContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistContainer.swift; sourceTree = "<group>"; };
+		90D79DD30F467F20E3424599 /* AssistOpportunityHandoffFactoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistOpportunityHandoffFactoryTests.swift; sourceTree = "<group>"; };
 		935BAC9694139394F0625999 /* DNSConfigurationCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNSConfigurationCoordinatorTests.swift; sourceTree = "<group>"; };
 		9396CB175CFD73A1F7F5C6D0 /* InventoryBuildConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryBuildConfiguration.swift; sourceTree = "<group>"; };
 		9B850E19211801E1038B746A /* OptimizationProfileCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptimizationProfileCoordinator.swift; sourceTree = "<group>"; };
@@ -523,6 +528,7 @@
 			children = (
 				4A0979A51676CC7785121587 /* ApplePlatformSignalProviderCWChannelBandTests.swift */,
 				1EAD1F6C3D7AA58F4C4BA80F /* AppStoreReviewPolicyTests.swift */,
+				90D79DD30F467F20E3424599 /* AssistOpportunityHandoffFactoryTests.swift */,
 				8BB509E33711C1EAAB7390AA /* AssistV4PresentationModelTests.swift */,
 				DA0EFE129DED2C73A20E81CA /* AssistViewCloseSheetTests.swift */,
 				78285EB65890B076CF8D41D4 /* AssistViewModelTests.swift */,
@@ -680,6 +686,7 @@
 				F59DF4C04B975718AB2E308A /* ApplePlatformSignalProvider.swift */,
 				8DD4A980DC574793818E97A1 /* AssistContainer.swift */,
 				D0E2413E81B1C0AF7D31BBC0 /* AssistFailureSignalMapping.swift */,
+				6C8949DE2B954BF11DDE2F66 /* AssistOpportunityHandoffFactory.swift */,
 				DD77BB89224BDA9466A65983 /* AssistViewModel.swift */,
 				7E7BAC51017CB7F936040092 /* DNSBenchmarkCoordinator.swift */,
 				46FB40F095ED3C487CC1034C /* DNSConfigurationManager.swift */,
@@ -987,6 +994,7 @@
 				DFBAE558A49CA5513D880717 /* ApplePlatformSignalProvider.swift in Sources */,
 				6C26089846FA7EE4D5A15EDF /* AssistContainer.swift in Sources */,
 				1C4F052E3BA65C90B339272C /* AssistFailureSignalMapping.swift in Sources */,
+				7D98B9103BE37F1D22F2B588 /* AssistOpportunityHandoffFactory.swift in Sources */,
 				49438996C96BFB28DED35509 /* AssistProblemSelectionView.swift in Sources */,
 				46D6FA38F6C72D89631F5582 /* AssistTeaserCard.swift in Sources */,
 				C8E3CD3DD3341FC5279B4193 /* AssistV4PresentationModel.swift in Sources */,
@@ -1057,6 +1065,7 @@
 			files = (
 				973A0F3665F857B9696C4396 /* AppStoreReviewPolicyTests.swift in Sources */,
 				EB421BFDB3D4D610383923F1 /* ApplePlatformSignalProviderCWChannelBandTests.swift in Sources */,
+				65E7034350B2A4EAB1ECC7B2 /* AssistOpportunityHandoffFactoryTests.swift in Sources */,
 				518B836C28DC481311E4F8D0 /* AssistV4PresentationModelTests.swift in Sources */,
 				CB588C90842C7F5B1EC567AF /* AssistViewCloseSheetTests.swift in Sources */,
 				C795EB7B3D3C235CC07EB505 /* AssistViewModelTests.swift in Sources */,
@@ -1084,6 +1093,7 @@
 				E8738446F6E9EC9EAF2DFDE5 /* ApplePlatformSignalProvider.swift in Sources */,
 				B49CE021825E80DC95B954AA /* AssistContainer.swift in Sources */,
 				9FFFA7A4330D0D605C30667E /* AssistFailureSignalMapping.swift in Sources */,
+				D503DB27820B79164ABBD90A /* AssistOpportunityHandoffFactory.swift in Sources */,
 				3448797354FD2923D4969804 /* AssistProblemSelectionView.swift in Sources */,
 				A64CA2655143AAA37EDFB39A /* AssistTeaserCard.swift in Sources */,
 				7C1E0A53B7850ADDAE15A682 /* AssistV4PresentationModel.swift in Sources */,
