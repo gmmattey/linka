@@ -33,7 +33,7 @@ struct AssistV4Screen: View {
             Label("Assist", systemImage: "sparkles")
                 .font(.displayTitle)
                 .foregroundColor(.textPrimary)
-            Text("Consultoria de rede")
+            Text("Seu especialista em conexões")
                 .font(.bodyRegular)
                 .foregroundColor(.textSecondary)
         }
@@ -79,8 +79,18 @@ struct AssistV4Screen: View {
             }
         case .planDeclaration:
             planDeclaration
-        case let .guided(_, question):
+        case let .guided(intent, question):
             VStack(alignment: .leading, spacing: 12) {
+                if let progress = guidanceProgress(intent: intent, question: question) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Investigação local · etapa \(progress.current) de \(progress.total)")
+                            .font(.caption)
+                            .foregroundColor(.textSecondary)
+                        ProgressView(value: Double(progress.current), total: Double(progress.total))
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("assist-v4.guidance-progress")
+                }
                 Text(question.text).font(.displayMedium)
                 ForEach(question.options, id: \.id) { option in
                     Button { model.selectedOptionID = option.id } label: {
@@ -101,6 +111,27 @@ struct AssistV4Screen: View {
             limitation("Dados insuficientes para continuar", detail: text)
         case let .localOrientation(orientation):
             localOrientation(orientation)
+        }
+    }
+
+    private func guidanceProgress(intent: ConsultationIntent, question: ConsultationQuestion) -> (current: Int, total: Int)? {
+        switch intent {
+        case .slowConnection:
+            switch question.id.value {
+            case "question-slow-location": return (1, 2)
+            case "question-slow-usage": return (2, 2)
+            default: return nil
+            }
+        case .planValue:
+            switch question.id.value {
+            case "question-plan-priority": return (1, 2)
+            case "question-plan-satisfaction": return (2, 2)
+            default: return nil
+            }
+        case .routerAdequacy, .meshNeed:
+            return (1, 1)
+        case .openQuestion:
+            return nil
         }
     }
 

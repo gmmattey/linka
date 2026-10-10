@@ -12,10 +12,12 @@ final class AssistV4FixtureUITests: XCTestCase {
         app.buttons["assist-v4.shortcut.slow_connection"].tap()
         let room = app.buttons["Em um cômodo"]
         XCTAssertTrue(room.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Investigação local · etapa 1 de 2"].exists)
         room.tap()
         app.buttons["Continuar"].tap()
         let usage = app.buttons["Em tudo"]
         XCTAssertTrue(usage.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Investigação local · etapa 2 de 2"].exists)
         usage.tap()
         app.buttons["Continuar"].tap()
         XCTAssertTrue(app.staticTexts["Próxima etapa sugerida"].waitForExistence(timeout: 3))
