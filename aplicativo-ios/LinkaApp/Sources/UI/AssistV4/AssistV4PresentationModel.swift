@@ -3,6 +3,15 @@ import Foundation
 import Combine
 import AssistConsultation
 
+/// Fronteira de apresentação para a consulta remota. A implementação padrão
+/// falha fechada; a composição de transporte continua fora desta tela.
+enum AssistV4OpenQuestionSubmission: Equatable {
+    case response(ConsultationResponse)
+    case disabled
+    case offline
+    case recoverableFailure(String)
+}
+
 @MainActor
 final class AssistV4PresentationModel: ObservableObject {
     struct LocalOrientation: Equatable {
@@ -18,6 +27,11 @@ final class AssistV4PresentationModel: ObservableObject {
         case home
         case planDeclaration
         case guided(intent: ConsultationIntent, question: ConsultationQuestion)
+        case awaitingConsent(question: String)
+        case submittingOpenQuestion
+        case remoteUnavailable(String)
+        case remoteRecoverableError(String)
+        case remoteResult(ConsultationAssessment)
         case unavailableOpenQuestion(String, canResumeGuidance: Bool)
         case limitation(String)
         case localOrientation(LocalOrientation)
@@ -42,11 +56,19 @@ final class AssistV4PresentationModel: ObservableObject {
     private var planValueAnswers = PlanValueAnswers()
     private var guidedAnswers: [String] = []
     private var suspendedLocalFlow: SuspendedLocalFlow?
+    private let submitOpenQuestionRemote: @Sendable (ConsultationPayload) async -> AssistV4OpenQuestionSubmission
+    private var pendingRemotePayload: ConsultationPayload?
 
     private enum SuspendedLocalFlow {
         case guided(intent: ConsultationIntent, question: ConsultationQuestion)
         case planDeclaration
         case localOrientation(LocalOrientation)
+    }
+
+    init(
+        submitOpenQuestionRemote: @escaping @Sendable (ConsultationPayload) async -> AssistV4OpenQuestionSubmission = { _ in .disabled }
+    ) {
+        self.submitOpenQuestionRemote = submitOpenQuestionRemote
     }
 
     func start(_ intent: ConsultationIntent) {
@@ -110,16 +132,151 @@ final class AssistV4PresentationModel: ObservableObject {
         default:
             break
         }
+        // A pergunta livre passa primeiro por uma escolha explícita. Não
+        // criamos payload, sessão remota ou tráfego antes do consentimento.
+        state = .awaitingConsent(question: text)
+    }
+
+    func sendOpenQuestionOnly() {
+        guard case let .awaitingConsent(text) = state else { return }
+        let now = Date()
         do {
-            var coordinator = try localCoordinator(for: .openQuestion)
-            try coordinator.apply(.start, at: Date())
-            try coordinator.apply(.recordLocalMessage(text, turnID: reference(prefix: "local-turn")), at: Date())
-            try coordinator.apply(.markUnavailable, at: Date())
+            let refused = ConsentReceipt(
+                ref: reference(prefix: "consultation-consent"),
+                state: .refused,
+                scope: .none,
+                recordedAt: now
+            )
+            let session = try InvestigationSession(
+                id: reference(prefix: "consultation-session"),
+                intent: .openQuestion,
+                contextSnapshotVersion: 1,
+                consentSnapshot: refused,
+                createdAt: now
+            )
+            var coordinator = ConsultationCoordinator(session: session)
+            try coordinator.apply(.start, at: now)
+            try coordinator.apply(.contextCollected(revision: 1, consent: refused, requiresConsent: true), at: now)
+
+            let consent = ConsentReceipt(
+                ref: reference(prefix: "consultation-consent"),
+                state: .granted,
+                scope: .question,
+                recordedAt: now
+            )
+            try coordinator.apply(.grantConsent(consent), at: now)
+            let snapshot = try ContextSnapshotAssembler.assemble(
+                ContextSnapshotAssemblyRequest(
+                    snapshotID: reference(prefix: "consultation-snapshot"),
+                    revision: 1,
+                    intent: .openQuestion,
+                    consent: consent
+                ),
+                at: now
+            )
+            let payload = ConsultationPayload(
+                requestID: reference(prefix: "consultation-request"),
+                localSessionID: coordinator.session.id,
+                transportSessionID: reference(prefix: "consultation-transport"),
+                turnID: reference(prefix: "consultation-turn"),
+                expectedRevision: snapshot.revision,
+                // `Locale.current.identifier` can carry Unicode extensions
+                // (for example, `pt_BR@rg=uszzzz`) that do not belong in the
+                // wire contract. The contract accepts a language or
+                // language-region tag only.
+                locale: Locale.current.language.languageCode?.identifier ?? "pt",
+                input: .userMessage(text),
+                contextSnapshot: snapshot,
+                consentReceiptRef: consent.ref
+            )
+            try coordinator.apply(.beginRemoteTurn(payload), at: now)
             self.coordinator = coordinator
+            pendingRemotePayload = payload
             turns.append(Turn(role: .user, text: text))
-            state = .unavailableOpenQuestion(text, canResumeGuidance: false)
+            state = .submittingOpenQuestion
+            submit(payload)
         } catch {
             state = .limitation("A pergunta continua no rascunho. Nenhum dado foi enviado.")
+        }
+    }
+
+    func declineOpenQuestionConsent() {
+        guard case let .awaitingConsent(text) = state else { return }
+        state = .unavailableOpenQuestion(text, canResumeGuidance: false)
+    }
+
+    func retryOpenQuestion() {
+        guard case .remoteRecoverableError = state,
+              let payload = pendingRemotePayload,
+              var coordinator else { return }
+        do {
+            try coordinator.apply(.retry, at: Date())
+            try coordinator.apply(.beginRemoteTurn(payload), at: Date())
+            self.coordinator = coordinator
+            state = .submittingOpenQuestion
+            submit(payload)
+        } catch {
+            state = .remoteUnavailable("Não foi possível retomar a pergunta. Ela continua no rascunho neste aparelho.")
+        }
+    }
+
+    private func submit(_ payload: ConsultationPayload) {
+        let submitOpenQuestionRemote = submitOpenQuestionRemote
+        Task { [weak self] in
+            let outcome = await submitOpenQuestionRemote(payload)
+            self?.receive(outcome, for: payload)
+        }
+    }
+
+    private func receive(_ outcome: AssistV4OpenQuestionSubmission, for payload: ConsultationPayload) {
+        guard pendingRemotePayload?.requestID == payload.requestID else { return }
+        switch outcome {
+        case .disabled:
+            pendingRemotePayload = nil
+            state = .remoteUnavailable("A consulta protegida ainda não está habilitada. Sua pergunta não foi enviada.")
+        case .offline:
+            recoverableRemoteFailure("Você está offline. A pergunta permanece no aparelho e pode ser reenviada.")
+        case .recoverableFailure(let message):
+            recoverableRemoteFailure(message)
+        case .response(let response):
+            guard var coordinator else {
+                state = .remoteUnavailable("A resposta não pôde ser associada à sua sessão.")
+                return
+            }
+            do {
+                try coordinator.apply(.receiveRemoteResponse(response, for: payload), at: Date())
+                self.coordinator = coordinator
+                pendingRemotePayload = nil
+                switch coordinator.session.state {
+                case .showingResult:
+                    guard let assessment = coordinator.session.recommendation?.assessment else {
+                        throw ContractError.invalid("A resposta não trouxe uma conclusão verificável.")
+                    }
+                    state = .remoteResult(assessment)
+                case .recoverableError:
+                    state = .remoteRecoverableError("A consulta falhou temporariamente. Você pode tentar de novo.")
+                case .unavailable:
+                    state = .remoteUnavailable("A consulta não está disponível agora. Sua pergunta permanece no aparelho.")
+                default:
+                    state = .remoteUnavailable("A consulta pediu uma próxima etapa que ainda não está disponível nesta prova.")
+                }
+            } catch {
+                state = .remoteUnavailable("A resposta recebida não passou na validação da consulta.")
+            }
+        }
+    }
+
+    private func recoverableRemoteFailure(_ message: String) {
+        guard var coordinator else {
+            state = .remoteUnavailable(message)
+            return
+        }
+        do {
+            try coordinator.apply(.recoverableFailure, at: Date())
+            self.coordinator = coordinator
+            state = .remoteRecoverableError(message)
+        } catch {
+            state = .remoteUnavailable(message)
         }
     }
 
@@ -189,6 +346,8 @@ final class AssistV4PresentationModel: ObservableObject {
         suspendedLocalFlow = nil
         selectedOptionID = nil
         clearPlanDeclaration()
+        pendingRemotePayload = nil
+        coordinator = nil
         state = .home
     }
 

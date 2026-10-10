@@ -113,6 +113,16 @@ struct AssistV4Screen: View {
                     .buttonStyle(.linkaSecondary)
                     .accessibilityIdentifier("assist-v4.cancel")
             }
+        case let .awaitingConsent(question):
+            openQuestionConsent(question)
+        case .submittingOpenQuestion:
+            submittingOpenQuestion
+        case let .remoteUnavailable(message):
+            remoteUnavailable(message)
+        case let .remoteRecoverableError(message):
+            remoteRecoverableError(message)
+        case let .remoteResult(assessment):
+            remoteResult(assessment)
         case let .unavailableOpenQuestion(text, canResumeGuidance):
             unavailableOpenQuestion(text, canResumeGuidance: canResumeGuidance)
         case let .limitation(text):
@@ -122,6 +132,99 @@ struct AssistV4Screen: View {
         case .cancelled:
             cancelledInvestigation
         }
+    }
+
+    private func openQuestionConsent(_ question: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Antes de enviar").font(.displayMedium)
+            Text("Sua pergunta fica neste aparelho até você escolher continuar.")
+                .font(.bodyRegular)
+                .foregroundColor(.textSecondary)
+            Text("“\(question)”")
+                .font(.bodyRegular)
+                .padding(12)
+                .background(Color.surfaceCard)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Nesta etapa, seria enviada somente a pergunta.")
+                    .font(.bodyRegularStrong)
+                Text("Plano, equipamentos, medições, localização, nome da rede, IP e histórico ficam de fora.")
+                    .font(.bodyRegular)
+                    .foregroundColor(.textSecondary)
+            }
+            Button("Enviar só a pergunta") { model.sendOpenQuestionOnly() }
+                .buttonStyle(.linkaPrimary)
+                .accessibilityIdentifier("assist-v4.consent.question-only")
+            Button("Não enviar") { model.declineOpenQuestionConsent() }
+                .buttonStyle(.linkaSecondary)
+                .accessibilityIdentifier("assist-v4.consent.decline")
+        }
+    }
+
+    private var submittingOpenQuestion: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ProgressView()
+                .accessibilityLabel("Preparando consulta")
+            Text("Preparando sua consulta").font(.displayMedium)
+            Text("Validando a consulta autorizada antes de qualquer envio. Você pode manter esta tela aberta.")
+                .font(.bodyRegular)
+                .foregroundColor(.textSecondary)
+        }
+        .accessibilityIdentifier("assist-v4.loading")
+    }
+
+    private func remoteUnavailable(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Consulta indisponível").font(.displayMedium)
+            Text(message).font(.bodyRegular).foregroundColor(.textSecondary)
+            Button("Voltar às sugestões") { model.returnHome() }
+                .buttonStyle(.linkaPrimary)
+        }
+        .accessibilityIdentifier("assist-v4.remote-unavailable")
+    }
+
+    private func remoteRecoverableError(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Não foi possível concluir agora").font(.displayMedium)
+            Text(message).font(.bodyRegular).foregroundColor(.textSecondary)
+            Button("Tentar novamente") { model.retryOpenQuestion() }
+                .buttonStyle(.linkaPrimary)
+                .accessibilityIdentifier("assist-v4.remote-retry")
+            Button("Voltar às sugestões") { model.returnHome() }
+                .buttonStyle(.linkaSecondary)
+        }
+        .accessibilityIdentifier("assist-v4.remote-recoverable-error")
+    }
+
+    private func remoteResult(_ assessment: ConsultationAssessment) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Assist").font(.bodyRegularStrong)
+            Text(assessment.summary).font(.displayMedium)
+            if !assessment.unknowns.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("O que ainda não sabemos").font(.bodyRegularStrong)
+                    ForEach(assessment.unknowns, id: \.id) { unknown in
+                        Text(unknown.text).font(.bodyRegular).foregroundColor(.textSecondary)
+                    }
+                }
+            }
+            DisclosureGroup("Dados e limites desta resposta") {
+                if assessment.evidenceRefs.isEmpty {
+                    Text("A resposta não usa medição, plano ou equipamento.")
+                        .font(.caption)
+                        .foregroundColor(.textSecondary)
+                } else {
+                    Text("As evidências referenciadas permanecem vinculadas à sessão. A apresentação detalhada será liberada com o histórico V4.")
+                        .font(.caption)
+                        .foregroundColor(.textSecondary)
+                }
+            }
+            .font(.bodyRegularStrong)
+            Button("Copiar e salvar estarão disponíveis com o histórico da consulta") {}
+                .buttonStyle(.linkaSecondary)
+                .disabled(true)
+        }
+        .accessibilityIdentifier("assist-v4.remote-result")
     }
 
     private func guidanceProgress(intent: ConsultationIntent, question: ConsultationQuestion) -> (current: Int, total: Int)? {
