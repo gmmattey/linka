@@ -36,6 +36,13 @@ final class AssistV4PresentationModelTests: XCTestCase {
         XCTAssertTrue(orientation.reason.contains("Medir o cenário de forma controlada"))
         XCTAssertEqual(orientation.declaredAnswers, ["Na casa inteira", "Em tudo"])
         XCTAssertEqual(orientation.nextAction, "Registre se a condição ocorre em vários aparelhos.")
+        XCTAssertEqual(orientation.actionProgress.status, .pending)
+
+        model.completeSuggestedAction()
+        guard case let .localOrientation(completedOrientation) = model.state else { return XCTFail("Expected local orientation after action confirmation") }
+        XCTAssertEqual(completedOrientation.actionProgress.status, .completed)
+        XCTAssertNotNil(completedOrientation.actionProgress.confirmedAt)
+        XCTAssertNil(completedOrientation.actionProgress.evidenceRef)
     }
 
     func testOpenQuestionDuringGuidancePreservesTheLocalQuestionAndSelection() {

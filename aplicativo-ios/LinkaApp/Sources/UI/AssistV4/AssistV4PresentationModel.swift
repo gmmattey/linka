@@ -11,6 +11,7 @@ final class AssistV4PresentationModel: ObservableObject {
         let nextAction: String
         let supportingConditions: [String]
         let declaredAnswers: [String]
+        let actionProgress: LocalActionProgress
     }
 
     enum State: Equatable {
@@ -130,6 +131,14 @@ final class AssistV4PresentationModel: ObservableObject {
         state = .guided(intent: suspendedGuidance.intent, question: suspendedGuidance.question)
     }
 
+    func completeSuggestedAction() {
+        updateSuggestedAction(status: .completed)
+    }
+
+    func deferSuggestedAction() {
+        updateSuggestedAction(status: .ignored)
+    }
+
     private func localCoordinator(for intent: ConsultationIntent) throws -> ConsultationCoordinator {
         let now = Date()
         let consent = ConsentReceipt(
@@ -178,7 +187,11 @@ final class AssistV4PresentationModel: ObservableObject {
                     reason: objective,
                     nextAction: conditions.first ?? "Reúna uma medição ou relato explícito antes de atribuir uma causa.",
                     supportingConditions: Array(conditions.dropFirst()),
-                    declaredAnswers: guidedAnswers
+                    declaredAnswers: guidedAnswers,
+                    actionProgress: LocalActionProgress(
+                        actionID: reference(prefix: "local-action"),
+                        status: .pending
+                    )
                 )
             )
         case let .result(_, limitations):
@@ -229,6 +242,31 @@ final class AssistV4PresentationModel: ObservableObject {
             return "Faltam dados declarados para avaliar o plano localmente."
         }
         return limitations.joined(separator: " ")
+    }
+
+    private func updateSuggestedAction(status: LocalActionStatus) {
+        guard case let .localOrientation(orientation) = state,
+              orientation.actionProgress.status == .pending else { return }
+        let progress = LocalActionProgress(
+            actionID: orientation.actionProgress.actionID,
+            status: status,
+            confirmedAt: Date()
+        )
+        do {
+            try ActionRetestLocalPolicy.validate(progress, at: Date())
+            state = .localOrientation(
+                LocalOrientation(
+                    title: orientation.title,
+                    reason: orientation.reason,
+                    nextAction: orientation.nextAction,
+                    supportingConditions: orientation.supportingConditions,
+                    declaredAnswers: orientation.declaredAnswers,
+                    actionProgress: progress
+                )
+            )
+        } catch {
+            state = .limitation("Não foi possível registrar a confirmação desta ação local. Nenhum dado foi enviado.")
+        }
     }
 
     private func reference(prefix: String) -> PseudonymousReference {

@@ -22,6 +22,9 @@ final class AssistV4FixtureUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Por quê"].exists)
         XCTAssertTrue(app.staticTexts["Próxima ação"].exists)
         XCTAssertTrue(app.descendants(matching: .any)["assist-v4.local-orientation"].exists)
+        app.buttons["assist-v4.action.complete"].tap()
+        XCTAssertTrue(app.staticTexts["Ação marcada como concluída nesta sessão local."].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Não foi executado teste nem salvo histórico."].exists)
 
         app.buttons["Voltar às sugestões"].tap()
         let composer = app.textFields["assist-v4.composer"]

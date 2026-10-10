@@ -130,7 +130,9 @@ struct AssistV4Screen: View {
 
     private func localOrientation(_ orientation: AssistV4PresentationModel.LocalOrientation) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(orientation.title).font(.displayMedium)
+            Text(orientation.title)
+                .font(.displayMedium)
+                .accessibilityIdentifier("assist-v4.local-orientation")
             VStack(alignment: .leading, spacing: 4) {
                 Text("Por quê").font(.bodyRegularStrong)
                 Text(orientation.reason).font(.bodyRegular).foregroundColor(.textSecondary)
@@ -143,9 +145,13 @@ struct AssistV4Screen: View {
                 }
             }
             orientationEvidence(orientation)
-            Button("Voltar às sugestões") { model.returnHome() }.buttonStyle(.linkaPrimary)
+            suggestedActionFeedback(orientation.actionProgress.status)
+            if orientation.actionProgress.status == .pending {
+                Button("Voltar às sugestões") { model.returnHome() }.buttonStyle(.linkaSecondary)
+            } else {
+                Button("Voltar às sugestões") { model.returnHome() }.buttonStyle(.linkaPrimary)
+            }
         }
-        .accessibilityIdentifier("assist-v4.local-orientation")
     }
 
     private func unavailableOpenQuestion(_ text: String, canResumeGuidance: Bool) -> some View {
@@ -192,6 +198,39 @@ struct AssistV4Screen: View {
         }
         .font(.bodyRegularStrong)
         .accessibilityIdentifier("assist-v4.evidence-boundary")
+    }
+
+    @ViewBuilder private func suggestedActionFeedback(_ status: LocalActionStatus) -> some View {
+        switch status {
+        case .pending:
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Quando terminar essa ação fora do app, confirme aqui.")
+                    .font(.bodyRegular)
+                    .foregroundColor(.textSecondary)
+                Button("Marcar como concluída") { model.completeSuggestedAction() }
+                    .buttonStyle(.linkaPrimary)
+                    .accessibilityIdentifier("assist-v4.action.complete")
+                Button("Agora não") { model.deferSuggestedAction() }
+                    .buttonStyle(.linkaSecondary)
+                    .accessibilityIdentifier("assist-v4.action.defer")
+            }
+        case .completed:
+            actionFeedback("Ação marcada como concluída nesta sessão local.")
+        case .ignored:
+            actionFeedback("Ação adiada nesta sessão local.")
+        case .unavailable:
+            actionFeedback("Ação indisponível nesta sessão local.")
+        }
+    }
+
+    private func actionFeedback(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(message).font(.bodyRegularStrong)
+            Text("Não foi executado teste nem salvo histórico.")
+                .font(.caption)
+                .foregroundColor(.textSecondary)
+        }
+        .accessibilityIdentifier("assist-v4.action-feedback")
     }
 
     private var composer: some View {
