@@ -238,8 +238,10 @@ struct AssistV4Screen: View {
         switch intent {
         case .slowConnection:
             switch question.id.value {
-            case "question-slow-location": return (1, 2)
-            case "question-slow-usage": return (2, 2)
+            case "question-slow-location": return (1, 4)
+            case "question-slow-usage": return (2, 4)
+            case "question-slow-timing": return (3, 4)
+            case "question-slow-access": return (4, 4)
             default: return nil
             }
         case .planValue:
@@ -328,7 +330,7 @@ struct AssistV4Screen: View {
             }
             orientationEvidence(orientation)
             suggestedActionFeedback(orientation.actionProgress.status)
-            Button("Revisar respostas") { model.reviseSlowConnectionAnswers() }
+            Button("Revisar conexão usada") { model.reviseSlowConnectionAnswers() }
                 .buttonStyle(.linkaSecondary)
                 .accessibilityIdentifier("assist-v4.action.revise-answers")
             if orientation.actionProgress.status == .pending {

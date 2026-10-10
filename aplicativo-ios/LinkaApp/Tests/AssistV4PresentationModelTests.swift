@@ -4,6 +4,23 @@ import AssistConsultation
 
 @MainActor
 final class AssistV4PresentationModelTests: XCTestCase {
+    private func choose(_ text: String, on model: AssistV4PresentationModel) {
+        guard case let .guided(_, question) = model.state,
+              let option = question.options.first(where: { $0.text == text }) else {
+            return XCTFail("Expected local option: \(text)")
+        }
+        model.selectedOptionID = option.id
+        model.continueGuided()
+    }
+
+    private func reachSlowConnectionOrientation(on model: AssistV4PresentationModel) {
+        model.start(.slowConnection)
+        choose("Em um cômodo", on: model)
+        choose("Em tudo", on: model)
+        choose("Em certos horários", on: model)
+        choose("Wi-Fi", on: model)
+    }
+
     func testOpenQuestionRequiresConsentAndCanStayLocal() {
         let model = AssistV4PresentationModel()
         model.draft = "Posso usar um roteador antigo como AP?"
@@ -60,11 +77,19 @@ final class AssistV4PresentationModelTests: XCTestCase {
         model.selectedOptionID = nextQuestion.options[0].id
         model.continueGuided()
         XCTAssertEqual(model.turns.count, 2)
+        guard case let .guided(_, timingQuestion) = model.state else { return XCTFail("Expected timing question") }
+        XCTAssertEqual(timingQuestion.text, "Quando a lentidão acontece mais?")
+        model.selectedOptionID = timingQuestion.options.first(where: { $0.text == "O tempo todo" })?.id
+        model.continueGuided()
+        guard case let .guided(_, accessQuestion) = model.state else { return XCTFail("Expected access question") }
+        XCTAssertEqual(accessQuestion.text, "Como este aparelho está conectado agora?")
+        model.selectedOptionID = accessQuestion.options.first(where: { $0.text == "Wi-Fi" })?.id
+        model.continueGuided()
         guard case let .localOrientation(orientation) = model.state else { return XCTFail("Expected a controlled local comparison") }
         XCTAssertEqual(orientation.title, "Próxima etapa sugerida")
-        XCTAssertTrue(orientation.reason.contains("Medir o cenário de forma controlada"))
-        XCTAssertEqual(orientation.declaredAnswers, ["Na casa inteira", "Em tudo"])
-        XCTAssertEqual(orientation.nextAction, "Registre se a condição ocorre em vários aparelhos.")
+        XCTAssertTrue(orientation.reason.contains("comparação controlada"))
+        XCTAssertEqual(orientation.declaredAnswers, ["Na casa inteira", "Em tudo", "O tempo todo", "Wi-Fi"])
+        XCTAssertTrue(orientation.nextAction.contains("Wi-Fi"))
         XCTAssertEqual(orientation.actionProgress.status, .pending)
 
         model.completeSuggestedAction()
@@ -96,13 +121,7 @@ final class AssistV4PresentationModelTests: XCTestCase {
 
     func testDeferringSuggestedActionDoesNotCreateRetestEvidence() {
         let model = AssistV4PresentationModel()
-        model.start(.slowConnection)
-        guard case let .guided(_, locationQuestion) = model.state else { return XCTFail("Expected location question") }
-        model.selectedOptionID = locationQuestion.options.first(where: { $0.text == "Em um cômodo" })?.id
-        model.continueGuided()
-        guard case let .guided(_, usageQuestion) = model.state else { return XCTFail("Expected usage question") }
-        model.selectedOptionID = usageQuestion.options.first(where: { $0.text == "Em tudo" })?.id
-        model.continueGuided()
+        reachSlowConnectionOrientation(on: model)
 
         model.deferSuggestedAction()
 
@@ -131,13 +150,7 @@ final class AssistV4PresentationModelTests: XCTestCase {
 
     func testOpenQuestionAfterOrientationCanReturnToTheLocalResult() {
         let model = AssistV4PresentationModel()
-        model.start(.slowConnection)
-        guard case let .guided(_, locationQuestion) = model.state else { return XCTFail("Expected location question") }
-        model.selectedOptionID = locationQuestion.options.first(where: { $0.text == "Em um cômodo" })?.id
-        model.continueGuided()
-        guard case let .guided(_, usageQuestion) = model.state else { return XCTFail("Expected usage question") }
-        model.selectedOptionID = usageQuestion.options.first(where: { $0.text == "Em tudo" })?.id
-        model.continueGuided()
+        reachSlowConnectionOrientation(on: model)
         guard case let .localOrientation(orientation) = model.state else { return XCTFail("Expected local orientation") }
 
         model.draft = "E se eu usar outro roteador?"
@@ -150,25 +163,19 @@ final class AssistV4PresentationModelTests: XCTestCase {
 
     func testSlowConnectionResultCanRevisitTheLastGuidedAnswerLocally() {
         let model = AssistV4PresentationModel()
-        model.start(.slowConnection)
-        guard case let .guided(_, firstQuestion) = model.state else { return XCTFail("Expected first local question") }
-        model.selectedOptionID = firstQuestion.options.first(where: { $0.text == "Em um cômodo" })?.id
-        model.continueGuided()
-        guard case let .guided(_, usageQuestion) = model.state else { return XCTFail("Expected usage question") }
-        model.selectedOptionID = usageQuestion.options.first(where: { $0.text == "Em tudo" })?.id
-        model.continueGuided()
+        reachSlowConnectionOrientation(on: model)
 
         model.reviseSlowConnectionAnswers()
         guard case let .guided(intent, revisedQuestion) = model.state else { return XCTFail("Expected the revised local question") }
         XCTAssertEqual(intent, .slowConnection)
-        XCTAssertEqual(revisedQuestion.text, "Acontece em tudo ou só em um app ou serviço?")
-        XCTAssertEqual(model.selectedOptionID, revisedQuestion.options.first(where: { $0.text == "Em tudo" })?.id)
-        XCTAssertEqual(model.turns.map(\.text), ["Em um cômodo"])
+        XCTAssertEqual(revisedQuestion.text, "Como este aparelho está conectado agora?")
+        XCTAssertEqual(model.selectedOptionID, revisedQuestion.options.first(where: { $0.text == "Wi-Fi" })?.id)
+        XCTAssertEqual(model.turns.map(\.text), ["Em um cômodo", "Em tudo", "Em certos horários"])
 
-        model.selectedOptionID = revisedQuestion.options.first(where: { $0.text == "Só em um app ou serviço" })?.id
+        model.selectedOptionID = revisedQuestion.options.first(where: { $0.text == "Cabo de rede" })?.id
         model.continueGuided()
-        guard case let .limitation(detail) = model.state else { return XCTFail("Expected local evidence limitation") }
-        XCTAssertTrue(detail.contains("teste geral não comprova"))
+        guard case let .localOrientation(orientation) = model.state else { return XCTFail("Expected rebuilt local orientation") }
+        XCTAssertTrue(orientation.nextAction.contains("cabo"))
     }
 
     func testGuidedBackRebuildsTheSlowConnectionQuestionWithoutReusingTheAnswer() {
