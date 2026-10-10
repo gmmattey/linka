@@ -56,6 +56,11 @@ ativou endpoint, Worker, provider, tráfego, custo ou retenção remota.
   continua recusando ausência de medição e zera explicitamente o histórico que
   recebe. Isso confirma que persistência local existente não é projeção
   autorizada para o relay legado.
+- `swift test` em `NetworkAssist` passou 45/45 e
+  `AssistViewModelTests` no iPhone 17 Pro Simulator passou 10/10. Essas
+  suítes confirmam validação local, exigência de medição e compatibilidade
+  do cliente; usam doubles e não comprovam resposta, autenticação ou
+  disponibilidade do relay.
 - Não há fonte do Worker/relay neste repositório. Logo, autenticação por
   proprietário, compatibilidade bilateral de schema, idempotência, logs,
   retenção, exclusão, limites de custo, feature flag operacional e rollback
