@@ -15,7 +15,7 @@ public enum InvestigationState: String, Codable, CaseIterable, Sendable {
     case showingResult = "showing_result"
     case actionPending = "action_pending"
     case awaitingRetest = "awaiting_retest"
-    case completed, paused, cancelled
+    case completed, paused, cancelling, cancelled
     case recoverableError = "recoverable_error"
     case unavailable
     case insufficientEvidence = "insufficient_evidence"
@@ -155,6 +155,7 @@ public enum InvestigationEvent: Sendable {
     case pause
     case resume
     case cancel
+    case cancellationFinished
     case recoverableFailure
     case retry
     case markUnavailable
@@ -309,9 +310,13 @@ public struct ConsultationCoordinator: Sendable {
             session.resumeState = nil
             try transition(to: resumeState, at: now)
         case .cancel:
-            guard session.state != .completed, session.state != .cancelled else { throw invalidTransition() }
+            guard session.state != .idle, session.state != .completed, session.state != .cancelled, session.state != .cancelling else { throw invalidTransition() }
+            try transition(to: .cancelling, at: now)
+        case .cancellationFinished:
+            guard session.state == .cancelling else { throw invalidTransition() }
             session.pendingToolRequest = nil
             session.pendingRemoteTurn = nil
+            session.pendingQuestion = nil
             try transition(to: .cancelled, at: now)
         case .recoverableFailure:
             guard session.state != .idle, session.state != .completed, session.state != .cancelled else { throw invalidTransition() }

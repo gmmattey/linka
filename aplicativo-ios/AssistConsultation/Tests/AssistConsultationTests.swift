@@ -327,6 +327,24 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertThrowsError(try coordinator.apply(.receiveRemoteResponse(reply, for: request), at: now))
     }
 
+    func testCancellationKeepsPendingIdentityOnlyUntilCancellationFinishes() throws {
+        let localSession = ref("local-session-002")
+        let session = try InvestigationSession(id: localSession, intent: .openQuestion, contextSnapshotVersion: 1, consentSnapshot: consent(), createdAt: now)
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: consent(), requiresConsent: false), at: now)
+        let request = payload(localSessionID: localSession)
+        try coordinator.apply(.beginRemoteTurn(request), at: now)
+        let response = response(for: request, outcome: .error(ConsultationErrorPayload(code: .unavailable, message: "Indisponível.", recoverable: true, fallback: .retry)))
+        try coordinator.apply(.cancel, at: now)
+        XCTAssertEqual(coordinator.session.state, .cancelling)
+        XCTAssertNotNil(coordinator.session.pendingRemoteTurn)
+        XCTAssertThrowsError(try coordinator.apply(.receiveRemoteResponse(response, for: request), at: now))
+        try coordinator.apply(.cancellationFinished, at: now)
+        XCTAssertEqual(coordinator.session.state, .cancelled)
+        XCTAssertNil(coordinator.session.pendingRemoteTurn)
+    }
+
     func testExpiredAndConflictedEvidenceBecomeExplicitAbsence() throws {
         let base = EvidenceFact(
             id: ref("evidence-router"), subjectRef: ref("device-001"), property: "wifi_standard",
