@@ -52,6 +52,12 @@ ativou endpoint, Worker, provider, tráfego, custo ou retenção remota.
   e [`NetworkDiagnosticsConfiguration`](../aplicativo-ios/NetworkDiagnostics/Sources/NetworkDiagnosticsConfiguration.swift).
   [`BuildeaDiagnosticAPI`](../aplicativo-ios/NetworkDiagnostics/Sources/BuildeaDiagnosticAPI.swift)
   continua serializando o contrato de diagnóstico baseado em `NetworkMeasurement`.
+- A comparação com a base `6beab6d37c050e1db7dc69a9cc0f31836662bbf6`
+  não encontrou alteração em `Info.plist`, `Info-macOS.plist`,
+  `AssistContainer`, `NetworkDiagnostics` ou `NetworkAssist`. O único diff
+  em `project.yml` adiciona `AssistConsultation` ao alvo iOS e a fonte dos
+  testes de UI; os dois valores de `NDAssistRelayEndpoint` continuam
+  literalmente em `/v2/assist`.
 - [`AssistViewModel`](../aplicativo-ios/LinkaApp/Sources/Adapters/AssistViewModel.swift)
   continua recusando ausência de medição e zera explicitamente o histórico que
   recebe. Isso confirma que persistência local existente não é projeção
