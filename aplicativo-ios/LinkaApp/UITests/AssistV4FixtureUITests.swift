@@ -1,6 +1,22 @@
 import XCTest
 
 final class AssistV4FixtureUITests: XCTestCase {
+    private func reachSlowConnectionOrientation(in app: XCUIApplication) {
+        app.buttons["assist-v4.shortcut.slow_connection"].tap()
+        XCTAssertTrue(app.buttons["Em um cômodo"].waitForExistence(timeout: 3))
+        app.buttons["Em um cômodo"].tap()
+        app.buttons["Continuar"].tap()
+        app.buttons["Em tudo"].tap()
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.buttons["Em certos horários"].waitForExistence(timeout: 3))
+        app.buttons["Em certos horários"].tap()
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.buttons["Wi-Fi"].waitForExistence(timeout: 3))
+        app.buttons["Wi-Fi"].tap()
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["assist-v4.local-orientation"].waitForExistence(timeout: 3))
+    }
+
     func testBackgroundPausesTheGuidedFixtureUntilThePersonResumesIt() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
@@ -34,13 +50,19 @@ final class AssistV4FixtureUITests: XCTestCase {
         app.buttons["assist-v4.shortcut.slow_connection"].tap()
         let room = app.buttons["Em um cômodo"]
         XCTAssertTrue(room.waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["Investigação local · etapa 1 de 2"].exists)
+        XCTAssertTrue(app.staticTexts["Investigação local · etapa 1 de 4"].exists)
         room.tap()
         app.buttons["Continuar"].tap()
         let usage = app.buttons["Em tudo"]
         XCTAssertTrue(usage.waitForExistence(timeout: 3))
-        XCTAssertTrue(app.staticTexts["Investigação local · etapa 2 de 2"].exists)
+        XCTAssertTrue(app.staticTexts["Investigação local · etapa 2 de 4"].exists)
         usage.tap()
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.staticTexts["Investigação local · etapa 3 de 4"].exists)
+        app.buttons["O tempo todo"].tap()
+        app.buttons["Continuar"].tap()
+        XCTAssertTrue(app.staticTexts["Investigação local · etapa 4 de 4"].exists)
+        app.buttons["Wi-Fi"].tap()
         app.buttons["Continuar"].tap()
         XCTAssertTrue(app.staticTexts["Próxima etapa sugerida"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Por quê"].exists)
@@ -96,19 +118,16 @@ final class AssistV4FixtureUITests: XCTestCase {
         app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
         app.launch()
 
-        app.buttons["assist-v4.shortcut.slow_connection"].tap()
-        app.buttons["Em um cômodo"].tap()
-        app.buttons["Continuar"].tap()
-        app.buttons["Em tudo"].tap()
-        app.buttons["Continuar"].tap()
+        reachSlowConnectionOrientation(in: app)
         XCTAssertTrue(app.buttons["assist-v4.action.revise-answers"].waitForExistence(timeout: 3))
 
         app.buttons["assist-v4.action.revise-answers"].tap()
-        XCTAssertTrue(app.staticTexts["Acontece em tudo ou só em um app ou serviço?"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Como este aparelho está conectado agora?"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["Continuar"].isEnabled)
-        app.buttons["Só em um app ou serviço"].tap()
+        app.buttons["Dados móveis ou outra conexão"].tap()
         app.buttons["Continuar"].tap()
         XCTAssertTrue(app.staticTexts["Dados insuficientes para continuar"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "rede doméstica")).firstMatch.exists)
     }
 
     func testOpenQuestionAfterOrientationCanReturnToTheLocalResult() throws {
@@ -116,12 +135,7 @@ final class AssistV4FixtureUITests: XCTestCase {
         app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
         app.launch()
 
-        app.buttons["assist-v4.shortcut.slow_connection"].tap()
-        app.buttons["Em um cômodo"].tap()
-        app.buttons["Continuar"].tap()
-        app.buttons["Em tudo"].tap()
-        app.buttons["Continuar"].tap()
-        XCTAssertTrue(app.descendants(matching: .any)["assist-v4.local-orientation"].waitForExistence(timeout: 3))
+        reachSlowConnectionOrientation(in: app)
 
         let composer = app.textFields["assist-v4.composer"]
         composer.tap()

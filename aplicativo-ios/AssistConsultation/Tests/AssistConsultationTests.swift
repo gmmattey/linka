@@ -88,6 +88,16 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertEqual(usageQuestion.text, "Acontece em tudo ou só em um app ou serviço?")
         XCTAssertTrue(usageQuestion.allowUnknown)
         XCTAssertEqual(usageQuestion.options.filter { $0.kind == .unknown }.count, 1)
+
+        guard case let .question(timingQuestion) = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .room, usage: .all)) else {
+            return XCTFail("Expected a timing question")
+        }
+        XCTAssertEqual(timingQuestion.text, "Quando a lentidão acontece mais?")
+
+        guard case let .question(accessQuestion) = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .room, usage: .all, timing: .certainTimes)) else {
+            return XCTFail("Expected an access question")
+        }
+        XCTAssertEqual(accessQuestion.text, "Como este aparelho está conectado agora?")
     }
 
     func testSlowConnectionJourneyAcceptsOnlyTheOptionFromItsActiveStep() throws {
@@ -107,12 +117,27 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertEqual(complete.location, .room)
         XCTAssertEqual(complete.usage, .all)
         XCTAssertThrowsError(try SlowConnectionLocalJourney.applying(room, to: afterLocation))
+
+        guard case let .question(timingQuestion) = SlowConnectionLocalJourney.next(after: complete) else {
+            return XCTFail("Expected a timing question")
+        }
+        let intermittent = try XCTUnwrap(timingQuestion.options.first { $0.text == "Vai e volta" })
+        let afterTiming = try SlowConnectionLocalJourney.applying(intermittent, to: complete)
+        XCTAssertEqual(afterTiming.timing, .intermittent)
+
+        guard case let .question(accessQuestion) = SlowConnectionLocalJourney.next(after: afterTiming) else {
+            return XCTFail("Expected an access question")
+        }
+        let wifi = try XCTUnwrap(accessQuestion.options.first { $0.text == "Wi-Fi" })
+        let finished = try SlowConnectionLocalJourney.applying(wifi, to: afterTiming)
+        XCTAssertEqual(finished.access, .wifi)
+        XCTAssertThrowsError(try SlowConnectionLocalJourney.applying(intermittent, to: afterTiming))
     }
 
     func testSlowConnectionJourneySuggestsComparisonsWithoutAttributingCause() {
-        let room = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .room, usage: .all))
-        let device = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .device, usage: .all))
-        let home = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .home, usage: .all))
+        let room = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .room, usage: .all, timing: .certainTimes, access: .wifi))
+        let device = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .device, usage: .all, timing: .intermittent, access: .cable))
+        let home = SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .home, usage: .all, timing: .continuous, access: .wifi))
 
         for step in [room, device, home] {
             guard case let .proposedComparison(objective, conditions) = step else {
@@ -123,15 +148,18 @@ final class AssistConsultationTests: XCTestCase {
             XCTAssertFalse(objective.localizedCaseInsensitiveContains("operadora"))
             XCTAssertFalse(objective.localizedCaseInsensitiveContains("é causado"))
             XCTAssertFalse(objective.localizedCaseInsensitiveContains("o problema é"))
+            XCTAssertTrue(conditions.contains { $0.localizedCaseInsensitiveContains("LAN, Internet, DNS") })
         }
-        XCTAssertEqual(room, SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .room, usage: .all)))
+        XCTAssertEqual(room, SlowConnectionLocalJourney.next(after: SlowConnectionAnswers(location: .room, usage: .all, timing: .certainTimes, access: .wifi)))
     }
 
     func testSlowConnectionJourneyReturnsInsufficientEvidenceForServiceOrUnknownLocation() {
         for answers in [
-            SlowConnectionAnswers(location: .home, usage: .service),
+            SlowConnectionAnswers(location: .home, usage: .service, timing: .continuous, access: .wifi),
             SlowConnectionAnswers(location: .unknown, usage: .all),
-            SlowConnectionAnswers(location: .unknown, usage: .unknown)
+            SlowConnectionAnswers(location: .unknown, usage: .unknown),
+            SlowConnectionAnswers(location: .home, usage: .all, timing: .unknown, access: .unknown),
+            SlowConnectionAnswers(location: .home, usage: .all, timing: .continuous, access: .other)
         ] {
             guard case let .result(conclusion, limitations) = SlowConnectionLocalJourney.next(after: answers) else {
                 return XCTFail("Expected an insufficient-evidence result")

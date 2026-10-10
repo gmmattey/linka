@@ -312,10 +312,15 @@ final class AssistV4PresentationModel: ObservableObject {
     }
 
     func goBackFromGuidedQuestion() {
-        guard case let .guided(intent, _) = state else { return }
+        guard case let .guided(intent, question) = state else { return }
         switch intent {
-        case .slowConnection where slowConnectionAnswers.location != nil:
-            restartSlowConnectionAtLocationQuestion()
+        case .slowConnection:
+            switch question.id.value {
+            case "question-slow-access": rebuildSlowConnectionQuestion("question-slow-timing")
+            case "question-slow-timing": rebuildSlowConnectionQuestion("question-slow-usage")
+            case "question-slow-usage": rebuildSlowConnectionQuestion("question-slow-location")
+            default: returnHome()
+            }
         case .planValue where planValueAnswers.priority != nil:
             restartPlanValueAtPriorityQuestion()
         default:
@@ -433,37 +438,42 @@ final class AssistV4PresentationModel: ObservableObject {
 
     func reviseSlowConnectionAnswers() {
         guard case .localOrientation = state,
-              let location = slowConnectionAnswers.location,
-              let usage = slowConnectionAnswers.usage else { return }
+              slowConnectionAnswers.access != nil else { return }
+        rebuildSlowConnectionQuestion("question-slow-access")
+    }
+
+    private func rebuildSlowConnectionQuestion(_ targetQuestionID: String) {
         do {
             var coordinator = try localCoordinator(for: .slowConnection)
             try coordinator.apply(.start, at: Date())
-
-            let firstQuestion = try slowQuestion(after: SlowConnectionAnswers())
-            try coordinator.apply(.askLocal(firstQuestion), at: Date())
-            guard let locationOption = firstQuestion.options.first(where: { $0.text == slowLocationText(location) }) else {
-                throw ContractError.invalid("Opção de local não encontrada ao revisar a investigação.")
+            var rebuiltAnswers = SlowConnectionAnswers()
+            var rebuiltTurns: [String] = []
+            while true {
+                let question = try slowQuestion(after: rebuiltAnswers)
+                try coordinator.apply(.askLocal(question), at: Date())
+                guard let answerText = slowAnswerText(for: question.id.value),
+                      let option = question.options.first(where: { $0.text == answerText }) else {
+                    throw ContractError.invalid("Opção não encontrada ao reconstruir a investigação local.")
+                }
+                if question.id.value == targetQuestionID {
+                    self.coordinator = coordinator
+                    slowConnectionAnswers = rebuiltAnswers
+                    turns = rebuiltTurns.map { Turn(role: .user, text: $0) }
+                    guidedAnswers = rebuiltTurns
+                    selectedOptionID = option.id
+                    state = .guided(intent: .slowConnection, question: question)
+                    return
+                }
+                try coordinator.apply(
+                    .answer(
+                        QuestionAnswer(questionID: question.id, optionID: option.id),
+                        turnID: reference(prefix: "local-turn")
+                    ),
+                    at: Date()
+                )
+                rebuiltAnswers = try SlowConnectionLocalJourney.applying(option, to: rebuiltAnswers)
+                rebuiltTurns.append(option.text)
             }
-            try coordinator.apply(
-                .answer(
-                    QuestionAnswer(questionID: firstQuestion.id, optionID: locationOption.id),
-                    turnID: reference(prefix: "local-turn")
-                ),
-                at: Date()
-            )
-
-            slowConnectionAnswers = try SlowConnectionLocalJourney.applying(locationOption, to: SlowConnectionAnswers())
-            let usageQuestion = try slowQuestion(after: slowConnectionAnswers)
-            try coordinator.apply(.askLocal(usageQuestion), at: Date())
-            guard let usageOption = usageQuestion.options.first(where: { $0.text == slowUsageText(usage) }) else {
-                throw ContractError.invalid("Opção de uso não encontrada ao revisar a investigação.")
-            }
-
-            self.coordinator = coordinator
-            turns = [Turn(role: .user, text: locationOption.text)]
-            guidedAnswers = [locationOption.text]
-            selectedOptionID = usageOption.id
-            state = .guided(intent: .slowConnection, question: usageQuestion)
         } catch {
             state = .limitation("Não foi possível revisar esta investigação local. Nenhum dado foi enviado.")
         }
@@ -508,30 +518,6 @@ final class AssistV4PresentationModel: ObservableObject {
         return question
     }
 
-    private func restartSlowConnectionAtLocationQuestion() {
-        guard let previousLocation = slowConnectionAnswers.location else {
-            returnHome()
-            return
-        }
-        do {
-            var coordinator = try localCoordinator(for: .slowConnection)
-            try coordinator.apply(.start, at: Date())
-            let question = try slowQuestion(after: SlowConnectionAnswers())
-            try coordinator.apply(.askLocal(question), at: Date())
-            guard let option = question.options.first(where: { $0.text == slowLocationText(previousLocation) }) else {
-                throw ContractError.invalid("Opção de local não encontrada ao voltar na investigação.")
-            }
-            self.coordinator = coordinator
-            slowConnectionAnswers = SlowConnectionAnswers()
-            turns = []
-            guidedAnswers = []
-            selectedOptionID = option.id
-            state = .guided(intent: .slowConnection, question: question)
-        } catch {
-            state = .limitation("Não foi possível voltar nesta investigação local. Nenhum dado foi enviado.")
-        }
-    }
-
     private func restartPlanValueAtPriorityQuestion() {
         guard let previousPriority = planValueAnswers.priority else {
             returnHome()
@@ -559,20 +545,41 @@ final class AssistV4PresentationModel: ObservableObject {
         }
     }
 
-    private func slowLocationText(_ location: SlowConnectionLocation) -> String {
-        switch location {
-        case .home: "Na casa inteira"
-        case .room: "Em um cômodo"
-        case .device: "Em um aparelho"
-        case .unknown: "Não sei"
-        }
-    }
-
-    private func slowUsageText(_ usage: SlowConnectionUsage) -> String {
-        switch usage {
-        case .all: "Em tudo"
-        case .service: "Só em um app ou serviço"
-        case .unknown: "Não sei"
+    private func slowAnswerText(for questionID: String) -> String? {
+        switch questionID {
+        case "question-slow-location":
+            switch slowConnectionAnswers.location {
+            case .home: return "Na casa inteira"
+            case .room: return "Em um cômodo"
+            case .device: return "Em um aparelho"
+            case .unknown: return "Não sei"
+            case nil: return nil
+            }
+        case "question-slow-usage":
+            switch slowConnectionAnswers.usage {
+            case .all: return "Em tudo"
+            case .service: return "Só em um app ou serviço"
+            case .unknown: return "Não sei"
+            case nil: return nil
+            }
+        case "question-slow-timing":
+            switch slowConnectionAnswers.timing {
+            case .continuous: return "O tempo todo"
+            case .certainTimes: return "Em certos horários"
+            case .intermittent: return "Vai e volta"
+            case .unknown: return "Não sei"
+            case nil: return nil
+            }
+        case "question-slow-access":
+            switch slowConnectionAnswers.access {
+            case .wifi: return "Wi-Fi"
+            case .cable: return "Cabo de rede"
+            case .other: return "Dados móveis ou outra conexão"
+            case .unknown: return "Não sei"
+            case nil: return nil
+            }
+        default:
+            return nil
         }
     }
 
