@@ -86,6 +86,7 @@ struct AssistV4Screen: View {
     private func shortcut(_ title: String, _ intent: ConsultationIntent) -> some View {
         Button { model.start(intent) } label: { HStack { Text(title); Spacer(); Image(systemName: "chevron.right") } }
             .font(.bodyRegularStrong).buttonStyle(.plain).padding(.vertical, 8)
+            .accessibilityIdentifier("assist-v4.shortcut.\(intent.rawValue)")
     }
 
     private func limitation(_ title: String, detail: String) -> some View {
@@ -101,9 +102,11 @@ struct AssistV4Screen: View {
             TextField("Pergunte sobre sua rede...", text: $model.draft, axis: .vertical)
                 .textFieldStyle(.roundedBorder)
                 .accessibilityLabel("Pergunte sobre sua rede")
+                .accessibilityIdentifier("assist-v4.composer")
             Button { model.submitOpenQuestion() } label: { Image(systemName: "arrow.up.circle.fill").font(.title2) }
                 .disabled(model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityLabel("Enviar pergunta")
+                .accessibilityIdentifier("assist-v4.send")
         }
         .padding(12)
         .background(.bar)
