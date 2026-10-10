@@ -31,9 +31,11 @@ final class AssistV4PresentationModelTests: XCTestCase {
         model.selectedOptionID = nextQuestion.options[0].id
         model.continueGuided()
         XCTAssertEqual(model.turns.count, 2)
-        guard case let .guidance(title, detail) = model.state else { return XCTFail("Expected a controlled local comparison") }
-        XCTAssertEqual(title, "Próxima etapa sugerida")
-        XCTAssertTrue(detail.contains("Medir o cenário de forma controlada"))
+        guard case let .localOrientation(orientation) = model.state else { return XCTFail("Expected a controlled local comparison") }
+        XCTAssertEqual(orientation.title, "Próxima etapa sugerida")
+        XCTAssertTrue(orientation.reason.contains("Medir o cenário de forma controlada"))
+        XCTAssertEqual(orientation.declaredAnswers, ["Na casa inteira", "Em tudo"])
+        XCTAssertEqual(orientation.nextAction, "Registre se a condição ocorre em vários aparelhos.")
     }
 
     func testOpenQuestionDuringGuidancePreservesTheLocalQuestionAndSelection() {

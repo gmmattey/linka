@@ -97,8 +97,8 @@ struct AssistV4Screen: View {
             unavailableOpenQuestion(text, canResumeGuidance: canResumeGuidance)
         case let .limitation(text):
             limitation("Dados insuficientes para continuar", detail: text)
-        case let .guidance(title, detail):
-            limitation(title, detail: detail)
+        case let .localOrientation(orientation):
+            localOrientation(orientation)
         }
     }
 
@@ -128,6 +128,26 @@ struct AssistV4Screen: View {
         }
     }
 
+    private func localOrientation(_ orientation: AssistV4PresentationModel.LocalOrientation) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(orientation.title).font(.displayMedium)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Por quê").font(.bodyRegularStrong)
+                Text(orientation.reason).font(.bodyRegular).foregroundColor(.textSecondary)
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Próxima ação").font(.bodyRegularStrong)
+                Text(orientation.nextAction).font(.bodyRegular).foregroundColor(.textSecondary)
+                ForEach(orientation.supportingConditions, id: \.self) { condition in
+                    Text(condition).font(.bodyRegular).foregroundColor(.textSecondary)
+                }
+            }
+            orientationEvidence(orientation)
+            Button("Voltar às sugestões") { model.returnHome() }.buttonStyle(.linkaPrimary)
+        }
+        .accessibilityIdentifier("assist-v4.local-orientation")
+    }
+
     private func unavailableOpenQuestion(_ text: String, canResumeGuidance: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("A pergunta não foi enviada").font(.displayMedium)
@@ -148,6 +168,24 @@ struct AssistV4Screen: View {
 
     private var evidenceBoundary: some View {
         DisclosureGroup("Dados e limites desta orientação") {
+            Text("Nenhuma medição, especificação, oferta ou fonte externa foi consultada nesta prova local.")
+                .font(.caption)
+                .foregroundColor(.textSecondary)
+        }
+        .font(.bodyRegularStrong)
+        .accessibilityIdentifier("assist-v4.evidence-boundary")
+    }
+
+    private func orientationEvidence(_ orientation: AssistV4PresentationModel.LocalOrientation) -> some View {
+        DisclosureGroup("Dados e limites desta orientação") {
+            Text("Respostas declaradas nesta tela")
+                .font(.caption)
+                .foregroundColor(.textSecondary)
+            ForEach(orientation.declaredAnswers, id: \.self) { answer in
+                Text(answer)
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+            }
             Text("Nenhuma medição, especificação, oferta ou fonte externa foi consultada nesta prova local.")
                 .font(.caption)
                 .foregroundColor(.textSecondary)

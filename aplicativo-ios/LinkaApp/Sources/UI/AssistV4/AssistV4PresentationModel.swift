@@ -5,12 +5,20 @@ import AssistConsultation
 
 @MainActor
 final class AssistV4PresentationModel: ObservableObject {
+    struct LocalOrientation: Equatable {
+        let title: String
+        let reason: String
+        let nextAction: String
+        let supportingConditions: [String]
+        let declaredAnswers: [String]
+    }
+
     enum State: Equatable {
         case home
         case guided(intent: ConsultationIntent, question: ConsultationQuestion)
         case unavailableOpenQuestion(String, canResumeGuidance: Bool)
         case limitation(String)
-        case guidance(title: String, detail: String)
+        case localOrientation(LocalOrientation)
     }
 
     struct Turn: Equatable, Identifiable {
@@ -26,11 +34,13 @@ final class AssistV4PresentationModel: ObservableObject {
     @Published var selectedOptionID: PseudonymousReference?
     private var coordinator: ConsultationCoordinator?
     private var slowConnectionAnswers = SlowConnectionAnswers()
+    private var guidedAnswers: [String] = []
     private var suspendedGuidance: (intent: ConsultationIntent, question: ConsultationQuestion)?
 
     func start(_ intent: ConsultationIntent) {
         guard intent != .openQuestion else { return }
         if intent == .slowConnection { slowConnectionAnswers = SlowConnectionAnswers() }
+        guidedAnswers = []
         suspendedGuidance = nil
         do {
             var coordinator = try localCoordinator(for: intent)
@@ -90,6 +100,7 @@ final class AssistV4PresentationModel: ObservableObject {
         do {
             try coordinator.apply(.answer(QuestionAnswer(questionID: question.id, optionID: option.id), turnID: reference(prefix: "local-turn")), at: Date())
             turns.append(Turn(role: .user, text: option.text))
+            guidedAnswers.append(option.text)
             selectedOptionID = nil
             if intent == .slowConnection {
                 try continueSlowConnection(option: option, coordinator: &coordinator)
@@ -161,7 +172,15 @@ final class AssistV4PresentationModel: ObservableObject {
         case let .proposedComparison(objective, conditions):
             try coordinator.apply(.markInsufficientEvidence, at: Date())
             self.coordinator = coordinator
-            state = .guidance(title: "Próxima etapa sugerida", detail: ([objective] + conditions).joined(separator: " "))
+            state = .localOrientation(
+                LocalOrientation(
+                    title: "Próxima etapa sugerida",
+                    reason: objective,
+                    nextAction: conditions.first ?? "Reúna uma medição ou relato explícito antes de atribuir uma causa.",
+                    supportingConditions: Array(conditions.dropFirst()),
+                    declaredAnswers: guidedAnswers
+                )
+            )
         case let .result(_, limitations):
             try coordinator.apply(.markInsufficientEvidence, at: Date())
             self.coordinator = coordinator
