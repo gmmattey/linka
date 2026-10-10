@@ -121,6 +121,49 @@ final class AssistConsultationTests: XCTestCase {
         }
     }
 
+    func testRouterAdequacyJourneyRequiresSelectionAndVerifiedEvidenceBeforeAssessment() {
+        guard case let .question(selection) = RouterAdequacyLocalJourney.next(after: RouterAdequacyAnswers()) else {
+            return XCTFail("Expected equipment selection")
+        }
+        XCTAssertEqual(selection.text, "Qual equipamento você quer avaliar?")
+        XCTAssertTrue(selection.allowUnknown)
+
+        for evidenceStatus in [RouterEvidenceStatus.unverified, .unavailable] {
+            guard case let .requiresVerifiedEvidence(limitations) = RouterAdequacyLocalJourney.next(after: RouterAdequacyAnswers(
+                equipmentSelected: true,
+                evidenceStatus: evidenceStatus
+            )) else {
+                return XCTFail("Expected verified evidence requirement")
+            }
+            XCTAssertFalse(limitations.isEmpty)
+        }
+    }
+
+    func testRouterAdequacyJourneyCollectsRoleAndGoalThenStaysInconclusiveWithoutMeasurements() {
+        let verified = RouterAdequacyAnswers(equipmentSelected: true, evidenceStatus: .verified)
+        guard case let .question(role) = RouterAdequacyLocalJourney.next(after: verified) else {
+            return XCTFail("Expected network-role question")
+        }
+        XCTAssertEqual(role.text, "Qual é o papel desse equipamento na rede?")
+
+        let withRole = RouterAdequacyAnswers(equipmentSelected: true, evidenceStatus: .verified, role: .mainRouter)
+        guard case let .question(goal) = RouterAdequacyLocalJourney.next(after: withRole) else {
+            return XCTFail("Expected goal question")
+        }
+        XCTAssertEqual(goal.text, "O que você quer melhorar?")
+
+        guard case let .result(conclusion, limitations) = RouterAdequacyLocalJourney.next(after: RouterAdequacyAnswers(
+            equipmentSelected: true,
+            evidenceStatus: .verified,
+            role: .mainRouter,
+            goal: .speed
+        )) else {
+            return XCTFail("Expected an inconclusive result without measurements")
+        }
+        XCTAssertEqual(conclusion, .insufficient)
+        XCTAssertTrue(limitations.contains { $0.localizedCaseInsensitiveContains("não comprovam desempenho") })
+    }
+
     func testRefusedAndRevokedConsentRejectSubmission() {
         for state in [ConsentState.refused, .revoked] {
             XCTAssertThrowsError(try payload(snapshot: snapshot(consent: consent(state: state))).validate(at: now)) { error in
