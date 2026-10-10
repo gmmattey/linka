@@ -81,3 +81,47 @@ ativou endpoint, Worker, provider, tráfego, custo ou retenção remota.
 - [ ] Definir máquina de estados, contratos tipados, autorização de teste e retenção de sessão.
 - [ ] Criar testes de compatibilidade com Assist legado e cenários sem medição.
 - [ ] Executar build/testes e QA em iPhone; não declarar concluído apenas por inspeção estática.
+
+## Adendo operacional — 10/10/2026
+
+Esta seção substitui apenas a limitação anterior de que o Worker não havia
+sido inspecionado. Ela não transforma teste local ou deploy desabilitado em
+prova de jornada do cliente.
+
+### Relay V4 e fronteira legada
+
+- O código do relay foi revisado no repositório próprio e integrado pela
+  [PR #61](https://github.com/gmmattey/assist-backend/pull/61). A versão
+  `8383ae6a-9358-439e-aaa3-3e49a659cdab` foi publicada em
+  `linka-assist-relay.buildealabs.workers.dev`.
+- A única nova fronteira é `POST /v1/assist/consultations`. Ela possui
+  contrato, persistência, retenção e App Attest próprios; não chama
+  `forwardAssist`, não encaminha ao NDS e não altera `POST /v2/assist`.
+- A chamada remota de prova à rota V4 devolveu
+  `404 CONSULTATION_NOT_ENABLED`. Isso é esperado: a flag remota permanece
+  `false`; provider também está `false`. Não houve chamada de IA, tráfego de
+  consultoria, custo ou retenção de dados de usuário.
+- A base D1 exclusiva `linka-assist-consultation-v4-production` foi consultada
+  após o deploy: sessões, turns, chaves App Attest e challenges estavam em
+  zero. Ela não reutiliza o D1 de status nem o armazenamento do diagnóstico.
+
+### Contrato e evidência de execução
+
+- O backend passou `npm run gen:openapi` e `npm run check`: 40 arquivos de
+  teste e 312 testes. Essa cobertura verifica contratos, retenção, rotas
+  desabilitadas, idempotência e rejeições de App Attest sintéticas; não prova
+  uma atestação emitida pela Apple.
+- O app iOS integrou o transporte V4 somente no target iOS, com endpoint fixo
+  e flag `NO`. Os 10 testes focados de transporte/App Attest passaram no
+  iPhone 17 Pro Simulator. O target macOS e a UI normal do Assist permanecem
+  fora dessa integração.
+- A [PR #324](https://github.com/gmmattey/linka/pull/324) foi integrada sem
+  modificar a configuração legada de `/v2/assist`.
+
+### Limite que ainda impede encerrar #310
+
+O único aparelho físico listado para esta auditoria continua no estado
+`unavailable`. Enquanto não houver um iPhone/iPad desbloqueado, confiado e
+com Developer Mode quando aplicável, não há evidência de App Attest genuíno,
+instalação assinada nem QA físico. #310 continua aberta até essa prova e não
+autoriza declarar #312 ou #320 concluídas.
