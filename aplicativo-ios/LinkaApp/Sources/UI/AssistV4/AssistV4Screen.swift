@@ -392,7 +392,7 @@ struct AssistV4Screen: View {
 
     private var evidenceBoundary: some View {
         DisclosureGroup("Dados e limites desta orientação") {
-            Text("Nenhuma medição, especificação, oferta ou fonte externa foi consultada nesta prova local.")
+            Text("Nenhuma medição, especificação, oferta ou fonte externa foi consultada nesta prova local. Ela não permite atribuir a causa à operadora.")
                 .font(.caption)
                 .foregroundColor(.textSecondary)
         }
@@ -410,7 +410,7 @@ struct AssistV4Screen: View {
                     .font(.caption)
                     .foregroundColor(.textSecondary)
             }
-            Text("Nenhuma medição, especificação, oferta ou fonte externa foi consultada nesta prova local.")
+            Text("Nenhuma medição, especificação, oferta ou fonte externa foi consultada nesta prova local. Ela não permite atribuir a causa à operadora.")
                 .font(.caption)
                 .foregroundColor(.textSecondary)
         }
