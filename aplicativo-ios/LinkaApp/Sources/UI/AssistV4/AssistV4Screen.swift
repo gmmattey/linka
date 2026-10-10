@@ -4,6 +4,7 @@ import AssistConsultation
 
 struct AssistV4Screen: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = AssistV4PresentationModel()
 
     var body: some View {
@@ -25,6 +26,10 @@ struct AssistV4Screen: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .topBarLeading) { Button("Fechar") { dismiss() } } }
             .safeAreaInset(edge: .bottom) { composer }
+            .onChange(of: scenePhase) { phase in
+                guard phase == .background else { return }
+                model.pauseForBackground()
+            }
         }
     }
 
@@ -129,6 +134,8 @@ struct AssistV4Screen: View {
             limitation("Dados insuficientes para continuar", detail: text)
         case let .localOrientation(orientation):
             localOrientation(orientation)
+        case .paused:
+            pausedInvestigation
         case .cancelled:
             cancelledInvestigation
         }
@@ -347,6 +354,21 @@ struct AssistV4Screen: View {
         .accessibilityIdentifier("assist-v4.cancelled")
     }
 
+    private var pausedInvestigation: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Investigação pausada").font(.displayMedium)
+            Text("Sua etapa local continua neste aparelho e só será retomada se você escolher continuar. Nada foi enviado ou salvo.")
+                .font(.bodyRegular)
+                .foregroundColor(.textSecondary)
+            Button("Retomar investigação") { model.resumePausedInvestigation() }
+                .buttonStyle(.linkaPrimary)
+                .accessibilityIdentifier("assist-v4.resume")
+            Button("Encerrar investigação") { model.cancelLocalInvestigation() }
+                .buttonStyle(.linkaSecondary)
+                .accessibilityIdentifier("assist-v4.cancel")
+        }
+    }
+
     private func unavailableOpenQuestion(_ text: String, canResumeGuidance: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("A pergunta não foi enviada").font(.displayMedium)
@@ -435,13 +457,19 @@ struct AssistV4Screen: View {
                 .textFieldStyle(.roundedBorder)
                 .accessibilityLabel("Pergunte sobre sua rede")
                 .accessibilityIdentifier("assist-v4.composer")
+                .disabled(isPaused)
             Button { model.submitOpenQuestion() } label: { Image(systemName: "arrow.up.circle.fill").font(.title2) }
-                .disabled(model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(isPaused || model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityLabel("Enviar pergunta")
                 .accessibilityIdentifier("assist-v4.send")
         }
         .padding(12)
         .background(.bar)
+    }
+
+    private var isPaused: Bool {
+        if case .paused = model.state { return true }
+        return false
     }
 }
 #endif

@@ -1,6 +1,28 @@
 import XCTest
 
 final class AssistV4FixtureUITests: XCTestCase {
+    func testBackgroundPausesTheGuidedFixtureUntilThePersonResumesIt() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
+        app.launch()
+
+        app.buttons["assist-v4.shortcut.slow_connection"].tap()
+        let room = app.buttons["Em um cômodo"]
+        XCTAssertTrue(room.waitForExistence(timeout: 3))
+        room.tap()
+
+        XCUIDevice.shared.press(.home)
+        app.activate()
+
+        XCTAssertTrue(app.staticTexts["Investigação pausada"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["assist-v4.resume"].exists)
+        XCTAssertFalse(app.buttons["assist-v4.send"].isEnabled)
+        app.buttons["assist-v4.resume"].tap()
+
+        XCTAssertTrue(room.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Continuar"].isEnabled)
+    }
+
     func testGuidedAndOpenQuestionStayLocalInFixture() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
