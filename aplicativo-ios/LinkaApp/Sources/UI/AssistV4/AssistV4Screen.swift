@@ -70,12 +70,14 @@ struct AssistV4Screen: View {
     @ViewBuilder private var content: some View {
         switch model.state {
         case .home:
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text("Como posso ajudar?").font(.displayMedium)
-                shortcut("Minha internet está lenta", .slowConnection)
-                shortcut("Meu roteador é adequado?", .routerAdequacy)
-                shortcut("Preciso de uma rede Mesh?", .meshNeed)
-                shortcut("Meu plano vale a pena?", .planValue)
+                VStack(spacing: 0) {
+                    shortcut("Minha internet está lenta", .slowConnection)
+                    shortcut("Meu roteador é adequado?", .routerAdequacy)
+                    shortcut("Preciso de uma rede Mesh?", .meshNeed)
+                    shortcut("Meu plano vale a pena?", .planValue, showsDivider: false)
+                }
             }
         case .planDeclaration:
             planDeclaration
@@ -167,21 +169,26 @@ struct AssistV4Screen: View {
         }
     }
 
-    private func shortcut(_ title: String, _ intent: ConsultationIntent) -> some View {
-        Button(action: { model.start(intent) }) {
-            HStack {
-                Text(title)
-                Spacer()
-                Image(systemName: "chevron.right")
+    private func shortcut(_ title: String, _ intent: ConsultationIntent, showsDivider: Bool = true) -> some View {
+        VStack(spacing: 0) {
+            Button(action: { model.start(intent) }) {
+                HStack {
+                    Text(title)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                }
+                .contentShape(Rectangle())
             }
-            .contentShape(Rectangle())
+                .font(.bodyRegularStrong)
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+                .padding(.vertical, 12)
+                .accessibilityIdentifier("assist-v4.shortcut.\(intent.rawValue)")
+            if showsDivider {
+                Divider()
+            }
         }
-            .font(.bodyRegularStrong)
-            .buttonStyle(.plain)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-            .padding(.vertical, 8)
-            .accessibilityIdentifier("assist-v4.shortcut.\(intent.rawValue)")
     }
 
     private func limitation(_ title: String, detail: String) -> some View {
