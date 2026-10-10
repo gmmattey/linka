@@ -128,6 +128,22 @@ final class AssistV4FixtureUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "nenhuma oferta é consultada")).firstMatch.exists)
     }
 
+    func testMeshJourneyStopsBeforeSuggestingEquipmentWithoutCoverageEvidence() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--assist-v4-fixture", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
+        app.launch()
+
+        app.buttons["assist-v4.shortcut.mesh_need"].tap()
+        let affectedAreas = app.buttons["Em vários ambientes"]
+        XCTAssertTrue(affectedAreas.waitForExistence(timeout: 3))
+        affectedAreas.tap()
+        app.buttons["Continuar"].tap()
+
+        XCTAssertTrue(app.staticTexts["Dados insuficientes para continuar"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Sem evidência de cobertura")).firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any)["assist-v4.evidence-boundary"].exists)
+    }
+
     func testFixtureKeepsTheLocalBoundariesOnExpandedTextIpad() throws {
         let app = XCUIApplication()
         app.launchArguments = [
