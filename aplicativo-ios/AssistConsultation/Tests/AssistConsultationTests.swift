@@ -255,6 +255,55 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertFalse(measurementLimitations.isEmpty)
     }
 
+    func testLocalActionProgressRequiresExplicitDatedConfirmationOnlyAfterPending() throws {
+        let actionID = ref("action-001")
+        try ActionRetestLocalPolicy.validate(LocalActionProgress(actionID: actionID, status: .pending), at: now)
+        XCTAssertThrowsError(try ActionRetestLocalPolicy.validate(LocalActionProgress(
+            actionID: actionID,
+            status: .pending,
+            confirmedAt: now
+        ), at: now))
+        XCTAssertThrowsError(try ActionRetestLocalPolicy.validate(LocalActionProgress(
+            actionID: actionID,
+            status: .completed
+        ), at: now))
+        try ActionRetestLocalPolicy.validate(LocalActionProgress(
+            actionID: actionID,
+            status: .completed,
+            confirmedAt: now,
+            evidenceRef: ref("measurement-002")
+        ), at: now)
+    }
+
+    func testRetestComparisonIsInconclusiveWhenAnyConditionChanges() {
+        let baseline = ref("measurement-001")
+        let retest = ref("measurement-002")
+        XCTAssertEqual(
+            ActionRetestLocalPolicy.evaluate(RetestComparisonConditions(
+                baselineMeasurementRef: baseline,
+                retestMeasurementRef: retest,
+                sameInterface: true,
+                sameEnvironment: true,
+                sameMethod: true,
+                sameDevice: true,
+                comparablePeriod: true
+            )),
+            .comparable
+        )
+        guard case let .inconclusive(limitations) = ActionRetestLocalPolicy.evaluate(RetestComparisonConditions(
+            baselineMeasurementRef: baseline,
+            retestMeasurementRef: retest,
+            sameInterface: false,
+            sameEnvironment: true,
+            sameMethod: false,
+            sameDevice: true,
+            comparablePeriod: false
+        )) else {
+            return XCTFail("Expected an inconclusive comparison")
+        }
+        XCTAssertEqual(limitations.count, 3)
+    }
+
     func testRefusedAndRevokedConsentRejectSubmission() {
         for state in [ConsentState.refused, .revoked] {
             XCTAssertThrowsError(try payload(snapshot: snapshot(consent: consent(state: state))).validate(at: now)) { error in
