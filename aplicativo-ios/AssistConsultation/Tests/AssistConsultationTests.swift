@@ -11,7 +11,7 @@ final class AssistConsultationTests: XCTestCase {
         ConsentReceipt(ref: ref("consent-001"), state: state, scope: scope, recordedAt: now)
     }
 
-    private func snapshot(consent: ConsentReceipt? = nil, sources: [ContextSource] = [], facts: [EvidenceFact] = [], absences: [KnownAbsence] = [], measurements: [ConsultationMeasurement] = [], capabilities: [ConsultationCapability] = []) -> ContextSnapshot {
+    private func snapshot(consent: ConsentReceipt? = nil, sources: [ContextSource] = [], entities: [ConsultationEntity] = [], facts: [EvidenceFact] = [], absences: [KnownAbsence] = [], measurements: [ConsultationMeasurement] = [], capabilities: [ConsultationCapability] = []) -> ContextSnapshot {
         ContextSnapshot(
             snapshotID: ref("snapshot-001"),
             revision: 1,
@@ -19,6 +19,7 @@ final class AssistConsultationTests: XCTestCase {
             consent: consent ?? self.consent(),
             createdAt: now,
             sources: sources,
+            entities: entities,
             facts: facts,
             absences: absences,
             measurements: measurements,
@@ -529,7 +530,7 @@ final class AssistConsultationTests: XCTestCase {
         let unknownReference = response(for: availableRequest, outcome: .turn(ConsultationTurnResponse(
             intent: .openQuestion,
             disposition: .answered,
-            claims: [ConsultationClaim(id: ref("claim-001"), kind: .observation, text: "Observação sem referência conhecida.", evidenceRefs: [ref("evidence-unknown")])],
+            claims: [ConsultationClaim(id: ref("claim-001"), kind: .observation, text: "Observação sem referência conhecida.", evidenceRefs: [ref("evidence-unknown")], appliesToRefs: [ref("evidence-unknown")])],
             assessment: assessment(),
             next: .none
         )))
@@ -647,6 +648,54 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertThrowsError(try coordinator.apply(.receiveRemoteResponse(reply, for: request), at: now))
     }
 
+    func testCoordinatorBindsRemoteInputToCurrentConsentAndSessionHistory() throws {
+        let sharedConsent = consent(scope: .questionAndContext)
+        let localSession = ref("local-session-history")
+        let session = try InvestigationSession(id: localSession, intent: .openQuestion, contextSnapshotVersion: 1, consentSnapshot: sharedConsent, createdAt: now)
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: sharedConsent, requiresConsent: false), at: now)
+
+        let foreignConsent = ConsentReceipt(ref: ref("consent-foreign"), state: .granted, scope: .questionAndContext, recordedAt: now)
+        let foreignPayload = payload(snapshot: snapshot(consent: foreignConsent), localSessionID: localSession)
+        XCTAssertThrowsError(try coordinator.apply(.beginRemoteTurn(foreignPayload), at: now))
+
+        let question = ConsultationQuestion(id: ref("question-history"), text: "Qual ambiente?", options: [QuestionOption(id: ref("option-history"), text: "Sala")], allowFreeText: false, rationale: "Falta contexto.")
+        try coordinator.apply(.ask(question), at: now)
+        let answer = QuestionAnswer(questionID: question.id, optionID: ref("option-history"))
+        try coordinator.apply(.answer(answer, turnID: ref("turn-answer-history")), at: now)
+        try coordinator.apply(.beginPlanning, at: now)
+
+        let context = snapshot(consent: sharedConsent)
+        let foreignAnswer = payload(snapshot: context, input: .answer(QuestionAnswer(questionID: question.id, text: "Outra resposta")), localSessionID: localSession)
+        XCTAssertThrowsError(try coordinator.apply(.beginRemoteTurn(foreignAnswer), at: now))
+
+        let matchingAnswer = payload(snapshot: context, input: .answer(answer), localSessionID: localSession)
+        XCTAssertNoThrow(try coordinator.apply(.beginRemoteTurn(matchingAnswer), at: now))
+        XCTAssertEqual(coordinator.session.state, .generatingResult)
+    }
+
+    func testRetestRequiresAValidProposalAndCancellationDoesNotProjectAResult() throws {
+        let sharedConsent = consent(scope: .questionAndContext)
+        let session = try InvestigationSession(id: ref("investigation-retest"), intent: .slowConnection, contextSnapshotVersion: 1, consentSnapshot: sharedConsent, createdAt: now)
+        var coordinator = ConsultationCoordinator(session: session)
+        try coordinator.apply(.start, at: now)
+        try coordinator.apply(.contextCollected(revision: 1, consent: sharedConsent, requiresConsent: false), at: now)
+        try coordinator.apply(.beginGenerating, at: now)
+        try coordinator.apply(.showRecommendation(InvestigationRecommendation(assessment: assessment())), at: now)
+
+        let expired = ToolProposal(id: ref("proposal-retest-expired"), tool: .runExistingTest, objective: "Refazer medição comparável.", risk: .low, expiresAt: now, revision: 1)
+        XCTAssertThrowsError(try coordinator.apply(.requestRetest(expired), at: now))
+
+        let valid = ToolProposal(id: ref("proposal-retest-valid"), tool: .runExistingTest, objective: "Refazer medição comparável.", risk: .low, expiresAt: now.addingTimeInterval(60), revision: 1)
+        try coordinator.apply(.requestRetest(valid), at: now)
+        XCTAssertEqual(coordinator.session.state, .awaitingRetest)
+        XCTAssertEqual(coordinator.session.pendingToolRequest?.id, valid.id)
+        try coordinator.apply(.approveTest(proposalID: valid.id), at: now)
+        XCTAssertEqual(coordinator.session.state, .executingTest)
+        XCTAssertEqual(InvestigationState.cancelled.lifecycleState, .completed)
+    }
+
     func testCancellationKeepsPendingIdentityOnlyUntilCancellationFinishes() throws {
         let localSession = ref("local-session-002")
         let session = try InvestigationSession(id: localSession, intent: .openQuestion, contextSnapshotVersion: 1, consentSnapshot: consent(), createdAt: now)
@@ -724,6 +773,7 @@ final class AssistConsultationTests: XCTestCase {
     func testExplicitEligibleMeasurementKeepsOnlyPseudonymousReferences() {
         let candidate = MeasurementCandidate(
             reference: ref("measurement-wifi"),
+            sourceRef: ref("source-measurement-001"),
             measurement: NetworkMeasurement(measuredAt: now, outcome: .complete, downloadMbps: 120, uploadMbps: 40, connectionKind: .wifi),
             profileRef: ref("profile-001"), validUntil: now.addingTimeInterval(600),
             consent: consent(scope: .questionAndContext)
@@ -734,13 +784,64 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertEqual(projected.id.value, "measurement-wifi")
         XCTAssertEqual(projected.profileRef.value, "profile-001")
         XCTAssertEqual(projected.values.map { $0.property }, ["download_mbps", "upload_mbps"])
+        XCTAssertEqual(projected.values.flatMap(\.sourceRefs), [ref("source-measurement-001"), ref("source-measurement-001")])
+        XCTAssertFalse(projected.values.flatMap(\.sourceRefs).contains(candidate.reference))
 
         let context = snapshot(
             consent: consent(scope: .questionAndContext),
-            sources: [ContextSource(id: candidate.reference, kind: .systemMeasurement, retrievedAt: now)],
+            sources: [ContextSource(id: ref("source-measurement-001"), kind: .systemMeasurement, retrievedAt: now)],
+            entities: [ConsultationEntity(id: ref("profile-001"), kind: .profile)],
             measurements: [projected]
         )
         XCTAssertNoThrow(try AssistConsultationContract.encode(payload(snapshot: context), now: now))
+
+        let fusedContext = snapshot(
+            consent: consent(scope: .questionAndContext),
+            sources: [ContextSource(id: candidate.reference, kind: .systemMeasurement, retrievedAt: now)],
+            entities: [ConsultationEntity(id: ref("profile-001"), kind: .profile)],
+            measurements: [projected]
+        )
+        XCTAssertThrowsError(try AssistConsultationContract.encode(payload(snapshot: fusedContext), now: now))
+    }
+
+    func testEvidenceScopeAndClaimApplicabilityMustResolveIndependently() throws {
+        let source = ContextSource(id: ref("source-user-001"), kind: .userDeclaration, retrievedAt: now)
+        let device = ConsultationEntity(id: ref("device-001"), kind: .device, sourceRefs: [source.id])
+        let plan = ConsultationEntity(id: ref("plan-001"), kind: .plan, sourceRefs: [source.id])
+        let validFact = EvidenceFact(
+            id: ref("evidence-device-001"), subjectRef: device.id, property: "router_role",
+            value: .text("principal"), sourceType: .userDeclared, sourceRefs: [source.id],
+            observedAt: now, scope: EvidenceScope(appliesToRefs: [device.id]), consentScope: .questionAndContext
+        )
+        let context = snapshot(consent: consent(scope: .questionAndContext), sources: [source], entities: [device, plan], facts: [validFact])
+        let request = payload(snapshot: context)
+        XCTAssertNoThrow(try AssistConsultationContract.encode(request, now: now))
+
+        let invalidScope = EvidenceFact(
+            id: ref("evidence-device-002"), subjectRef: device.id, property: "router_role",
+            value: .text("principal"), sourceType: .userDeclared, sourceRefs: [source.id],
+            observedAt: now, scope: EvidenceScope(appliesToRefs: [plan.id]), consentScope: .questionAndContext
+        )
+        let invalidContext = snapshot(consent: consent(scope: .questionAndContext), sources: [source], entities: [device, plan], facts: [invalidScope])
+        XCTAssertThrowsError(try AssistConsultationContract.encode(payload(snapshot: invalidContext), now: now))
+
+        let validResponse = response(for: request, outcome: .turn(ConsultationTurnResponse(
+            intent: .openQuestion,
+            disposition: .answered,
+            claims: [ConsultationClaim(id: ref("claim-general-001"), kind: .generalKnowledge, text: "Um ponto de acesso amplia uma rede existente.", evidenceRefs: [], appliesToRefs: [context.snapshotID])],
+            assessment: assessment(),
+            next: .none
+        )))
+        XCTAssertNoThrow(try AssistConsultationContract.encodeResponse(validResponse, for: request, now: now))
+
+        let unresolvedClaim = response(for: request, outcome: .turn(ConsultationTurnResponse(
+            intent: .openQuestion,
+            disposition: .answered,
+            claims: [ConsultationClaim(id: ref("claim-general-002"), kind: .generalKnowledge, text: "Um ponto de acesso amplia uma rede existente.", evidenceRefs: [], appliesToRefs: [ref("entity-missing")])],
+            assessment: assessment(),
+            next: .none
+        )))
+        XCTAssertThrowsError(try AssistConsultationContract.encodeResponse(unresolvedClaim, for: request, now: now))
     }
 
     func testManufacturerFactRequiresPublicOfficialSource() throws {
@@ -798,7 +899,8 @@ final class AssistConsultationTests: XCTestCase {
         }
 
         let validSource = ContextSource(id: ref("source-001"), kind: .officialDocument, url: "https://manufacturer.example/spec", retrievedAt: now)
-        XCTAssertNoThrow(try payload(snapshot: snapshot(consent: contextConsent, sources: [validSource], facts: [fact])).validate(at: now))
+        let device = ConsultationEntity(id: ref("device-001"), kind: .device)
+        XCTAssertNoThrow(try payload(snapshot: snapshot(consent: contextConsent, sources: [validSource], entities: [device], facts: [fact])).validate(at: now))
     }
 
     func testFixturesValidateOrRejectThroughClosedSchema() throws {

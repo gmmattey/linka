@@ -180,6 +180,18 @@ public enum EvidenceQualityStatus: String, Codable, CaseIterable, Sendable {
     case unavailable
 }
 
+/// Delimita a que entidades ou leituras uma evidência se aplica. Isso é
+/// propositalmente independente do consentimento: uma referência pode estar
+/// autorizada a compor o snapshot e ainda assim não se aplicar a outro
+/// equipamento, perfil ou medição.
+public struct EvidenceScope: Codable, Equatable, Sendable {
+    public let appliesToRefs: [PseudonymousReference]
+
+    public init(appliesToRefs: [PseudonymousReference]) {
+        self.appliesToRefs = appliesToRefs
+    }
+}
+
 public enum EvidenceValue: Equatable, Sendable {
     case text(String)
     case number(Double)
@@ -226,6 +238,7 @@ public struct EvidenceFact: Codable, Equatable, Sendable, Identifiable {
     public let observedAt: Date
     public let validFrom: Date?
     public let validUntil: Date?
+    public let scope: EvidenceScope
     public let consentScope: ConsentScope
     public let qualityStatus: EvidenceQualityStatus
     public let derivedFrom: [PseudonymousReference]
@@ -241,6 +254,7 @@ public struct EvidenceFact: Codable, Equatable, Sendable, Identifiable {
         observedAt: Date,
         validFrom: Date? = nil,
         validUntil: Date? = nil,
+        scope: EvidenceScope? = nil,
         consentScope: ConsentScope,
         qualityStatus: EvidenceQualityStatus = .usable,
         derivedFrom: [PseudonymousReference] = []
@@ -255,6 +269,7 @@ public struct EvidenceFact: Codable, Equatable, Sendable, Identifiable {
         self.observedAt = observedAt
         self.validFrom = validFrom
         self.validUntil = validUntil
+        self.scope = scope ?? EvidenceScope(appliesToRefs: [subjectRef])
         self.consentScope = consentScope
         self.qualityStatus = qualityStatus
         self.derivedFrom = derivedFrom
@@ -450,16 +465,26 @@ public struct ContextSnapshot: Codable, Equatable, Sendable {
         guard factRefs.count == allFacts.count else { throw ContractError.invalid("Há fatos com referências repetidas.") }
         let sourcesByID = Dictionary(uniqueKeysWithValues: sources.map { ($0.id, $0) })
         guard sourcesByID.count == sources.count else { throw ContractError.invalid("Há fontes com referências repetidas.") }
+        let measurementRefs = Set(measurements.map(\.id))
+        guard measurementRefs.isDisjoint(with: Set(sourcesByID.keys)) else {
+            throw ContractError.invalid("Medição e fonte não podem compartilhar a mesma referência.")
+        }
         let entitiesByID = Dictionary(uniqueKeysWithValues: entities.map { ($0.id, $0) })
         guard entitiesByID.count == entities.count else { throw ContractError.invalid("Há entidades com referências repetidas.") }
         if let selectedProfileRef, entitiesByID[selectedProfileRef]?.kind != .profile {
             throw ContractError.invalid("O perfil selecionado não pertence ao snapshot.")
         }
+        for measurement in measurements where entitiesByID[measurement.profileRef]?.kind != .profile {
+            throw ContractError.invalid("Medição referencia perfil ausente ou incompatível.")
+        }
         for source in sources { try validateSource(source, at: now) }
         for entity in entities where !Set(entity.sourceRefs).isSubset(of: Set(sourcesByID.keys)) {
             throw ContractError.invalid("Entidade referencia fonte ausente.")
         }
-        for fact in allFacts { try validateFact(fact, knownSources: sourcesByID, at: now) }
+        let knownScopeRefs = Set(entitiesByID.keys).union(measurementRefs)
+        for fact in allFacts {
+            try validateFact(fact, knownSources: sourcesByID, knownScopeRefs: knownScopeRefs, at: now)
+        }
         let availableEvidence = factRefs.union(measurements.flatMap { $0.values.map(\.id) })
         for hypothesis in hypotheses {
             guard !hypothesis.text.isEmpty, !hypothesis.evidenceRefs.isEmpty,
@@ -474,9 +499,20 @@ public struct ContextSnapshot: Codable, Equatable, Sendable {
         guard Set(capabilityTools).count == capabilityTools.count else { throw ContractError.invalid("Há capabilities repetidas.") }
     }
 
-    private func validateFact(_ fact: EvidenceFact, knownSources: [PseudonymousReference: ContextSource], at now: Date) throws {
+    private func validateFact(
+        _ fact: EvidenceFact,
+        knownSources: [PseudonymousReference: ContextSource],
+        knownScopeRefs: Set<PseudonymousReference>,
+        at now: Date
+    ) throws {
         guard !fact.property.isEmpty, !fact.sourceRefs.isEmpty, fact.consentScope.permitsContext, fact.observedAt <= now else {
             throw ContractError.invalid("Fato sem procedência ou escopo de contexto.")
+        }
+        let applicability = Set(fact.scope.appliesToRefs)
+        guard !applicability.isEmpty,
+              applicability.contains(fact.subjectRef),
+              applicability.isSubset(of: knownScopeRefs) else {
+            throw ContractError.invalid("Fato sem escopo de aplicabilidade válido.")
         }
         let factSources = fact.sourceRefs.compactMap { knownSources[$0] }
         guard factSources.count == fact.sourceRefs.count else { throw ContractError.invalid("Fato referencia fonte ausente.") }
@@ -740,7 +776,11 @@ public enum ConsultationDisposition: String, Codable, CaseIterable, Sendable {
 }
 
 public enum ConsultationClaimKind: String, Codable, CaseIterable, Sendable {
-    case observation, inference, recommendation, limitation
+    case observation
+    case declaration
+    case capability
+    case generalKnowledge = "general_knowledge"
+    case hypothesis
 }
 
 public struct ConsultationClaim: Codable, Equatable, Sendable {
@@ -748,12 +788,20 @@ public struct ConsultationClaim: Codable, Equatable, Sendable {
     public let kind: ConsultationClaimKind
     public let text: String
     public let evidenceRefs: [PseudonymousReference]
+    public let appliesToRefs: [PseudonymousReference]
 
-    public init(id: PseudonymousReference, kind: ConsultationClaimKind, text: String, evidenceRefs: [PseudonymousReference]) {
+    public init(
+        id: PseudonymousReference,
+        kind: ConsultationClaimKind,
+        text: String,
+        evidenceRefs: [PseudonymousReference],
+        appliesToRefs: [PseudonymousReference]
+    ) {
         self.id = id
         self.kind = kind
         self.text = text
         self.evidenceRefs = evidenceRefs
+        self.appliesToRefs = appliesToRefs
     }
 }
 
@@ -1005,10 +1053,12 @@ public struct ConsultationResponse: Codable, Equatable, Sendable {
               revision == payload.expectedRevision else {
             throw ContractError.invalid("Resposta não corresponde à consulta local.")
         }
-        let knownRefs = Set(payload.contextSnapshot.facts.map(\.id)
+        let knownRefs = Set([payload.contextSnapshot.snapshotID]
+            + payload.contextSnapshot.facts.map(\.id)
             + payload.contextSnapshot.measurements.flatMap { $0.values.map(\.id) }
             + payload.contextSnapshot.sources.map(\.id)
-            + payload.contextSnapshot.entities.map(\.id))
+            + payload.contextSnapshot.entities.map(\.id)
+            + payload.contextSnapshot.measurements.map(\.id))
         switch outcome {
         case .error(let error):
             guard !error.message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw ContractError.invalid("Erro sem mensagem.") }
@@ -1026,7 +1076,9 @@ private extension ConsultationTurnResponse {
         guard Set(claims.map(\.id)).count == claims.count else { throw ContractError.invalid("Claims duplicadas.") }
         for claim in claims {
             guard !claim.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-                  Set(claim.evidenceRefs).isSubset(of: knownRefs) else { throw ContractError.invalid("Claim sem evidência válida.") }
+                  !claim.appliesToRefs.isEmpty,
+                  Set(claim.evidenceRefs).isSubset(of: knownRefs),
+                  Set(claim.appliesToRefs).isSubset(of: knownRefs) else { throw ContractError.invalid("Claim sem evidência ou escopo válido.") }
         }
         if let assessment {
             guard !assessment.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
@@ -1097,6 +1149,7 @@ public enum EvidenceProjector {
 
 public struct MeasurementCandidate: Sendable {
     public let reference: PseudonymousReference
+    public let sourceRef: PseudonymousReference?
     public let measurement: NetworkMeasurement
     public let profileRef: PseudonymousReference?
     public let validUntil: Date?
@@ -1105,8 +1158,9 @@ public struct MeasurementCandidate: Sendable {
     public let isDeleted: Bool
     public let consent: ConsentReceipt
 
-    public init(reference: PseudonymousReference, measurement: NetworkMeasurement, profileRef: PseudonymousReference?, validUntil: Date?, isExpensive: Bool = false, isPersonalHotspot: Bool = false, isDeleted: Bool = false, consent: ConsentReceipt) {
+    public init(reference: PseudonymousReference, sourceRef: PseudonymousReference? = nil, measurement: NetworkMeasurement, profileRef: PseudonymousReference?, validUntil: Date?, isExpensive: Bool = false, isPersonalHotspot: Bool = false, isDeleted: Bool = false, consent: ConsentReceipt) {
         self.reference = reference
+        self.sourceRef = sourceRef
         self.measurement = measurement
         self.profileRef = profileRef
         self.validUntil = validUntil
@@ -1133,7 +1187,7 @@ public enum MeasurementProjector {
                 property: "measurement",
                 reason: reason,
                 observedAt: now,
-                sourceRefs: [candidate.reference]
+                sourceRefs: candidate.sourceRef.map { [$0] } ?? []
             ))
         }
         guard candidate.consent.state == .granted, candidate.consent.scope.permitsContext else {
@@ -1153,13 +1207,14 @@ public enum MeasurementProjector {
         ).isEligible else {
             return absence(.ineligibleMeasurement)
         }
+        guard let sourceRef = candidate.sourceRef else { return absence(.unavailable) }
 
         var values: [EvidenceFact] = []
         if let download = candidate.measurement.downloadMbps {
-            values.append(metric("download_mbps", value: download, candidate: candidate, validUntil: validUntil))
+            values.append(metric("download_mbps", value: download, candidate: candidate, sourceRef: sourceRef, validUntil: validUntil))
         }
         if let upload = candidate.measurement.uploadMbps {
-            values.append(metric("upload_mbps", value: upload, candidate: candidate, validUntil: validUntil))
+            values.append(metric("upload_mbps", value: upload, candidate: candidate, sourceRef: sourceRef, validUntil: validUntil))
         }
         guard !values.isEmpty else { return absence(.notCollected) }
         return .measurement(ConsultationMeasurement(
@@ -1173,7 +1228,7 @@ public enum MeasurementProjector {
         ))
     }
 
-    private static func metric(_ property: String, value: Double, candidate: MeasurementCandidate, validUntil: Date) -> EvidenceFact {
+    private static func metric(_ property: String, value: Double, candidate: MeasurementCandidate, sourceRef: PseudonymousReference, validUntil: Date) -> EvidenceFact {
         EvidenceFact(
             id: .generated(prefix: "evidence"),
             subjectRef: candidate.reference,
@@ -1181,9 +1236,10 @@ public enum MeasurementProjector {
             value: .number(value),
             unit: "Mbps",
             sourceType: .systemObserved,
-            sourceRefs: [candidate.reference],
+            sourceRefs: [sourceRef],
             observedAt: candidate.measurement.measuredAt,
             validUntil: validUntil,
+            scope: EvidenceScope(appliesToRefs: [candidate.reference]),
             consentScope: candidate.consent.scope,
             qualityStatus: .usable
         )

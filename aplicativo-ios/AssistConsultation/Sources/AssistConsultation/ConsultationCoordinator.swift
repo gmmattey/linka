@@ -50,11 +50,11 @@ public extension InvestigationState {
         case .awaitingUserAnswer: .awaitingAnswer
         case .awaitingTestPermission, .awaitingRetest: .awaitingTestApproval
         case .executingTest: .measuring
-        case .showingResult, .cancelled: .resultReady
+        case .showingResult: .resultReady
         case .actionPending: .actionPending
         case .paused: .paused
         case .cancelling: .cancelling
-        case .completed: .completed
+        case .completed, .cancelled: .completed
         case .recoverableError: .recoverableError
         case .unavailable: .unavailable
         case .insufficientEvidence: .insufficientEvidence
@@ -191,7 +191,7 @@ public enum InvestigationEvent: Sendable {
     case showRecommendation(InvestigationRecommendation)
     case acceptAction(ActionProposal)
     case actionFeedback(ActionFeedbackPayload)
-    case requestRetest
+    case requestRetest(ToolProposal)
     case complete
     case pause
     case resume
@@ -233,13 +233,21 @@ public struct ConsultationCoordinator: Sendable {
         case .denyConsent:
             try transition(from: [.awaitingConsent], to: .insufficientEvidence, at: now)
         case .beginPlanning:
-            try transition(from: [.collectingContext, .awaitingUserAnswer, .actionPending, .awaitingRetest, .recoverableError], to: .planning, at: now)
+            try transition(from: [.collectingContext, .awaitingUserAnswer, .showingResult, .actionPending, .recoverableError], to: .planning, at: now)
         case let .beginRemoteTurn(payload):
-            guard session.state == .planning, session.pendingRemoteTurn == nil,
+            guard [.planning, .generatingResult].contains(session.state), session.pendingRemoteTurn == nil,
                   payload.localSessionID == session.id,
                   payload.contextSnapshot.intent == session.intent,
-                  payload.expectedRevision == session.contextSnapshotVersion else { throw invalidTransition() }
+                  payload.expectedRevision == session.contextSnapshotVersion,
+                  payload.consentReceiptRef == session.consentSnapshot.ref,
+                  payload.contextSnapshot.consent == session.consentSnapshot,
+                  session.consentSnapshot.state == .granted,
+                  session.consentSnapshot.scope.permitsQuestion else { throw invalidTransition() }
             try payload.validate(at: now)
+            try validateRemoteInput(payload.input)
+            if case .userMessage = payload.input {
+                session.turns.append(InvestigationTurn(id: payload.turnID, role: .user, structuredPayload: payload.input, createdAt: now))
+            }
             session.pendingRemoteTurn = InvestigationRemoteTurn(requestID: payload.requestID, transportSessionID: payload.transportSessionID, turnID: payload.turnID, revision: payload.expectedRevision)
             try transition(to: .generatingResult, at: now)
         case let .receiveRemoteResponse(response, payload):
@@ -308,21 +316,27 @@ public struct ConsultationCoordinator: Sendable {
             session.pendingToolRequest = InvestigationToolRequest(id: proposal.id, toolType: proposal.tool, arguments: proposal.arguments, userApprovalRequired: true, revision: proposal.revision, expiresAt: proposal.expiresAt)
             try transition(to: .awaitingTestPermission, at: now)
         case let .approveTest(proposalID):
-            guard session.state == .awaitingTestPermission,
+            guard [.awaitingTestPermission, .awaitingRetest].contains(session.state),
                   let request = session.pendingToolRequest,
                   request.id == proposalID,
                   request.revision == session.contextSnapshotVersion,
                   request.expiresAt > now else { throw invalidTransition() }
             try transition(to: .executingTest, at: now)
         case let .denyTest(proposalID):
-            guard session.state == .awaitingTestPermission, session.pendingToolRequest?.id == proposalID else { throw invalidTransition() }
+            guard [.awaitingTestPermission, .awaitingRetest].contains(session.state), session.pendingToolRequest?.id == proposalID else { throw invalidTransition() }
             session.pendingToolRequest = nil
             try transition(to: .collectingContext, at: now)
         case let .testFinished(result):
-            guard session.state == .executingTest, session.pendingToolRequest?.id == result.requestID else { throw invalidTransition() }
+            guard session.state == .executingTest, let request = session.pendingToolRequest, request.id == result.requestID else { throw invalidTransition() }
             guard !Set(result.evidenceRefs).isEmpty || result.status != .completed else { throw ContractError.invalid("Teste concluído sem evidência explícita.") }
             session.evidenceRefs = Array(Set(session.evidenceRefs + result.evidenceRefs)).sorted { $0.value < $1.value }
             session.pendingToolRequest = nil
+            session.turns.append(InvestigationTurn(
+                id: request.id,
+                role: .system,
+                structuredPayload: .toolResult(ToolResultPayload(proposalID: request.id, tool: request.toolType, status: result.status)),
+                createdAt: now
+            ))
             try transition(to: .generatingResult, at: now)
         case .beginGenerating:
             try transition(from: [.planning], to: .generatingResult, at: now)
@@ -337,9 +351,18 @@ public struct ConsultationCoordinator: Sendable {
             try transition(to: .actionPending, at: now)
         case let .actionFeedback(feedback):
             guard session.state == .actionPending, session.recommendedActionIDs.contains(feedback.actionID) else { throw invalidTransition() }
+            session.turns.append(InvestigationTurn(id: feedback.actionID, role: .user, structuredPayload: .actionFeedback(feedback), createdAt: now))
             try transition(to: .showingResult, at: now)
-        case .requestRetest:
-            try transition(from: [.showingResult, .actionPending], to: .awaitingRetest, at: now)
+        case let .requestRetest(proposal):
+            guard [.showingResult, .actionPending].contains(session.state),
+                  session.consentSnapshot.state == .granted,
+                  session.consentSnapshot.scope.permitsContext,
+                  proposal.tool == .runExistingTest,
+                  proposal.revision == session.contextSnapshotVersion,
+                  proposal.expiresAt > now,
+                  session.pendingToolRequest == nil else { throw invalidTransition() }
+            session.pendingToolRequest = InvestigationToolRequest(id: proposal.id, toolType: proposal.tool, arguments: proposal.arguments, userApprovalRequired: true, revision: proposal.revision, expiresAt: proposal.expiresAt)
+            try transition(to: .awaitingRetest, at: now)
         case .complete:
             try transition(from: [.showingResult, .actionPending, .awaitingRetest, .insufficientEvidence, .unavailable], to: .completed, at: now)
         case .pause:
@@ -377,6 +400,17 @@ public struct ConsultationCoordinator: Sendable {
             try transition(from: [.planning, .generatingResult], to: .unavailable, at: now)
         case .markInsufficientEvidence:
             try transition(from: [.planning, .generatingResult], to: .insufficientEvidence, at: now)
+        }
+    }
+
+    private func validateRemoteInput(_ input: ConsultationInput) throws {
+        switch input {
+        case .userMessage:
+            return
+        case .answer, .toolResult, .actionFeedback:
+            guard session.turns.last?.structuredPayload == input else {
+                throw ContractError.invalid("Turno remoto não corresponde ao histórico da sessão.")
+            }
         }
     }
 
