@@ -21,6 +21,47 @@ public enum InvestigationState: String, Codable, CaseIterable, Sendable {
     case insufficientEvidence = "insufficient_evidence"
 }
 
+/// Vocabulário canônico da arquitetura V4. O redutor mantém os estados
+/// detalhados acima para compatibilidade local; esta projeção impede que UI e
+/// integrações tratem nomes históricos como um segundo contrato de ciclo de
+/// vida.
+public enum ConsultationLifecycleState: String, Codable, CaseIterable, Sendable {
+    case draft
+    case contextReady = "context_ready"
+    case awaitingConsent = "awaiting_consent"
+    case processingTurn = "processing_turn"
+    case awaitingAnswer = "awaiting_answer"
+    case awaitingTestApproval = "awaiting_test_approval"
+    case measuring
+    case resultReady = "result_ready"
+    case actionPending = "action_pending"
+    case paused, cancelling, completed, unavailable
+    case recoverableError = "recoverable_error"
+    case insufficientEvidence = "insufficient_evidence"
+}
+
+public extension InvestigationState {
+    var lifecycleState: ConsultationLifecycleState {
+        switch self {
+        case .idle: .draft
+        case .collectingContext: .contextReady
+        case .awaitingConsent: .awaitingConsent
+        case .planning, .generatingResult: .processingTurn
+        case .awaitingUserAnswer: .awaitingAnswer
+        case .awaitingTestPermission, .awaitingRetest: .awaitingTestApproval
+        case .executingTest: .measuring
+        case .showingResult, .cancelled: .resultReady
+        case .actionPending: .actionPending
+        case .paused: .paused
+        case .cancelling: .cancelling
+        case .completed: .completed
+        case .recoverableError: .recoverableError
+        case .unavailable: .unavailable
+        case .insufficientEvidence: .insufficientEvidence
+        }
+    }
+}
+
 public enum InvestigationRole: String, Codable, Sendable { case user, assistant, system }
 
 public struct InvestigationTurn: Codable, Equatable, Sendable, Identifiable {

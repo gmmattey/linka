@@ -370,6 +370,18 @@ final class AssistConsultationTests: XCTestCase {
         XCTAssertEqual(limitations.count, 5)
     }
 
+    func testCoordinatorStatesProjectToTheCanonicalV4Lifecycle() {
+        XCTAssertEqual(InvestigationState.idle.lifecycleState, .draft)
+        XCTAssertEqual(InvestigationState.collectingContext.lifecycleState, .contextReady)
+        XCTAssertEqual(InvestigationState.planning.lifecycleState, .processingTurn)
+        XCTAssertEqual(InvestigationState.awaitingUserAnswer.lifecycleState, .awaitingAnswer)
+        XCTAssertEqual(InvestigationState.awaitingTestPermission.lifecycleState, .awaitingTestApproval)
+        XCTAssertEqual(InvestigationState.awaitingRetest.lifecycleState, .awaitingTestApproval)
+        XCTAssertEqual(InvestigationState.executingTest.lifecycleState, .measuring)
+        XCTAssertEqual(InvestigationState.showingResult.lifecycleState, .resultReady)
+        XCTAssertEqual(InvestigationState.cancelling.lifecycleState, .cancelling)
+    }
+
     func testRefusedAndRevokedConsentRejectSubmission() {
         for state in [ConsentState.refused, .revoked] {
             XCTAssertThrowsError(try payload(snapshot: snapshot(consent: consent(state: state))).validate(at: now)) { error in
