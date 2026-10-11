@@ -2,6 +2,7 @@
 import AssistConsultation
 import AssistConsultationTransport
 import Foundation
+import OSLog
 
 /// Composition root for the V4-only remote boundary. It owns ephemeral HTTP,
 /// App Attest bootstrap and the conversion to presentation states; it never
@@ -61,7 +62,12 @@ private final class AssistV4AttestationExchange: AssistConsultationAttestationEx
 
     func register(_ proof: AssistConsultationRegistrationProof) async throws {
         let response = try await post(path: "register", body: proof)
-        guard response.statusCode == 201 else { throw AssistV4RemoteError.rejectedStatus(response.statusCode) }
+        guard response.statusCode == 201 else {
+            #if DEBUG
+            print("[Assist V4] App Attest registration HTTP: \(response.statusCode)")
+            #endif
+            throw AssistV4RemoteError.rejectedStatus(response.statusCode)
+        }
     }
 
     func requestAssertionChallenge(for binding: AssistConsultationAssertionBinding, keyID: String) async throws -> AssistConsultationAssertionChallenge {
@@ -110,7 +116,14 @@ private final class AssistV4RemoteSubmitter: @unchecked Sendable {
         let client = AssistConsultationTransportClient(configuration: configuration, transport: http)
         let request: AssistConsultationHTTPRequest
         do { request = try client.makeRequest(for: payload) } catch { return .recoverableFailure("A consulta não pôde ser preparada neste aparelho.") }
-        guard case let .authorized(attestation) = await authorizer.authorize(exactBody: request.body) else {
+        let authorization = await authorizer.authorize(exactBody: request.body)
+        guard case let .authorized(attestation) = authorization else {
+            if case let .unavailable(failure) = authorization {
+                Self.logger.error("V4 App Attest failed at \(failure.rawValue, privacy: .public)")
+                #if DEBUG
+                print("[Assist V4] App Attest stage: \(failure.rawValue)")
+                #endif
+            }
             return .recoverableFailure("Não foi possível proteger esta consulta neste aparelho.")
         }
         var headers = request.headers
@@ -129,6 +142,8 @@ private final class AssistV4RemoteSubmitter: @unchecked Sendable {
             return .recoverableFailure("Não foi possível concluir a consulta agora. Sua pergunta continua neste aparelho.")
         }
     }
+
+    private static let logger = Logger(subsystem: "com.linka.assist", category: "assist-v4-attestation")
 }
 
 enum AssistV4RemoteComposition {
