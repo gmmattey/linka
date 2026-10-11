@@ -6,7 +6,7 @@ import NetworkCore
 struct AssistV4Screen: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    @StateObject private var model = AssistV4PresentationModel()
+    @StateObject private var model: AssistV4PresentationModel
     @State private var measurementRequestInFlight = false
     @State private var requestedMeasurementAt: Date?
 
@@ -25,6 +25,9 @@ struct AssistV4Screen: View {
         self.isSpeedTestRunning = isSpeedTestRunning
         self.canStartSpeedTest = canStartSpeedTest
         self.startSpeedTest = startSpeedTest
+        _model = StateObject(wrappedValue: AssistV4PresentationModel(
+            submitOpenQuestionRemote: AssistV4RemoteComposition.submitter()
+        ))
     }
 
     var body: some View {

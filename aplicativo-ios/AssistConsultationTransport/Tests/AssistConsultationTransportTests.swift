@@ -17,7 +17,11 @@ final class AssistConsultationTransportTests: XCTestCase {
         XCTAssertNil(configuration.endpoint.fragment)
     }
 
-    func testConfigurationRejectsAnyEndpointOtherThanTheFixedV4Route() throws {
+    func testConfigurationAcceptsOnlyTheTwoCompiledV4Routes() throws {
+        let development = try AssistConsultationTransportConfiguration(
+            endpoint: AssistConsultationTransportConfiguration.developmentEndpoint
+        )
+        XCTAssertEqual(development.endpoint, AssistConsultationTransportConfiguration.developmentEndpoint)
         XCTAssertThrowsError(try AssistConsultationTransportConfiguration(
             endpoint: try XCTUnwrap(URL(string: "https://linka-assist-relay.buildealabs.workers.dev/v2/assist"))
         ))
@@ -26,7 +30,7 @@ final class AssistConsultationTransportTests: XCTestCase {
         ))
     }
 
-    func testInfoConfigurationDefaultsToDisabledAndRejectsDifferentDeclaredEndpoint() throws {
+    func testInfoConfigurationDefaultsToDisabledAndRejectsEndpointsOutsideTheCompiledAllowlist() throws {
         let configuration = try AssistConsultationTransportConfiguration(infoDictionary: [:])
         XCTAssertFalse(configuration.isEnabled)
 
@@ -34,6 +38,12 @@ final class AssistConsultationTransportTests: XCTestCase {
             "LinkaAssistConsultationEnabled": "YES",
             "LinkaAssistConsultationEndpoint": "https://linka-assist-relay.buildealabs.workers.dev/v2/assist"
         ]))
+        let debug = try AssistConsultationTransportConfiguration(infoDictionary: [
+            "LinkaAssistConsultationEnabled": "YES",
+            "LinkaAssistConsultationEndpoint": AssistConsultationTransportConfiguration.developmentEndpoint.absoluteString
+        ])
+        XCTAssertTrue(debug.isEnabled)
+        XCTAssertEqual(debug.endpoint, AssistConsultationTransportConfiguration.developmentEndpoint)
         XCTAssertThrowsError(try AssistConsultationTransportConfiguration(infoDictionary: [
             "LinkaAssistConsultationEnabled": "YES"
         ]))

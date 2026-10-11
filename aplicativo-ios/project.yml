@@ -33,6 +33,7 @@ targets:
         # for verdadeira.
         LINKA_ADS_ENABLED: NO
         APP_ATTEST_ENVIRONMENT: production
+        LINKA_ASSIST_CONSULTATION_ENDPOINT: "https://linka-assist-relay.buildealabs.workers.dev/v1/assist/consultations"
         CODE_SIGN_ENTITLEMENTS: LinkaApp/LinkaApp.entitlements
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: "2Z4T8228GR"
@@ -44,6 +45,7 @@ targets:
         Debug:
           APS_ENVIRONMENT: development
           APP_ATTEST_ENVIRONMENT: development
+          LINKA_ASSIST_CONSULTATION_ENDPOINT: "https://linka-assist-relay-development.buildealabs.workers.dev/v1/assist/consultations"
           # O Debug não solicita inventário do AdMob. Os IDs de teste ficam
           # no código apenas para um smoke explícito, quando esta flag for
           # habilitada localmente num esquema que não é distribuído.
@@ -73,7 +75,7 @@ targets:
         # Consulta V4 é um contrato e transporte independentes. A chave fica
         # fora do target macOS e começa desligada até App Attest, backend e QA
         # físico estarem completos.
-        LinkaAssistConsultationEndpoint: "https://linka-assist-relay.buildealabs.workers.dev/v1/assist/consultations"
+        LinkaAssistConsultationEndpoint: "$(LINKA_ASSIST_CONSULTATION_ENDPOINT)"
         LinkaAssistConsultationEnabled: "NO"
         LinkaServiceStatusEndpoint: "https://linka-assist-relay.buildealabs.workers.dev/v1/service-status"
         GADApplicationIdentifier: "ca-app-pub-5542349230926522~6717355071"

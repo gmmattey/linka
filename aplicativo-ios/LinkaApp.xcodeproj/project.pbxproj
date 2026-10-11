@@ -100,6 +100,7 @@
 		604BB99D0B8DFA3EEF29145B /* LinkaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C35725E79C96780D745AB7 /* LinkaApp.swift */; };
 		637810EBEB63A3121E07FEEE /* MetricRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 179DA64F9C7059B7A140B92E /* MetricRing.swift */; };
 		637BF2B640D3CBDF7EEE47B7 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 28F283D852B193F2358515D4 /* Localizable.strings */; };
+		639316BC1B52DC2EEBADA70C /* AssistV4RemoteSubmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B71B779A7AD402474871B54 /* AssistV4RemoteSubmitter.swift */; };
 		65E7034350B2A4EAB1ECC7B2 /* AssistOpportunityHandoffFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90D79DD30F467F20E3424599 /* AssistOpportunityHandoffFactoryTests.swift */; };
 		6882F59A3F151C8F60DFDAE6 /* NetworkProfilesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391C474559F68EE0F41A987D /* NetworkProfilesSection.swift */; };
 		6ACF1B8A4BAB5DCF06F6F805 /* LinkaPlusWordmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D579EFF3B620AD5DF92A3A87 /* LinkaPlusWordmarkView.swift */; };
@@ -171,6 +172,7 @@
 		C60712F038F34BAF07AEDEC6 /* MeasurementDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8549C59760252CA889B5156 /* MeasurementDetailView.swift */; };
 		C78DBB851266E55BA3E8BE87 /* MacMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC347BDA6A055081B31DC174 /* MacMainView.swift */; };
 		C795EB7B3D3C235CC07EB505 /* AssistViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78285EB65890B076CF8D41D4 /* AssistViewModelTests.swift */; };
+		C7DCB4CBD1C4C3B0B61F9D42 /* AssistV4RemoteSubmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B71B779A7AD402474871B54 /* AssistV4RemoteSubmitter.swift */; };
 		C87881AA8AE5BD789147C9C6 /* DNSConfigurationCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 935BAC9694139394F0625999 /* DNSConfigurationCoordinatorTests.swift */; };
 		C8BB7A2DCCEFA786F622965D /* LinkaAppIntents in Frameworks */ = {isa = PBXBuildFile; productRef = 39577AC3D53FC846E0A71FB2 /* LinkaAppIntents */; };
 		C8E3CD3DD3341FC5279B4193 /* AssistV4PresentationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28283696C9F6FEBF0674EE17 /* AssistV4PresentationModel.swift */; };
@@ -271,6 +273,7 @@
 		07C9F0FAD8D117DBD5A2BF80 /* es-419 */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "es-419"; path = "es-419.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		0805744453EDB0EA9AFEEEC0 /* LinkaHealthCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaHealthCheck.swift; sourceTree = "<group>"; };
 		08071384CA1E544927DDC928 /* NativeAdCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAdCard.swift; sourceTree = "<group>"; };
+		0B71B779A7AD402474871B54 /* AssistV4RemoteSubmitter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistV4RemoteSubmitter.swift; sourceTree = "<group>"; };
 		0BF377B5E1688176727142AF /* ConnectionPathView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionPathView.swift; sourceTree = "<group>"; };
 		0CE42362778ADDF2027A2B83 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		0E607975E4B121542E79DD68 /* LinkaApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LinkaApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -693,6 +696,7 @@
 			isa = PBXGroup;
 			children = (
 				02D2091C55A18806EFF42BEE /* AssistV4LocalContextAdapter.swift */,
+				0B71B779A7AD402474871B54 /* AssistV4RemoteSubmitter.swift */,
 			);
 			path = Assist;
 			sourceTree = "<group>";
@@ -1064,6 +1068,7 @@
 				46D6FA38F6C72D89631F5582 /* AssistTeaserCard.swift in Sources */,
 				B2E5B64C9E8A11A69A4E3835 /* AssistV4LocalContextAdapter.swift in Sources */,
 				C8E3CD3DD3341FC5279B4193 /* AssistV4PresentationModel.swift in Sources */,
+				639316BC1B52DC2EEBADA70C /* AssistV4RemoteSubmitter.swift in Sources */,
 				50672B9D94148DB264241E20 /* AssistV4Screen.swift in Sources */,
 				1B7974306DA8B46BE24886BA /* AssistView.swift in Sources */,
 				FB97B0AECECD7CFE2CD38F4A /* AssistViewModel.swift in Sources */,
@@ -1166,6 +1171,7 @@
 				A64CA2655143AAA37EDFB39A /* AssistTeaserCard.swift in Sources */,
 				DEC4463032CC6437D3FD3FEE /* AssistV4LocalContextAdapter.swift in Sources */,
 				7C1E0A53B7850ADDAE15A682 /* AssistV4PresentationModel.swift in Sources */,
+				C7DCB4CBD1C4C3B0B61F9D42 /* AssistV4RemoteSubmitter.swift in Sources */,
 				5F215653FC95DE68E8B53262 /* AssistV4Screen.swift in Sources */,
 				77AA437F88B4E181F75F6B6E /* AssistView.swift in Sources */,
 				F492A685388DF380C07F0B86 /* AssistViewModel.swift in Sources */,
@@ -1329,6 +1335,7 @@
 					"@executable_path/Frameworks",
 				);
 				LINKA_ADS_ENABLED = YES;
+				LINKA_ASSIST_CONSULTATION_ENDPOINT = "https://linka-assist-relay.buildealabs.workers.dev/v1/assist/consultations";
 				PRODUCT_BUNDLE_IDENTIFIER = com.linka.assist;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1679,6 +1686,7 @@
 					"@executable_path/Frameworks",
 				);
 				LINKA_ADS_ENABLED = YES;
+				LINKA_ASSIST_CONSULTATION_ENDPOINT = "https://linka-assist-relay.buildealabs.workers.dev/v1/assist/consultations";
 				PRODUCT_BUNDLE_IDENTIFIER = com.linka.assist;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1703,6 +1711,7 @@
 					"@executable_path/Frameworks",
 				);
 				LINKA_ADS_ENABLED = NO;
+				LINKA_ASSIST_CONSULTATION_ENDPOINT = "https://linka-assist-relay-development.buildealabs.workers.dev/v1/assist/consultations";
 				PRODUCT_BUNDLE_IDENTIFIER = com.linka.assist;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
