@@ -135,7 +135,7 @@ struct MainView: View {
     @State private var purchaseEntryPoint: PurchaseEntryPoint = .settings
     @State private var showAssistProblemSelection: Bool = false
     @State private var showAssistResult: Bool = false
-    @State private var showAssistV4Local: Bool = false
+    @State private var showAssistV4: Bool = false
     @State private var showNetscopeAnalysis: Bool = false
     @State private var assistEntryPoint: AssistEntryPoint = .fresh
     @State private var pendingAssistMeasurement = false
@@ -356,7 +356,7 @@ struct MainView: View {
                 )
             }
             #if os(iOS)
-            .sheet(isPresented: $showAssistV4Local) {
+            .sheet(isPresented: $showAssistV4) {
                 AssistV4Screen(
                     latestMeasurement: viewModel.latestFinishedMeasurement,
                     isSpeedTestRunning: viewModel.isTesting,
@@ -858,31 +858,6 @@ struct MainView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-
-            #if os(iOS)
-            Button {
-                showAssistV4Local = true
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "sparkles")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(.brandAccentWarm)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Consultoria local")
-                            .font(.bodyRegular)
-                            .foregroundColor(.textSecondary)
-                        Text("Sem enviar dados nesta versão")
-                            .font(.captionSmall)
-                            .foregroundColor(.textSecondary)
-                    }
-                    Spacer()
-                }
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("home.assist-v4-local")
-            #endif
 
             if let latest = viewModel.latestFinishedMeasurement {
                 Button {
@@ -1409,12 +1384,18 @@ struct MainView: View {
 
     private func requestAssist(from entryPoint: AssistEntryPoint) {
         assistEntryPoint = entryPoint
+        #if os(iOS)
+        // O Assist V4 é a entrada normal no iPhone. O fluxo legado continua
+        // isolado e não recebe tráfego, contrato ou resposta da consulta V4.
+        showAssistV4 = true
+        #else
         if isPlusActive {
             showAssistProblemSelection = true
         } else {
             purchaseEntryPoint = .assist
             showPurchase = true
         }
+        #endif
     }
 
     /// O CTA da tela de resultado nunca pode cair no caminho de coleta nova.
