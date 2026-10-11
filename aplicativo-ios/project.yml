@@ -76,7 +76,10 @@ targets:
         # fora do target macOS e começa desligada até App Attest, backend e QA
         # físico estarem completos.
         LinkaAssistConsultationEndpoint: "$(LINKA_ASSIST_CONSULTATION_ENDPOINT)"
-        LinkaAssistConsultationEnabled: "NO"
+        # Waiver explícito do responsável em 2026-10-10: habilita o caminho
+        # V4 no app antes da prova física pendente. O relay continua exigindo
+        # App Attest e falha fechado para qualquer instalação não verificada.
+        LinkaAssistConsultationEnabled: "YES"
         LinkaServiceStatusEndpoint: "https://linka-assist-relay.buildealabs.workers.dev/v1/service-status"
         GADApplicationIdentifier: "ca-app-pub-5542349230926522~6717355071"
         LinkaAdsEnabled: "$(LINKA_ADS_ENABLED)"

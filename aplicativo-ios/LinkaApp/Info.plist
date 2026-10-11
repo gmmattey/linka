@@ -44,7 +44,7 @@
 	<key>LinkaAdsEnabled</key>
 	<string>$(LINKA_ADS_ENABLED)</string>
 	<key>LinkaAssistConsultationEnabled</key>
-	<string>NO</string>
+	<string>YES</string>
 	<key>LinkaAssistConsultationEndpoint</key>
 	<string>$(LINKA_ASSIST_CONSULTATION_ENDPOINT)</string>
 	<key>LinkaServiceStatusEndpoint</key>
