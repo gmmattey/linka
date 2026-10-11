@@ -43,7 +43,9 @@ final class AssistV4PresentationModel: ObservableObject {
         case submittingOpenQuestion
         case remoteUnavailable(String)
         case remoteRecoverableError(String)
-        case remoteResult(ConsultationAssessment)
+        case remoteQuestion(ConsultationQuestion)
+        case remoteTestApproval(InvestigationToolRequest)
+        case remoteResult(ConsultationTurnResponse)
         case unavailableOpenQuestion(String, canResumeGuidance: Bool)
         case limitation(String)
         case localOrientation(LocalOrientation)
@@ -62,6 +64,9 @@ final class AssistV4PresentationModel: ObservableObject {
     @Published private(set) var state: State = .home
     @Published private(set) var turns: [Turn] = []
     @Published var selectedOptionID: PseudonymousReference?
+    @Published var selectedRemoteOptionID: PseudonymousReference?
+    @Published var remoteFreeText = ""
+    @Published private(set) var saveFeedback: String?
     @Published var declaredPlanName = ""
     @Published var declaredPlanPrice = ""
     private var coordinator: ConsultationCoordinator?
@@ -71,7 +76,9 @@ final class AssistV4PresentationModel: ObservableObject {
     private var suspendedLocalFlow: SuspendedLocalFlow?
     private var pausedPresentationState: State?
     private let submitOpenQuestionRemote: @Sendable (ConsultationPayload) async -> AssistV4OpenQuestionSubmission
+    private let persistRemoteResult: ((String, ConsultationTurnResponse) throws -> Void)?
     private var pendingRemotePayload: ConsultationPayload?
+    private var latestRemotePayload: ConsultationPayload?
 
     private enum SuspendedLocalFlow {
         case guided(intent: ConsultationIntent, question: ConsultationQuestion)
@@ -80,9 +87,11 @@ final class AssistV4PresentationModel: ObservableObject {
     }
 
     init(
-        submitOpenQuestionRemote: @escaping @Sendable (ConsultationPayload) async -> AssistV4OpenQuestionSubmission = { _ in .disabled }
+        submitOpenQuestionRemote: @escaping @Sendable (ConsultationPayload) async -> AssistV4OpenQuestionSubmission = { _ in .disabled },
+        persistRemoteResult: ((String, ConsultationTurnResponse) throws -> Void)? = nil
     ) {
         self.submitOpenQuestionRemote = submitOpenQuestionRemote
+        self.persistRemoteResult = persistRemoteResult
     }
 
     func start(_ intent: ConsultationIntent) {
@@ -207,6 +216,7 @@ final class AssistV4PresentationModel: ObservableObject {
             try coordinator.apply(.beginRemoteTurn(payload), at: now)
             self.coordinator = coordinator
             pendingRemotePayload = payload
+            latestRemotePayload = payload
             turns.append(Turn(role: .user, text: text))
             state = .submittingOpenQuestion
             submit(payload)
@@ -263,11 +273,27 @@ final class AssistV4PresentationModel: ObservableObject {
                 self.coordinator = coordinator
                 pendingRemotePayload = nil
                 switch coordinator.session.state {
+                case .awaitingUserAnswer:
+                    guard case let .turn(turn) = response.outcome,
+                          case let .question(question) = turn.next else {
+                        throw ContractError.invalid("A resposta não trouxe a próxima pergunta verificável.")
+                    }
+                    selectedRemoteOptionID = nil
+                    remoteFreeText = ""
+                    turns.append(Turn(role: .assist, text: question.text))
+                    state = .remoteQuestion(question)
+                case .awaitingTestPermission:
+                    guard let request = coordinator.session.pendingToolRequest else {
+                        throw ContractError.invalid("A resposta não trouxe uma proposta de teste verificável.")
+                    }
+                    state = .remoteTestApproval(request)
                 case .showingResult:
-                    guard let assessment = coordinator.session.recommendation?.assessment else {
+                    guard case let .turn(turn) = response.outcome,
+                          let assessment = turn.assessment else {
                         throw ContractError.invalid("A resposta não trouxe uma conclusão verificável.")
                     }
-                    state = .remoteResult(assessment)
+                    turns.append(Turn(role: .assist, text: assessment.summary))
+                    state = .remoteResult(turn)
                 case .recoverableError:
                     state = .remoteRecoverableError("A consulta falhou temporariamente. Você pode tentar de novo.")
                 case .unavailable:
@@ -292,6 +318,92 @@ final class AssistV4PresentationModel: ObservableObject {
             state = .remoteRecoverableError(message)
         } catch {
             state = .remoteUnavailable(message)
+        }
+    }
+
+    func continueRemoteQuestion() {
+        guard case let .remoteQuestion(question) = state,
+              let latestRemotePayload,
+              var coordinator else { return }
+        let text = remoteFreeText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let answer: QuestionAnswer
+        let renderedAnswer: String
+        if let selectedRemoteOptionID,
+           let option = question.options.first(where: { $0.id == selectedRemoteOptionID }) {
+            answer = QuestionAnswer(questionID: question.id, optionID: option.id)
+            renderedAnswer = option.text
+        } else if question.allowFreeText, !text.isEmpty {
+            answer = QuestionAnswer(questionID: question.id, text: text)
+            renderedAnswer = text
+        } else {
+            return
+        }
+        do {
+            let now = Date()
+            let turnID = reference(prefix: "consultation-turn")
+            try coordinator.apply(.answer(answer, turnID: turnID), at: now)
+            try coordinator.apply(.beginPlanning, at: now)
+            let payload = ConsultationPayload(
+                requestID: reference(prefix: "consultation-request"),
+                localSessionID: coordinator.session.id,
+                transportSessionID: latestRemotePayload.transportSessionID,
+                turnID: turnID,
+                expectedRevision: latestRemotePayload.expectedRevision,
+                locale: latestRemotePayload.locale,
+                input: .answer(answer),
+                contextSnapshot: latestRemotePayload.contextSnapshot,
+                consentReceiptRef: latestRemotePayload.consentReceiptRef
+            )
+            try coordinator.apply(.beginRemoteTurn(payload), at: now)
+            self.coordinator = coordinator
+            self.pendingRemotePayload = payload
+            self.latestRemotePayload = payload
+            self.selectedRemoteOptionID = nil
+            self.remoteFreeText = ""
+            turns.append(Turn(role: .user, text: renderedAnswer))
+            state = .submittingOpenQuestion
+            submit(payload)
+        } catch {
+            state = .remoteUnavailable("Não foi possível registrar essa resposta com segurança. Nada novo foi enviado.")
+        }
+    }
+
+    func declineRemoteTest() {
+        guard case let .remoteTestApproval(request) = state,
+              var coordinator else { return }
+        do {
+            try coordinator.apply(.denyTest(proposalID: request.id), at: Date())
+            try coordinator.apply(.markInsufficientEvidence, at: Date())
+            self.coordinator = coordinator
+            state = .limitation("O teste não foi iniciado. Sem essa evidência, o Assist não vai inventar uma conclusão.")
+        } catch {
+            state = .remoteUnavailable("Não foi possível registrar sua decisão sobre o teste.")
+        }
+    }
+
+    func copyableText(for turn: ConsultationTurnResponse) -> String {
+        var sections = [turn.assessment?.summary].compactMap { $0 }
+        if !turn.claims.isEmpty {
+            sections.append("Evidências:\n" + turn.claims.map(\.text).joined(separator: "\n"))
+        }
+        if !turn.limitations.isEmpty {
+            sections.append("Limites:\n" + turn.limitations.joined(separator: "\n"))
+        }
+        return sections.joined(separator: "\n\n")
+    }
+
+    func saveRemoteResult() {
+        guard case let .remoteResult(turn) = state else { return }
+        guard let persistRemoteResult else {
+            saveFeedback = "O histórico desta instalação ainda não está disponível. A resposta continua nesta tela."
+            return
+        }
+        let question = turns.last(where: { $0.role == .user })?.text ?? "Consulta Assist"
+        do {
+            try persistRemoteResult(question, turn)
+            saveFeedback = "Consulta salva neste aparelho."
+        } catch {
+            saveFeedback = "Não foi possível salvar a consulta neste aparelho."
         }
     }
 
@@ -369,7 +481,11 @@ final class AssistV4PresentationModel: ObservableObject {
         selectedOptionID = nil
         clearPlanDeclaration()
         pendingRemotePayload = nil
+        latestRemotePayload = nil
         coordinator = nil
+        selectedRemoteOptionID = nil
+        remoteFreeText = ""
+        saveFeedback = nil
         state = .home
     }
 
@@ -377,7 +493,7 @@ final class AssistV4PresentationModel: ObservableObject {
     /// preserva a sessão local e a UI pede um gesto novo para retomá-la.
     func pauseForBackground() {
         switch state {
-        case .guided, .planDeclaration, .localOrientation:
+        case .guided, .planDeclaration, .localOrientation, .remoteQuestion, .remoteTestApproval, .remoteResult:
             break
         default:
             return

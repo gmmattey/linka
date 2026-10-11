@@ -24,6 +24,7 @@
 		10A56B40B0BCA9FE704AB194 /* LinkaAdsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FE9A266394C32859811ABA /* LinkaAdsCoordinator.swift */; };
 		11E319E837EF1D52829FAA75 /* DNSBenchmarkCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E7BAC51017CB7F936040092 /* DNSBenchmarkCoordinator.swift */; };
 		12E02BB6A2E493EAC2C1D151 /* LinkaAppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8ADAB36D0CC32BA436AFE3 /* LinkaAppShortcuts.swift */; };
+		1447440FB58DFA2C3FBB8FAB /* AssistV4ConsultationHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FE4A33A641603FC7306AE06 /* AssistV4ConsultationHistory.swift */; };
 		150054BB7218EF39FF3A2EF5 /* NetscopeEvidence in Frameworks */ = {isa = PBXBuildFile; productRef = 927C3E5CC67655EEB215DB10 /* NetscopeEvidence */; };
 		160D3B49EE71A6FB3D5EF829 /* LinkaHealthCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0805744453EDB0EA9AFEEEC0 /* LinkaHealthCheck.swift */; };
 		17E73DA323A120A6FECBD6A1 /* BannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F6C710FA9D415DDBB3316F9 /* BannerView.swift */; };
@@ -133,6 +134,7 @@
 		8F43FE7424FB03B9F36897E9 /* StatDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 240C677AB8218C3DE05600FB /* StatDisplay.swift */; };
 		8FA33CB5620B468DC00D3C18 /* ShareCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D7798E2D1800A4FF1C0E30E /* ShareCardView.swift */; };
 		8FA4DD831510C7958693C57C /* DNSBenchmarkCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E7BAC51017CB7F936040092 /* DNSBenchmarkCoordinator.swift */; };
+		901182500D71E0017CA4D759 /* AssistV4ConsultationHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FE4A33A641603FC7306AE06 /* AssistV4ConsultationHistory.swift */; };
 		910814D6D49CF4D31DF32FC1 /* SpeedTestViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E816515881C246C6E28B0653 /* SpeedTestViewModel.swift */; };
 		9288DDEA644401DADF55486B /* HistoricalMeasurementDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1FD5CA0E57F84DC90BE11A5 /* HistoricalMeasurementDetailView.swift */; };
 		92BDECB59E8455FF2995F4BF /* MeasurementHistoryCloudKit in Frameworks */ = {isa = PBXBuildFile; productRef = B36D3C433D496B8EFF185FF3 /* MeasurementHistoryCloudKit */; };
@@ -335,6 +337,7 @@
 		78285EB65890B076CF8D41D4 /* AssistViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistViewModelTests.swift; sourceTree = "<group>"; };
 		7BE5DBF301620B59B53EAA9D /* LinkaPushRegistrationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaPushRegistrationDelegate.swift; sourceTree = "<group>"; };
 		7E7BAC51017CB7F936040092 /* DNSBenchmarkCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNSBenchmarkCoordinator.swift; sourceTree = "<group>"; };
+		7FE4A33A641603FC7306AE06 /* AssistV4ConsultationHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistV4ConsultationHistory.swift; sourceTree = "<group>"; };
 		8041784263895147F69C02D2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8307F86A4A74F9FB8F6BF796 /* NetworkCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NetworkCore; path = NetworkCore; sourceTree = SOURCE_ROOT; };
 		8345F2C6AED5E260752371DA /* LinkaApp_macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LinkaApp_macOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -695,6 +698,7 @@
 		E258E6AD29D0B08FAB67578D /* Assist */ = {
 			isa = PBXGroup;
 			children = (
+				7FE4A33A641603FC7306AE06 /* AssistV4ConsultationHistory.swift */,
 				02D2091C55A18806EFF42BEE /* AssistV4LocalContextAdapter.swift */,
 				0B71B779A7AD402474871B54 /* AssistV4RemoteSubmitter.swift */,
 			);
@@ -1066,6 +1070,7 @@
 				7D98B9103BE37F1D22F2B588 /* AssistOpportunityHandoffFactory.swift in Sources */,
 				49438996C96BFB28DED35509 /* AssistProblemSelectionView.swift in Sources */,
 				46D6FA38F6C72D89631F5582 /* AssistTeaserCard.swift in Sources */,
+				1447440FB58DFA2C3FBB8FAB /* AssistV4ConsultationHistory.swift in Sources */,
 				B2E5B64C9E8A11A69A4E3835 /* AssistV4LocalContextAdapter.swift in Sources */,
 				C8E3CD3DD3341FC5279B4193 /* AssistV4PresentationModel.swift in Sources */,
 				639316BC1B52DC2EEBADA70C /* AssistV4RemoteSubmitter.swift in Sources */,
@@ -1169,6 +1174,7 @@
 				D503DB27820B79164ABBD90A /* AssistOpportunityHandoffFactory.swift in Sources */,
 				3448797354FD2923D4969804 /* AssistProblemSelectionView.swift in Sources */,
 				A64CA2655143AAA37EDFB39A /* AssistTeaserCard.swift in Sources */,
+				901182500D71E0017CA4D759 /* AssistV4ConsultationHistory.swift in Sources */,
 				DEC4463032CC6437D3FD3FEE /* AssistV4LocalContextAdapter.swift in Sources */,
 				7C1E0A53B7850ADDAE15A682 /* AssistV4PresentationModel.swift in Sources */,
 				C7DCB4CBD1C4C3B0B61F9D42 /* AssistV4RemoteSubmitter.swift in Sources */,
