@@ -17,8 +17,8 @@ final class AssistV4EphemeralHTTPClient: NSObject, AssistConsultationHTTPTranspo
         configuration.urlCache = nil
         configuration.httpCookieStorage = nil
         configuration.httpShouldSetCookies = false
-        configuration.timeoutIntervalForRequest = 12
-        configuration.timeoutIntervalForResource = 15
+        configuration.timeoutIntervalForRequest = 35
+        configuration.timeoutIntervalForResource = 40
         super.init()
         session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
     }
@@ -62,12 +62,7 @@ private final class AssistV4AttestationExchange: AssistConsultationAttestationEx
 
     func register(_ proof: AssistConsultationRegistrationProof) async throws {
         let response = try await post(path: "register", body: proof)
-        guard response.statusCode == 201 else {
-            #if DEBUG
-            print("[Assist V4] App Attest registration HTTP: \(response.statusCode)")
-            #endif
-            throw AssistV4RemoteError.rejectedStatus(response.statusCode)
-        }
+        guard response.statusCode == 201 else { throw AssistV4RemoteError.rejectedStatus(response.statusCode) }
     }
 
     func requestAssertionChallenge(for binding: AssistConsultationAssertionBinding, keyID: String) async throws -> AssistConsultationAssertionChallenge {
@@ -83,9 +78,10 @@ private final class AssistV4AttestationExchange: AssistConsultationAttestationEx
 
     private func post<Body: Encodable>(path: String, body: Body) async throws -> (statusCode: Int, body: Data, finalURL: URL) {
         let data = try JSONEncoder().encode(body)
-        return try await http.send(url: attestationURL(path), headers: [
+        let response = try await http.send(url: attestationURL(path), headers: [
             "Accept": "application/json", "Cache-Control": "no-store", "Content-Type": "application/json"
         ], body: data)
+        return (response.statusCode, response.body, response.finalURL)
     }
 
     private func attestationURL(_ path: String) -> URL {
@@ -107,7 +103,9 @@ private final class AssistV4RemoteSubmitter: @unchecked Sendable {
         self.http = http
         self.authorizer = .init(
             appAttest: AssistConsultationSystemAppAttestProvider(),
-            keyIDStore: AssistConsultationKeychainAppAttestKeyIDStore(),
+            keyIDStore: AssistConsultationKeychainAppAttestKeyIDStore(
+                environment: configuration.endpoint == AssistConsultationTransportConfiguration.developmentEndpoint ? .development : .production
+            ),
             exchange: AssistV4AttestationExchange(http: http, endpoint: configuration.endpoint)
         )
     }
@@ -120,9 +118,6 @@ private final class AssistV4RemoteSubmitter: @unchecked Sendable {
         guard case let .authorized(attestation) = authorization else {
             if case let .unavailable(failure) = authorization {
                 Self.logger.error("V4 App Attest failed at \(failure.rawValue, privacy: .public)")
-                #if DEBUG
-                print("[Assist V4] App Attest stage: \(failure.rawValue)")
-                #endif
             }
             return .recoverableFailure("Não foi possível proteger esta consulta neste aparelho.")
         }
