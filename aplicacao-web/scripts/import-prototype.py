@@ -32,6 +32,7 @@ ROUTES = {
 # describing the public app and clearly labeling previews.
 COPY = {
     "/": {
+        "Abra o painel do seu roteador direto no app, pelo WebView.": "Abra o painel do seu roteador no próprio app.",
         "Sua casa, mapeada.": "Minha Rede em preparação.",
         "R$ 34,90 por ano. Uma assinatura, iPhone, iPad e Mac.": "Preço de tabela: R$ 34,90/ano. Confira a oferta atual na App Store.",
         "Plano, equipamentos e conexões da casa.": "Cadastro de equipamentos em preparação.",
@@ -234,6 +235,7 @@ def public_values(route, vals):
             {"t": "Sem anúncios", "d": "Remova a publicidade do app.", "href": "Linka Plus.dc.html"},
         ]
         vals["rows"][3].update(a="Histórico", b="Padrões no histórico (Linka+)")
+        vals["rows"][2]["b"] = "Assist ajuda a interpretar (Linka+)"
         vals["rows"][4]["b"] = "Sem conta para medir"
         vals["rows"][5]["b"] = "iPhone, iPad e Mac compatível"
     elif route == "/assist":
