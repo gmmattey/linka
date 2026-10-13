@@ -308,9 +308,13 @@ struct MacMainView: View {
             if !isMeasuring { destination = .settings }
             intentCoordinator.consumeOpenSettings()
         }
+        .onChange(of: intentCoordinator.pendingPublicUniversalLink) { route in
+            handlePublicUniversalLink(route)
+        }
         .onAppear {
             intentCoordinator.setMeasurementActive(isMeasuring)
             viewModel.refreshLiveNetwork()
+            handlePublicUniversalLink(intentCoordinator.pendingPublicUniversalLink)
         }
         .onDisappear { intentCoordinator.setMeasurementActive(false) }
     }
@@ -1488,6 +1492,21 @@ struct MacMainView: View {
         guard !isMeasuring else { intentCoordinator.consumeOpenHistory(); return }
         destination = .history
         intentCoordinator.consumeOpenHistory()
+    }
+
+    private func handlePublicUniversalLink(_ route: PublicUniversalLink?) {
+        guard let route else { return }
+        defer { intentCoordinator.consumePublicUniversalLink() }
+        guard !isMeasuring else { return }
+
+        switch route {
+        case .home:
+            destination = .speedTest
+        case .history:
+            destination = .history
+        case .myNetwork:
+            destination = .myNetwork
+        }
     }
 
     private func handleOpenLatestMeasurementRequest(_ pending: Bool) {

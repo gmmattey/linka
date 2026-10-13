@@ -143,6 +143,11 @@ struct LinkaApp: App {
                     AppIntentCoordinator.shared.requestAdvancedWiFiDiagnosticsImport()
                 }
             }
+            .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
+                guard let url = userActivity.webpageURL,
+                      let route = PublicUniversalLinkParser.parse(url) else { return }
+                AppIntentCoordinator.shared.requestPublicUniversalLink(route)
+            }
             .task {
                 guard !isAssistV4Fixture else { return }
                 await entitlements.refreshSnapshot()
