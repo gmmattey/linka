@@ -46,6 +46,7 @@ public final class AppIntentCoordinator: ObservableObject {
     @Published public private(set) var pendingOpenLatestMeasurement: Bool = false
     @Published public private(set) var pendingCancelMeasurement: Bool = false
     @Published public private(set) var pendingOpenSettings: Bool = false
+    @Published private(set) var pendingPublicUniversalLink: PublicUniversalLink?
     @Published public private(set) var isMeasurementActive: Bool = false
 
     private init() {}
@@ -94,6 +95,8 @@ public final class AppIntentCoordinator: ObservableObject {
     public func consumeCancelMeasurement() { pendingCancelMeasurement = false }
     public func requestOpenSettings() { pendingOpenSettings = true }
     public func consumeOpenSettings() { pendingOpenSettings = false }
+    func requestPublicUniversalLink(_ route: PublicUniversalLink) { pendingPublicUniversalLink = route }
+    func consumePublicUniversalLink() { pendingPublicUniversalLink = nil }
     public func setMeasurementActive(_ isActive: Bool) { isMeasurementActive = isActive }
 }
 
