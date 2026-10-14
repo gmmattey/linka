@@ -245,6 +245,20 @@ targets:
     sources:
       - path: LinkaApp/MacTests
       - path: LinkaApp/Sources/UI/MacPresentationState.swift
+  LinkaAppMacUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    deploymentTarget:
+      macOS: 13.0
+    settings:
+      base:
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: "2Z4T8228GR"
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: LinkaApp_macOS
+    sources:
+      - path: LinkaApp/MacUITests
   LinkaWidgetExtension:
     type: app-extension
     platform: iOS
@@ -321,6 +335,7 @@ schemes:
     build:
       targets:
         LinkaApp_macOS: all
+        LinkaAppMacUITests: [test]
     run:
       config: Debug
     archive:
@@ -329,6 +344,7 @@ schemes:
       config: Debug
       targets:
         - LinkaAppMacTests
+        - LinkaAppMacUITests
   LinkaApp_macOS-InternalBeta:
     build:
       targets:

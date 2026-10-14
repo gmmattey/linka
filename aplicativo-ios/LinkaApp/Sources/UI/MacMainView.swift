@@ -28,6 +28,17 @@ private enum MacAssistEntryPoint {
 private enum DotPhase { case pending, active, done }
 
 private extension MacDestination {
+    var accessibilityIdentifier: String {
+        switch self {
+        case .speedTest: return "speedTest"
+        case .history: return "history"
+        case .myNetwork: return "myNetwork"
+        case .assist: return "assist"
+        case .optimization: return "optimization"
+        case .settings: return "settings"
+        }
+    }
+
     var title: String {
         switch self {
         case .speedTest: return LinkaCopy.value("mac.destination.speedTest")
@@ -339,6 +350,7 @@ struct MacMainView: View {
             Label(destination.title, systemImage: destination.systemImage)
         }
         .disabled(isDisabled)
+        .accessibilityIdentifier("mac.sidebar.\(destination.accessibilityIdentifier)")
     }
 
     @ViewBuilder
@@ -361,6 +373,7 @@ struct MacMainView: View {
             }
         }
         .navigationTitle(destination.title)
+        .accessibilityIdentifier("mac.workspace.\(destination.accessibilityIdentifier)")
         .background(
             LinkaScreenBackground(
                 variant: .gradientOnly,
@@ -385,6 +398,7 @@ struct MacMainView: View {
                     Label(LinkaCopy.value("settings.title"), systemImage: "gearshape")
                 }
                 .disabled(isMeasuring || destination == .settings)
+                .accessibilityIdentifier("mac.toolbar.settings")
             }
         }
     }

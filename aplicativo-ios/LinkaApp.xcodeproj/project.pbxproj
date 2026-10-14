@@ -219,6 +219,7 @@
 		FB2E235653F8530D066FD804 /* WiFiNetworkPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55521AF45A9C7EF8F0709A96 /* WiFiNetworkPermission.swift */; };
 		FB7407CEB412703490AA5E10 /* LinkaModules in Frameworks */ = {isa = PBXBuildFile; productRef = E832F69684B9093AE00D0994 /* LinkaModules */; };
 		FB97B0AECECD7CFE2CD38F4A /* AssistViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD77BB89224BDA9466A65983 /* AssistViewModel.swift */; };
+		FD0C28CA0BC819707E6CDEFD /* MacNavigationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044AD313038DE5C4E2280520 /* MacNavigationUITests.swift */; };
 		FD6BAD30F4F388AEBF0AAB9F /* PurchaseEntryPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44FD51918BF9314D06858F94 /* PurchaseEntryPoint.swift */; };
 		FDAD333AA25BD490A8999E8C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E928A5CC293B2782EED9CB90 /* PrivacyInfo.xcprivacy */; };
 		FE61CA6DB278B399989419C4 /* ServiceStatusStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F6216E8865C9903F201628 /* ServiceStatusStore.swift */; };
@@ -238,6 +239,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 184D119CB06D3356F99CEDFE;
 			remoteInfo = LinkaWidgetExtension;
+		};
+		C9DE708FF4A2DC95F1426D75 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = ED928F4DB6D51F4BE84E816D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 86DF27BAA01897B036E86CFB;
+			remoteInfo = LinkaApp_macOS;
 		};
 		DED0A573BCFDF5B1A603A863 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -271,6 +279,7 @@
 
 /* Begin PBXFileReference section */
 		02D2091C55A18806EFF42BEE /* AssistV4LocalContextAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistV4LocalContextAdapter.swift; sourceTree = "<group>"; };
+		044AD313038DE5C4E2280520 /* MacNavigationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacNavigationUITests.swift; sourceTree = "<group>"; };
 		05F6216E8865C9903F201628 /* ServiceStatusStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceStatusStore.swift; sourceTree = "<group>"; };
 		07C9F0FAD8D117DBD5A2BF80 /* es-419 */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "es-419"; path = "es-419.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		0805744453EDB0EA9AFEEEC0 /* LinkaHealthCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaHealthCheck.swift; sourceTree = "<group>"; };
@@ -343,6 +352,7 @@
 		8B466168E5335F4FDD7C68E3 /* LinkaInventoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaInventoryStore.swift; sourceTree = "<group>"; };
 		8BB509E33711C1EAAB7390AA /* AssistV4PresentationModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistV4PresentationModelTests.swift; sourceTree = "<group>"; };
 		8DD4A980DC574793818E97A1 /* AssistContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistContainer.swift; sourceTree = "<group>"; };
+		8E320D552077906572EC331A /* LinkaAppMacUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LinkaAppMacUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		90D79DD30F467F20E3424599 /* AssistOpportunityHandoffFactoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistOpportunityHandoffFactoryTests.swift; sourceTree = "<group>"; };
 		935BAC9694139394F0625999 /* DNSConfigurationCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNSConfigurationCoordinatorTests.swift; sourceTree = "<group>"; };
 		9396CB175CFD73A1F7F5C6D0 /* InventoryBuildConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryBuildConfiguration.swift; sourceTree = "<group>"; };
@@ -608,6 +618,7 @@
 			isa = PBXGroup;
 			children = (
 				3103B10EF623193842C46260 /* MacTests */,
+				D11D6501B77DA4153F030CB7 /* MacUITests */,
 				74BE8B9347AA0733AE0FE973 /* Packages */,
 				A5CEA60FFC5F577867D45339 /* Resources */,
 				8B6A8F33CD8CCD9E772F6B33 /* Resources */,
@@ -668,6 +679,7 @@
 				8345F2C6AED5E260752371DA /* LinkaApp_macOS.app */,
 				0E607975E4B121542E79DD68 /* LinkaApp.app */,
 				EB46D9E7860996B54DF84499 /* LinkaAppMacTests.xctest */,
+				8E320D552077906572EC331A /* LinkaAppMacUITests.xctest */,
 				5306A9B9735CAA5118F099E0 /* LinkaAppTests.xctest */,
 				3BE450192B7DC663DC0F0F91 /* LinkaAppUITests.xctest */,
 				328D0AC42D7699A0B421F1F3 /* LinkaWidgetExtension.appex */,
@@ -706,6 +718,15 @@
 			);
 			name = Sources;
 			path = LinkaWidget/Sources;
+			sourceTree = "<group>";
+		};
+		D11D6501B77DA4153F030CB7 /* MacUITests */ = {
+			isa = PBXGroup;
+			children = (
+				044AD313038DE5C4E2280520 /* MacNavigationUITests.swift */,
+			);
+			name = MacUITests;
+			path = LinkaApp/MacUITests;
 			sourceTree = "<group>";
 		};
 		E258E6AD29D0B08FAB67578D /* Assist */ = {
@@ -944,6 +965,24 @@
 			productReference = 8345F2C6AED5E260752371DA /* LinkaApp_macOS.app */;
 			productType = "com.apple.product-type.application";
 		};
+		DCFDE0FA5BC67FBA18436FAB /* LinkaAppMacUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A9B990B6AD2D499B4D5BEB3C /* Build configuration list for PBXNativeTarget "LinkaAppMacUITests" */;
+			buildPhases = (
+				ED4C5B9875DB905AF872F1B2 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EDDA24B3657F6F4E6A4E9E4E /* PBXTargetDependency */,
+			);
+			name = LinkaAppMacUITests;
+			packageProductDependencies = (
+			);
+			productName = LinkaAppMacUITests;
+			productReference = 8E320D552077906572EC331A /* LinkaAppMacUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -973,6 +1012,11 @@
 					86DF27BAA01897B036E86CFB = {
 						DevelopmentTeam = 2Z4T8228GR;
 						ProvisioningStyle = Automatic;
+					};
+					DCFDE0FA5BC67FBA18436FAB = {
+						DevelopmentTeam = 2Z4T8228GR;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 86DF27BAA01897B036E86CFB;
 					};
 				};
 			};
@@ -1016,6 +1060,7 @@
 				3F2ED16AA6022DBB7650DAC5 /* LinkaAppUITests */,
 				57D0A290943F86C259A182B6 /* LinkaAppTests */,
 				088828A2AB6C8064A9057E98 /* LinkaAppMacTests */,
+				DCFDE0FA5BC67FBA18436FAB /* LinkaAppMacUITests */,
 				184D119CB06D3356F99CEDFE /* LinkaWidgetExtension */,
 				6F0E83DD24583A059A8A3F41 /* LinkaWidgetTests */,
 			);
@@ -1172,6 +1217,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		ED4C5B9875DB905AF872F1B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD0C28CA0BC819707E6CDEFD /* MacNavigationUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FD9169D50D7812D42351E7DC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1292,6 +1345,11 @@
 			target = 43879976A06AC9B70CC4365B /* LinkaApp */;
 			targetProxy = 1F4186615688EEB5550D051A /* PBXContainerItemProxy */;
 		};
+		EDDA24B3657F6F4E6A4E9E4E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 86DF27BAA01897B036E86CFB /* LinkaApp_macOS */;
+			targetProxy = C9DE708FF4A2DC95F1426D75 /* PBXContainerItemProxy */;
+		};
 		F15F888E75EA84D1B3EBE142 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 43879976A06AC9B70CC4365B /* LinkaApp */;
@@ -1383,6 +1441,25 @@
 			};
 			name = InternalBeta;
 		};
+		2476EC1C8C06217002ACCF92 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 2Z4T8228GR;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.linka.LinkaAppMacUITests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = LinkaApp_macOS;
+			};
+			name = Release;
+		};
 		31DB955F732815CF75FD024A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1404,6 +1481,25 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.linka.assist;
 				PRODUCT_NAME = LinkaApp;
 				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		33F3A4846B757D28786E6E8D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 2Z4T8228GR;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.linka.LinkaAppMacUITests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = LinkaApp_macOS;
 			};
 			name = Debug;
 		};
@@ -1651,6 +1747,25 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
+		};
+		854F10D2D0228B6FC050A4EF /* InternalBeta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 2Z4T8228GR;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.linka.LinkaAppMacUITests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = LinkaApp_macOS;
+			};
+			name = InternalBeta;
 		};
 		8CAC30FED959692DB0DD5C7E /* InternalBeta */ = {
 			isa = XCBuildConfiguration;
@@ -1994,6 +2109,16 @@
 				FAE1902CFF61B6B6D8FD44D6 /* Debug */,
 				65FBDF2C90EED62590C2A8BF /* InternalBeta */,
 				FC5665225CE66DABC8346786 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A9B990B6AD2D499B4D5BEB3C /* Build configuration list for PBXNativeTarget "LinkaAppMacUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				33F3A4846B757D28786E6E8D /* Debug */,
+				854F10D2D0228B6FC050A4EF /* InternalBeta */,
+				2476EC1C8C06217002ACCF92 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
