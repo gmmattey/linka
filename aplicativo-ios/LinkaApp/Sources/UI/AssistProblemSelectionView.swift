@@ -233,13 +233,13 @@ struct AssistProblemSelectionView: View {
                 macCard(title: LinkaCopy.value("assist.mac.measurementContext")) {
                     HStack(spacing: 24) {
                         if let down = currentMeasurement.downloadMbps {
-                            macMeasurementValue(LinkaCopy.value("detail.download"), value: String(format: "%.1f Mbps", down), symbol: "arrow.down")
+                            macMeasurementValue(LinkaCopy.value("detail.download"), value: macMeasurementValue(down, unit: "Mbps", fractionLength: 1), symbol: "arrow.down")
                         }
                         if let up = currentMeasurement.uploadMbps {
-                            macMeasurementValue(LinkaCopy.value("detail.upload"), value: String(format: "%.1f Mbps", up), symbol: "arrow.up")
+                            macMeasurementValue(LinkaCopy.value("detail.upload"), value: macMeasurementValue(up, unit: "Mbps", fractionLength: 1), symbol: "arrow.up")
                         }
                         if let latency = currentMeasurement.latencyMs {
-                            macMeasurementValue(LinkaCopy.value("assist.latency"), value: String(format: "%.0f ms", latency), symbol: "gauge.with.needle")
+                            macMeasurementValue(LinkaCopy.value("assist.latency"), value: macMeasurementValue(latency, unit: "ms", fractionLength: 0), symbol: "gauge.with.needle")
                         }
                     }
                 }
@@ -317,6 +317,8 @@ struct AssistProblemSelectionView: View {
                         reportedProblemText = String(newValue.prefix(Self.reportedProblemMaxLength))
                     }
                 }
+                .accessibilityLabel(LinkaCopy.value("assist.problem.describeTitle"))
+                .accessibilityHint(LinkaCopy.value("assist.problem.describeHint"))
             HStack {
                 Spacer()
                 Text("\(reportedProblemText.count)/\(Self.reportedProblemMaxLength)")
@@ -346,6 +348,10 @@ struct AssistProblemSelectionView: View {
                 .font(.body.weight(.semibold))
                 .monospacedDigit()
         }
+    }
+
+    private func macMeasurementValue(_ value: Double, unit: String, fractionLength: Int) -> String {
+        value.formatted(.number.precision(.fractionLength(fractionLength)).locale(LinkaLanguagePreference.currentLocale)) + " \(unit)"
     }
 
     private func macCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {

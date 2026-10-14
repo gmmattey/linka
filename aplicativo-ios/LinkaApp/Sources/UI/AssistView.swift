@@ -133,13 +133,7 @@ struct AssistView: View {
             // identidade de medição. Duas `.task(id:)` paralelas reagem ao
             // mesmo redraw e deixam o ciclo de análise suscetível a repetição.
             .task(id: currentMeasurement?.id) {
-                guard !isCollectingMeasurement, let current = currentMeasurement else { return }
-                // A análise de histórico muda a altura do ScrollView. Ela
-                // precisa terminar antes de publicar o diagnóstico, para a
-                // pessoa não perder o ponto que estava lendo quando a
-                // seção de padrões aparece no meio da tela.
-                await stabilityViewModel.load(currentMeasurement: current)
-                await loadAssist(with: current)
+                await loadCurrentMeasurementIfNeeded()
             }
         }
     }
@@ -154,6 +148,9 @@ struct AssistView: View {
                         Button(LinkaCopy.value("common.close"), action: closeSheet)
                     }
                 }
+        }
+        .task(id: currentMeasurement?.id) {
+            await loadCurrentMeasurementIfNeeded()
         }
     }
 
@@ -387,6 +384,15 @@ struct AssistView: View {
             subcategory: subcategory,
             reportedProblem: reportedProblem
         )
+    }
+
+    private func loadCurrentMeasurementIfNeeded() async {
+        guard !isCollectingMeasurement, let current = currentMeasurement else { return }
+        // A leitura de padrões pode alterar a altura do resultado. Carregá-la
+        // antes da resposta evita que o conteúdo mude sob o cursor de quem
+        // está lendo no Mac e preserva o mesmo encadeamento do iOS.
+        await stabilityViewModel.load(currentMeasurement: current)
+        await loadAssist(with: current)
     }
     
     @ViewBuilder

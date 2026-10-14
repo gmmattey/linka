@@ -177,7 +177,7 @@ struct SettingsView: View {
         .toolbar {
             if onPurchaseRequest == nil {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Fechar") { dismiss() }
+                    Button(LinkaCopy.value("common.close")) { dismiss() }
                 }
             }
         }
@@ -274,19 +274,19 @@ struct SettingsView: View {
                     }
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Linka Plus, \(subscriptionStatusText)")
+                .accessibilityLabel(String(format: LinkaCopy.value("settings.mac.plusStatus"), locale: LinkaLanguagePreference.currentLocale, subscriptionStatusText))
             }
 
-            Section(LinkaCopy.value("Preferências")) {
-                Picker("Aparência", selection: $appAppearance) {
-                    Text("Sistema").tag("system")
-                    Text("Claro").tag("light")
-                    Text("Escuro").tag("dark")
+            Section(LinkaCopy.value("settings.section.preferences")) {
+                Picker(LinkaCopy.value("settings.appearance.title"), selection: $appAppearance) {
+                    Text(LinkaCopy.value("settings.appearance.system")).tag("system")
+                    Text(LinkaCopy.value("settings.appearance.light")).tag("light")
+                    Text(LinkaCopy.value("settings.appearance.dark")).tag("dark")
                 }
                 .pickerStyle(.segmented)
             }
 
-            Section(LinkaCopy.value("Rede e diagnóstico")) {
+            Section(LinkaCopy.value("settings.section.network")) {
                 Toggle(isOn: Binding(
                     get: { advancedWiFiEnabled },
                     set: { enabled in
@@ -299,8 +299,8 @@ struct SettingsView: View {
                     }
                 )) {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Wi-Fi avançado")
-                        Text(macAdvancedWiFiAllowed ? "Coleta detalhes nativos somente quando você iniciar uma medição com detalhes." : "Disponível no Linka Plus.")
+                        Text(LinkaCopy.value("settings.advancedWiFi.title"))
+                        Text(macAdvancedWiFiAllowed ? LinkaCopy.value("settings.mac.advancedWiFi.available") : LinkaCopy.value("settings.mac.advancedWiFi.plus"))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -319,29 +319,29 @@ struct SettingsView: View {
                 .accessibilityHint(LinkaCopy.value("environments.settings.accessibilityHint"))
             }
 
-            Section(LinkaCopy.value("Ferramentas")) {
+            Section(LinkaCopy.value("settings.section.tools")) {
                 NavigationLink(destination: MacRouterPanelView()) {
-                    Label(LinkaCopy.value("Painel do roteador"), systemImage: "router")
+                    Label(LinkaCopy.value("settings.routerAccess"), systemImage: "router")
                 }
                 NavigationLink(destination: ServiceStatusView()) {
-                    Label(LinkaCopy.value("Acompanhar serviços"), systemImage: "dot.radiowaves.left.and.right")
+                    Label(LinkaCopy.value("settings.serviceStatus"), systemImage: "dot.radiowaves.left.and.right")
                 }
             }
 
-            Section(LinkaCopy.value("Ajuda")) {
-                macLinkRow(LinkaCopy.value("Como medimos"), systemImage: "speedometer", destination: LinkaExternalLinks.howWeMeasure)
-                macLinkRow(LinkaCopy.value("Suporte"), systemImage: "questionmark.circle", destination: LinkaExternalLinks.support)
-                macLinkRow(LinkaCopy.value("Enviar feedback"), systemImage: "text.bubble", destination: LinkaExternalLinks.support)
+            Section(LinkaCopy.value("settings.mac.section.help")) {
+                macLinkRow(LinkaCopy.value("settings.howWeMeasure"), systemImage: "speedometer", destination: LinkaExternalLinks.howWeMeasure)
+                macLinkRow(LinkaCopy.value("settings.support"), systemImage: "questionmark.circle", destination: LinkaExternalLinks.support)
+                macLinkRow(LinkaCopy.value("settings.feedback"), systemImage: "text.bubble", destination: LinkaExternalLinks.support)
                 Button { requestReview() } label: {
-                    Label(LinkaCopy.value("Avaliar o Linka"), systemImage: "star")
+                    Label(LinkaCopy.value("settings.rate"), systemImage: "star")
                 }
             }
 
-            Section(LinkaCopy.value("Sobre e legal")) {
-                macLinkRow(LinkaCopy.value("Privacidade"), systemImage: "hand.raised", destination: LinkaExternalLinks.privacy)
-                macLinkRow(LinkaCopy.value("Termos de Uso"), systemImage: "doc.text", destination: LinkaExternalLinks.terms)
-                macLinkRow(LinkaCopy.value("Sobre o Linka"), systemImage: "info.circle", destination: LinkaExternalLinks.about)
-                Text("Versão \(appVersion)")
+            Section(LinkaCopy.value("settings.mac.section.legal")) {
+                macLinkRow(LinkaCopy.value("settings.privacy"), systemImage: "hand.raised", destination: LinkaExternalLinks.privacy)
+                macLinkRow(LinkaCopy.value("settings.terms"), systemImage: "doc.text", destination: LinkaExternalLinks.terms)
+                macLinkRow(LinkaCopy.value("settings.about"), systemImage: "info.circle", destination: LinkaExternalLinks.about)
+                Text(LinkaCopy.format("settings.version", appVersion))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -532,7 +532,7 @@ private struct MacRouterPanelView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Painel do roteador")
+            Text(LinkaCopy.value("router.mac.title"))
                 .font(.title2.weight(.semibold))
 
             Group {
@@ -540,42 +540,42 @@ private struct MacRouterPanelView: View {
                 case .idle, .locating:
                     HStack(spacing: 10) {
                         ProgressView()
-                        Text("Procurando o roteador nesta rede…")
+                        Text(LinkaCopy.value("router.mac.locating"))
                     }
                     .foregroundColor(.textSecondary)
                 case .found(let gateway):
                     VStack(alignment: .leading, spacing: 8) {
-                        Label("Painel encontrado", systemImage: "checkmark.circle.fill")
+                        Label(LinkaCopy.value("router.mac.found"), systemImage: "checkmark.circle.fill")
                             .foregroundColor(.statusGood)
                         Text(gateway.ip)
                             .font(.bodySmallStrong)
                             .foregroundColor(.textPrimary)
                         if gateway.adminURL?.scheme?.lowercased() == "http" {
-                            Text("Esta página não usa conexão segura.")
+                            Text(LinkaCopy.value("router.mac.insecure"))
                                 .font(.bodySmall)
                                 .foregroundColor(.textSecondary)
                         }
-                        Button("Abrir painel no navegador") { showOpenConfirmation = true }
+                        Button(LinkaCopy.value("router.mac.open")) { showOpenConfirmation = true }
                             .buttonStyle(.linkaPrimary)
                     }
                 case .unreachable(let gatewayIP):
                     VStack(alignment: .leading, spacing: 8) {
-                        Label("Roteador encontrado, painel bloqueado", systemImage: "exclamationmark.shield")
+                        Label(LinkaCopy.value("router.mac.unreachable.title"), systemImage: "exclamationmark.shield")
                             .foregroundColor(.statusAttention)
                         Text(gatewayIP)
                             .font(.bodySmallStrong)
                             .foregroundColor(.textPrimary)
-                        Text("O Linka identificou o roteador desta rede, mas não conseguiu confirmar o painel. O motivo mais comum é a permissão de Rede Local negada para o Linka nos Ajustes do Sistema.")
+                        Text(LinkaCopy.value("router.mac.unreachable.detail"))
                             .font(.bodySmall)
                             .foregroundColor(.textSecondary)
-                        Button("Abrir Ajustes do Sistema") { openSystemLocalNetworkSettings() }
+                        Button(LinkaCopy.value("router.mac.openSystemSettings")) { openSystemLocalNetworkSettings() }
                             .buttonStyle(.linkaSecondary)
                     }
                 case .unavailable:
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Não foi possível localizar um painel nesta rede.")
+                        Text(LinkaCopy.value("router.mac.unavailable.title"))
                             .foregroundColor(.textPrimary)
-                        Text("O Linka confirma o painel antes de oferecer a abertura.")
+                        Text(LinkaCopy.value("router.mac.unavailable.detail"))
                             .font(.bodySmall)
                             .foregroundColor(.textSecondary)
                     }
@@ -583,7 +583,7 @@ private struct MacRouterPanelView: View {
             }
 
             Spacer()
-            Button(state == .locating ? "Procurando…" : "Localizar painel") {
+            Button(state == .locating ? LinkaCopy.value("router.mac.locating.short") : LinkaCopy.value("router.mac.locate")) {
                 Task { await locatePanel() }
             }
             .buttonStyle(.linkaSecondary)
@@ -591,16 +591,16 @@ private struct MacRouterPanelView: View {
         }
         .padding(24)
         .frame(minWidth: 480, minHeight: 300, alignment: .topLeading)
-        .navigationTitle("Painel do roteador")
+        .navigationTitle(LinkaCopy.value("router.mac.title"))
         .task { await locatePanel() }
-        .confirmationDialog("Abrir o painel do roteador?", isPresented: $showOpenConfirmation, titleVisibility: .visible) {
+        .confirmationDialog(LinkaCopy.value("router.mac.confirmation.title"), isPresented: $showOpenConfirmation, titleVisibility: .visible) {
             if case .found(let gateway) = state, let url = gateway.adminURL {
-                Button("Abrir no navegador") { openURL(url) }
+                Button(LinkaCopy.value("router.mac.confirmation.open")) { openURL(url) }
             }
-            Button("Cancelar", role: .cancel) {}
+            Button(LinkaCopy.value("common.cancel"), role: .cancel) {}
         } message: {
             if case .found(let gateway) = state {
-                Text("Você vai abrir a página de administração da sua rede em \(gateway.ip) no navegador. O Linka não acessa nem guarda suas credenciais.")
+                Text(String(format: LinkaCopy.value("router.mac.confirmation.detail"), locale: LinkaLanguagePreference.currentLocale, gateway.ip))
             }
         }
     }
