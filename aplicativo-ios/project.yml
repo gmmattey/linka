@@ -234,6 +234,20 @@ targets:
       - package: NetworkInventory
       - package: AssistConsultation
       - package: AssistConsultationTransport
+  LinkaAppMacTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget:
+      macOS: 13.0
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/LinkaApp.app/Contents/MacOS/LinkaApp"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+    sources:
+      - path: LinkaApp/MacTests
+    dependencies:
+      - target: LinkaApp_macOS
   LinkaWidgetExtension:
     type: app-extension
     platform: iOS
@@ -314,6 +328,10 @@ schemes:
       config: Debug
     archive:
       config: Release
+    test:
+      config: Debug
+      targets:
+        - LinkaAppMacTests
   LinkaApp_macOS-InternalBeta:
     build:
       targets:

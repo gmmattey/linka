@@ -10,13 +10,35 @@ import NetworkConnectivityTriage
 import NetworkInsights
 import NetworkOptimization
 
-private enum MacDestination: Hashable {
+enum MacDestination: Hashable {
     case speedTest
     case history
     case myNetwork
     case assist
     case optimization
     case settings
+
+    var title: String {
+        switch self {
+        case .speedTest: return LinkaCopy.value("Velocímetro")
+        case .history: return LinkaCopy.value("Histórico")
+        case .myNetwork: return LinkaCopy.value("inventory.title")
+        case .assist: return "Assist"
+        case .optimization: return LinkaCopy.value("optimization.title")
+        case .settings: return LinkaCopy.value("Configurações")
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .speedTest: return "gauge.medium"
+        case .history: return "chart.bar"
+        case .myNetwork: return "wifi.router"
+        case .assist: return "sparkles"
+        case .optimization: return "slider.horizontal.3"
+        case .settings: return "gearshape"
+        }
+    }
 }
 
 private enum MacPurchaseDismissalAction {
@@ -42,8 +64,10 @@ struct MacMainView: View {
     @StateObject private var viewModel = SpeedTestViewModel()
     @EnvironmentObject private var entitlements: StoreKitEntitlementProvider
     @ObservedObject private var intentCoordinator = AppIntentCoordinator.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var destination: MacDestination = .speedTest
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @State private var showPurchase = false
     @State private var optimizationBaseline: NetworkMeasurement?
     @State private var optimizationRetestResult: OptimizationRetestComparison?
@@ -131,39 +155,13 @@ struct MacMainView: View {
     // MARK: - Body
 
     var body: some View {
-        HStack(spacing: 0) {
-            sidebar
-            NavigationStack {
-                Group {
-                    switch destination {
-                    case .speedTest:
-                        HStack(spacing: 0) {
-                            mainStage
-                            rightPanel
-                                .frame(width: 280)
-                        }
-                    case .myNetwork:
-                        MyNetworkView()
-                            .environmentObject(entitlements)
-                    case .history:
-                        historyView
-                    case .assist:
-                        assistView
-                    case .optimization:
-                        optimizationView
-                    case .settings:
-                        settingsView
-                    }
-                }
-            }
+        NavigationSplitView(columnVisibility: $columnVisibility) {
+            navigationSidebar
+        } detail: {
+            destinationContent
         }
+        .navigationSplitViewStyle(.balanced)
         .frame(minWidth: 960, minHeight: 600)
-        .background(
-            LinkaScreenBackground(
-                variant: .gradientOnly,
-                showWaves: false
-            )
-        )
         .sheet(isPresented: $showPurchase, onDismiss: handlePurchaseDismissal) {
             PurchaseSheet(entryPoint: purchaseEntryPoint) {
                 if purchaseEntryPoint == .assist {
@@ -315,67 +313,101 @@ struct MacMainView: View {
         .onDisappear { intentCoordinator.setMeasurementActive(false) }
     }
 
-    // MARK: - Sidebar
+    // MARK: - Native navigation shell
 
-    private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 0) {
+    private var navigationSidebar: some View {
+        List(selection: $destination) {
+            Section("Medição") {
+                destinationLink(.speedTest)
+                destinationLink(.history, isDisabled: !MacNavigationPolicy.isAvailable(.history, isMeasuring: isMeasuring, hasMeasurement: currentMeasurement != nil, minhaRedeEnabled: MinhaRedeAvailability.isEnabled))
+            }
+
+            if MinhaRedeAvailability.isEnabled {
+                Section(LinkaCopy.value("inventory.title")) {
+                    destinationLink(.myNetwork, isDisabled: !MacNavigationPolicy.isAvailable(.myNetwork, isMeasuring: isMeasuring, hasMeasurement: currentMeasurement != nil, minhaRedeEnabled: MinhaRedeAvailability.isEnabled))
+                }
+            }
+        }
+        .listStyle(.sidebar)
+        .safeAreaInset(edge: .top, alignment: .leading) {
             Image("wordmark")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 104, height: 40)
-                .padding(.horizontal, 10)
-                .padding(.bottom, 28)
+                .frame(width: 98, height: 30)
+                .accessibilityLabel("Linka")
+                .padding(.horizontal, 16)
+                .padding(.top, 10)
+                .padding(.bottom, 6)
+        }
+    }
 
-            sidebarGroupLabel("Testes")
-            sidebarNavItem(LinkaCopy.value("Velocímetro"), systemImage: "gauge.medium", dest: .speedTest, disabled: false)
-            sidebarNavItem(LinkaCopy.value("Histórico"), systemImage: "chart.bar", dest: .history, disabled: isMeasuring)
+    private func destinationLink(_ destination: MacDestination, isDisabled: Bool = false) -> some View {
+        NavigationLink(value: destination) {
+            Label(destination.title, systemImage: destination.systemImage)
+        }
+        .disabled(isDisabled)
+    }
 
-            if MinhaRedeAvailability.isEnabled {
-                sidebarNavItem(LinkaCopy.value("inventory.title"), systemImage: "wifi.router", dest: .myNetwork, disabled: isMeasuring)
+    @ViewBuilder
+    private var destinationContent: some View {
+        Group {
+            switch destination {
+            case .speedTest:
+                speedTestWorkspace
+            case .myNetwork:
+                MyNetworkView()
+                    .environmentObject(entitlements)
+            case .history:
+                historyView
+            case .assist:
+                assistView
+            case .optimization:
+                optimizationView
+            case .settings:
+                settingsView
             }
-            sidebarGroupLabel("Ferramentas").padding(.top, 8)
-            sidebarNavItem("Assist", systemImage: "sparkles", dest: .assist, disabled: isMeasuring)
-            sidebarNavItem(LinkaCopy.value("optimization.title"), systemImage: "slider.horizontal.3", dest: .optimization, disabled: isMeasuring || currentMeasurement == nil)
-
-            sidebarGroupLabel("App").padding(.top, 8)
-            sidebarNavItem(LinkaCopy.value("Configurações"), systemImage: "gearshape", dest: .settings, disabled: isMeasuring)
-
-            Spacer()
         }
-        .padding(.horizontal, 14)
-        .padding(.top, 28)
-        .padding(.bottom, 40)
-        .frame(width: 210)
+        .navigationTitle(destination.title)
+        .background(
+            LinkaScreenBackground(
+                variant: .gradientOnly,
+                showWaves: false
+            )
+        )
+        .toolbar {
+            ToolbarItemGroup(placement: .primaryAction) {
+                if destination != .speedTest {
+                    if isMeasuring {
+                        Button("Cancelar", action: viewModel.skipOrCancel)
+                            .keyboardShortcut(".", modifiers: .command)
+                    } else {
+                        Button("Testar velocidade", action: startMeasurementFromGlobalAction)
+                            .keyboardShortcut("r", modifiers: .command)
+                    }
+                }
+
+                Button {
+                    destination = .settings
+                } label: {
+                    Label(LinkaCopy.value("Configurações"), systemImage: "gearshape")
+                }
+                .disabled(isMeasuring || destination == .settings)
+            }
+        }
     }
 
-    private func sidebarGroupLabel(_ title: String) -> some View {
-        Text(title.uppercased())
-            .font(.system(size: 11, weight: .bold))
-            .foregroundColor(.textSecondary)
-            .tracking(1.1)
-            .padding(.horizontal, 10)
-            .padding(.top, 16)
-            .padding(.bottom, 6)
-    }
+    private var speedTestWorkspace: some View {
+        GeometryReader { proxy in
+            HStack(spacing: 0) {
+                mainStage
 
-    private func sidebarNavItem(_ title: String, systemImage: String, dest: MacDestination, disabled: Bool) -> some View {
-        Button { destination = dest } label: {
-            Label(title, systemImage: systemImage)
-                .font(.system(size: 14, weight: destination == dest ? .semibold : .medium))
-                .foregroundColor(destination == dest ? .brandAccentWarm : .textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(
-                    destination == dest ? Color.brandAccentWarm.opacity(0.18) : Color.clear,
-                    in: RoundedRectangle(cornerRadius: LinkaRadius.sm, style: .continuous)
-                )
+                if MacHomeLayout.showsInspector(contentWidth: proxy.size.width, hasMeasurement: activeMeasurement != nil) {
+                    Divider()
+                    rightPanel
+                        .frame(width: 320)
+                }
+            }
         }
-        .buttonStyle(.plain)
-        .disabled(disabled)
-        .opacity(disabled ? 0.4 : 1)
-        .accessibilityLabel(title)
-        .accessibilityAddTraits(destination == dest ? .isSelected : [])
     }
 
     // MARK: - Main Stage
@@ -538,6 +570,13 @@ struct MacMainView: View {
                 Label(LinkaCopy.value("optimization.title"), systemImage: "slider.horizontal.3")
             }
             .buttonStyle(.plain)
+
+            Button {
+                showCurrentMeasurementDetails = true
+            } label: {
+                Label("Detalhes", systemImage: "info.circle")
+            }
+            .buttonStyle(.plain)
         }
         .font(.captionMedium)
         .foregroundColor(.textSecondary)
@@ -582,7 +621,7 @@ struct MacMainView: View {
                     .font(.system(size: 56, weight: .heavy, design: .rounded))
                     .foregroundColor(isActive ? .brandAccentWarm : .textPrimary)
                     .contentTransition(.numericText())
-                    .animation(.snappy, value: value)
+                    .animation(reduceMotion ? nil : .snappy, value: value)
                     .lineLimit(1)
                     .minimumScaleFactor(0.35)
                 
@@ -593,6 +632,8 @@ struct MacMainView: View {
             }
         }
         .frame(minWidth: 80, maxWidth: .infinity)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(label), \(value) \(unit)")
     }
     
     private func advancedMetricsRow(for measurement: NetworkMeasurement) -> some View {
@@ -1008,7 +1049,7 @@ struct MacMainView: View {
             )
         }
 
-        if let m = activeMeasurement {
+        if activeMeasurement != nil {
             return AnyView(
                 Button("Medir novamente") { startMeasurement() }
                     .buttonStyle(.macPrimary)
@@ -1058,9 +1099,10 @@ struct MacMainView: View {
     private var rightPanel: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
-                // Bloco Temático 1: Qualidade da Conexão
+                // O inspector é da medição selecionada. Histórico é um destino próprio,
+                // para que contexto técnico não vire um dashboard concorrente da leitura.
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("Qualidade")
+                    Text("Indicadores medidos")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.textPrimary)
 
@@ -1072,15 +1114,6 @@ struct MacMainView: View {
                         showNetscopeAnalysis = true
                     }
                 }
-
-                // Bloco Temático 2: Histórico Recente
-                VStack(alignment: .leading, spacing: 14) {
-                    Text("Últimas Medições")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.textPrimary)
-
-                    recentMeasurementsList
-                }
             }
             .padding(24)
         }
@@ -1088,37 +1121,11 @@ struct MacMainView: View {
     }
 
     private var qualityCard: some View {
-        LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+        LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
             qualityGridCell(label: LinkaCopy.value("Latência"), value: latencyQualityValue, icon: "clock")
             qualityGridCell(label: "Jitter", value: jitterQualityValue, icon: "waveform")
             qualityGridCell(label: LinkaCopy.value("Perda"), value: lossQualityValue, icon: "exclamationmark.triangle")
-            
-            // Célula de Estabilidade com Badge
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 4) {
-                    Image(systemName: "shield.checkerboard")
-                        .font(.system(size: 11, weight: .regular))
-                        .foregroundColor(.textSecondary)
-                        .opacity(hasQualityData ? 1.0 : 0.55)
-                    Text("Estabilidade")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.textSecondary)
-                }
-                Spacer(minLength: 0)
-                stabilityBadge
-            }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.surfacePage, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
-                    .stroke(Color.borderDefault.opacity(0.3), lineWidth: 0.5)
-            )
         }
-    }
-
-    private var hasQualityData: Bool {
-        activeMeasurement != nil
     }
 
     private func qualityGridCell(label: String, value: String, icon: String) -> some View {
@@ -1161,115 +1168,6 @@ struct MacMainView: View {
     private var lossQualityValue: String {
         guard let loss = activeMeasurement?.packetLossPercent else { return "—" }
         return String(format: "%.1f%%", loss)
-    }
-
-    private var stabilityBadge: some View {
-        let (label, color): (String, Color) = {
-            guard let m = activeMeasurement,
-                  let ping = m.latencyMs,
-                  let jitter = m.jitterMs else { return ("—", .textSecondary) }
-            let loss = m.packetLossPercent ?? 0
-            if ping <= 30 && jitter <= 5  && loss < 0.5 { return ("Excelente", .statusGood) }
-            if ping <= 60 && jitter <= 15 && loss < 2   { return ("Boa",       .statusGood) }
-            if ping <= 120               && loss < 5    { return ("Regular",   .statusAttention) }
-            return ("Instável", .statusCritical)
-        }()
-        return AnyView(LinkaStatusBadge(label, color: color))
-    }
-
-    private var recentMeasurementsList: some View {
-        VStack(spacing: 0) {
-            if viewModel.recentMeasurements.isEmpty {
-                Text("Ainda sem medições.")
-                    .font(.captionSmall)
-                    .foregroundColor(.textSecondary)
-                    .padding(.vertical, 16)
-            } else {
-                let items = Array(viewModel.recentMeasurements.prefix(5))
-                ForEach(Array(items.enumerated()), id: \.element.id) { index, m in
-                    recentRow(m, isFirst: index == 0)
-                    if index < items.count - 1 {
-                        Divider()
-                            .background(Color.borderDefault.opacity(0.10))
-                    }
-                }
-            }
-            Button("Ver histórico completo") { destination = .history }
-                .buttonStyle(.linkaSecondary)
-                .disabled(isMeasuring)
-                .padding(.top, 8)
-        }
-    }
-
-    private func recentRow(_ m: NetworkMeasurement, isFirst: Bool = false) -> some View {
-        let isSelected = activeMeasurement?.id == m.id
-        let rowBackground: Color = {
-            if isSelected {
-                return Color.brandAccentWarm.opacity(0.12)
-            } else if isFirst {
-                return Color.textSecondary.opacity(0.04)
-            } else {
-                return Color.clear
-            }
-        }()
-
-        return Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                inspectedHistoricalMeasurement = m
-            }
-        } label: {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text(Self.dateFormatter.string(from: m.measuredAt))
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.textSecondary)
-                    
-                    if let platform = m.devicePlatform {
-                        Image(systemName: platform == "macOS" ? "macbook" : "iphone")
-                            .font(.system(size: 10, weight: .regular))
-                            .foregroundColor(.textSecondary)
-                            .padding(.leading, 2)
-                    }
-
-                    Spacer()
-                    Text(networkLabel(for: m))
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.textPrimary)
-                        .lineLimit(1)
-                }
-                HStack(spacing: 12) {
-                    miniStatCell(label: "Down", value: m.downloadMbps.map { "\(Int(round($0))) Mbps" } ?? "—")
-                    miniStatCell(label: "Up",   value: m.uploadMbps.map   { "\(Int(round($0))) Mbps" } ?? "—")
-                    miniStatCell(label: "Ping", value: m.latencyMs.map    { "\(Int(round($0))) ms" } ?? "—")
-                }
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 8)
-            .background(rowBackground, in: RoundedRectangle(cornerRadius: LinkaRadius.sm, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .contextMenu {
-            Button("Abrir detalhes")   { selectedHistoricalMeasurement = m }
-            Button("Inspecionar no centro") {
-                withAnimation { inspectedHistoricalMeasurement = m }
-            }
-            Button("Testar novamente") { startMeasurement() }
-        }
-    }
-
-    private func miniStatCell(label: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(label)
-                .font(.system(size: 11, weight: .regular))
-                .foregroundColor(.textSecondary)
-                .lineLimit(1)
-            Text(value)
-                .font(.system(.footnote, design: .monospaced).weight(.semibold))
-                .foregroundColor(.textPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     // MARK: - History View (full width)
@@ -1349,7 +1247,7 @@ struct MacMainView: View {
                 Text("Linka Assist")
                     .font(.displayLarge)
                     .foregroundColor(.textPrimary)
-                Text("Diagnóstico inteligente e recomendações guiadas para a sua conexão.")
+                Text("Orientação guiada para entender os dados disponíveis da sua conexão.")
                     .font(.bodyRegular)
                     .foregroundColor(.textSecondary)
                     .multilineTextAlignment(.center)
@@ -1357,10 +1255,10 @@ struct MacMainView: View {
             }
 
             VStack(alignment: .leading, spacing: 14) {
-                assistBenefitRow(icon: "sparkles", text: "Diagnóstico detalhado de chamadas, jogos, streaming e navegação")
-                assistBenefitRow(icon: "chart.line.uptrend.xyaxis", text: "Identificação de causas de instabilidade e gargalos de rede")
+                assistBenefitRow(icon: "sparkles", text: "Leitura guiada para chamadas, jogos, streaming e navegação")
+                assistBenefitRow(icon: "chart.line.uptrend.xyaxis", text: "Hipóteses e próximos passos baseados nos dados disponíveis")
                 assistBenefitRow(icon: "wrench.and.screwdriver", text: "Orientações práticas passo a passo para resolver problemas")
-                assistBenefitRow(icon: "waveform.path.ecg", text: "Análise de padrões de estabilidade e jitter ao longo do tempo")
+                assistBenefitRow(icon: "waveform.path.ecg", text: "Leitura de medições de estabilidade e jitter ao longo do tempo")
             }
             .frame(maxWidth: 440, alignment: .leading)
             .padding(.vertical, 8)
@@ -1406,6 +1304,12 @@ struct MacMainView: View {
     private func startMeasurementFromHistory() {
         selectedHistoricalMeasurement = nil
         destination = .speedTest
+        DispatchQueue.main.async { startMeasurement() }
+    }
+
+    private func startMeasurementFromGlobalAction() {
+        guard !isMeasuring else { return }
+        destination = MacNavigationPolicy.measurementDestination
         DispatchQueue.main.async { startMeasurement() }
     }
 
@@ -1649,49 +1553,4 @@ private extension ButtonStyle where Self == MacPrimaryButtonStyle {
     static var macPrimary: MacPrimaryButtonStyle { MacPrimaryButtonStyle() }
 }
 
-// MARK: - MacMetricRing
-
-private struct MacMetricRing: View {
-    var isConnecting: Bool
-    var progress: Double
-    var value: String
-    var unit: String?
-
-    private var clamped: Double { max(0, min(1, progress)) }
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .stroke(Color.borderDefault, lineWidth: 10)
-
-            if !isConnecting {
-                Circle()
-                    .trim(from: 0, to: max(0.001, clamped))
-                    .stroke(Color.brandAccentWarm, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    .animation(.linear(duration: 0.08), value: clamped)
-            }
-
-            VStack(spacing: 4) {
-                if isConnecting {
-                    ProgressView()
-                        .controlSize(.large)
-                        .tint(Color.brandAccentWarm)
-                } else if !value.isEmpty {
-                    Text(value)
-                        .font(.system(size: 42, weight: .semibold, design: .monospaced))
-                        .foregroundColor(.textPrimary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.5)
-                    if let unit {
-                        Text(unit.uppercased())
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.textSecondary)
-                            .tracking(0.8)
-                    }
-                }
-            }
-        }
-    }
-}
 #endif
