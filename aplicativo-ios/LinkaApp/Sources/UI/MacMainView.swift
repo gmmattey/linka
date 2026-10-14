@@ -10,14 +10,24 @@ import NetworkConnectivityTriage
 import NetworkInsights
 import NetworkOptimization
 
-enum MacDestination: Hashable {
-    case speedTest
-    case history
-    case myNetwork
-    case assist
-    case optimization
-    case settings
+private enum MacPurchaseDismissalAction {
+    case assistProblemSelection
+    case subscriptionManagement
+}
 
+private enum MacAssistEntryPoint {
+    case fresh
+    case result(NetworkMeasurement)
+
+    var measurement: NetworkMeasurement? {
+        guard case .result(let m) = self else { return nil }
+        return m
+    }
+}
+
+private enum DotPhase { case pending, active, done }
+
+private extension MacDestination {
     var title: String {
         switch self {
         case .speedTest: return LinkaCopy.value("Velocímetro")
@@ -40,23 +50,6 @@ enum MacDestination: Hashable {
         }
     }
 }
-
-private enum MacPurchaseDismissalAction {
-    case assistProblemSelection
-    case subscriptionManagement
-}
-
-private enum MacAssistEntryPoint {
-    case fresh
-    case result(NetworkMeasurement)
-
-    var measurement: NetworkMeasurement? {
-        guard case .result(let m) = self else { return nil }
-        return m
-    }
-}
-
-private enum DotPhase { case pending, active, done }
 
 // MARK: - MacMainView
 

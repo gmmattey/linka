@@ -242,12 +242,9 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
-        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/LinkaApp.app/Contents/MacOS/LinkaApp"
-        BUNDLE_LOADER: "$(TEST_HOST)"
     sources:
       - path: LinkaApp/MacTests
-    dependencies:
-      - target: LinkaApp_macOS
+      - path: LinkaApp/Sources/UI/MacPresentationState.swift
   LinkaWidgetExtension:
     type: app-extension
     platform: iOS

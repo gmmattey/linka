@@ -1,6 +1,18 @@
 #if os(macOS)
 import CoreGraphics
 
+/// Destinos da casca macOS. Mantidos com as regras de apresentação para que
+/// possam ser testados sem inicializar o aplicativo, rede ou StoreKit.
+enum MacDestination: Hashable {
+    case speedTest
+    case history
+    case myNetwork
+    case assist
+    case optimization
+    case settings
+
+}
+
 /// Regras puras da casca macOS. Elas mantêm a navegação e o resize testáveis
 /// sem transferir estado de apresentação para o motor de medição.
 enum MacNavigationPolicy {

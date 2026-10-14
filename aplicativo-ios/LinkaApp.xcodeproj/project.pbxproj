@@ -104,6 +104,7 @@
 		65E7034350B2A4EAB1ECC7B2 /* AssistOpportunityHandoffFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90D79DD30F467F20E3424599 /* AssistOpportunityHandoffFactoryTests.swift */; };
 		6882F59A3F151C8F60DFDAE6 /* NetworkProfilesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391C474559F68EE0F41A987D /* NetworkProfilesSection.swift */; };
 		6ACF1B8A4BAB5DCF06F6F805 /* LinkaPlusWordmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D579EFF3B620AD5DF92A3A87 /* LinkaPlusWordmarkView.swift */; };
+		6BB0010031A41CEA9CD7DCC7 /* MacPresentationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6181D6230D5C318D7912E0 /* MacPresentationState.swift */; };
 		6C26089846FA7EE4D5A15EDF /* AssistContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DD4A980DC574793818E97A1 /* AssistContainer.swift */; };
 		6C4E5C7E4228874AB16215AD /* DNSBenchmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED819BC26A779177B1831C40 /* DNSBenchmarkView.swift */; };
 		6DD2EB67BAC9473622C7C743 /* AppStoreReviewPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA2630F94D8B48154FD8F54 /* AppStoreReviewPolicy.swift */; };
@@ -224,13 +225,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		1B955E1ED96FB10EF8C1EBBF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = ED928F4DB6D51F4BE84E816D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 86DF27BAA01897B036E86CFB;
-			remoteInfo = LinkaApp_macOS;
-		};
 		1F4186615688EEB5550D051A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = ED928F4DB6D51F4BE84E816D /* Project object */;
@@ -791,7 +785,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				C2E7E61B3E972685B75DFA1A /* PBXTargetDependency */,
 			);
 			name = LinkaAppMacTests;
 			packageProductDependencies = (
@@ -1174,6 +1167,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6BB0010031A41CEA9CD7DCC7 /* MacPresentationState.swift in Sources */,
 				405FE8B2FF7F35915DB23872 /* MacPresentationStateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1287,11 +1281,6 @@
 			isa = PBXTargetDependency;
 			target = 184D119CB06D3356F99CEDFE /* LinkaWidgetExtension */;
 			targetProxy = AA323DC970B95BE1416B9E17 /* PBXContainerItemProxy */;
-		};
-		C2E7E61B3E972685B75DFA1A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 86DF27BAA01897B036E86CFB /* LinkaApp_macOS */;
-			targetProxy = 1B955E1ED96FB10EF8C1EBBF /* PBXContainerItemProxy */;
 		};
 		C7A4320D6E9196DE063EE2BB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1447,7 +1436,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.linka.LinkaAppMacTests;
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LinkaApp.app/Contents/MacOS/LinkaApp";
 			};
 			name = InternalBeta;
 		};
@@ -1645,7 +1633,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.linka.LinkaAppMacTests;
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LinkaApp.app/Contents/MacOS/LinkaApp";
 			};
 			name = Debug;
 		};
@@ -1723,7 +1710,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.linka.LinkaAppMacTests;
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LinkaApp.app/Contents/MacOS/LinkaApp";
 			};
 			name = Release;
 		};

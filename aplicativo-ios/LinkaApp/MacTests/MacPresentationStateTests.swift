@@ -1,6 +1,5 @@
 #if os(macOS)
 import XCTest
-@testable import LinkaApp
 
 final class MacPresentationStateTests: XCTestCase {
     func testSidebarKeepsPrimaryTasksAndMovesContextualToolsOut() {
