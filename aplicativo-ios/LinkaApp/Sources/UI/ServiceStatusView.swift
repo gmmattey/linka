@@ -54,8 +54,8 @@ struct ServiceStatusView: View {
             }
         }
         .linkaGradientScreenBackground()
-        .searchable(text: $query, prompt: "Buscar serviço")
-        .navigationTitle("Status de serviços")
+        .searchable(text: $query, prompt: LinkaCopy.value("serviceStatus.search"))
+        .navigationTitle(LinkaCopy.value("serviceStatus.title"))
         .task { await store.refresh() }
         .refreshable { await store.refresh() }
     }
@@ -63,8 +63,8 @@ struct ServiceStatusView: View {
     private var emptyState: some View {
         VStack(spacing: 8) {
             Image(systemName: "dot.radiowaves.left.and.right").font(.title2).foregroundStyle(.secondary)
-            Text("Sem dados de status").font(.headline)
-            Text("Atualize novamente em alguns instantes.").font(.footnote).foregroundStyle(.secondary)
+            Text(LinkaCopy.value("serviceStatus.empty.title")).font(.headline)
+            Text(LinkaCopy.value("serviceStatus.empty.detail")).font(.footnote).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, minHeight: 160)
     }
@@ -81,7 +81,7 @@ struct ServiceStatusView: View {
                     Text(statusText(for: service)).font(.footnote).foregroundStyle(.secondary)
                 }
                 Spacer()
-                Toggle("Receber alertas de \(service.name)", isOn: Binding(
+                Toggle(serviceFormat("serviceStatus.notifications", service.name), isOn: Binding(
                     get: { store.isFollowing(service) },
                     set: { enabled in Task { await store.setFollowing(service, enabled: enabled) } }
                 ))
@@ -92,7 +92,7 @@ struct ServiceStatusView: View {
             .accessibilityElement(children: .combine)
 
             if let incident {
-                DisclosureGroup("Ver atualização do serviço", isExpanded: incidentExpansion(for: incident.id)) {
+                DisclosureGroup(LinkaCopy.value("serviceStatus.incident"), isExpanded: incidentExpansion(for: incident.id)) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(incident.title).font(.footnote.weight(.medium))
                         Text(incident.summary).font(.caption).foregroundStyle(.secondary)
@@ -111,9 +111,9 @@ struct ServiceStatusView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Status de serviços")
+                    Text(LinkaCopy.value("serviceStatus.title"))
                         .font(.title.weight(.bold))
-                    Text("Acompanhe a disponibilidade dos serviços que apoiam o Linka.")
+                    Text(LinkaCopy.value("serviceStatus.subtitle"))
                         .foregroundStyle(.secondary)
                 }
 
@@ -150,8 +150,8 @@ struct ServiceStatusView: View {
             .padding(40)
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-        .searchable(text: $query, prompt: "Buscar serviço")
-        .navigationTitle("Status de serviços")
+        .searchable(text: $query, prompt: LinkaCopy.value("serviceStatus.search"))
+        .navigationTitle(LinkaCopy.value("serviceStatus.title"))
         .task { await store.refresh() }
     }
 
@@ -174,7 +174,7 @@ struct ServiceStatusView: View {
                         .foregroundStyle(service.monitoringEnabled && incident == nil ? Color.statusGood : .secondary)
                 }
                 Spacer()
-                Toggle("Receber alertas de \(service.name)", isOn: Binding(
+                Toggle(serviceFormat("serviceStatus.notifications", service.name), isOn: Binding(
                     get: { store.isFollowing(service) },
                     set: { enabled in Task { await store.setFollowing(service, enabled: enabled) } }
                 ))
@@ -185,7 +185,7 @@ struct ServiceStatusView: View {
             .accessibilityElement(children: .combine)
 
             if let incident {
-                DisclosureGroup("Ver atualização do serviço", isExpanded: incidentExpansion(for: incident.id)) {
+                DisclosureGroup(LinkaCopy.value("serviceStatus.incident"), isExpanded: incidentExpansion(for: incident.id)) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(incident.title)
                             .font(.footnote.weight(.medium))
@@ -203,11 +203,11 @@ struct ServiceStatusView: View {
     }
 
     private func macStatusSummary(for service: LinkaService) -> String {
-        guard service.monitoringEnabled else { return "Monitoramento indisponível" }
-        guard let incident = store.incident(for: service) else { return "Operando normalmente" }
+        guard service.monitoringEnabled else { return LinkaCopy.value("serviceStatus.monitoringUnavailable") }
+        guard let incident = store.incident(for: service) else { return LinkaCopy.value("serviceStatus.operatingNormally") }
         switch incident.severity.lowercased() {
-        case "critical", "major", "high": return "Instabilidade em acompanhamento"
-        default: return "Atualização de serviço em acompanhamento"
+        case "critical", "major", "high": return LinkaCopy.value("serviceStatus.instability")
+        default: return LinkaCopy.value("serviceStatus.update")
         }
     }
     #endif
@@ -223,11 +223,15 @@ struct ServiceStatusView: View {
     }
 
     private func statusText(for service: LinkaService) -> String {
-        guard service.monitoringEnabled else { return "Monitoramento ainda não disponível" }
-        guard let incident = store.incident(for: service) else { return "Operando normalmente" }
+        guard service.monitoringEnabled else { return LinkaCopy.value("serviceStatus.monitoringUnavailable") }
+        guard let incident = store.incident(for: service) else { return LinkaCopy.value("serviceStatus.operatingNormally") }
         switch incident.confidence {
         case "high": return incident.summary
-        default: return "Há sinais de instabilidade. \(incident.summary)"
+        default: return serviceFormat("serviceStatus.instability.detail", incident.summary)
         }
+    }
+
+    private func serviceFormat(_ key: String, _ value: String) -> String {
+        String(format: LinkaCopy.value(key), locale: LinkaLanguagePreference.currentLocale, value)
     }
 }
