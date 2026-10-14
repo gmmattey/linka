@@ -260,169 +260,99 @@ struct SettingsView: View {
 
     #if os(macOS)
     private var macOSContent: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("Ajustes")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.textPrimary)
-                    .padding(.bottom, 4)
-
-                macSection {
-                    Button(action: openSubscription) {
-                        HStack(spacing: 12) {
-                            LinkaPlusWordmarkView(height: 20)
-                            Spacer()
-                            Text(subscriptionStatusText)
-                                .font(.bodySmall)
-                                .foregroundColor(.textSecondary)
-                                .multilineTextAlignment(.trailing)
-                            Image(systemName: "chevron.right")
-                                .font(.caption.weight(.semibold))
-                                .foregroundColor(.textSecondary)
-                        }
-                        .frame(minHeight: 38)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Linka Plus, \(subscriptionStatusText)")
-                }
-
-                macSection(title: LinkaCopy.value("Preferências")) {
-                    HStack {
-                        Label("Aparência", systemImage: "circle.lefthalf.filled")
+        Form {
+            Section {
+                Button(action: openSubscription) {
+                    HStack(spacing: 12) {
+                        LinkaPlusWordmarkView(height: 20)
                         Spacer()
-                        Picker("Aparência", selection: $appAppearance) {
-                            Text("Sistema").tag("system")
-                            Text("Claro").tag("light")
-                            Text("Escuro").tag("dark")
-                        }
-                        .labelsHidden()
-                        .pickerStyle(.segmented)
-                        .frame(width: 220)
+                        Text(subscriptionStatusText)
+                            .foregroundStyle(.secondary)
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.tertiary)
                     }
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Linka Plus, \(subscriptionStatusText)")
+            }
 
-                macSection(title: LinkaCopy.value("Status de serviços")) {
-                    NavigationLink(destination: ServiceStatusView()) {
-                        macRow(LinkaCopy.value("Acompanhar serviços"), systemImage: "dot.radiowaves.left.and.right", showsChevron: true)
-                    }
-                    .buttonStyle(.plain)
+            Section(LinkaCopy.value("Preferências")) {
+                Picker("Aparência", selection: $appAppearance) {
+                    Text("Sistema").tag("system")
+                    Text("Claro").tag("light")
+                    Text("Escuro").tag("dark")
                 }
+                .pickerStyle(.segmented)
+            }
 
-                macSection(title: LinkaCopy.value("Rede e diagnóstico")) {
-                    Toggle(isOn: Binding(
-                        get: { advancedWiFiEnabled },
-                        set: { enabled in
-                            guard macAdvancedWiFiAllowed else {
-                                purchaseEntryPoint = .advancedWiFi
-                                showPurchase = true
-                                return
-                            }
-                            advancedWiFiEnabled = enabled
-                        }
-                    )) {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("Wi-Fi avançado")
-                                .foregroundColor(.textPrimary)
-                            Text(macAdvancedWiFiAllowed ? "Coleta detalhes nativos somente quando você iniciar uma medição com detalhes." : "Disponível no Linka Plus.")
-                                .font(.bodySmall)
-                                .foregroundColor(.textSecondary)
-                        }
-                    }
-                    .tint(.brandAccentWarm)
-
-                    NavigationLink(destination: NetworkProfilesManagementView(
-                        isPlusActive: LinkaEntitlementPolicy.decision(for: .optimization, snapshot: entitlements.snapshot).isGranted,
-                        onRequestPurchase: {
-                            purchaseEntryPoint = .optimization
+            Section(LinkaCopy.value("Rede e diagnóstico")) {
+                Toggle(isOn: Binding(
+                    get: { advancedWiFiEnabled },
+                    set: { enabled in
+                        guard macAdvancedWiFiAllowed else {
+                            purchaseEntryPoint = .advancedWiFi
                             showPurchase = true
+                            return
                         }
-                    )) {
-                        macRow(LinkaCopy.value("environments.saved.title"), systemImage: "mappin.and.ellipse", showsChevron: true)
+                        advancedWiFiEnabled = enabled
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(LinkaCopy.value("environments.saved.title"))
-                    .accessibilityHint(LinkaCopy.value("environments.settings.accessibilityHint"))
-                }
-
-                macSection(title: LinkaCopy.value("Ferramentas")) {
-                    NavigationLink(destination: MacRouterPanelView()) {
-                        macRow(LinkaCopy.value("Painel do roteador"), systemImage: "router", showsChevron: true)
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                macSection(title: LinkaCopy.value("Ajuda")) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        macLinkRow(LinkaCopy.value("Como medimos"), systemImage: "speedometer", destination: LinkaExternalLinks.howWeMeasure)
-                        macLinkRow(LinkaCopy.value("Suporte"), systemImage: "questionmark.circle", destination: LinkaExternalLinks.support)
-                        macLinkRow(LinkaCopy.value("Enviar feedback"), systemImage: "text.bubble", destination: LinkaExternalLinks.support)
-                        Button { requestReview() } label: {
-                            macRow(LinkaCopy.value("Avaliar o Linka"), systemImage: "star", showsChevron: false)
-                        }
-                        .buttonStyle(.plain)
+                )) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Wi-Fi avançado")
+                        Text(macAdvancedWiFiAllowed ? "Coleta detalhes nativos somente quando você iniciar uma medição com detalhes." : "Disponível no Linka Plus.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
                 }
+                .tint(.brandAccentWarm)
 
-                macSection(title: LinkaCopy.value("Sobre e legal")) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        macLinkRow(LinkaCopy.value("Privacidade"), systemImage: "hand.raised", destination: LinkaExternalLinks.privacy)
-                        macLinkRow(LinkaCopy.value("Termos de Uso"), systemImage: "doc.text", destination: LinkaExternalLinks.terms)
-                        macLinkRow(LinkaCopy.value("Sobre o Linka"), systemImage: "info.circle", destination: LinkaExternalLinks.about)
-                        Text("Versão \(appVersion)")
-                            .font(.captionMedium)
-                            .foregroundColor(.textSecondary)
-                            .padding(.top, 4)
+                NavigationLink(destination: NetworkProfilesManagementView(
+                    isPlusActive: LinkaEntitlementPolicy.decision(for: .optimization, snapshot: entitlements.snapshot).isGranted,
+                    onRequestPurchase: {
+                        purchaseEntryPoint = .optimization
+                        showPurchase = true
                     }
+                )) {
+                    Label(LinkaCopy.value("environments.saved.title"), systemImage: "mappin.and.ellipse")
+                }
+                .accessibilityHint(LinkaCopy.value("environments.settings.accessibilityHint"))
+            }
+
+            Section(LinkaCopy.value("Ferramentas")) {
+                NavigationLink(destination: MacRouterPanelView()) {
+                    Label(LinkaCopy.value("Painel do roteador"), systemImage: "router")
+                }
+                NavigationLink(destination: ServiceStatusView()) {
+                    Label(LinkaCopy.value("Acompanhar serviços"), systemImage: "dot.radiowaves.left.and.right")
                 }
             }
-            .frame(maxWidth: 620, alignment: .leading)
-            .padding(.horizontal, 40)
-            .padding(.vertical, 32)
-            .frame(maxWidth: .infinity, alignment: .topLeading)
-        }
-        .background(Color.surfacePage)
-    }
 
-    private func macSection<Content: View>(title: String? = nil, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let title {
-                Text(title)
-                    .font(.system(size: 11, weight: .bold))
-                    .textCase(.uppercase)
-                    .foregroundColor(.textSecondary)
-                    .tracking(0.6)
+            Section(LinkaCopy.value("Ajuda")) {
+                macLinkRow(LinkaCopy.value("Como medimos"), systemImage: "speedometer", destination: LinkaExternalLinks.howWeMeasure)
+                macLinkRow(LinkaCopy.value("Suporte"), systemImage: "questionmark.circle", destination: LinkaExternalLinks.support)
+                macLinkRow(LinkaCopy.value("Enviar feedback"), systemImage: "text.bubble", destination: LinkaExternalLinks.support)
+                Button { requestReview() } label: {
+                    Label(LinkaCopy.value("Avaliar o Linka"), systemImage: "star")
+                }
             }
-            VStack(alignment: .leading, spacing: 12, content: content)
-                .padding(16)
-                .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
-                        .stroke(Color.borderDefault.opacity(0.3), lineWidth: 0.5)
-                )
+
+            Section(LinkaCopy.value("Sobre e legal")) {
+                macLinkRow(LinkaCopy.value("Privacidade"), systemImage: "hand.raised", destination: LinkaExternalLinks.privacy)
+                macLinkRow(LinkaCopy.value("Termos de Uso"), systemImage: "doc.text", destination: LinkaExternalLinks.terms)
+                macLinkRow(LinkaCopy.value("Sobre o Linka"), systemImage: "info.circle", destination: LinkaExternalLinks.about)
+                Text("Versão \(appVersion)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         }
+        .formStyle(.grouped)
     }
 
     private func macLinkRow(_ title: String, systemImage: String, destination: URL) -> some View {
         Link(destination: destination) {
-            macRow(title, systemImage: systemImage, showsChevron: true)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func macRow(_ title: String, systemImage: String, showsChevron: Bool) -> some View {
-        HStack(spacing: 10) {
             Label(title, systemImage: systemImage)
-                .foregroundColor(.textPrimary)
-            Spacer()
-            if showsChevron {
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.textSecondary.opacity(0.6))
-            }
         }
-        .frame(minHeight: 34)
-        .contentShape(Rectangle())
     }
 
     private var macAdvancedWiFiAllowed: Bool {
