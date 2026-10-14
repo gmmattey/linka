@@ -530,6 +530,10 @@
 "assist.mac.subtitle.initial" = "Cuenta qué está pasando. Linka parte de los datos disponibles para sugerir un siguiente paso.";
 "assist.plus.benefit.investigate" = "Próximos pasos prácticos para investigar lo observado";
 "inventory.mac.subtitle" = "Organiza la información declarada sobre tu red. Nada aquí se deduce automáticamente.";
+"optimization.mac.measurementContext" = "En esta medición";
+"optimization.mac.dns.title" = "Comparar respuesta de DNS";
+"optimization.mac.dns.detail" = "Mide respuestas DNS en esta conexión.";
+"optimization.mac.dns.plusDetail" = "Disponible con Linka Plus.";
 "history.single.title" = "Tu primera medición";
 "history.single.message" = "Haz una medición más para empezar a seguir la tendencia.";
 "history.insight.improved" = "Tu velocidad de descarga está aproximadamente un %@%% mejor esta semana que la anterior.";

@@ -147,19 +147,24 @@ struct OptimizationView: View {
 
                 macVerdict
 
-                Button(isPlusActive ? LinkaCopy.value("optimization.retest") : LinkaCopy.value("optimization.preview.cta")) {
-                    if isPlusActive {
-                        dismiss()
-                        onRetest()
-                    } else {
-                        onRequestPurchase()
+                // Retestar só faz sentido depois de uma ação observável. Sem
+                // oportunidade na leitura atual, não inventamos uma tarefa
+                // nem usamos o vazio como pretexto para upsell.
+                if !plan.opportunities.isEmpty {
+                    Button(isPlusActive ? LinkaCopy.value("optimization.retest") : LinkaCopy.value("optimization.preview.cta")) {
+                        if isPlusActive {
+                            dismiss()
+                            onRetest()
+                        } else {
+                            onRequestPurchase()
+                        }
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.brandAccentWarm)
+                    .accessibilityHint(isPlusActive ? LinkaCopy.value("optimization.retest.hint") : LinkaCopy.value("optimization.preview.hint"))
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.brandAccentWarm)
-                .accessibilityHint(isPlusActive ? LinkaCopy.value("optimization.retest.hint") : LinkaCopy.value("optimization.preview.hint"))
 
-                macSection(title: "Nesta medição") {
+                macSection(title: LinkaCopy.value("optimization.mac.measurementContext")) {
                     NetworkProfilesSection(
                         coordinator: profileCoordinator,
                         isPlusActive: isPlusActive,
@@ -177,15 +182,15 @@ struct OptimizationView: View {
                             }
                         } label: {
                             macSecondaryAction(
-                                title: "Comparar resposta de DNS",
-                                detail: "Mede respostas DNS nesta conexão."
+                                title: LinkaCopy.value("optimization.mac.dns.title"),
+                                detail: LinkaCopy.value("optimization.mac.dns.detail")
                             )
                         }
                     } else {
                         Button(action: onRequestPurchase) {
                             macSecondaryAction(
-                                title: "Comparar resposta de DNS",
-                                detail: "Disponível no Linka Plus."
+                                title: LinkaCopy.value("optimization.mac.dns.title"),
+                                detail: LinkaCopy.value("optimization.mac.dns.plusDetail")
                             )
                         }
                         .buttonStyle(.plain)
