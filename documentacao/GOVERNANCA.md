@@ -27,25 +27,24 @@ Luiz decide mudanças de produto em aberto, monetização, custo, publicação e
 
 | Papel | Responsabilidade | Escrita |
 |---|---|---|
-| Marco/Codex | Delimitar, integrar, proteger WIP e comunicar resultado | No escopo solicitado |
-| Íris | Produto, jornada, UX/UI, copy e critérios de aceite | Somente quando delegada; leitura por padrão |
-| Camillo | Arquitetura, motor, contratos e integrações | Somente quando delegada |
-| Pedro | Implementação delimitada e verificações | Somente quando delegada |
-| Tito | Revisão independente, regressão, segurança e evidência | Leitura por padrão |
+| Marco/Codex | Interlocução, integração, proteção de WIP e comunicação do resultado | No escopo solicitado |
+| Giam | Product Owner & Quality Gatekeeper: valor, escopo, aceite, revisão independente e risco de App Review | Somente quando delegado; leitura por padrão |
+| Jean | Apple UX/UI & Human Interface Designer: jornada, design, acessibilidade e adaptação por plataforma | Somente quando delegado; leitura por padrão |
+| Theo | Apple Platform Engineer: arquitetura, Swift/SwiftUI, integrações, testes e preparação local de release | Somente quando delegado |
 
-As configurações estão em [`.codex/agents`](../.codex/agents/). Usar os defaults de modelo/esforço do projeto e escalar pela criticidade, não pelo nome. Delegar só se especialização/paralelismo ajudar. Informar objetivo, checkout, arquivos, permissão de escrita, retorno e limites; evitar agentes escrevendo nos mesmos arquivos. Quando Luiz pedir Maestri, usar os agentes conectados por ele. Não simular handoff, revisão ou aprovação.
+As configurações estão em [`.codex/agents`](../.codex/agents/) e as Skills versionadas em [`.agents/skills`](../.agents/skills/). Usar os defaults de modelo/esforço do projeto e escalar pela criticidade, não pelo nome. Delegar só se especialização/paralelismo ajudar. Informar objetivo, checkout, arquivos, permissão de escrita, retorno e limites; evitar agentes escrevendo nos mesmos arquivos. Quando Luiz pedir Maestri, usar os agentes conectados por ele. Não simular handoff, revisão ou aprovação.
 
 ## Fluxo proporcional
 
 Mudança pequena: delimitar → implementar → verificar → relatar. Sem plano, relatório ou chamada de toda a squad por obrigação.
 
-Camillo investiga antes de implementar se houver múltiplos módulos, API/contrato compartilhado, integração entre sistemas/produtos ou superfícies Apple, schema/persistência transversal, motor, nova dependência estrutural, refatoração, segurança/privacidade sistêmica ou grande impacto de erro. O plano curto cabe na PR/issue ou em uma seção temporária da fonte afetada: problema, decisão, contratos, falhas, validação e limites. Ao concluir, conservar só a decisão durável.
+Theo investiga antes de implementar se houver múltiplos módulos, API/contrato compartilhado, integração entre sistemas/produtos ou superfícies Apple, schema/persistência transversal, motor, nova dependência estrutural, refatoração, segurança/privacidade sistêmica ou grande impacto de erro. O plano curto cabe na PR/issue ou em uma seção temporária da fonte afetada: problema, decisão, contratos, falhas, validação e limites. Ao concluir, conservar só a decisão durável.
 
-Quando há decisão de produto, Íris ajuda a fechar comportamento e aceite. Pedro ou Codex implementa o plano; lacuna recuperável recebe a menor solução coerente. Contradição material volta ao responsável, sem arquitetura improvisada. Tito revisa quando risco justificar; Camillo retorna se a implementação materializar decisão arquitetural relevante.
+Quando há decisão de produto, Giam delimita valor e Jean fecha comportamento, plataforma e aceite visual. Theo implementa o plano; lacuna recuperável recebe a menor solução coerente. Contradição material volta ao responsável, sem arquitetura improvisada. Jean revisa a UI real quando for afetada; Giam revisa risco/evidência e retorna Theo se a implementação materializar decisão arquitetural relevante.
 
 Hotfix usa o menor escopo que corrige o defeito e validação proporcional; análise estrutural pode ocorrer depois conforme o risco. Não usar urgência para esconder refatoração ou publicar sem autorização. No máximo duas rodadas sobre o mesmo bloqueio técnico; depois reavaliar escopo e decisão, sem loop de agentes.
 
-Tito classifica `BLOQUEIA` (defeito material), `AJUSTA` (correção nesta entrega) ou `ISSUE_FUTURA` (fora do escopo). O responsável integra os achados, sem declarar aprovação não recebida.
+Giam classifica o parecer como `APROVADO`, `APROVADO COM RESSALVAS`, `REPROVADO` ou `NÃO VALIDADO`, fundamentando qualquer bloqueio, ajuste ou item futuro em evidência. O responsável integra os achados, sem declarar aprovação humana, merge ou publicação não recebidos.
 
 ## Preservação e evidência
 
