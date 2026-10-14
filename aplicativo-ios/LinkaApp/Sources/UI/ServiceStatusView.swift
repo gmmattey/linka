@@ -157,8 +157,6 @@ struct ServiceStatusView: View {
 
     private func macCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 12, content: content)
-            .padding(18)
-            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private func macServiceRow(_ service: LinkaService) -> some View {
