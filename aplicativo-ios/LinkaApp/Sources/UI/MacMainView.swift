@@ -30,12 +30,12 @@ private enum DotPhase { case pending, active, done }
 private extension MacDestination {
     var title: String {
         switch self {
-        case .speedTest: return LinkaCopy.value("Velocímetro")
-        case .history: return LinkaCopy.value("Histórico")
+        case .speedTest: return LinkaCopy.value("mac.destination.speedTest")
+        case .history: return LinkaCopy.value("mac.destination.history")
         case .myNetwork: return LinkaCopy.value("inventory.title")
-        case .assist: return "Assist"
+        case .assist: return LinkaCopy.value("assist.title")
         case .optimization: return LinkaCopy.value("optimization.title")
-        case .settings: return LinkaCopy.value("Configurações")
+        case .settings: return LinkaCopy.value("settings.title")
         }
     }
 
@@ -249,10 +249,10 @@ struct MacMainView: View {
             }
         }
         .shareMeasurementSheet(isPresented: $showShareSheet, measurement: currentMeasurement)
-        .alert("Detalhes de Wi-Fi indisponíveis", isPresented: $showAdvancedWiFiUnavailable) {
-            Button("OK", role: .cancel) {}
+        .alert(LinkaCopy.value("mac.alert.advancedWiFi.title"), isPresented: $showAdvancedWiFiUnavailable) {
+            Button(LinkaCopy.value("common.ok"), role: .cancel) {}
         } message: {
-            Text("O Mac não informou detalhes suficientes do Wi-Fi agora. Nenhuma medição foi iniciada.")
+            Text(LinkaCopy.value("mac.alert.advancedWiFi.message"))
         }
         .onChange(of: viewModel.downloadSpeed) { speed in
             guard viewModel.uiPhase == .downloading, speed > speedGaugeUpperBound else { return }
@@ -310,7 +310,7 @@ struct MacMainView: View {
 
     private var navigationSidebar: some View {
         List(selection: $destination) {
-            Section("Medição") {
+            Section(LinkaCopy.value("mac.sidebar.measurement")) {
                 destinationLink(.speedTest)
                 destinationLink(.history, isDisabled: !MacNavigationPolicy.isAvailable(.history, isMeasuring: isMeasuring, hasMeasurement: currentMeasurement != nil, minhaRedeEnabled: MinhaRedeAvailability.isEnabled))
             }
@@ -371,10 +371,10 @@ struct MacMainView: View {
             ToolbarItemGroup(placement: .primaryAction) {
                 if destination != .speedTest {
                     if isMeasuring {
-                        Button("Cancelar", action: viewModel.skipOrCancel)
+                        Button(LinkaCopy.value("common.cancel"), action: viewModel.skipOrCancel)
                             .keyboardShortcut(".", modifiers: .command)
                     } else {
-                        Button("Testar velocidade", action: startMeasurementFromGlobalAction)
+                        Button(LinkaCopy.value("home.testSpeed"), action: startMeasurementFromGlobalAction)
                             .keyboardShortcut("r", modifiers: .command)
                     }
                 }
@@ -382,7 +382,7 @@ struct MacMainView: View {
                 Button {
                     destination = .settings
                 } label: {
-                    Label(LinkaCopy.value("Configurações"), systemImage: "gearshape")
+                    Label(LinkaCopy.value("settings.title"), systemImage: "gearshape")
                 }
                 .disabled(isMeasuring || destination == .settings)
             }
@@ -436,7 +436,7 @@ struct MacMainView: View {
                 } else if let m = activeMeasurement {
                     // Estado: Resultado Ativo (Recém medido ou selecionado do histórico)
                     VStack(spacing: 20) {
-                        Text("Medição concluída")
+                        Text(LinkaCopy.value("mac.result.complete"))
                             .font(.title3.weight(.semibold))
                             .foregroundColor(.textPrimary)
                         horizontalHero(for: m)
@@ -445,7 +445,7 @@ struct MacMainView: View {
                             advancedMetricsRow(for: m)
                                 .padding(.top, 10)
                         } label: {
-                            Label("Detalhes da medição", systemImage: "chevron.down")
+                            Label(LinkaCopy.value("detail.title"), systemImage: "chevron.down")
                                 .font(.bodySmallMedium)
                                 .foregroundColor(.textPrimary)
                         }
@@ -490,7 +490,7 @@ struct MacMainView: View {
             }
             .padding(.bottom, 4)
 
-            Text("Pronto para testar sua velocidade")
+            Text(LinkaCopy.value("mac.idle.title"))
                 .font(.displayTitle)
                 .foregroundColor(.textPrimary)
         }
@@ -553,7 +553,7 @@ struct MacMainView: View {
             Button {
                 requestAssist(from: .result(measurement))
             } label: {
-                Label("Assist", systemImage: "sparkles")
+                Label(LinkaCopy.value("assist.title"), systemImage: "sparkles")
             }
             .buttonStyle(.plain)
 
@@ -567,7 +567,7 @@ struct MacMainView: View {
             Button {
                 showCurrentMeasurementDetails = true
             } label: {
-                Label("Detalhes", systemImage: "info.circle")
+                Label(LinkaCopy.value("assist.technicalDetails"), systemImage: "info.circle")
             }
             .buttonStyle(.plain)
         }
@@ -577,8 +577,8 @@ struct MacMainView: View {
     
     private var horizontalHero: some View {
         HStack(spacing: 32) {
-            heroBlock(label: "Download", value: downloadFooterValue, unit: "Mbps", isActive: downloadDotState == .active)
-            heroBlock(label: "Upload", value: uploadFooterValue, unit: "Mbps", isActive: uploadDotState == .active)
+            heroBlock(label: LinkaCopy.value("detail.download"), value: downloadFooterValue, unit: "Mbps", isActive: downloadDotState == .active)
+            heroBlock(label: LinkaCopy.value("detail.upload"), value: uploadFooterValue, unit: "Mbps", isActive: uploadDotState == .active)
         }
         .padding(.horizontal, 20)
     }
@@ -586,13 +586,13 @@ struct MacMainView: View {
     private func horizontalHero(for m: NetworkMeasurement) -> some View {
         HStack(spacing: 32) {
             heroBlock(
-                label: "Download",
+                label: LinkaCopy.value("detail.download"),
                 value: m.downloadMbps.map { String(format: "%.1f", $0) } ?? "—",
                 unit: "Mbps",
                 isActive: false
             )
             heroBlock(
-                label: "Upload",
+                label: LinkaCopy.value("detail.upload"),
                 value: m.uploadMbps.map { String(format: "%.1f", $0) } ?? "—",
                 unit: "Mbps",
                 isActive: false
@@ -632,20 +632,20 @@ struct MacMainView: View {
     private func advancedMetricsRow(for measurement: NetworkMeasurement) -> some View {
         HStack(spacing: 0) {
             if let ping = measurement.latencyMs {
-                miniDetailCell(label: "Ping", value: String(format: "%.0f", ping), unit: "ms")
+                miniDetailCell(label: LinkaCopy.value("detail.ping"), value: String(format: "%.0f", ping), unit: "ms")
                     .frame(maxWidth: .infinity)
             }
             if let jitter = measurement.jitterMs {
-                miniDetailCell(label: "Jitter", value: String(format: "%.0f", jitter), unit: "ms")
+                miniDetailCell(label: LinkaCopy.value("detail.jitter"), value: String(format: "%.0f", jitter), unit: "ms")
                     .frame(maxWidth: .infinity)
             }
             if let loss = measurement.packetLossPercent {
                 let formattedLoss = loss == 0 ? "0" : String(format: "%.1f", loss)
-                miniDetailCell(label: "Perda", value: formattedLoss, unit: "%")
+                miniDetailCell(label: LinkaCopy.value("detail.packetLoss"), value: formattedLoss, unit: "%")
                     .frame(maxWidth: .infinity)
             }
             if let dns = measurement.dnsResolutionMs {
-                miniDetailCell(label: "DNS", value: String(format: "%.0f", dns), unit: "ms")
+                miniDetailCell(label: LinkaCopy.value("detail.dns"), value: String(format: "%.0f", dns), unit: "ms")
                     .frame(maxWidth: .infinity)
             }
         }
@@ -678,9 +678,9 @@ struct MacMainView: View {
     private func usageSuitabilityRow(for measurement: NetworkMeasurement) -> some View {
         let report = UsageSuitabilityEvaluator().evaluate(measurement)
         return HStack(spacing: 16) {
-            suitabilityBadge(for: .videoCall, in: report, icon: "video.fill", title: "Videochamada")
-            suitabilityBadge(for: .streaming4K, in: report, icon: "play.tv.fill", title: "Streaming 4K")
-            suitabilityBadge(for: .onlineGaming, in: report, icon: "gamecontroller.fill", title: "Jogos Online")
+            suitabilityBadge(for: .videoCall, in: report, icon: "video.fill", title: LinkaCopy.value("usage.case.videoCall.title"))
+            suitabilityBadge(for: .streaming4K, in: report, icon: "play.tv.fill", title: LinkaCopy.value("usage.case.streaming4K.title"))
+            suitabilityBadge(for: .onlineGaming, in: report, icon: "gamecontroller.fill", title: LinkaCopy.value("usage.case.onlineGaming.title"))
         }
     }
 
@@ -713,7 +713,7 @@ struct MacMainView: View {
                 if viewModel.liveConnectionKind == .wifi {
                     if let ctx = viewModel.liveWiFiContext {
                         liveMetricCard(
-                            title: "Link PHY",
+                            title: LinkaCopy.value("mac.live.linkPHY"),
                             value: ctx.linkSpeedMbps.map { "\(Int($0)) Mbps" } ?? "—",
                             icon: "speedometer",
                             statusColor: .brandAccentWarm
@@ -721,7 +721,7 @@ struct MacMainView: View {
                     }
                     
                     liveMetricCard(
-                        title: LinkaCopy.value("Sinal Wi-Fi"),
+                        title: LinkaCopy.value("detail.wifi.signal"),
                         value: wifiSignalTechnicalValue,
                         icon: "wifi",
                         statusColor: liveWifiColor
@@ -735,40 +735,40 @@ struct MacMainView: View {
                     )
                 } else if viewModel.liveConnectionKind == .ethernet {
                     liveMetricCard(
-                        title: LinkaCopy.value("Conexão"),
-                        value: LinkaCopy.value("Cabo Ethernet"),
+                        title: LinkaCopy.value("network.connection"),
+                        value: LinkaCopy.value("network.ethernet"),
                         icon: "cable.connector",
                         statusColor: .statusGood
                     )
                     liveMetricCard(
-                        title: LinkaCopy.value("Estado"),
-                        value: LinkaCopy.value("Conectado"),
+                        title: LinkaCopy.value("mac.live.status"),
+                        value: LinkaCopy.value("mac.live.connected"),
                         icon: "checkmark.circle.fill",
                         statusColor: .statusGood
                     )
                 } else if viewModel.liveConnectionKind == .cellular {
                     liveMetricCard(
-                        title: LinkaCopy.value("Conexão"),
-                        value: LinkaCopy.value("Dados Celulares"),
+                        title: LinkaCopy.value("network.connection"),
+                        value: LinkaCopy.value("network.cellular"),
                         icon: "antenna.radiowaves.left.and.right",
                         statusColor: .brandAccentWarm
                     )
                     liveMetricCard(
-                        title: LinkaCopy.value("Estado"),
-                        value: LinkaCopy.value("Conectado"),
+                        title: LinkaCopy.value("mac.live.status"),
+                        value: LinkaCopy.value("mac.live.connected"),
                         icon: "checkmark.circle.fill",
                         statusColor: .statusGood
                     )
                 } else {
                     liveMetricCard(
-                        title: LinkaCopy.value("Interface"),
+                        title: LinkaCopy.value("mac.live.interface"),
                         value: liveConnectionName,
                         icon: "network",
                         statusColor: .textSecondary
                     )
                     liveMetricCard(
-                        title: LinkaCopy.value("Estado"),
-                        value: LinkaCopy.value("Ativo"),
+                        title: LinkaCopy.value("mac.live.status"),
+                        value: LinkaCopy.value("mac.live.active"),
                         icon: "checkmark.circle.fill",
                         statusColor: .statusGood
                     )
@@ -778,9 +778,9 @@ struct MacMainView: View {
             // Metadados Físicos Complementares de Wi-Fi
             if viewModel.liveConnectionKind == .wifi, let ctx = viewModel.liveWiFiContext {
                 HStack(spacing: 16) {
-                    wifiDetail(label: "SSID", value: ctx.ssid ?? LinkaCopy.value("Desconhecido"))
+                    wifiDetail(label: "SSID", value: ctx.ssid ?? LinkaCopy.value("common.unavailable"))
                     if let std = viewModel.advancedWiFiDiagnostics?.wifiStandard {
-                        wifiDetail(label: LinkaCopy.value("Padrão"), value: std)
+                        wifiDetail(label: LinkaCopy.value("detail.wifi.standard"), value: std)
                     }
                     Spacer(minLength: 0)
                 }
@@ -790,7 +790,7 @@ struct MacMainView: View {
 
             }
         } label: {
-            Label("Rede agora", systemImage: "wifi")
+            Label(LinkaCopy.value("home.live.metrics"), systemImage: "wifi")
                 .font(.captionSmallStrong)
                 .foregroundColor(.textPrimary)
         }
@@ -867,9 +867,9 @@ struct MacMainView: View {
     
     private var wifiSignalLabel: String {
         guard let rssi = viewModel.liveWifiRSSI else { return "—" }
-        if rssi >= -60 { return LinkaCopy.value("Forte") }
-        if rssi >= -75 { return LinkaCopy.value("Médio") }
-        return LinkaCopy.value("Fraco")
+        if rssi >= -60 { return LinkaCopy.value("mac.live.signal.strong") }
+        if rssi >= -75 { return LinkaCopy.value("mac.live.signal.medium") }
+        return LinkaCopy.value("mac.live.signal.weak")
     }
 
     private var wifiSignalTechnicalValue: String {
@@ -904,9 +904,9 @@ struct MacMainView: View {
 
     private var phaseDots: some View {
         HStack(spacing: 28) {
-            phaseDot(label: "Ping",     state: pingDotState)
-            phaseDot(label: "Download", state: downloadDotState)
-            phaseDot(label: "Upload",   state: uploadDotState)
+            phaseDot(label: LinkaCopy.value("detail.ping"), state: pingDotState)
+            phaseDot(label: LinkaCopy.value("detail.download"), state: downloadDotState)
+            phaseDot(label: LinkaCopy.value("detail.upload"), state: uploadDotState)
         }
     }
 
@@ -1036,7 +1036,7 @@ struct MacMainView: View {
     private var actionRow: some View {
         if isMeasuring {
             return AnyView(
-                Button("Cancelar") { viewModel.skipOrCancel() }
+                Button(LinkaCopy.value("common.cancel")) { viewModel.skipOrCancel() }
                     .buttonStyle(.linkaSecondary)
                     .keyboardShortcut(".", modifiers: .command)
             )
@@ -1044,7 +1044,7 @@ struct MacMainView: View {
 
         if activeMeasurement != nil {
             return AnyView(
-                Button("Medir novamente") { startMeasurement() }
+                Button(LinkaCopy.value("common.testAgain")) { startMeasurement() }
                     .buttonStyle(.macPrimary)
                     .frame(maxWidth: 280)
                     .keyboardShortcut("r", modifiers: .command)
@@ -1054,14 +1054,14 @@ struct MacMainView: View {
         switch viewModel.uiPhase {
         case .idle:
             return AnyView(
-                Button("Testar velocidade") { startMeasurement() }
+                Button(LinkaCopy.value("home.testSpeed")) { startMeasurement() }
                     .buttonStyle(.macPrimary)
                     .frame(maxWidth: 280)
                     .keyboardShortcut("r", modifiers: .command)
             )
         case .connecting, .downloading, .uploading, .done:
             return AnyView(
-                Button("Testar velocidade") { startMeasurement() }
+                Button(LinkaCopy.value("home.testSpeed")) { startMeasurement() }
                     .buttonStyle(.macPrimary)
                     .frame(maxWidth: 280)
                     .keyboardShortcut("r", modifiers: .command)
@@ -1069,17 +1069,17 @@ struct MacMainView: View {
         case .error:
             return AnyView(
                 HStack(spacing: 10) {
-                    Button("Tentar novamente") { startMeasurement() }
+                    Button(LinkaCopy.value("common.tryAgain")) { startMeasurement() }
                         .buttonStyle(.macPrimary)
                         .frame(maxWidth: 280)
                         .keyboardShortcut("r", modifiers: .command)
-                    Button("Verificar conexão") { showConnectivityTriage = true }
+                    Button(LinkaCopy.value("home.checkConnection")) { showConnectivityTriage = true }
                         .buttonStyle(.linkaSecondary)
                 }
             )
         case .connectionChanged:
             return AnyView(
-                Button("Testar conexão") { startMeasurement() }
+                Button(LinkaCopy.value("home.connectionChanged.cta")) { startMeasurement() }
                     .buttonStyle(.macPrimary)
                     .frame(maxWidth: 280)
                     .keyboardShortcut("r", modifiers: .command)
@@ -1095,7 +1095,7 @@ struct MacMainView: View {
                 // O inspector é da medição selecionada. Histórico é um destino próprio,
                 // para que contexto técnico não vire um dashboard concorrente da leitura.
                 VStack(alignment: .leading, spacing: 14) {
-                    Text("Indicadores medidos")
+                    Text(LinkaCopy.value("mac.inspector.measured"))
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.textPrimary)
 
@@ -1115,9 +1115,9 @@ struct MacMainView: View {
 
     private var qualityCard: some View {
         LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-            qualityGridCell(label: LinkaCopy.value("Latência"), value: latencyQualityValue, icon: "clock")
-            qualityGridCell(label: "Jitter", value: jitterQualityValue, icon: "waveform")
-            qualityGridCell(label: LinkaCopy.value("Perda"), value: lossQualityValue, icon: "exclamationmark.triangle")
+            qualityGridCell(label: LinkaCopy.value("assist.latency"), value: latencyQualityValue, icon: "clock")
+            qualityGridCell(label: LinkaCopy.value("detail.jitter"), value: jitterQualityValue, icon: "waveform")
+            qualityGridCell(label: LinkaCopy.value("detail.packetLoss"), value: lossQualityValue, icon: "exclamationmark.triangle")
         }
     }
 
@@ -1237,10 +1237,10 @@ struct MacMainView: View {
             }
 
             VStack(spacing: 8) {
-                Text("Linka Assist")
+                Text(LinkaCopy.value("assist.title"))
                     .font(.displayLarge)
                     .foregroundColor(.textPrimary)
-                Text("Orientação guiada para entender os dados disponíveis da sua conexão.")
+                Text(LinkaCopy.value("mac.assist.upgrade.subtitle"))
                     .font(.bodyRegular)
                     .foregroundColor(.textSecondary)
                     .multilineTextAlignment(.center)
@@ -1248,15 +1248,15 @@ struct MacMainView: View {
             }
 
             VStack(alignment: .leading, spacing: 14) {
-                assistBenefitRow(icon: "sparkles", text: "Leitura guiada para chamadas, jogos, streaming e navegação")
-                assistBenefitRow(icon: "chart.line.uptrend.xyaxis", text: "Hipóteses e próximos passos baseados nos dados disponíveis")
+                assistBenefitRow(icon: "sparkles", text: LinkaCopy.value("mac.assist.upgrade.benefit.guided"))
+                assistBenefitRow(icon: "chart.line.uptrend.xyaxis", text: LinkaCopy.value("mac.assist.upgrade.benefit.hypotheses"))
                 assistBenefitRow(icon: "wrench.and.screwdriver", text: LinkaCopy.value("assist.plus.benefit.investigate"))
-                assistBenefitRow(icon: "waveform.path.ecg", text: "Leitura de medições de estabilidade e jitter ao longo do tempo")
+                assistBenefitRow(icon: "waveform.path.ecg", text: LinkaCopy.value("mac.assist.upgrade.benefit.history"))
             }
             .frame(maxWidth: 440, alignment: .leading)
             .padding(.vertical, 8)
 
-            Button("Conhecer o Linka Plus") {
+            Button(LinkaCopy.value("settings.subscription.learnPlus")) {
                 purchaseEntryPoint = .assist
                 showPurchase = true
             }
@@ -1426,15 +1426,15 @@ struct MacMainView: View {
 
     private func networkLabel(for m: NetworkMeasurement) -> String {
         switch m.connectionKind {
-        case .wifi:     return m.wifiContext?.ssid ?? "Wi-Fi"
+        case .wifi:     return m.wifiContext?.ssid ?? LinkaCopy.value("network.wifi")
         case .cellular: return LinkaCopy.value("network.cellular")
         case .ethernet: return LinkaCopy.value("network.ethernet")
-        default:        return LinkaCopy.value("Rede")
+        default:        return LinkaCopy.value("network.connection")
         }
     }
 
     private var liveConnectionName: String {
-        viewModel.liveNetworkLabel.isEmpty ? LinkaCopy.value("Conexão atual") : viewModel.liveNetworkLabel
+        viewModel.liveNetworkLabel.isEmpty ? LinkaCopy.value("home.currentConnection") : viewModel.liveNetworkLabel
     }
 
     // MARK: - Gauge helpers
@@ -1463,13 +1463,16 @@ struct MacMainView: View {
 
     private var gaugeAccessibilityValue: String {
         switch viewModel.uiPhase {
-        case .idle:             return "Pronto para medir"
-        case .connecting:       return "Conectando ao servidor"
-        case .downloading:      return "Download: \(Int(round(viewModel.downloadSpeed))) Mbps, medição em andamento"
-        case .uploading:        return "Download medido: \(Int(round(viewModel.downloadSpeed))) Mbps. Medindo upload"
-        case .done:             return "Download: \(Int(round(viewModel.downloadSpeed))) Mbps. Medição concluída"
-        case .error:            return "Medição indisponível"
-        case .connectionChanged:return "Medição interrompida porque a rede mudou"
+        case .idle: return LinkaCopy.value("mac.gauge.idle")
+        case .connecting: return LinkaCopy.value("mac.gauge.connecting")
+        case .downloading:
+            return macFormattedCopy("mac.gauge.downloading", String(Int(round(viewModel.downloadSpeed))))
+        case .uploading:
+            return macFormattedCopy("mac.gauge.uploading", String(Int(round(viewModel.downloadSpeed))))
+        case .done:
+            return macFormattedCopy("mac.gauge.done", String(Int(round(viewModel.downloadSpeed))))
+        case .error: return LinkaCopy.value("mac.gauge.error")
+        case .connectionChanged: return LinkaCopy.value("mac.gauge.connectionChanged")
         }
     }
 
@@ -1489,21 +1492,26 @@ struct MacMainView: View {
     private var phaseMessage: String {
         switch viewModel.uiPhase {
         case .connecting:       return LinkaCopy.value("home.phase.connecting")
-        case .downloading:      return LinkaCopy.value("Medindo Download…")
-        case .uploading:        return LinkaCopy.value("Medindo Upload…")
+        case .downloading:      return LinkaCopy.value("home.phase.downloading")
+        case .uploading:        return LinkaCopy.value("home.phase.uploading")
         case .done:
             if let m = viewModel.latestFinishedMeasurement {
-                return String(format: LinkaCopy.value("Última medição às %@"), Self.timeFormatter.string(from: m.measuredAt))
+                return macFormattedCopy("mac.phase.lastAt", Self.timeFormatter.string(from: m.measuredAt))
             }
-            return LinkaCopy.value("Medição concluída")
-        case .error:            return viewModel.failureReason == .offline ? LinkaCopy.value("Sem conexão com a internet.") : LinkaCopy.value("Não foi possível medir.")
-        case .connectionChanged:return LinkaCopy.value("A rede mudou durante a medição.")
+            return LinkaCopy.value("mac.result.complete")
+        case .error:
+            return viewModel.failureReason == .offline ? LinkaCopy.value("network.offline") : LinkaCopy.value("home.error.generic.title")
+        case .connectionChanged: return LinkaCopy.value("home.connectionChanged.message")
         case .idle:
             if let m = inspectedHistoricalMeasurement {
-                return String(format: LinkaCopy.value("Medição de %@"), Self.dateFormatter.string(from: m.measuredAt))
+                return macFormattedCopy("mac.phase.measurementAt", Self.dateFormatter.string(from: m.measuredAt))
             }
-            return LinkaCopy.value("Pronto para medir")
+            return LinkaCopy.value("mac.gauge.idle")
         }
+    }
+
+    private func macFormattedCopy(_ key: String, _ value: String) -> String {
+        String(format: LinkaCopy.value(key), locale: LinkaLanguagePreference.currentLocale, value)
     }
 
     private static func speedGaugeScale(for value: Double) -> Double {
