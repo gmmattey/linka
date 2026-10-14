@@ -529,6 +529,7 @@
 "history.insight.accessibilityHint" = "Conheça as leituras adicionais do Linka Plus";
 "assist.mac.subtitle.initial" = "Conte o que está acontecendo. O Linka parte dos dados disponíveis para sugerir um próximo passo.";
 "assist.plus.benefit.investigate" = "Próximos passos práticos para investigar o que foi observado";
+"inventory.mac.subtitle" = "Organize informações declaradas sobre a sua rede. Nada aqui é deduzido automaticamente.";
 "history.single.title" = "Sua primeira medição";
 "history.single.message" = "Faça mais uma medição para começar a acompanhar a tendência.";
 "history.insight.improved" = "Sua velocidade de download está cerca de %@%% melhor esta semana em comparação à semana anterior.";

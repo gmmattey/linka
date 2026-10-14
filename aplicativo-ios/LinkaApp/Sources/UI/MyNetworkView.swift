@@ -30,30 +30,12 @@ struct MyNetworkView: View {
     }
 
     var body: some View {
-        List {
-            planSection
-
-            if store.activePlan != nil {
-                planPerformanceSection
-            }
-
-            devicesSection
-
-            if store.devices.count >= 2 {
-                connectionsSection
-            }
-
-            environmentsSection
-
-            Section {
-                Text(LinkaCopy.value("inventory.local")).font(.footnote).foregroundStyle(.secondary)
-            }
-            if let error = store.error {
-                Section {
-                    Text(error).foregroundStyle(.red)
-                    Button(LinkaCopy.value("common.tryAgain")) { Task { await store.reload() } }
-                }
-            }
+        Group {
+            #if os(macOS)
+            macOSContent
+            #else
+            inventoryList
+            #endif
         }
         .navigationTitle(LinkaCopy.value("inventory.title"))
         .toolbar {
@@ -131,6 +113,55 @@ struct MyNetworkView: View {
                 #endif
         }
     }
+
+    private var inventoryList: some View {
+        List {
+            planSection
+
+            if store.activePlan != nil {
+                planPerformanceSection
+            }
+
+            devicesSection
+
+            if store.devices.count >= 2 {
+                connectionsSection
+            }
+
+            environmentsSection
+
+            Section {
+                Text(LinkaCopy.value("inventory.local")).font(.footnote).foregroundStyle(.secondary)
+            }
+            if let error = store.error {
+                Section {
+                    Text(error).foregroundStyle(.red)
+                    Button(LinkaCopy.value("common.tryAgain")) { Task { await store.reload() } }
+                }
+            }
+        }
+    }
+
+    #if os(macOS)
+    private var macOSContent: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(LinkaCopy.value("inventory.title"))
+                    .font(.largeTitle.weight(.bold))
+                Text(LinkaCopy.value("inventory.mac.subtitle"))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: 760, alignment: .leading)
+            .padding(.horizontal, 32)
+            .padding(.top, 28)
+            .padding(.bottom, 16)
+
+            inventoryList
+                .listStyle(.inset)
+        }
+    }
+    #endif
 
     private var planSection: some View {
         Section(LinkaCopy.value("inventory.section.plan")) {
