@@ -278,9 +278,8 @@ struct DNSBenchmarkView: View {
             Text(title.uppercased())
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
-            VStack(alignment: .leading, spacing: 12, content: content)
-                .padding(18)
-                .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            content()
+            Divider()
         }
     }
     #endif

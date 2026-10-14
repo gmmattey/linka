@@ -215,10 +215,14 @@ struct AssistProblemSelectionView: View {
 
     private var macSubtitle: String {
         if let objective = selectedObjective {
-            return "Escolha o tipo de \(objective.label.lowercased()) para direcionar a análise."
+            return String(
+                format: LinkaCopy.value("assist.mac.subtitle.objective"),
+                locale: LinkaLanguagePreference.currentLocale,
+                objective.label.lowercased(with: LinkaLanguagePreference.currentLocale)
+            )
         }
         if showingReportedProblem {
-            return "Descreva o que está acontecendo para a análise considerar seu contexto."
+            return LinkaCopy.value("assist.mac.subtitle.reported")
         }
         return LinkaCopy.value("assist.mac.subtitle.initial")
     }
@@ -226,16 +230,16 @@ struct AssistProblemSelectionView: View {
     private var macObjectiveStep: some View {
         VStack(alignment: .leading, spacing: 24) {
             if let currentMeasurement {
-                macCard(title: "Medição para análise") {
+                macCard(title: LinkaCopy.value("assist.mac.measurementContext")) {
                     HStack(spacing: 24) {
                         if let down = currentMeasurement.downloadMbps {
-                            macMeasurementValue("Download", value: String(format: "%.1f Mbps", down), symbol: "arrow.down")
+                            macMeasurementValue(LinkaCopy.value("detail.download"), value: String(format: "%.1f Mbps", down), symbol: "arrow.down")
                         }
                         if let up = currentMeasurement.uploadMbps {
-                            macMeasurementValue("Upload", value: String(format: "%.1f Mbps", up), symbol: "arrow.up")
+                            macMeasurementValue(LinkaCopy.value("detail.upload"), value: String(format: "%.1f Mbps", up), symbol: "arrow.up")
                         }
                         if let latency = currentMeasurement.latencyMs {
-                            macMeasurementValue("Ping", value: String(format: "%.0f ms", latency), symbol: "gauge.with.needle")
+                            macMeasurementValue(LinkaCopy.value("assist.latency"), value: String(format: "%.0f ms", latency), symbol: "gauge.with.needle")
                         }
                     }
                 }
@@ -349,9 +353,8 @@ struct AssistProblemSelectionView: View {
             Text(title.uppercased())
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
-            VStack(alignment: .leading, spacing: 12, content: content)
-                .padding(18)
-                .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            content()
+            Divider()
         }
     }
     #endif

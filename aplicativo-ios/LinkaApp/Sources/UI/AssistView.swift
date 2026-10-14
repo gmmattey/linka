@@ -114,6 +114,14 @@ struct AssistView: View {
     }
 
     var body: some View {
+        #if os(macOS)
+        macOSContent
+        #else
+        iOSContent
+        #endif
+    }
+
+    private var iOSContent: some View {
         NavigationStack {
             ZStack {
                 LinkaScreenBackground(variant: .gradientOnly, showWaves: false)
@@ -135,6 +143,239 @@ struct AssistView: View {
             }
         }
     }
+
+    #if os(macOS)
+    private var macOSContent: some View {
+        NavigationStack {
+            macContentView
+                .navigationTitle(LinkaCopy.value("assist.title"))
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(LinkaCopy.value("common.close"), action: closeSheet)
+                    }
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var macContentView: some View {
+        switch viewModel.state {
+        case .idle, .loading:
+            if isCollectingMeasurement {
+                macProgressState(
+                    title: LinkaCopy.value("assist.collecting.title"),
+                    detail: LinkaCopy.value("assist.collecting.message")
+                )
+            } else if currentMeasurement != nil {
+                macProgressState(
+                    title: LinkaCopy.value("assist.mac.preparing.title"),
+                    detail: LinkaCopy.value("assist.mac.preparing.detail")
+                )
+            } else {
+                macUnavailableState
+            }
+        case .error(let message):
+            macErrorState(message: message)
+        case .success(let data):
+            macAnalysisResult(data)
+        }
+    }
+
+    private func macProgressState(title: String, detail: String) -> some View {
+        VStack(spacing: 14) {
+            ProgressView()
+                .controlSize(.large)
+            Text(title)
+                .font(.title2.weight(.semibold))
+            Text(detail)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 420)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var macUnavailableState: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "chart.line.uptrend.xyaxis")
+                .font(.system(size: 36))
+                .foregroundStyle(.secondary)
+            Text(LinkaCopy.value("assist.unavailable.title"))
+                .font(.title2.weight(.semibold))
+            Text(LinkaCopy.value("assist.unavailable.message"))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 420)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func macErrorState(message: String) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Label(LinkaCopy.value("assist.error.title"), systemImage: "exclamationmark.triangle.fill")
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(Color.statusAttention)
+            Text(message)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack {
+                Button(LinkaCopy.value("common.tryAgain")) {
+                    Task {
+                        await viewModel.retry(
+                            currentMeasurement: currentMeasurement,
+                            recentMeasurements: recentMeasurements,
+                            usageContext: usageContext,
+                            failureSignal: failureSignal,
+                            objective: objective,
+                            subcategory: subcategory,
+                            reportedProblem: reportedProblem
+                        )
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.brandAccentWarm)
+                Button(LinkaCopy.value("common.back"), action: closeSheet)
+            }
+        }
+        .frame(maxWidth: 620, alignment: .leading)
+        .padding(40)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    private func macAnalysisResult(_ data: AssistViewModel.DiagnosticData) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 28) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(LinkaCopy.value("assist.mac.analysis.title"))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+                    Text(data.title)
+                        .font(.title.weight(.bold))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(summaryWithoutRepeatedRecommendation(data))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let attribution = data.aiAttribution {
+                        Label(attribution, systemImage: "sparkles")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Divider()
+
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(LinkaCopy.value("assist.mac.nextStep"))
+                        .font(.headline)
+                    if let recommendation = data.recommendation {
+                        Text(recommendation.title)
+                            .font(.body.weight(.semibold))
+                        let detailLines = recommendationDetailLines(recommendation, summary: data.summary)
+                        if !detailLines.isEmpty {
+                            VStack(alignment: .leading, spacing: 8) {
+                                ForEach(Array(detailLines.enumerated()), id: \.offset) { index, line in
+                                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                        Text(detailLines.count > 1 ? "\(index + 1)." : "•")
+                                            .foregroundStyle(Color.brandAccentWarm)
+                                        Text(line)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                        }
+                        if let actionURL = recommendation.actionURL ?? currentMeasurement?.wifiContext?.gatewayAdminURL.flatMap(URL.init),
+                           (recommendation.actionLabel != nil || recommendation.title.lowercased().contains("roteador") || recommendation.title.lowercased().contains("wi-fi") || recommendation.title.lowercased().contains("canal")) {
+                            Button(recommendation.actionLabel ?? LinkaCopy.value("assist.openRouterSettings")) {
+                                openURL(actionURL)
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    } else {
+                        Text(LinkaCopy.value("assist.mac.noAction"))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                DisclosureGroup(LinkaCopy.value("assist.mac.dataUsed")) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(LinkaCopy.value("assist.mac.dataUsed.detail"))
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        if !data.dimensions.isEmpty {
+                            ForEach(data.dimensions, id: \.name) { dimension in
+                                dimensionRow(dimension)
+                            }
+                        } else if let measurement = currentMeasurement {
+                            measurementEvidenceRow(
+                                title: LinkaCopy.value("detail.download"),
+                                value: measurement.downloadMbps.map(formattedSpeed) ?? LinkaCopy.value("common.unavailable")
+                            )
+                            if let upload = measurement.uploadMbps, upload > 0 {
+                                measurementEvidenceRow(title: LinkaCopy.value("detail.upload"), value: formattedSpeed(upload))
+                            }
+                            measurementEvidenceRow(
+                                title: LinkaCopy.value("assist.latency"),
+                                value: measurement.latencyMs.map(formattedMilliseconds) ?? LinkaCopy.value("common.unavailable")
+                            )
+                            measurementEvidenceRow(
+                                title: LinkaCopy.value("assist.network"),
+                                value: measurement.connectionKind.map { connectionLabel($0) } ?? LinkaCopy.value("common.unavailable")
+                            )
+                        }
+                    }
+                    .padding(.top, 8)
+                }
+
+                macStabilityPatternsSection
+
+                HStack(spacing: 12) {
+                    if let retry = onRetry {
+                        Button(LinkaCopy.value("common.retry")) {
+                            closeSheet()
+                            retry()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.brandAccentWarm)
+                    }
+                    if let onShowDetails {
+                        Button(LinkaCopy.value("assist.technicalDetails")) {
+                            closeSheet()
+                            onShowDetails()
+                        }
+                    }
+                }
+            }
+            .frame(maxWidth: 680, alignment: .leading)
+            .padding(40)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
+        }
+    }
+
+    @ViewBuilder
+    private var macStabilityPatternsSection: some View {
+        switch stabilityViewModel.state {
+        case .loading, .unavailable:
+            EmptyView()
+        case .insufficientHistory:
+            Text(LinkaCopy.value("assist.history.insufficient"))
+                .foregroundStyle(.secondary)
+        case .noPatternDetected:
+            Text(LinkaCopy.value("assist.history.noPattern"))
+                .foregroundStyle(.secondary)
+        case .detected(let sentences):
+            VStack(alignment: .leading, spacing: 10) {
+                Text(LinkaCopy.value("assist.history.title"))
+                    .font(.headline)
+                ForEach(Array(sentences.enumerated()), id: \.offset) { _, sentence in
+                    Label(sentence, systemImage: "clock.arrow.circlepath")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+    #endif
 
     private func loadAssist(with measurement: NetworkMeasurement) async {
         await viewModel.load(

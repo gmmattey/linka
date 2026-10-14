@@ -528,6 +528,16 @@
 "history.summary.count" = "%lld saved measurements";
 "history.insight.accessibilityHint" = "Learn about the additional Linka Plus readings";
 "assist.mac.subtitle.initial" = "Describe what is happening. Linka uses the available data to suggest a next step.";
+"assist.mac.subtitle.objective" = "Choose the type of %@ to guide the reading.";
+"assist.mac.subtitle.reported" = "Describe what is happening so the reading can consider your context.";
+"assist.mac.measurementContext" = "Measurement for analysis";
+"assist.mac.preparing.title" = "Preparing the reading";
+"assist.mac.preparing.detail" = "Assist is organizing the available data from this measurement.";
+"assist.mac.analysis.title" = "Measurement reading";
+"assist.mac.nextStep" = "Next step";
+"assist.mac.noAction" = "There is no specific action to recommend from the available data.";
+"assist.mac.dataUsed" = "Data used";
+"assist.mac.dataUsed.detail" = "These data inform the response, but do not confirm a cause on their own.";
 "assist.plus.benefit.investigate" = "Practical next steps to investigate what was observed";
 "inventory.mac.subtitle" = "Organize information you have declared about your network. Nothing here is inferred automatically.";
 "optimization.mac.measurementContext" = "In this measurement";

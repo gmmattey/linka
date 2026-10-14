@@ -528,6 +528,16 @@
 "history.summary.count" = "%lld medições salvas";
 "history.insight.accessibilityHint" = "Conheça as leituras adicionais do Linka Plus";
 "assist.mac.subtitle.initial" = "Conte o que está acontecendo. O Linka parte dos dados disponíveis para sugerir um próximo passo.";
+"assist.mac.subtitle.objective" = "Escolha o tipo de %@ para direcionar a leitura.";
+"assist.mac.subtitle.reported" = "Descreva o que está acontecendo para a leitura considerar seu contexto.";
+"assist.mac.measurementContext" = "Medição para análise";
+"assist.mac.preparing.title" = "Preparando a leitura";
+"assist.mac.preparing.detail" = "O Assist está organizando os dados disponíveis desta medição.";
+"assist.mac.analysis.title" = "Leitura da medição";
+"assist.mac.nextStep" = "Próximo passo";
+"assist.mac.noAction" = "Não há uma ação específica a recomendar com os dados disponíveis.";
+"assist.mac.dataUsed" = "Dados usados";
+"assist.mac.dataUsed.detail" = "Estes dados orientam a resposta, mas não confirmam uma causa por si só.";
 "assist.plus.benefit.investigate" = "Próximos passos práticos para investigar o que foi observado";
 "inventory.mac.subtitle" = "Organize informações declaradas sobre a sua rede. Nada aqui é deduzido automaticamente.";
 "optimization.mac.measurementContext" = "Nesta medição";
