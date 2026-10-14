@@ -521,6 +521,14 @@
 "history.empty.message" = "Haz una medición para verla aquí.";
 "history.measurements" = "Mediciones";
 "history.measurement" = "Medición";
+"history.observedVariation" = "Variación observada";
+"history.observedVariation.detail" = "Descarga y carga dentro de esta selección. Redes, horarios y condiciones diferentes no establecen una sola tendencia.";
+"history.summary.empty" = "No hay mediciones en esta selección";
+"history.summary.single" = "1 medición guardada";
+"history.summary.count" = "%lld mediciones guardadas";
+"history.insight.accessibilityHint" = "Conoce las lecturas adicionales de Linka Plus";
+"assist.mac.subtitle.initial" = "Cuenta qué está pasando. Linka parte de los datos disponibles para sugerir un siguiente paso.";
+"assist.plus.benefit.investigate" = "Próximos pasos prácticos para investigar lo observado";
 "history.single.title" = "Tu primera medición";
 "history.single.message" = "Haz una medición más para empezar a seguir la tendencia.";
 "history.insight.improved" = "Tu velocidad de descarga está aproximadamente un %@%% mejor esta semana que la anterior.";

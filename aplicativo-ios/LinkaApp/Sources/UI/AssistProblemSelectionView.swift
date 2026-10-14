@@ -220,7 +220,7 @@ struct AssistProblemSelectionView: View {
         if showingReportedProblem {
             return "Descreva o que está acontecendo para a análise considerar seu contexto."
         }
-        return "Conte o que está acontecendo. O Linka usa a medição atual para explicar o próximo passo."
+        return LinkaCopy.value("assist.mac.subtitle.initial")
     }
 
     private var macObjectiveStep: some View {

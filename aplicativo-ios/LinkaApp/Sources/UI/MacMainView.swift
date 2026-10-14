@@ -1257,7 +1257,7 @@ struct MacMainView: View {
             VStack(alignment: .leading, spacing: 14) {
                 assistBenefitRow(icon: "sparkles", text: "Leitura guiada para chamadas, jogos, streaming e navegação")
                 assistBenefitRow(icon: "chart.line.uptrend.xyaxis", text: "Hipóteses e próximos passos baseados nos dados disponíveis")
-                assistBenefitRow(icon: "wrench.and.screwdriver", text: "Orientações práticas passo a passo para resolver problemas")
+                assistBenefitRow(icon: "wrench.and.screwdriver", text: LinkaCopy.value("assist.plus.benefit.investigate"))
                 assistBenefitRow(icon: "waveform.path.ecg", text: "Leitura de medições de estabilidade e jitter ao longo do tempo")
             }
             .frame(maxWidth: 440, alignment: .leading)

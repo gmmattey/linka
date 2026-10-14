@@ -65,6 +65,14 @@ struct HistoryView: View {
     }
 
     var body: some View {
+        #if os(macOS)
+        macOSContent
+        #else
+        standardContent
+        #endif
+    }
+
+    private var standardContent: some View {
         ZStack {
             LinkaScreenBackground(variant: .gradientOnly, showWaves: false)
                 .ignoresSafeArea()
@@ -220,6 +228,188 @@ struct HistoryView: View {
             prepareHistoryAdIfEligible()
         }
     }
+
+    #if os(macOS)
+    /// O Histórico no Mac privilegia a leitura e a comparação intencional:
+    /// primeiro a lista de fatos salvos; o gráfico é uma visão secundária
+    /// da variação observada naquele recorte, nunca uma promessa de tendência.
+    private var macOSContent: some View {
+        ZStack {
+            LinkaScreenBackground(variant: .gradientOnly, showWaves: false)
+                .ignoresSafeArea()
+
+            if isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 28) {
+                        macHeader
+
+                        if historyVisualizationState == .empty {
+                            LinkaUnavailableState(
+                                title: LinkaCopy.value("history.empty.title"),
+                                message: LinkaCopy.value("history.empty.message"),
+                                systemImage: "clock"
+                            )
+                            .frame(maxWidth: .infinity, minHeight: 280)
+                        } else {
+                            if hasPlus, let insightText {
+                                macInsight(text: insightText)
+                            } else if !hasPlus {
+                                macInsightUpgrade
+                            }
+
+                            if historyVisualizationState == .trend {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text(LinkaCopy.value("history.observedVariation"))
+                                        .font(.title3.weight(.semibold))
+                                    Text(LinkaCopy.value("history.observedVariation.detail"))
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                    HistoryWaveChartView(measurements: filteredMeasurements)
+                                }
+                            }
+
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Medições")
+                                    .font(.title3.weight(.semibold))
+
+                                LazyVStack(spacing: 0) {
+                                    ForEach(filteredMeasurements, id: \.id) { measurement in
+                                        Button { onSelectMeasurement?(measurement) } label: {
+                                            AppleStyleHistoryRow(measurement: measurement)
+                                                .padding(.horizontal, 16)
+                                                .padding(.vertical, 6)
+                                        }
+                                        .buttonStyle(.plain)
+
+                                        if measurement.id != filteredMeasurements.last?.id {
+                                            Divider().padding(.leading, 16)
+                                        }
+                                    }
+                                }
+                                .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous)
+                                        .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.5)
+                                )
+                            }
+                        }
+                    }
+                    .frame(maxWidth: 720, alignment: .leading)
+                    .padding(.horizontal, 40)
+                    .padding(.vertical, 32)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
+            }
+        }
+        .navigationTitle(LinkaCopy.value("history.title"))
+        .sheet(isPresented: $showPurchase) {
+            PurchaseSheet(entryPoint: purchaseEntryPoint) { loadData() }
+                .environmentObject(entitlements)
+                .frame(minWidth: 620, minHeight: 620)
+        }
+        .task { loadData() }
+    }
+
+    private var macHeader: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(LinkaCopy.value("history.title"))
+                        .font(.largeTitle.weight(.bold))
+                    Text(historySummary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 16)
+                macControls
+            }
+        }
+    }
+
+    private var macControls: some View {
+        HStack(spacing: 8) {
+            Menu {
+                ForEach(availableFilters, id: \.self) { option in
+                    Button(option.label) { filter = option }
+                }
+            } label: {
+                Label(filter.label, systemImage: "line.3.horizontal.decrease.circle")
+            }
+
+            Menu {
+                ForEach(HistorySort.allCases, id: \.self) { option in
+                    Button {
+                        sort = option
+                    } label: {
+                        if sort == option {
+                            Label(option.label, systemImage: "checkmark")
+                        } else {
+                            Text(option.label)
+                        }
+                    }
+                }
+            } label: {
+                Label(sort.label, systemImage: "arrow.up.arrow.down")
+            }
+        }
+        .labelStyle(.titleAndIcon)
+        .controlSize(.regular)
+    }
+
+    private var historySummary: String {
+        let count = filteredMeasurements.count
+        if count == 0 { return LinkaCopy.value("history.summary.empty") }
+        if count == 1 { return LinkaCopy.value("history.summary.single") }
+        return LinkaCopy.format("history.summary.count", count)
+    }
+
+    private func macInsight(text: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "sparkles")
+                .foregroundStyle(Color.brandAccentWarm)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(LinkaCopy.value("history.insights"))
+                    .font(.subheadline.weight(.semibold))
+                Text(text)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(16)
+        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+
+    private var macInsightUpgrade: some View {
+        Button {
+            purchaseEntryPoint = .historyInsights
+            showPurchase = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "lock")
+                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(LinkaCopy.value("history.plus.prompt"))
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color.textPrimary)
+                    LinkaPlusWordmarkView(height: 14)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(16)
+            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(LinkaCopy.value("history.insight.accessibilityHint"))
+    }
+    #endif
 
     private var filteredMeasurements: [NetworkMeasurement] {
         let scoped = measurements.filter { measurement in
@@ -483,7 +673,7 @@ struct HistoryWaveChartView: View {
 
     private var chartTitle: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("Tendência de Velocidade").font(.subheadline.weight(.bold)).foregroundColor(.textPrimary)
+            Text(LinkaCopy.value("history.observedVariation")).font(.subheadline.weight(.bold)).foregroundColor(.textPrimary)
             if let active = activeMeasurement { Text(formatHeaderDate(active.measuredAt)).font(.caption2.weight(.medium)).foregroundColor(.textSecondary) }
         }
     }
