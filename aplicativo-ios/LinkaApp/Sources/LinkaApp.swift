@@ -126,6 +126,7 @@ struct LinkaApp: App {
                 .environmentObject(ads)
                 .preferredColorScheme(preferredColorScheme)
                 .environment(\.locale, effectiveLocale)
+            #if os(iOS)
             .alert("Instabilidade em serviço", isPresented: Binding(
                 get: { serviceStatus.popupIncident != nil },
                 set: { if !$0 { serviceStatus.popupIncident = nil } }
@@ -134,6 +135,7 @@ struct LinkaApp: App {
             } message: { incident in
                 Text(incident.title)
             }
+            #endif
             .onOpenURL { url in
                 guard url.scheme?.lowercased() == "linka",
                       url.host == "wifi-advanced",
@@ -216,19 +218,20 @@ struct LinkaApp: App {
 #if os(macOS)
 private struct LinkaMacCommands: Commands {
     @ObservedObject private var coordinator = AppIntentCoordinator.shared
+    @AppStorage(LinkaLanguagePreference.storageKey) private var languagePreference = LinkaLanguagePreference.system.rawValue
 
     var body: some Commands {
         CommandGroup(replacing: .newItem) {
             if coordinator.isMeasurementActive {
-                Button("Cancelar medição") { coordinator.requestCancelMeasurement() }
+                Button(LinkaCopy.value("common.cancel", locale: languagePreference)) { coordinator.requestCancelMeasurement() }
                     .keyboardShortcut(".", modifiers: .command)
             } else {
-                Button("Testar velocidade") { coordinator.requestStartSpeedTest() }
+                Button(LinkaCopy.value("home.testSpeed", locale: languagePreference)) { coordinator.requestStartSpeedTest() }
                     .keyboardShortcut("r", modifiers: .command)
             }
         }
         CommandGroup(after: .appSettings) {
-            Button("Ajustes…") { coordinator.requestOpenSettings() }
+            Button("\(LinkaCopy.value("settings.title", locale: languagePreference))…") { coordinator.requestOpenSettings() }
                 .keyboardShortcut(",", modifiers: .command)
                 .disabled(coordinator.isMeasurementActive)
         }

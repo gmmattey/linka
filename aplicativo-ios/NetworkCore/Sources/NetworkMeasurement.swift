@@ -328,6 +328,11 @@ public struct WiFiNetworkContext: Codable, Equatable, Hashable, Sendable {
     public let gatewayVendor: String?
     public let gatewayAdminURL: String?
 
+    public var bandDisplay: String {
+        guard let band = bandGHz else { return "Wi-Fi" }
+        return band == 2.4 ? "2,4 GHz" : "\(Int(band)) GHz"
+    }
+
     public init(
         ssid: String? = nil,
         accessPointIdentifier: String? = nil,

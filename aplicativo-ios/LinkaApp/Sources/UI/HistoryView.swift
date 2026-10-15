@@ -59,6 +59,12 @@ struct HistoryView: View {
     @State private var insightText: String?
     @State private var filter: HistoryFilter = .all
     @State private var sort: HistorySort = .recent
+    #if os(macOS)
+    @State private var selectedComparisonIDs: Set<UUID> = []
+    @State private var showComparisonModal = false
+    @State private var inspectedMeasurementID: UUID?
+    @State private var searchQuery: String = ""
+    #endif
 
     private var repository: any MeasurementHistoryRepository {
         LinkaMeasurementHistory.makeRepository(entitlements: entitlements)
@@ -234,7 +240,7 @@ struct HistoryView: View {
     /// primeiro a lista de fatos salvos; o gráfico é uma visão secundária
     /// da variação observada naquele recorte, nunca uma promessa de tendência.
     private var macOSContent: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             LinkaScreenBackground(variant: .gradientOnly, showWaves: false)
                 .ignoresSafeArea()
 
@@ -243,7 +249,7 @@ struct HistoryView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 28) {
+                    VStack(alignment: .leading, spacing: 20) {
                         macHeader
 
                         if historyVisualizationState == .empty {
@@ -254,57 +260,48 @@ struct HistoryView: View {
                             )
                             .frame(maxWidth: .infinity, minHeight: 280)
                         } else {
-                            if hasPlus, let insightText {
-                                macInsight(text: insightText)
-                            } else if !hasPlus {
-                                macInsightUpgrade
-                            }
+                            macFiltersRow
 
-                            if historyVisualizationState == .trend {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    Text(LinkaCopy.value("history.observedVariation"))
-                                        .font(.title3.weight(.semibold))
-                                    Text(LinkaCopy.value("history.observedVariation.detail"))
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                    HistoryWaveChartView(measurements: filteredMeasurements)
+                            HStack(alignment: .top, spacing: 18) {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    macTableView
+                                        .frame(minWidth: 420, maxWidth: .infinity)
+                                    Text(LinkaCopy.value("mac.result.savedLocal"))
+                                        .font(.system(size: 10))
+                                        .foregroundColor(.textSecondary)
+                                        .padding(.horizontal, 4)
                                 }
-                            }
 
-                            VStack(alignment: .leading, spacing: 10) {
-                                Text("Medições")
-                                    .font(.title3.weight(.semibold))
-
-                                LazyVStack(spacing: 0) {
-                                    ForEach(filteredMeasurements, id: \.id) { measurement in
-                                        Button { onSelectMeasurement?(measurement) } label: {
-                                            AppleStyleHistoryRow(measurement: measurement)
-                                                .padding(.horizontal, 16)
-                                                .padding(.vertical, 6)
-                                        }
-                                        .buttonStyle(.plain)
-
-                                        if measurement.id != filteredMeasurements.last?.id {
-                                            Divider().padding(.leading, 16)
-                                        }
-                                    }
+                                if let inspected = activeInspectedMeasurement {
+                                    macDetailSidebar(for: inspected)
+                                        .frame(width: 250)
                                 }
-                                .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous)
-                                        .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.5)
-                                )
                             }
                         }
                     }
-                    .frame(maxWidth: 720, alignment: .leading)
-                    .padding(.horizontal, 40)
-                    .padding(.vertical, 32)
+                    .padding(.horizontal, 32)
+                    .padding(.top, 28)
+                    .padding(.bottom, selectedComparisonIDs.isEmpty ? 32 : 80)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
             }
+
+            if !selectedComparisonIDs.isEmpty {
+                comparisonFloatingBar
+                    .padding(.bottom, 20)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
         .navigationTitle(LinkaCopy.value("history.title"))
+        #if os(macOS)
+        .sheet(isPresented: $showComparisonModal) {
+            if let pair = comparisonMeasurements {
+                MacHistoryComparisonSheet(first: pair.0, second: pair.1) {
+                    onSelectMeasurement?(pair.1)
+                }
+            }
+        }
+        #endif
         .sheet(isPresented: $showPurchase) {
             PurchaseSheet(entryPoint: purchaseEntryPoint) { loadData() }
                 .environmentObject(entitlements)
@@ -314,23 +311,47 @@ struct HistoryView: View {
     }
 
     private var macHeader: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(LinkaCopy.value("history.title"))
-                        .font(.largeTitle.weight(.bold))
-                    Text(historySummary)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer(minLength: 16)
-                macControls
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 5) {
+                Text(LinkaCopy.value("history.title"))
+                    .font(.largeTitle.weight(.bold))
+                Text(LinkaCopy.value("history.observedVariation.detail"))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
+            Spacer()
+            Text(historySummary)
+                .font(.caption.weight(.semibold))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Color.surfaceCard, in: Capsule())
+                .foregroundColor(.textSecondary)
         }
     }
 
-    private var macControls: some View {
-        HStack(spacing: 8) {
+    private var historySummary: String {
+        "\(filteredMeasurements.count) \(LinkaCopy.value("history.measurements").lowercased())"
+    }
+
+    private var macFiltersRow: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.textSecondary)
+                    .font(.system(size: 12))
+                TextField(LinkaCopy.value("history.search.placeholder"), text: $searchQuery)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12))
+                    .frame(width: 180)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .stroke(Color.borderDefault.opacity(0.4), lineWidth: 0.6)
+            )
+
             Menu {
                 ForEach(availableFilters, id: \.self) { option in
                     Button(option.label) { filter = option }
@@ -338,6 +359,7 @@ struct HistoryView: View {
             } label: {
                 Label(filter.label, systemImage: "line.3.horizontal.decrease.circle")
             }
+            .controlSize(.small)
 
             Menu {
                 ForEach(HistorySort.allCases, id: \.self) { option in
@@ -354,70 +376,311 @@ struct HistoryView: View {
             } label: {
                 Label(sort.label, systemImage: "arrow.up.arrow.down")
             }
+            .controlSize(.small)
+
+            Spacer()
+
+            Text("Marque duas para comparar")
+                .font(.system(size: 11))
+                .foregroundColor(.textSecondary)
         }
-        .labelStyle(.titleAndIcon)
-        .controlSize(.regular)
     }
 
-    private var historySummary: String {
-        let count = filteredMeasurements.count
-        if count == 0 { return LinkaCopy.value("history.summary.empty") }
-        if count == 1 { return LinkaCopy.value("history.summary.single") }
-        return LinkaCopy.format("history.summary.count", count)
-    }
-
-    private func macInsight(text: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "sparkles")
-                .foregroundStyle(Color.brandAccentWarm)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(LinkaCopy.value("history.insights"))
-                    .font(.subheadline.weight(.semibold))
-                Text(text)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+    private var macTableView: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                Text("")
+                    .frame(width: 36)
+                Text("Data e rede")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("↓ Mbps")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(.textSecondary)
+                    .frame(width: 75, alignment: .trailing)
+                Text("↑ Mbps")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(.textSecondary)
+                    .frame(width: 75, alignment: .trailing)
+                Text("ms")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(.textSecondary)
+                    .frame(width: 55, alignment: .trailing)
             }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(Color.surfacePage)
+
+            Divider()
+
+            if filteredMeasurements.isEmpty {
+                Text("Nenhuma medição corresponde à busca.")
+                    .font(.footnote)
+                    .foregroundColor(.textSecondary)
+                    .padding(32)
+                    .frame(maxWidth: .infinity)
+            } else {
+                ForEach(filteredMeasurements, id: \.id) { m in
+                    macTableRow(for: m)
+                    if m.id != filteredMeasurements.last?.id {
+                        Divider().padding(.leading, 14)
+                    }
+                }
+            }
+        }
+        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+        )
+    }
+
+    private func macTableRow(for m: NetworkMeasurement) -> some View {
+        let isInspected = (inspectedMeasurementID ?? filteredMeasurements.first?.id) == m.id
+        let isSelected = selectedComparisonIDs.contains(m.id)
+
+        return HStack(spacing: 0) {
+            Button {
+                toggleComparison(for: m.id)
+            } label: {
+                Image(systemName: isSelected ? "checkmark.square.fill" : "square")
+                    .font(.system(size: 13))
+                    .foregroundColor(isSelected ? .brandAccentWarm : .textSecondary)
+            }
+            .buttonStyle(.plain)
+            .frame(width: 36, alignment: .center)
+            .accessibilityIdentifier("mac.history.checkbox.\(m.id.uuidString)")
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(Self.shortDateFormatter.string(from: m.measuredAt))
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.textPrimary)
+                Text((m.wifiContext?.ssid ?? m.networkIdentifier ?? "Rede") + " · " + (m.wifiContext?.bandDisplay ?? (m.connectionKind == .wifi ? "Wi-Fi" : "Cabo")))
+                    .font(.system(size: 10))
+                    .foregroundColor(.textSecondary)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text(m.downloadMbps.map { localizedNumber($0, fractionDigits: 1) } ?? "—")
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundColor(.textPrimary)
+                .frame(width: 75, alignment: .trailing)
+
+            Text(m.uploadMbps.map { localizedNumber($0, fractionDigits: 1) } ?? "—")
+                .font(.system(size: 12, weight: .regular, design: .monospaced))
+                .foregroundColor(.textSecondary)
+                .frame(width: 75, alignment: .trailing)
+
+            Text(m.latencyMs.map { "\(Int(round($0)))" } ?? "—")
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundColor((m.latencyMs ?? 0) > 40 ? .statusAttention : .textPrimary)
+                .frame(width: 55, alignment: .trailing)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(isInspected ? Color.brandAccentWarm.opacity(0.08) : Color.clear)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            inspectedMeasurementID = m.id
+        }
+    }
+
+    private func macDetailSidebar(for m: NetworkMeasurement) -> some View {
+        let isGood = (m.latencyMs ?? 0) <= 40 && (m.packetLossPercent ?? 0) < 1.0
+
+        return VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text("Detalhe da medição")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.textPrimary)
+                Spacer()
+                Image(systemName: "info.circle")
+                    .font(.system(size: 12))
+                    .foregroundColor(.textSecondary)
+            }
+
+            Text(Self.shortDateFormatter.string(from: m.measuredAt) + " · " + (m.wifiContext?.bandDisplay ?? (m.connectionKind == .wifi ? "Wi-Fi" : "Cabo")))
+                .font(.system(size: 10))
+                .foregroundColor(.textSecondary)
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text(m.downloadMbps.map { localizedNumber($0, fractionDigits: 1) } ?? "—")
+                        .font(.system(size: 33, weight: .bold, design: .rounded))
+                        .foregroundColor(.textPrimary)
+                    Text("Mbps")
+                        .font(.system(size: 11))
+                        .foregroundColor(.textSecondary)
+                }
+            }
+
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(isGood ? Color.statusGood : Color.statusAttention)
+                    .frame(width: 6, height: 6)
+                Text(isGood ? LinkaCopy.value("mac.result.good") : LinkaCopy.value("mac.result.attention"))
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(isGood ? .statusGood : .statusAttention)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background((isGood ? Color.statusGood : Color.statusAttention).opacity(0.12), in: Capsule())
+
+            Divider()
+
+            VStack(spacing: 8) {
+                sidebarPair(label: LinkaCopy.value("detail.upload"), value: m.uploadMbps.map { localizedNumber($0, fractionDigits: 1) + " Mbps" } ?? "—")
+                sidebarPair(label: LinkaCopy.value("assist.latency"), value: m.latencyMs.map { "\(Int(round($0))) ms" } ?? "—")
+                sidebarPair(label: LinkaCopy.value("detail.jitter"), value: m.jitterMs.map { localizedNumber($0, fractionDigits: 1) + " ms" } ?? "—")
+                sidebarPair(label: LinkaCopy.value("detail.packetLoss"), value: m.packetLossPercent.map { localizedNumber($0, fractionDigits: 1) + "%" } ?? "—")
+            }
+
+            if let note = m.networkIdentifier, !note.isEmpty {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("ANOTAÇÃO")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                    Text(note)
+                        .font(.system(size: 11))
+                        .foregroundColor(.textPrimary)
+                        .lineSpacing(2)
+                }
+                .padding(.top, 4)
+            }
+
+            Spacer(minLength: 0)
+
+            Button {
+                onSelectMeasurement?(m)
+            } label: {
+                HStack(spacing: 4) {
+                    Text("Abrir resultado")
+                        .font(.system(size: 11, weight: .medium))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 10))
+                }
+                .foregroundColor(.brandAccentWarm)
+            }
+            .buttonStyle(.plain)
         }
         .padding(16)
         .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
-        .accessibilityElement(children: .combine)
+        .overlay(
+            RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+        )
     }
 
-    private var macInsightUpgrade: some View {
-        Button {
-            purchaseEntryPoint = .historyInsights
-            showPurchase = true
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "lock")
-                    .foregroundStyle(.secondary)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(LinkaCopy.value("history.plus.prompt"))
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(Color.textPrimary)
-                    LinkaPlusWordmarkView(height: 14)
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-            }
-            .padding(16)
-            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+    private func sidebarPair(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 11))
+                .foregroundColor(.textSecondary)
+            Spacer()
+            Text(value)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.textPrimary)
         }
-        .buttonStyle(.plain)
-        .accessibilityHint(LinkaCopy.value("history.insight.accessibilityHint"))
+    }
+
+    private var comparisonMeasurements: (NetworkMeasurement, NetworkMeasurement)? {
+        let selected = measurements.filter { selectedComparisonIDs.contains($0.id) }
+        guard selected.count == 2 else { return nil }
+        return (selected[0], selected[1])
+    }
+
+    private var activeInspectedMeasurement: NetworkMeasurement? {
+        if let id = inspectedMeasurementID, let m = measurements.first(where: { $0.id == id }) {
+            return m
+        }
+        return filteredMeasurements.first
+    }
+
+    private func toggleComparison(for id: UUID) {
+        if selectedComparisonIDs.contains(id) {
+            selectedComparisonIDs.remove(id)
+        } else if selectedComparisonIDs.count < 2 {
+            selectedComparisonIDs.insert(id)
+        }
+    }
+
+    private var comparisonFloatingBar: some View {
+        HStack(spacing: 16) {
+            Text(String(format: LinkaCopy.value("mac.history.compare.count"), selectedComparisonIDs.count))
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.white)
+
+            Spacer()
+
+            Button(LinkaCopy.value("mac.history.compare.clear")) {
+                withAnimation { selectedComparisonIDs.removeAll() }
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.white.opacity(0.75))
+            .font(.system(size: 12))
+
+            Button {
+                showComparisonModal = true
+            } label: {
+                HStack(spacing: 4) {
+                    Text(LinkaCopy.value("mac.history.compare.action"))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 10, weight: .semibold))
+                }
+                .font(.system(size: 12, weight: .medium))
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.brandAccentWarm)
+            .disabled(selectedComparisonIDs.count != 2)
+            .accessibilityIdentifier("mac.history.compare.button")
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 10)
+        .background(Color.textPrimary, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .shadow(color: Color.black.opacity(0.18), radius: 10, y: 5)
+        .frame(maxWidth: 480)
+    }
+
+    private static var shortDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = LinkaLanguagePreference.currentLocale
+        f.dateFormat = "dd MMM, HH:mm"
+        return f
+    }()
+
+    private func localizedNumber(_ value: Double, fractionDigits: Int) -> String {
+        value.formatted(
+            .number
+                .precision(.fractionLength(fractionDigits))
+                .locale(LinkaLanguagePreference.currentLocale)
+        )
     }
     #endif
 
     private var filteredMeasurements: [NetworkMeasurement] {
         let scoped = measurements.filter { measurement in
+            let kindMatch: Bool
             switch filter {
-            case .all: return true
-            case .wifi: return measurement.connectionKind == .wifi
-            case .mobile: return measurement.connectionKind == .cellular
+            case .all: kindMatch = true
+            case .wifi: kindMatch = measurement.connectionKind == .wifi
+            case .mobile: kindMatch = measurement.connectionKind == .cellular
             }
+            guard kindMatch else { return false }
+            #if os(macOS)
+            let trimmed = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                let query = trimmed.lowercased()
+                let ssid = (measurement.wifiContext?.ssid ?? "").lowercased()
+                let network = (measurement.networkIdentifier ?? "").lowercased()
+                let band = (measurement.wifiContext?.bandDisplay ?? "").lowercased()
+                if !ssid.contains(query) && !network.contains(query) && !band.contains(query) {
+                    return false
+                }
+            }
+            #endif
+            return true
         }
         switch sort {
         case .recent: return scoped.sorted { $0.measuredAt > $1.measuredAt }
@@ -559,7 +822,9 @@ private struct HistorySingleMeasurementSummary: View {
     private func metric(_ icon: String, value: Double?) -> some View {
         HStack(spacing: 5) {
             Image(systemName: icon).foregroundColor(.textSecondary)
-            Text(value.map { "\($0.formatted(.number.precision(.fractionLength(1)))) Mbps" } ?? "—")
+            Text(value.map {
+                "\($0.formatted(.number.precision(.fractionLength(1)).locale(LinkaLanguagePreference.currentLocale))) Mbps"
+            } ?? "—")
                 .font(.monoCaption)
         }
     }
@@ -680,8 +945,8 @@ struct HistoryWaveChartView: View {
 
     private var chartLegend: some View {
         HStack(spacing: 14) {
-            legend(color: downloadColor, title: "Download", value: activeMeasurement?.downloadMbps)
-            legend(color: uploadColor, title: "Upload", value: activeMeasurement?.uploadMbps)
+            legend(color: downloadColor, title: LinkaCopy.value("detail.download"), value: activeMeasurement?.downloadMbps)
+            legend(color: uploadColor, title: LinkaCopy.value("detail.upload"), value: activeMeasurement?.uploadMbps)
         }
     }
 

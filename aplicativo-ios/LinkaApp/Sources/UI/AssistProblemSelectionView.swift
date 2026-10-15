@@ -117,6 +117,10 @@ struct AssistProblemSelectionView: View {
     @State private var assistObjective: String?
     @State private var assistSubcategory: String?
     @State private var assistReportedProblem: String?
+    #if os(macOS)
+    @State private var showingContextReview = false
+    @State private var includeMeasurementInContext = true
+    #endif
 
     init(
         currentMeasurement: NetworkMeasurement?,
@@ -178,20 +182,24 @@ struct AssistProblemSelectionView: View {
     private var macOSContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(LinkaCopy.value("assist.title"))
-                        .font(.title.weight(.bold))
-                    Text(macSubtitle)
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                }
-
-                if let objective = selectedObjective {
-                    macSubcategoryStep(for: objective)
-                } else if showingReportedProblem {
-                    macReportedProblemStep
+                if showingContextReview {
+                    macContextReviewStep
                 } else {
-                    macObjectiveStep
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(LinkaCopy.value("assist.title"))
+                            .font(.title.weight(.bold))
+                        Text(macSubtitle)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    if let objective = selectedObjective {
+                        macSubcategoryStep(for: objective)
+                    } else if showingReportedProblem {
+                        macReportedProblemStep
+                    } else {
+                        macObjectiveStep
+                    }
                 }
             }
             .frame(maxWidth: 680, alignment: .leading)
@@ -200,7 +208,7 @@ struct AssistProblemSelectionView: View {
         }
         .navigationTitle(LinkaCopy.value("assist.title"))
         .toolbar {
-            if !isInline || selectedObjective != nil || showingReportedProblem {
+            if !isInline || selectedObjective != nil || showingReportedProblem || showingContextReview {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(navigationActionTitle, action: handleNavigationAction)
                 }
@@ -228,56 +236,163 @@ struct AssistProblemSelectionView: View {
     }
 
     private var macObjectiveStep: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            if let currentMeasurement {
-                macCard(title: LinkaCopy.value("assist.mac.measurementContext")) {
-                    HStack(spacing: 24) {
-                        if let down = currentMeasurement.downloadMbps {
-                            macMeasurementValue(LinkaCopy.value("detail.download"), value: macMeasurementValue(down, unit: "Mbps", fractionLength: 1), symbol: "arrow.down")
-                        }
-                        if let up = currentMeasurement.uploadMbps {
-                            macMeasurementValue(LinkaCopy.value("detail.upload"), value: macMeasurementValue(up, unit: "Mbps", fractionLength: 1), symbol: "arrow.up")
-                        }
-                        if let latency = currentMeasurement.latencyMs {
-                            macMeasurementValue(LinkaCopy.value("assist.latency"), value: macMeasurementValue(latency, unit: "ms", fractionLength: 0), symbol: "gauge.with.needle")
-                        }
-                    }
+        VStack(alignment: .leading, spacing: 22) {
+            // Brand & Heading
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 8) {
+                    Image(systemName: "sparkles")
+                        .foregroundColor(.brandAccentWarm)
+                    Text(LinkaCopy.value("assist.title"))
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.brandAccentWarm)
+                    Text(LinkaCopy.value("mac.assist.context.proposalBadge"))
+                        .font(.caption2.weight(.semibold))
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Color.brandAccentWarm.opacity(0.12), in: Capsule())
+                        .foregroundColor(.brandAccentWarm)
                 }
-            }
 
-            macCard(title: LinkaCopy.value("assist.problem.question")) {
-                ForEach(AssistProblemObjective.allCases) { objective in
-                    Button {
-                        selectedObjective = objective
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: objective.systemImage)
-                                .frame(width: 20)
-                                .foregroundStyle(Color.brandAccentWarm)
-                            Text(objective.label)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.footnote.weight(.semibold))
-                                .foregroundStyle(.tertiary)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    if objective != AssistProblemObjective.allCases.last { Divider() }
+                Text(LinkaCopy.value("mac.assist.start.heading"))
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.textPrimary)
+                    .lineSpacing(3)
+
+                Text(LinkaCopy.value("mac.assist.start.subhead"))
+                    .font(.system(size: 13))
+                    .foregroundColor(.textSecondary)
+                    .frame(maxWidth: 480, alignment: .leading)
+            }
+            .padding(.bottom, 6)
+
+            // 2x2 Topic Grid
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
+                topicCard(
+                    icon: "waveform.path.ecg",
+                    title: LinkaCopy.value("mac.assist.start.topic1.title"),
+                    desc: LinkaCopy.value("mac.assist.start.topic1.desc")
+                ) {
+                    startContextReview(objective: AssistProblemObjective.velocidadeNaoChega.rawValue, subcategory: nil, reportedProblem: LinkaCopy.value("mac.assist.start.topic1.title"))
                 }
-                Divider()
-                Button {
+
+                topicCard(
+                    icon: "wifi.router",
+                    title: LinkaCopy.value("mac.assist.start.topic2.title"),
+                    desc: LinkaCopy.value("mac.assist.start.topic2.desc")
+                ) {
+                    startContextReview(objective: AssistProblemObjective.wifiVsOperadora.rawValue, subcategory: nil, reportedProblem: LinkaCopy.value("mac.assist.start.topic2.title"))
+                }
+
+                topicCard(
+                    icon: "banknote",
+                    title: LinkaCopy.value("mac.assist.start.topic3.title"),
+                    desc: LinkaCopy.value("mac.assist.start.topic3.desc")
+                ) {
+                    startContextReview(objective: AssistProblemObjective.velocidadeNaoChega.rawValue, subcategory: nil, reportedProblem: LinkaCopy.value("mac.assist.start.topic3.title"))
+                }
+
+                topicCard(
+                    icon: "bubble.left.and.bubble.right",
+                    title: LinkaCopy.value("mac.assist.start.topic4.title"),
+                    desc: LinkaCopy.value("mac.assist.start.topic4.desc")
+                ) {
                     showingReportedProblem = true
-                } label: {
-                    Label(LinkaCopy.value("assist.problem.other"), systemImage: "ellipsis.bubble")
                 }
-                .buttonStyle(.plain)
             }
 
-            Button(LinkaCopy.value("assist.problem.skipToGeneral")) {
-                presentAssist(objective: nil, subcategory: nil, reportedProblem: nil)
+            // Composer Box
+            VStack(alignment: .leading, spacing: 10) {
+                TextField(
+                    LinkaCopy.value("mac.assist.start.placeholder"),
+                    text: $reportedProblemText
+                )
+                .textFieldStyle(.plain)
+                .font(.system(size: 12))
+                .padding(10)
+                .background(Color.surfacePage, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                HStack {
+                    HStack(spacing: 5) {
+                        Image(systemName: "shield")
+                            .font(.system(size: 11))
+                        Text(LinkaCopy.value("mac.assist.start.privacyNote"))
+                            .font(.system(size: 10))
+                    }
+                    .foregroundColor(.textSecondary)
+
+                    Spacer()
+
+                    Button {
+                        let trimmed = reportedProblemText.trimmingCharacters(in: .whitespacesAndNewlines)
+                        startContextReview(
+                            objective: nil,
+                            subcategory: nil,
+                            reportedProblem: trimmed.isEmpty ? LinkaCopy.value("mac.assist.start.topic4.title") : trimmed
+                        )
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(LinkaCopy.value("common.continue"))
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 10, weight: .semibold))
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.brandAccentWarm)
+                    .controlSize(.small)
+                }
             }
-            .buttonStyle(.bordered)
+            .padding(14)
+            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                    .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+            )
+            .padding(.top, 4)
+
+            // Proposal Note
+            Text(LinkaCopy.value("mac.assist.start.proposalNote"))
+                .font(.system(size: 10))
+                .foregroundColor(.textSecondary)
+                .padding(.leading, 8)
+                .overlay(
+                    Rectangle()
+                        .fill(Color.brandAccentWarm)
+                        .frame(width: 2),
+                    alignment: .leading
+                )
+                .padding(.top, 6)
         }
+    }
+
+    private func topicCard(icon: String, title: String, desc: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(.brandAccentWarm)
+
+                Text(title)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.textPrimary)
+                    .lineLimit(1)
+
+                Text(desc)
+                    .font(.system(size: 11))
+                    .foregroundColor(.textSecondary)
+                    .lineLimit(2)
+                    .lineSpacing(2)
+
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, minHeight: 96, alignment: .topLeading)
+            .padding(16)
+            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                    .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private func macSubcategoryStep(for objective: AssistProblemObjective) -> some View {
@@ -288,7 +403,7 @@ struct AssistProblemSelectionView: View {
             Divider()
             ForEach(objective.subcategories) { subcategory in
                 Button(subcategory.label) {
-                    presentAssist(objective: objective.rawValue, subcategory: subcategory.key, reportedProblem: nil)
+                    startContextReview(objective: objective.rawValue, subcategory: subcategory.key, reportedProblem: nil)
                 }
                 .buttonStyle(.plain)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -296,7 +411,7 @@ struct AssistProblemSelectionView: View {
             }
             Divider()
             Button(LinkaCopy.value("assist.problem.skipQuestion")) {
-                presentAssist(objective: objective.rawValue, subcategory: nil, reportedProblem: nil)
+                startContextReview(objective: objective.rawValue, subcategory: nil, reportedProblem: nil)
             }
             .buttonStyle(.bordered)
         }
@@ -326,7 +441,7 @@ struct AssistProblemSelectionView: View {
                     .foregroundStyle(.secondary)
             }
             Button(LinkaCopy.value("common.continue")) {
-                presentAssist(
+                startContextReview(
                     objective: nil,
                     subcategory: nil,
                     reportedProblem: String(reportedProblemText.trimmingCharacters(in: .whitespacesAndNewlines).prefix(Self.reportedProblemMaxLength))
@@ -337,6 +452,169 @@ struct AssistProblemSelectionView: View {
             .disabled(reportedProblemText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .onAppear { reportedProblemText = "" }
         }
+    }
+
+    private var macContextReviewStep: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Button {
+                showingContextReview = false
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.left")
+                    Text(LinkaCopy.value("mac.assist.context.allQuestions"))
+                }
+                .font(.system(size: 12))
+                .foregroundColor(.brandAccentWarm)
+            }
+            .buttonStyle(.plain)
+
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .foregroundColor(.brandAccentWarm)
+                Text(LinkaCopy.value("assist.title"))
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.brandAccentWarm)
+                Text(LinkaCopy.value("mac.assist.context.proposalBadge"))
+                    .font(.caption2.weight(.semibold))
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(Color.brandAccentWarm.opacity(0.12), in: Capsule())
+                    .foregroundColor(.brandAccentWarm)
+            }
+
+            Text(contextReviewTopicTitle)
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.textPrimary)
+
+            Text(LinkaCopy.value("mac.assist.context.review"))
+                .font(.system(size: 12))
+                .foregroundColor(.textSecondary)
+
+            VStack(alignment: .leading, spacing: 14) {
+                Text(LinkaCopy.value("mac.assist.context.title"))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.textPrimary)
+
+                if let current = currentMeasurement {
+                    HStack(alignment: .top, spacing: 12) {
+                        Button {
+                            includeMeasurementInContext.toggle()
+                        } label: {
+                            Image(systemName: includeMeasurementInContext ? "checkmark.square.fill" : "square")
+                                .font(.system(size: 16))
+                                .foregroundColor(includeMeasurementInContext ? .brandAccentWarm : .textSecondary)
+                        }
+                        .buttonStyle(.plain)
+
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(LinkaCopy.value("mac.assist.context.measurement"))
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.textPrimary)
+                            Text(contextMeasurementSummary(for: current))
+                                .font(.system(size: 11))
+                                .foregroundColor(.textSecondary)
+                            Text(LinkaCopy.value("mac.assist.context.measurement.desc"))
+                                .font(.system(size: 10))
+                                .foregroundColor(.textSecondary.opacity(0.8))
+                        }
+                    }
+                    Divider()
+                }
+
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "wifi.router")
+                        .font(.system(size: 16))
+                        .foregroundColor(.textSecondary)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(LinkaCopy.value("mac.assist.context.equipment"))
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.textPrimary)
+                        Text(LinkaCopy.value("mac.assist.context.equipment.desc"))
+                            .font(.system(size: 11))
+                            .foregroundColor(.textSecondary)
+                    }
+                }
+
+                Divider()
+
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "shield")
+                        .font(.system(size: 16))
+                        .foregroundColor(.textSecondary)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(LinkaCopy.value("mac.assist.context.control"))
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.textPrimary)
+                        Text(LinkaCopy.value("mac.assist.context.control.desc"))
+                            .font(.system(size: 11))
+                            .foregroundColor(.textSecondary)
+                    }
+                }
+            }
+            .padding(18)
+            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                    .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+            )
+
+            HStack {
+                Text("Resposta ilustrativa, não um diagnóstico real.")
+                    .font(.system(size: 11))
+                    .foregroundColor(.textSecondary)
+                Spacer()
+                Button {
+                    executeAssistAnalysis()
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(LinkaCopy.value("mac.assist.context.analyze"))
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.brandAccentWarm)
+                .accessibilityIdentifier("mac.assist.context.analyzeButton")
+            }
+            .padding(.top, 6)
+        }
+    }
+
+    private var contextReviewTopicTitle: String {
+        if let problem = assistReportedProblem, !problem.isEmpty {
+            return problem
+        }
+        if let sub = assistSubcategory, let obj = selectedObjective,
+           let item = obj.subcategories.first(where: { $0.key == sub }) {
+            return item.label
+        }
+        if let obj = selectedObjective {
+            return obj.label
+        }
+        return LinkaCopy.value("assist.problem.question")
+    }
+
+    private func contextMeasurementSummary(for m: NetworkMeasurement) -> String {
+        let down = m.downloadMbps.map { "\($0.formatted(.number.precision(.fractionLength(1)).locale(LinkaLanguagePreference.currentLocale))) Mbps ↓" } ?? ""
+        let up = m.uploadMbps.map { "\($0.formatted(.number.precision(.fractionLength(1)).locale(LinkaLanguagePreference.currentLocale))) Mbps ↑" } ?? ""
+        let lat = m.latencyMs.map { "\(Int(round($0))) ms" } ?? ""
+        return [down, up, lat].filter { !$0.isEmpty }.joined(separator: " · ")
+    }
+
+    private func startContextReview(objective: String?, subcategory: String?, reportedProblem: String?) {
+        assistObjective = objective
+        assistSubcategory = subcategory
+        assistReportedProblem = reportedProblem
+        showingContextReview = true
+    }
+
+    private func executeAssistAnalysis() {
+        if currentMeasurement == nil, let onStartFreshMeasurement {
+            onStartFreshMeasurement(assistObjective, assistSubcategory, assistReportedProblem)
+            dismissSheet()
+            return
+        }
+        showAssist = true
     }
 
     private func macMeasurementValue(_ title: String, value: String, symbol: String) -> some View {
@@ -366,10 +644,23 @@ struct AssistProblemSelectionView: View {
     #endif
 
     private var navigationActionTitle: String {
+        #if os(macOS)
+        if showingContextReview || selectedObjective != nil || showingReportedProblem {
+            return LinkaCopy.value("common.back")
+        }
+        return LinkaCopy.value("common.close")
+        #else
         selectedObjective == nil && !showingReportedProblem ? LinkaCopy.value("common.close") : LinkaCopy.value("common.back")
+        #endif
     }
 
     private func handleNavigationAction() {
+        #if os(macOS)
+        if showingContextReview {
+            showingContextReview = false
+            return
+        }
+        #endif
         if selectedObjective != nil {
             selectedObjective = nil
         } else if showingReportedProblem {
@@ -501,8 +792,15 @@ struct AssistProblemSelectionView: View {
 
     // MARK: - Destino final
     private func assistDestination(objective: String?, subcategory: String?, reportedProblem: String?) -> some View {
-        AssistView(
-            currentMeasurement: currentMeasurement,
+        let measurementToUse: NetworkMeasurement?
+        #if os(macOS)
+        measurementToUse = includeMeasurementInContext ? currentMeasurement : nil
+        #else
+        measurementToUse = currentMeasurement
+        #endif
+
+        return AssistView(
+            currentMeasurement: measurementToUse,
             recentMeasurements: recentMeasurements,
             usageContext: usageContext,
             objective: objective,

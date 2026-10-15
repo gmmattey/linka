@@ -78,7 +78,7 @@ struct MeasurementDetailView: View {
 
             if let onStartNewMeasurement {
                 Section {
-                    Button("Testar novamente") {
+                    Button(LinkaCopy.value("common.testAgain")) {
                         onStartNewMeasurement()
                     }
                 }
@@ -214,7 +214,14 @@ struct MeasurementDetailView: View {
                                 LabeledContent(LinkaCopy.value("detail.wifi.channel"), value: "\(channel)")
                             }
                             if let band = advanced.bandGHz {
-                                LabeledContent("Banda", value: band == floor(band) ? String(format: "%.0f GHz", band) : String(format: "%.1f GHz", band))
+                                LabeledContent(
+                                    LinkaCopy.value("network.wifiBand"),
+                                    value: band.formatted(
+                                        .number
+                                            .precision(.fractionLength(band == floor(band) ? 0 : 1))
+                                            .locale(LinkaLanguagePreference.currentLocale)
+                                    ) + " GHz"
+                                )
                             }
                             if advanced.txRateMbps != nil || advanced.rxRateMbps != nil {
                                 let tx = advanced.txRateMbps.map { wifiRate("detail.wifi.txRate", $0) }

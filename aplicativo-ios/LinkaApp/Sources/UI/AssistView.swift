@@ -12,6 +12,7 @@ struct AssistView: View {
     @StateObject private var viewModel: AssistViewModel
     @StateObject private var stabilityViewModel: NetworkStabilityPatternsViewModel
     @State private var showRecommendationDetails = false
+    @State private var copiedToClipboard = false
 
     /// Fecha o sheet inteiro: usa `onCloseSheet` (fluxo guiado via
     /// `AssistProblemSelectionView`) quando fornecido, senão cai no
@@ -240,108 +241,305 @@ struct AssistView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
+    private struct AssistStepItem {
+        let title: String
+        let description: String
+    }
+
+    private var questionTopicText: String {
+        if let reportedProblem, !reportedProblem.isEmpty {
+            return reportedProblem
+        }
+        if let subcategory, !subcategory.isEmpty {
+            return subcategory
+        }
+        if let objective, !objective.isEmpty {
+            return objective
+        }
+        return LinkaCopy.value("mac.assist.start.topic1.title")
+    }
+
+    private func computedSteps(for data: AssistViewModel.DiagnosticData) -> [AssistStepItem] {
+        if let rec = data.recommendation {
+            let lines = recommendationDetailLines(rec, summary: data.summary)
+            if lines.count >= 2 {
+                return lines.prefix(3).enumerated().map { index, line in
+                    AssistStepItem(title: "\(rec.title) (\(index + 1))", description: line)
+                }
+            }
+        }
+        let topicLower = questionTopicText.lowercased()
+        let isRouter = topicLower.contains("roteador") || topicLower.contains("router")
+        let isPlan = topicLower.contains("plano") || topicLower.contains("plan")
+        let isDiff = topicLower.contains("diferença") || topicLower.contains("difference")
+        if isRouter {
+            return [
+                AssistStepItem(title: "Identifique o modelo completo", description: "Cadastre o modelo e a revisão de hardware da etiqueta."),
+                AssistStepItem(title: "Registre como o Mac se conecta", description: "Banda, distância e presença de repetidores mudam a interpretação."),
+                AssistStepItem(title: "Só então compare a capacidade", description: "Cruze a ficha confirmada com o plano e com as condições da medição.")
+            ]
+        } else if isPlan {
+            return [
+                AssistStepItem(title: "Complete os dados do plano", description: "Informe preço, velocidade de download e upload contratados."),
+                AssistStepItem(title: "Descreva seu uso", description: "Pessoas simultâneas, videochamadas, jogos e transferências."),
+                AssistStepItem(title: "Observe mais de um momento", description: "Compare testes em horários e condições semelhantes.")
+            ]
+        } else if isDiff {
+            return [
+                AssistStepItem(title: "Compare condições semelhantes", description: "Horário, banda, distância e uso da rede podem alterar o resultado."),
+                AssistStepItem(title: "Isole interferências pontuais", description: "Outros downloads ou dispositivos na rede afetam a medição momentânea."),
+                AssistStepItem(title: "Repita o teste no mesmo local", description: "Uma única medição não comprova uma variação contínua da conexão.")
+            ]
+        } else {
+            return [
+                AssistStepItem(title: "Repita perto do roteador", description: "Mantenha a mesma rede e reduza outras transferências durante o teste."),
+                AssistStepItem(title: "Compare com uma conexão por cabo", description: "Quando possível, use o mesmo Mac e o mesmo destino de teste."),
+                AssistStepItem(title: "Registre onde e quando ocorre", description: "Se apenas um serviço falha, essa é uma informação útil para o próximo passo.")
+            ]
+        }
+    }
+
+    private func copyConclusion(title: String, summary: String) {
+        #if os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString("\(title)\n\n\(summary)", forType: .string)
+        #else
+        UIPasteboard.general.string = "\(title)\n\n\(summary)"
+        #endif
+        copiedToClipboard = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            copiedToClipboard = false
+        }
+    }
+
     private func macAnalysisResult(_ data: AssistViewModel.DiagnosticData) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(LinkaCopy.value("assist.mac.analysis.title"))
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .textCase(.uppercase)
-                    Text(data.title)
-                        .font(.title.weight(.bold))
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text(summaryWithoutRepeatedRecommendation(data))
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if let attribution = data.aiAttribution {
-                        Label(attribution, systemImage: "sparkles")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 20) {
+                // 1. Back button
+                Button {
+                    closeSheet()
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text(LinkaCopy.value("mac.assist.answer.newQuestion"))
+                            .font(.system(size: 12))
                     }
+                    .foregroundColor(.brandAccentWarm)
+                }
+                .buttonStyle(.plain)
+
+                // 2. Brand + Badge
+                HStack {
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                            .foregroundColor(.brandAccentWarm)
+                        Text(LinkaCopy.value("assist.title"))
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(.brandAccentWarm)
+                    }
+                    Spacer()
+                    Text(LinkaCopy.value("mac.assist.answer.badge"))
+                        .font(.caption2.weight(.semibold))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.brandAccentWarm.opacity(0.12), in: Capsule())
+                        .foregroundColor(.brandAccentWarm)
                 }
 
-                Divider()
+                // 3. Question Eyebrow
+                Text(String(format: LinkaCopy.value("mac.assist.answer.questionEyebrow"), questionTopicText.uppercased()))
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.textSecondary)
+                    .padding(.top, 4)
 
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(LinkaCopy.value("assist.mac.nextStep"))
-                        .font(.headline)
-                    if let recommendation = data.recommendation {
-                        Text(recommendation.title)
-                            .font(.body.weight(.semibold))
-                        let detailLines = recommendationDetailLines(recommendation, summary: data.summary)
-                        if !detailLines.isEmpty {
-                            VStack(alignment: .leading, spacing: 8) {
-                                ForEach(Array(detailLines.enumerated()), id: \.offset) { index, line in
-                                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                                        Text(detailLines.count > 1 ? "\(index + 1)." : "•")
-                                            .foregroundStyle(Color.brandAccentWarm)
-                                        Text(line)
-                                            .foregroundStyle(.secondary)
-                                    }
+                // 4. Title & Description
+                Text(data.title)
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundColor(.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text(summaryWithoutRepeatedRecommendation(data))
+                    .font(.system(size: 13))
+                    .foregroundColor(.textSecondary)
+                    .lineSpacing(4)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let attribution = data.aiAttribution {
+                    Label(attribution, systemImage: "sparkles")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                // 5. Evidence
+                if let current = currentMeasurement {
+                    HStack(spacing: 10) {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(current.downloadMbps.map { $0.formatted(.number.precision(.fractionLength(1)).locale(LinkaLanguagePreference.currentLocale)) } ?? "--")
+                                .font(.system(size: 19, weight: .semibold))
+                                .monospacedDigit()
+                                .foregroundColor(.textPrimary)
+                            Text(LinkaCopy.value("mac.assist.answer.evidence.down"))
+                                .font(.system(size: 10))
+                                .foregroundColor(.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Color.borderDefault.opacity(0.3), lineWidth: 0.6))
+
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(current.latencyMs.map { "\(Int(round($0))) ms" } ?? "--")
+                                .font(.system(size: 19, weight: .semibold))
+                                .monospacedDigit()
+                                .foregroundColor(.textPrimary)
+                            Text(LinkaCopy.value("mac.assist.answer.evidence.latency"))
+                                .font(.system(size: 10))
+                                .foregroundColor(.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Color.borderDefault.opacity(0.3), lineWidth: 0.6))
+
+                        VStack(alignment: .leading, spacing: 5) {
+                            let lossText: String = {
+                                if let loss = current.packetLossPercent {
+                                    return "\(loss.formatted(.number.precision(.fractionLength(1)).locale(LinkaLanguagePreference.currentLocale)))%"
+                                } else if let jitter = current.jitterMs {
+                                    return "\(jitter.formatted(.number.precision(.fractionLength(1)).locale(LinkaLanguagePreference.currentLocale))) ms"
+                                } else {
+                                    return "0%"
                                 }
+                            }()
+                            Text(lossText)
+                                .font(.system(size: 19, weight: .semibold))
+                                .monospacedDigit()
+                                .foregroundColor(.textPrimary)
+                            Text(LinkaCopy.value("mac.assist.answer.evidence.loss"))
+                                .font(.system(size: 10))
+                                .foregroundColor(.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).stroke(Color.borderDefault.opacity(0.3), lineWidth: 0.6))
+                    }
+                    .padding(.vertical, 4)
+                } else {
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(systemName: "info.circle")
+                            .foregroundColor(.brandAccentWarm)
+                        Text(LinkaCopy.value("mac.assist.answer.noContextInsight"))
+                            .font(.system(size: 12))
+                            .foregroundColor(.textSecondary)
+                    }
+                    .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6))
+                }
+
+                // 6. What to do now & Steps
+                HStack {
+                    Text(LinkaCopy.value("mac.assist.answer.whatNext"))
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+                    Spacer()
+                    Text(LinkaCopy.value("mac.assist.answer.noPresumedCause"))
+                        .font(.caption2.weight(.medium))
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Color.borderDefault.opacity(0.15), in: Capsule())
+                        .foregroundColor(.textSecondary)
+                }
+                .padding(.top, 6)
+
+                VStack(alignment: .leading, spacing: 0) {
+                    let steps = computedSteps(for: data)
+                    ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                        HStack(alignment: .top, spacing: 12) {
+                            Text("\(index + 1)")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.textSecondary)
+                                .frame(width: 23, height: 23)
+                                .background(Color.surfaceCard, in: Circle())
+                                .overlay(Circle().stroke(Color.borderDefault.opacity(0.3), lineWidth: 0.6))
+
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(step.title)
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(.textPrimary)
+                                Text(step.description)
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.textSecondary)
                             }
                         }
-                        if let actionURL = recommendation.actionURL ?? currentMeasurement?.wifiContext?.gatewayAdminURL.flatMap(URL.init),
-                           (recommendation.actionLabel != nil || recommendation.title.lowercased().contains("roteador") || recommendation.title.lowercased().contains("wi-fi") || recommendation.title.lowercased().contains("canal")) {
-                            Button(recommendation.actionLabel ?? LinkaCopy.value("assist.openRouterSettings")) {
-                                openURL(actionURL)
-                            }
-                            .buttonStyle(.bordered)
+                        .padding(.vertical, 12)
+                        if index < steps.count - 1 {
+                            Divider()
                         }
-                    } else {
-                        Text(LinkaCopy.value("assist.mac.noAction"))
-                            .foregroundStyle(.secondary)
                     }
                 }
 
-                DisclosureGroup(LinkaCopy.value("assist.mac.dataUsed")) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(LinkaCopy.value("assist.mac.dataUsed.detail"))
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        if !data.dimensions.isEmpty {
-                            ForEach(data.dimensions, id: \.name) { dimension in
-                                dimensionRow(dimension)
-                            }
-                        } else if let measurement = currentMeasurement {
-                            measurementEvidenceRow(
-                                title: LinkaCopy.value("detail.download"),
-                                value: measurement.downloadMbps.map(formattedSpeed) ?? LinkaCopy.value("common.unavailable")
-                            )
-                            if let upload = measurement.uploadMbps, upload > 0 {
-                                measurementEvidenceRow(title: LinkaCopy.value("detail.upload"), value: formattedSpeed(upload))
-                            }
-                            measurementEvidenceRow(
-                                title: LinkaCopy.value("assist.latency"),
-                                value: measurement.latencyMs.map(formattedMilliseconds) ?? LinkaCopy.value("common.unavailable")
-                            )
-                            measurementEvidenceRow(
-                                title: LinkaCopy.value("assist.network"),
-                                value: measurement.connectionKind.map { connectionLabel($0) } ?? LinkaCopy.value("common.unavailable")
-                            )
+                // 7. Footer Action
+                HStack(spacing: 12) {
+                    Button {
+                        closeSheet()
+                        onRetry?()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "slider.horizontal.3")
+                            Text(LinkaCopy.value("mac.assist.answer.createComparison"))
                         }
                     }
-                    .padding(.top, 8)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.brandAccentWarm)
+                    .accessibilityIdentifier("mac.assist.answer.createComparisonButton")
+
+                    Button {
+                        copyConclusion(title: data.title, summary: data.summary)
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: copiedToClipboard ? "checkmark" : "doc.on.doc")
+                            Text(copiedToClipboard ? LinkaCopy.value("mac.assist.answer.copiedToast") : LinkaCopy.value("mac.assist.answer.copyConclusion"))
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("mac.assist.answer.copyConclusionButton")
+
+                    if let actionURL = data.recommendation?.actionURL ?? currentMeasurement?.wifiContext?.gatewayAdminURL.flatMap(URL.init),
+                       (data.recommendation?.actionLabel != nil || data.recommendation?.title.lowercased().contains("roteador") == true) {
+                        Button(data.recommendation?.actionLabel ?? LinkaCopy.value("assist.openRouterSettings")) {
+                            openURL(actionURL)
+                        }
+                        .buttonStyle(.bordered)
+                    }
                 }
+                .padding(.top, 10)
+
+                // 8. Proposal note
+                HStack(alignment: .top, spacing: 8) {
+                    Rectangle()
+                        .fill(Color.brandAccentWarm)
+                        .frame(width: 2)
+                    Text(LinkaCopy.value("mac.assist.answer.proposalNote"))
+                        .font(.system(size: 11))
+                        .foregroundColor(.textSecondary)
+                }
+                .padding(.vertical, 6)
 
                 macStabilityPatternsSection
 
-                HStack(spacing: 12) {
-                    if let retry = onRetry {
-                        Button(LinkaCopy.value("common.retry")) {
-                            closeSheet()
-                            retry()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.brandAccentWarm)
+                if let onShowDetails {
+                    Button(LinkaCopy.value("assist.technicalDetails")) {
+                        closeSheet()
+                        onShowDetails()
                     }
-                    if let onShowDetails {
-                        Button(LinkaCopy.value("assist.technicalDetails")) {
-                            closeSheet()
-                            onShowDetails()
-                        }
-                    }
+                    .font(.caption)
+                    .buttonStyle(.plain)
+                    .foregroundColor(.textSecondary)
+                    .padding(.top, 4)
                 }
             }
             .frame(maxWidth: 680, alignment: .leading)

@@ -284,6 +284,13 @@ struct SettingsView: View {
                     Text(LinkaCopy.value("settings.appearance.dark")).tag("dark")
                 }
                 .pickerStyle(.segmented)
+
+                Picker(LinkaCopy.value("settings.language.title"), selection: $languagePreference) {
+                    ForEach(LinkaLanguagePreference.allCases) { language in
+                        Text(language.displayName).tag(language.rawValue)
+                    }
+                }
+                .accessibilityHint(LinkaCopy.value("settings.language.hint"))
             }
 
             Section(LinkaCopy.value("settings.section.network")) {

@@ -15,6 +15,11 @@ struct OptimizationView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var profileCoordinator = OptimizationProfileCoordinator()
     @State private var isPresentingEnvironmentCreation = false
+    #if os(macOS)
+    @State private var selectedProfile: String = "general"
+    @State private var checklistChecked: [Bool] = [false, false, false]
+    @State private var showBaselineTechnicalDetails = false
+    #endif
 
     private var plan: OptimizationPlan {
         OptimizationPlanBuilder().build(baseline: baseline, history: history)
@@ -136,33 +141,36 @@ struct OptimizationView: View {
     #if os(macOS)
     private var macOSContent: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
+            VStack(alignment: .leading, spacing: 22) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(LinkaCopy.value("optimization.title"))
-                        .font(.title.weight(.bold))
-                    Text(LinkaCopy.value("optimization.intro"))
-                        .font(.body)
+                    HStack {
+                        Text(LinkaCopy.value("optimization.title"))
+                            .font(.largeTitle.weight(.bold))
+                        Spacer()
+                        Text("Fluxo guiado")
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Color.brandAccentWarm.opacity(0.12), in: Capsule())
+                            .foregroundColor(.brandAccentWarm)
+                    }
+                    Text(LinkaCopy.value("mac.optimize.subtitle"))
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
 
-                macVerdict
+                macBaselineRibbon
 
-                // Retestar só faz sentido depois de uma ação observável. Sem
-                // oportunidade na leitura atual, não inventamos uma tarefa
-                // nem usamos o vazio como pretexto para upsell.
-                if !plan.opportunities.isEmpty {
-                    Button(isPlusActive ? LinkaCopy.value("optimization.retest") : LinkaCopy.value("optimization.preview.cta")) {
-                        if isPlusActive {
-                            dismiss()
-                            onRetest()
-                        } else {
-                            onRequestPurchase()
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.brandAccentWarm)
-                    .accessibilityHint(isPlusActive ? LinkaCopy.value("optimization.retest.hint") : LinkaCopy.value("optimization.preview.hint"))
-                }
+                macProfileChoices
+
+                macOptimizationChecklist
+
+                macInsightCard
+
+                macFooterAction
+                    .padding(.top, 4)
+
+                Divider().padding(.vertical, 8)
 
                 macSection(title: LinkaCopy.value("optimization.mac.measurementContext")) {
                     NetworkProfilesSection(
@@ -198,7 +206,7 @@ struct OptimizationView: View {
                 }
             }
             .frame(maxWidth: 680, alignment: .leading)
-            .padding(40)
+            .padding(36)
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
         .navigationTitle(LinkaCopy.value("optimization.title"))
@@ -215,6 +223,12 @@ struct OptimizationView: View {
                 }
             }
             .frame(minWidth: 420, minHeight: 220)
+        }
+        .sheet(isPresented: $showBaselineTechnicalDetails) {
+            NavigationStack {
+                MeasurementDetailView(measurement: baseline, duration: nil)
+            }
+            .frame(minWidth: 640, minHeight: 520)
         }
         .task(id: baseline.id) {
             await profileCoordinator.refresh(currentMeasurement: baseline, history: history)
@@ -270,6 +284,234 @@ struct OptimizationView: View {
                 .padding(18)
                 .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
+    }
+
+    private var macBaselineRibbon: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.brandAccentWarm.opacity(0.12))
+                    .frame(width: 36, height: 36)
+                Image(systemName: "gauge.medium")
+                    .font(.system(size: 18))
+                    .foregroundColor(.brandAccentWarm)
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(LinkaCopy.value("mac.optimize.baseline.title"))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.textPrimary)
+                Text(baselineSummaryLine)
+                    .font(.system(size: 11))
+                    .foregroundColor(.textSecondary)
+            }
+
+            Spacer()
+
+            Button(LinkaCopy.value("assist.technicalDetails")) {
+                showBaselineTechnicalDetails = true
+            }
+            .buttonStyle(.plain)
+            .font(.system(size: 11, weight: .medium))
+            .foregroundColor(.brandAccentWarm)
+        }
+        .padding(14)
+        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+        )
+    }
+
+    private var baselineSummaryLine: String {
+        let down = baseline.downloadMbps.map { "\(localizedNumber($0, fractionDigits: 1)) Mbps ↓" } ?? ""
+        let lat = baseline.latencyMs.map { "\(Int(round($0))) ms" } ?? ""
+        let band = baseline.wifiContext?.bandDisplay ?? (baseline.connectionKind == .wifi ? "Wi-Fi" : "Cabo")
+        return [down, lat, band].filter { !$0.isEmpty }.joined(separator: " · ")
+    }
+
+    private var macProfileChoices: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(LinkaCopy.value("mac.optimize.profile.prompt"))
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.textPrimary)
+
+            HStack(spacing: 10) {
+                profileButton(id: "general", label: LinkaCopy.value("mac.optimize.profile.general"), icon: "wifi")
+                profileButton(id: "videoCall", label: LinkaCopy.value("mac.optimize.profile.videoCall"), icon: "video")
+                profileButton(id: "gaming", label: LinkaCopy.value("mac.optimize.profile.gaming"), icon: "gamecontroller")
+                profileButton(id: "transfers", label: LinkaCopy.value("mac.optimize.profile.transfers"), icon: "arrow.down.circle")
+            }
+        }
+    }
+
+    private func profileButton(id: String, label: String, icon: String) -> some View {
+        let isSelected = selectedProfile == id
+        return Button {
+            selectedProfile = id
+        } label: {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(isSelected ? .brandAccentWarm : .textSecondary)
+                Text(label)
+                    .font(.system(size: 11, weight: isSelected ? .semibold : .medium))
+                    .foregroundColor(isSelected ? .brandAccentWarm : .textPrimary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(isSelected ? Color.brandAccentWarm.opacity(0.12) : Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                    .stroke(isSelected ? Color.brandAccentWarm : Color.borderDefault.opacity(0.35), lineWidth: isSelected ? 1.5 : 0.6)
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("mac.optimize.profile.\(id)")
+    }
+
+    private var macOptimizationChecklist: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text(LinkaCopy.value("mac.optimize.checklist.title"))
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.textPrimary)
+                Spacer()
+                Text(String(format: LinkaCopy.value("mac.optimize.checklist.progress"), checklistChecked.filter { $0 }.count))
+                    .font(.system(size: 11, weight: .semibold))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.brandAccentWarm.opacity(0.12), in: Capsule())
+                    .foregroundColor(.brandAccentWarm)
+            }
+
+            VStack(spacing: 0) {
+                checklistRow(
+                    index: 0,
+                    title: LinkaCopy.value("mac.optimize.checklist.step1.title"),
+                    desc: LinkaCopy.value("mac.optimize.checklist.step1.desc")
+                )
+                Divider().padding(.vertical, 8)
+                checklistRow(
+                    index: 1,
+                    title: LinkaCopy.value("mac.optimize.checklist.step2.title"),
+                    desc: dynamicStep2Description
+                )
+                Divider().padding(.vertical, 8)
+                checklistRow(
+                    index: 2,
+                    title: LinkaCopy.value("mac.optimize.checklist.step3.title"),
+                    desc: LinkaCopy.value("mac.optimize.checklist.step3.desc")
+                )
+            }
+        }
+        .padding(18)
+        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+        )
+    }
+
+    private var dynamicStep2Description: String {
+        switch selectedProfile {
+        case "videoCall": return LinkaCopy.value("mac.optimize.checklist.step2.desc.videoCall")
+        case "gaming": return LinkaCopy.value("mac.optimize.checklist.step2.desc.gaming")
+        case "transfers": return LinkaCopy.value("mac.optimize.checklist.step2.desc.transfers")
+        default: return LinkaCopy.value("mac.optimize.checklist.step2.desc.general")
+        }
+    }
+
+    private func checklistRow(index: Int, title: String, desc: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Button {
+                checklistChecked[index].toggle()
+            } label: {
+                Image(systemName: checklistChecked[index] ? "checkmark.square.fill" : "square")
+                    .font(.system(size: 16))
+                    .foregroundColor(checklistChecked[index] ? .brandAccentWarm : .textSecondary)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("mac.optimize.checkbox.\(index)")
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.textPrimary)
+                Text(desc)
+                    .font(.system(size: 11))
+                    .foregroundColor(.textSecondary)
+                    .lineSpacing(2)
+            }
+            Spacer(minLength: 0)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            checklistChecked[index].toggle()
+        }
+    }
+
+    private var macInsightCard: some View {
+        HStack(alignment: .top, spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.brandAccentWarm.opacity(0.12))
+                    .frame(width: 32, height: 32)
+                Image(systemName: "shield.lefthalf.filled")
+                    .font(.system(size: 16))
+                    .foregroundColor(.brandAccentWarm)
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                Text(LinkaCopy.value("mac.optimize.insight.title"))
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.textPrimary)
+                Text(LinkaCopy.value("mac.optimize.insight.desc"))
+                    .font(.system(size: 11))
+                    .foregroundColor(.textSecondary)
+                    .lineSpacing(2)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+        )
+    }
+
+    private var macFooterAction: some View {
+        let isReady = checklistChecked.allSatisfy { $0 }
+        return HStack {
+            Text(isReady ? LinkaCopy.value("mac.optimize.ready") : LinkaCopy.value("mac.optimize.notReady"))
+                .font(.system(size: 11))
+                .foregroundColor(.textSecondary)
+
+            Spacer()
+
+            Button {
+                dismiss()
+                onRetest()
+            } label: {
+                HStack(spacing: 6) {
+                    Text(LinkaCopy.value("mac.optimize.retestAction"))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 10, weight: .semibold))
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.brandAccentWarm)
+            .disabled(!isReady)
+            .accessibilityIdentifier("mac.optimize.retestButton")
+        }
+    }
+
+    private func localizedNumber(_ value: Double, fractionDigits: Int) -> String {
+        value.formatted(
+            .number
+                .precision(.fractionLength(fractionDigits))
+                .locale(LinkaLanguagePreference.currentLocale)
+        )
     }
     #endif
 
