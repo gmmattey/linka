@@ -151,7 +151,7 @@ struct MyNetworkView: View {
                 // Pagehead
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(LinkaCopy.value("inventory.title"))
+                        Text("Minha rede")
                             .font(.largeTitle.weight(.bold))
                         Text(LinkaCopy.value("mac.network.subtitle", defaultValue: "Seu plano e seus equipamentos, no mesmo lugar."))
                             .font(.subheadline)
@@ -168,14 +168,10 @@ struct MyNetworkView: View {
 
                 // Network Ribbon
                 HStack(spacing: 14) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(Color.brandAccentWarm.opacity(0.12))
-                            .frame(width: 36, height: 36)
-                        Image(systemName: "wifi")
-                            .font(.system(size: 18))
-                            .foregroundColor(.brandAccentWarm)
-                    }
+                    Image(systemName: "wifi")
+                        .font(.system(size: 20))
+                        .foregroundColor(.brandAccentWarm)
+                        .frame(width: 24, height: 24)
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text(store.activePlan?.ispName.isEmpty == false ? (store.activePlan?.ispName ?? "Minha casa") : "Minha casa")
@@ -387,9 +383,10 @@ struct MyNetworkView: View {
                     }
                 }
             }
-            .frame(maxWidth: 680, alignment: .leading)
-            .padding(36)
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .frame(maxWidth: 970)
+            .padding(.horizontal, 30)
+            .padding(.vertical, 28)
+            .frame(maxWidth: .infinity, alignment: .top)
         }
     }
     #endif

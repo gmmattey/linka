@@ -147,7 +147,7 @@ struct OptimizationView: View {
                         Text(LinkaCopy.value("optimization.title"))
                             .font(.largeTitle.weight(.bold))
                         Spacer()
-                        Text("Fluxo guiado")
+                        Text("Fluxo demonstrativo")
                             .font(.caption.weight(.semibold))
                             .padding(.horizontal, 10)
                             .padding(.vertical, 4)
@@ -169,45 +169,11 @@ struct OptimizationView: View {
 
                 macFooterAction
                     .padding(.top, 4)
-
-                Divider().padding(.vertical, 8)
-
-                macSection(title: LinkaCopy.value("optimization.mac.measurementContext")) {
-                    NetworkProfilesSection(
-                        coordinator: profileCoordinator,
-                        isPlusActive: isPlusActive,
-                        onRequestPurchase: onRequestPurchase,
-                        onManageIdentification: onManageIdentification,
-                        isPresentingCreation: $isPresentingEnvironmentCreation
-                    )
-
-                    Divider()
-                    if isPlusActive {
-                        NavigationLink {
-                            DNSBenchmarkView {
-                                dismiss()
-                                onRetest()
-                            }
-                        } label: {
-                            macSecondaryAction(
-                                title: LinkaCopy.value("optimization.mac.dns.title"),
-                                detail: LinkaCopy.value("optimization.mac.dns.detail")
-                            )
-                        }
-                    } else {
-                        Button(action: onRequestPurchase) {
-                            macSecondaryAction(
-                                title: LinkaCopy.value("optimization.mac.dns.title"),
-                                detail: LinkaCopy.value("optimization.mac.dns.plusDetail")
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
             }
-            .frame(maxWidth: 680, alignment: .leading)
-            .padding(36)
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .frame(maxWidth: 970)
+            .padding(.horizontal, 30)
+            .padding(.vertical, 28)
+            .frame(maxWidth: .infinity, alignment: .top)
         }
         .navigationTitle(LinkaCopy.value("optimization.title"))
         .sheet(isPresented: $isPresentingEnvironmentCreation) {
@@ -288,14 +254,10 @@ struct OptimizationView: View {
 
     private var macBaselineRibbon: some View {
         HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.brandAccentWarm.opacity(0.12))
-                    .frame(width: 36, height: 36)
-                Image(systemName: "gauge.medium")
-                    .font(.system(size: 18))
-                    .foregroundColor(.brandAccentWarm)
-            }
+            Image(systemName: "gauge.medium")
+                .font(.system(size: 20))
+                .foregroundColor(.brandAccentWarm)
+                .frame(width: 24, height: 24)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(LinkaCopy.value("mac.optimize.baseline.title"))
@@ -308,7 +270,7 @@ struct OptimizationView: View {
 
             Spacer()
 
-            Button(LinkaCopy.value("assist.technicalDetails")) {
+            Button("Detalhes") {
                 showBaselineTechnicalDetails = true
             }
             .buttonStyle(.plain)
@@ -340,7 +302,7 @@ struct OptimizationView: View {
                 profileButton(id: "general", label: LinkaCopy.value("mac.optimize.profile.general"), icon: "wifi")
                 profileButton(id: "videoCall", label: LinkaCopy.value("mac.optimize.profile.videoCall"), icon: "video")
                 profileButton(id: "gaming", label: LinkaCopy.value("mac.optimize.profile.gaming"), icon: "gamecontroller")
-                profileButton(id: "transfers", label: LinkaCopy.value("mac.optimize.profile.transfers"), icon: "arrow.down.circle")
+                profileButton(id: "transfers", label: LinkaCopy.value("mac.optimize.profile.transfers"), icon: "tray.and.arrow.down")
             }
         }
     }

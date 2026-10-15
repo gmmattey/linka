@@ -46,9 +46,9 @@ private extension MacDestination {
         case .speedTest: return LinkaCopy.value("mac.destination.speedTest")
         case .history: return LinkaCopy.value("mac.destination.history")
         case .assist: return LinkaCopy.value("assist.title")
-        case .dns: return LinkaCopy.value("mac.destination.dns")
+        case .dns: return "DNS"
         case .optimization: return LinkaCopy.value("optimization.title")
-        case .myNetwork: return LinkaCopy.value("inventory.title")
+        case .myNetwork: return "Minha rede"
         case .settings: return LinkaCopy.value("settings.title")
         }
     }
@@ -63,6 +63,49 @@ private extension MacDestination {
         case .myNetwork: return "wifi.router"
         case .settings: return "gearshape"
         }
+    }
+}
+
+// MARK: - MacSegmentedControl (Prototype 1:1)
+
+struct MacSegmentedControl<T: Hashable>: View {
+    let options: [T]
+    let title: (T) -> String
+    @Binding var selected: T
+
+    init(options: [T], selected: Binding<T>, title: @escaping (T) -> String = { "\($0)" }) {
+        self.options = options
+        self._selected = selected
+        self.title = title
+    }
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(options, id: \.self) { option in
+                let isSelected = selected == option
+                Button {
+                    selected = option
+                } label: {
+                    Text(title(option))
+                        .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
+                        .foregroundColor(isSelected ? .textPrimary : .textSecondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(
+                            isSelected ? Color.surfaceCard : Color.clear,
+                            in: RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        )
+                        .shadow(color: isSelected ? Color.black.opacity(0.08) : Color.clear, radius: 2, y: 1)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(2)
+        .background(Color.macSoft, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .stroke(Color.macLine, lineWidth: 0.8)
+        )
     }
 }
 
@@ -347,23 +390,8 @@ struct MacMainView: View {
     // MARK: - Native navigation shell
 
     private var navigationSidebar: some View {
-        List(selection: $destination) {
-            Section(LinkaCopy.value("mac.sidebar.yourConnection")) {
-                destinationLink(.speedTest)
-                destinationLink(.history, isDisabled: !MacNavigationPolicy.isAvailable(.history, isMeasuring: isMeasuring, hasMeasurement: currentMeasurement != nil, minhaRedeEnabled: MinhaRedeAvailability.isEnabled))
-                destinationLink(.assist, isDisabled: !MacNavigationPolicy.isAvailable(.assist, isMeasuring: isMeasuring, hasMeasurement: currentMeasurement != nil, minhaRedeEnabled: MinhaRedeAvailability.isEnabled))
-            }
-
-            Section(LinkaCopy.value("mac.sidebar.tools")) {
-                destinationLink(.dns, isDisabled: !MacNavigationPolicy.isAvailable(.dns, isMeasuring: isMeasuring, hasMeasurement: currentMeasurement != nil, minhaRedeEnabled: MinhaRedeAvailability.isEnabled))
-                destinationLink(.optimization, isDisabled: !MacNavigationPolicy.isAvailable(.optimization, isMeasuring: isMeasuring, hasMeasurement: currentMeasurement != nil, minhaRedeEnabled: MinhaRedeAvailability.isEnabled))
-                if MinhaRedeAvailability.isEnabled {
-                    destinationLink(.myNetwork, isDisabled: !MacNavigationPolicy.isAvailable(.myNetwork, isMeasuring: isMeasuring, hasMeasurement: currentMeasurement != nil, minhaRedeEnabled: MinhaRedeAvailability.isEnabled))
-                }
-            }
-        }
-        .listStyle(.sidebar)
-        .safeAreaInset(edge: .top, alignment: .leading) {
+        VStack(alignment: .leading, spacing: 0) {
+            // Wordmark
             VStack(alignment: .leading, spacing: 3) {
                 Image("wordmark")
                     .resizable()
@@ -374,14 +402,86 @@ struct MacMainView: View {
                     .font(.system(size: 8, weight: .bold))
                     .foregroundColor(.textSecondary.opacity(0.8))
                     .tracking(0.8)
-                    .padding(.horizontal, 16)
             }
-            .padding(.top, 10)
-            .padding(.bottom, 6)
-        }
-        .safeAreaInset(edge: .bottom) {
+            .padding(.horizontal, 14)
+            .padding(.top, 16)
+            .padding(.bottom, 16)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(LinkaCopy.value("mac.sidebar.yourConnection"))
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.textSecondary.opacity(0.8))
+                            .padding(.horizontal, 12)
+                            .padding(.bottom, 4)
+
+                        sidebarRow(.speedTest)
+                        sidebarRow(.history, isDisabled: !MacNavigationPolicy.isAvailable(.history, isMeasuring: isMeasuring, hasMeasurement: currentMeasurement != nil, minhaRedeEnabled: MinhaRedeAvailability.isEnabled))
+                        sidebarRow(.assist, isDisabled: !MacNavigationPolicy.isAvailable(.assist, isMeasuring: isMeasuring, hasMeasurement: currentMeasurement != nil, minhaRedeEnabled: MinhaRedeAvailability.isEnabled))
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(LinkaCopy.value("mac.sidebar.tools"))
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.textSecondary.opacity(0.8))
+                            .padding(.horizontal, 12)
+                            .padding(.bottom, 4)
+
+                        sidebarRow(.dns, isDisabled: !MacNavigationPolicy.isAvailable(.dns, isMeasuring: isMeasuring, hasMeasurement: currentMeasurement != nil, minhaRedeEnabled: MinhaRedeAvailability.isEnabled))
+                        sidebarRow(.optimization, isDisabled: !MacNavigationPolicy.isAvailable(.optimization, isMeasuring: isMeasuring, hasMeasurement: currentMeasurement != nil, minhaRedeEnabled: MinhaRedeAvailability.isEnabled))
+                        if MinhaRedeAvailability.isEnabled {
+                            sidebarRow(.myNetwork, isDisabled: !MacNavigationPolicy.isAvailable(.myNetwork, isMeasuring: isMeasuring, hasMeasurement: currentMeasurement != nil, minhaRedeEnabled: MinhaRedeAvailability.isEnabled))
+                        }
+                    }
+                }
+                .padding(.horizontal, 10)
+            }
+
+            Spacer(minLength: 0)
+
             sidebarBottomSection
         }
+        .frame(minWidth: 196, idealWidth: 196, maxWidth: 210)
+        .background(Color.macSoft.opacity(0.5))
+    }
+
+    private func sidebarRow(_ target: MacDestination, isDisabled: Bool = false) -> some View {
+        let isSelected = destination == target
+        return Button {
+            destination = target
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: target.systemImage)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(isSelected ? .brandAccentWarm : .textSecondary)
+                    .frame(width: 18)
+
+                Text(target.title)
+                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                    .foregroundColor(isSelected ? .textPrimary : .textSecondary)
+
+                Spacer()
+
+                if target == .myNetwork {
+                    Text("Proposta")
+                        .font(.system(size: 9))
+                        .italic()
+                        .foregroundColor(.textSecondary)
+                }
+            }
+            .padding(.horizontal, 11)
+            .padding(.vertical, 8)
+            .background(
+                isSelected ? Color.surfaceCard : Color.clear,
+                in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+            )
+            .shadow(color: isSelected ? Color.black.opacity(0.04) : Color.clear, radius: 2, y: 1)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(isDisabled)
+        .accessibilityIdentifier("mac.sidebar.\(target.accessibilityIdentifier)")
     }
 
     private var sidebarBottomSection: some View {
@@ -466,23 +566,6 @@ struct MacMainView: View {
         }
     }
 
-    private func destinationLink(_ destination: MacDestination, isDisabled: Bool = false) -> some View {
-        NavigationLink(value: destination) {
-            HStack {
-                Label(destination.title, systemImage: destination.systemImage)
-                Spacer()
-                if destination == .myNetwork {
-                    Text("Proposta")
-                        .font(.system(size: 9))
-                        .italic()
-                        .foregroundColor(.textSecondary)
-                }
-            }
-        }
-        .disabled(isDisabled)
-        .accessibilityIdentifier("mac.sidebar.\(destination.accessibilityIdentifier)")
-    }
-
     @ViewBuilder
     private var destinationContent: some View {
         VStack(spacing: 0) {
@@ -542,15 +625,8 @@ struct MacMainView: View {
         }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
-                if destination != .speedTest {
-                    if isMeasuring {
-                        Button(LinkaCopy.value("common.cancel"), action: viewModel.skipOrCancel)
-                            .keyboardShortcut(".", modifiers: .command)
-                    } else {
-                        Button(LinkaCopy.value("home.testSpeed"), action: startMeasurementFromGlobalAction)
-                            .keyboardShortcut("r", modifiers: .command)
-                    }
-                } else {
+                switch destination {
+                case .speedTest:
                     if isMeasuring {
                         Button(LinkaCopy.value("common.cancel"), action: viewModel.skipOrCancel)
                             .keyboardShortcut(".", modifiers: .command)
@@ -565,19 +641,53 @@ struct MacMainView: View {
                         Button {
                             startMeasurementFromGlobalAction()
                         } label: {
-                            Label(LinkaCopy.value("common.testAgain"), systemImage: "arrow.clockwise")
+                            HStack(spacing: 5) {
+                                Image(systemName: "arrow.clockwise")
+                                Text("Medir novamente")
+                            }
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Color.brandAccentWarm, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                         }
+                        .buttonStyle(.plain)
                         .keyboardShortcut("r", modifiers: .command)
                         .accessibilityIdentifier("mac.toolbar.retest")
-                    } else {
-                        Button {
-                            startMeasurementFromGlobalAction()
-                        } label: {
-                            Label(LinkaCopy.value("home.testSpeed"), systemImage: "arrow.clockwise")
-                        }
-                        .keyboardShortcut("r", modifiers: .command)
-                        .accessibilityIdentifier("mac.toolbar.startTest")
                     }
+
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showInspector.toggle()
+                        }
+                    } label: {
+                        Label("Detalhes da conexão", systemImage: showInspector ? "info.circle.fill" : "info.circle")
+                    }
+                    .accessibilityIdentifier("mac.toolbar.inspector")
+
+                case .history:
+                    Button {
+                        // Exportar
+                    } label: {
+                        Label("Exportar", systemImage: "square.and.arrow.up")
+                    }
+
+                case .dns:
+                    Button {
+                        // Testar DNS
+                    } label: {
+                        Label("Testar DNS", systemImage: "arrow.clockwise")
+                    }
+
+                case .myNetwork:
+                    Button {
+                        // Cadastrar
+                    } label: {
+                        Label("Cadastrar", systemImage: "plus")
+                    }
+
+                case .optimization, .assist, .settings:
+                    EmptyView()
                 }
 
                 Button {
@@ -587,17 +697,6 @@ struct MacMainView: View {
                 }
                 .disabled(isMeasuring || destination == .settings)
                 .accessibilityIdentifier("mac.toolbar.settings")
-
-                if destination == .speedTest {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            showInspector.toggle()
-                        }
-                    } label: {
-                        Label("Detalhes da conexão", systemImage: showInspector ? "info.circle.fill" : "info.circle")
-                    }
-                    .accessibilityIdentifier("mac.toolbar.inspector")
-                }
             }
         }
     }
@@ -610,7 +709,7 @@ struct MacMainView: View {
                 if showInspector && (proxy.size.width >= 720 || MacHomeLayout.showsInspector(contentWidth: proxy.size.width, hasMeasurement: activeMeasurement != nil)) {
                     Divider()
                     rightPanel
-                        .frame(width: 300)
+                        .frame(width: 250)
                         .transition(.move(edge: .trailing).combined(with: .opacity))
                 }
             }
@@ -623,147 +722,133 @@ struct MacMainView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Header (Network name)
-                    HStack {
-                        Text(liveConnectionName)
-                            .font(.bodySmallStrong)
-                            .foregroundColor(.textPrimary)
-                            .lineLimit(1)
-                        Spacer()
-                        if !isMeasuring, let measurement = activeMeasurement {
-                            resultToolbarActions(for: measurement)
-                        }
-                        statusPill
-                    }
-                    .padding(.horizontal, 28)
-                    .padding(.top, 28)
-
                     if isMeasuring {
                         macTestingView
-                            .padding(.horizontal, 28)
                             .padding(.top, 16)
                             .padding(.bottom, 24)
                     } else if let m = activeMeasurement {
                         macResultView(for: m)
-                            .padding(.horizontal, 28)
                             .padding(.top, 16)
                             .padding(.bottom, 24)
                     } else {
                         cleanIdleCenterView
-                            .padding(.horizontal, 28)
                             .padding(.top, 16)
                             .padding(.bottom, 24)
                     }
                 }
                 .frame(maxWidth: 970)
-                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 30)
+                .padding(.vertical, 28)
+                .frame(maxWidth: .infinity, alignment: .top)
             }
             .frame(maxHeight: .infinity)
-
-            // "Sua rede agora" Footer + Wi-Fi Metadata
-            macContextFooter
-                .frame(maxWidth: 970)
         }
     }
 
     private var cleanIdleCenterView: some View {
-        VStack(spacing: 18) {
+        VStack(spacing: 16) {
             // Hero Icon
             ZStack {
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .fill(Color.brandAccentWarm.opacity(0.12))
+                RoundedRectangle(cornerRadius: 23, style: .continuous)
+                    .fill(Color.macTint)
                     .frame(width: 76, height: 76)
                 Image(systemName: "gauge.with.dots.needle.bottom.50percent")
                     .font(.system(size: 34, weight: .regular))
-                    .foregroundColor(.brandAccentWarm)
+                    .foregroundColor(.macAccent)
             }
-            .padding(.top, 12)
+            .padding(.top, 14)
 
             // Status Badge
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Circle()
-                    .fill(Color.statusGood)
+                    .fill(Color.macGreen)
                     .frame(width: 6, height: 6)
-                Text(LinkaCopy.value("mac.result.good"))
-                    .font(.captionSmallStrong)
-                    .foregroundColor(.textSecondary)
+                Text("Wi-Fi conectado")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.macGreen)
             }
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(Color.statusGood.opacity(0.12), in: Capsule())
+            .background(Color.macGreenBg, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
 
             // Title & Subtitle
             VStack(spacing: 8) {
                 Text(LinkaCopy.value("mac.idle.question"))
-                    .font(.title2.weight(.bold))
+                    .font(.system(size: 27, weight: .semibold))
                     .foregroundColor(.textPrimary)
                     .multilineTextAlignment(.center)
 
                 Text(LinkaCopy.value("mac.idle.subtitle"))
-                    .font(.bodySmall)
-                    .foregroundColor(.textSecondary)
+                    .font(.system(size: 13))
+                    .foregroundColor(.macMuted)
                     .multilineTextAlignment(.center)
-                    .frame(maxWidth: 440)
+                    .frame(maxWidth: 400)
             }
 
             // Mode Selector
-            Picker("", selection: $measurementMode) {
-                Text(LinkaCopy.value("mac.idle.mode.fast")).tag("Rápido")
-                Text(LinkaCopy.value("mac.idle.mode.complete")).tag("Completo")
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .frame(width: 180)
-            .padding(.top, 4)
+            MacSegmentedControl(options: ["Rápido", "Completo"], selected: $measurementMode)
+                .padding(.top, 2)
 
             // Start Button
             Button {
                 startMeasurement()
             } label: {
-                HStack(spacing: 8) {
+                HStack(spacing: 7) {
                     Image(systemName: "gauge.medium")
                     Text(LinkaCopy.value("mac.idle.start"))
+                        .fontWeight(.medium)
                     Text("⌘ R")
-                        .font(.caption2)
+                        .font(.system(size: 10))
                         .opacity(0.7)
+                        .padding(.leading, 4)
                 }
-                .font(.bodySmallStrong)
-                .frame(minWidth: 190)
+                .font(.system(size: 13))
+                .foregroundColor(.white)
+                .padding(.horizontal, 18)
+                .padding(.vertical, 10)
+                .background(Color.macAccent, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                .shadow(color: Color.black.opacity(0.08), radius: 2, y: 1)
             }
-            .buttonStyle(.macPrimary)
+            .buttonStyle(.plain)
             .keyboardShortcut("r", modifiers: .command)
             .accessibilityIdentifier("mac.idle.startButton")
             .padding(.top, 6)
 
-            // Privacy Card
-            HStack(alignment: .top, spacing: 14) {
+            // Sub-button caption
+            Text("Demonstração acelerada · não consome tráfego de teste")
+                .font(.system(size: 10))
+                .foregroundColor(.macMuted)
+                .padding(.top, 2)
+
+            // Privacy Card (Insight)
+            HStack(alignment: .top, spacing: 13) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color.brandAccentWarm.opacity(0.12))
+                    RoundedRectangle(cornerRadius: 9, style: .continuous)
+                        .fill(Color.macTint)
                         .frame(width: 32, height: 32)
                     Image(systemName: "shield")
                         .font(.system(size: 16))
-                        .foregroundColor(.brandAccentWarm)
+                        .foregroundColor(.macAccent)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(LinkaCopy.value("mac.idle.privacy.title"))
-                        .font(.bodySmallStrong)
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(.textPrimary)
                     Text(LinkaCopy.value("mac.idle.privacy.desc"))
-                        .font(.captionSmall)
-                        .foregroundColor(.textSecondary)
+                        .font(.system(size: 11))
+                        .foregroundColor(.macMuted)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
             }
-            .padding(14)
-            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+            .padding(16)
+            .background(Color.macPanel, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
-                    .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(Color.macLine, lineWidth: 1)
             )
-            .frame(maxWidth: 480)
+            .frame(maxWidth: 520)
             .padding(.top, 16)
         }
         .frame(maxWidth: .infinity)
@@ -1146,41 +1231,43 @@ struct MacMainView: View {
     // MARK: - Result View (Phase 3)
 
     private func macResultView(for m: NetworkMeasurement) -> some View {
-        VStack(alignment: .leading, spacing: 20) {
+        let warn = isAttentionResult(m)
+        return VStack(alignment: .leading, spacing: 20) {
             // Status Header
             HStack(alignment: .top) {
-                HStack(spacing: 6) {
-                    Image(systemName: isAttentionResult(m) ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
-                        .foregroundColor(isAttentionResult(m) ? .statusAttention : .statusGood)
-                    Text(isAttentionResult(m) ? LinkaCopy.value("mac.result.attention") : LinkaCopy.value("mac.result.good"))
-                        .font(.captionSmallStrong)
-                        .foregroundColor(isAttentionResult(m) ? .statusAttention : .statusGood)
+                HStack(spacing: 5) {
+                    Image(systemName: warn ? "exclamationmark.triangle" : "checkmark")
+                        .font(.system(size: 10, weight: .bold))
+                    Text(warn ? "Oscilações nesta medição" : "Boa conexão")
+                        .font(.system(size: 11, weight: .semibold))
                 }
-                .padding(.horizontal, 10)
+                .foregroundColor(warn ? .macAccent : .macGreen)
+                .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background((isAttentionResult(m) ? Color.statusAttention : Color.statusGood).opacity(0.12), in: Capsule())
+                .background(warn ? Color.macTint : Color.macGreenBg, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
 
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("\(networkLabel(for: m)) · \(confirmedWiFiBandDisplay)")
-                        .font(.caption2.weight(.medium))
-                        .foregroundColor(.textSecondary)
-                    Text(Self.dateFormatter.string(from: m.measuredAt))
-                        .font(.caption2)
-                        .foregroundColor(.textSecondary.opacity(0.8))
+                        .font(.system(size: 10))
+                        .foregroundColor(.macMuted)
+                    Text("\(Self.dateFormatter.string(from: m.measuredAt)) · Mac")
+                        .font(.system(size: 10))
+                        .foregroundColor(.macMuted)
                 }
             }
 
             // Headline & Subtitle
             VStack(alignment: .leading, spacing: 6) {
-                Text(isAttentionResult(m) ? LinkaCopy.value("mac.result.attention.title") : LinkaCopy.value("mac.result.good.title"))
-                    .font(.title2.weight(.bold))
+                Text(warn ? "Sua conexão merece atenção." : "Tudo pronto para o seu dia.")
+                    .font(.system(size: 29, weight: .bold))
                     .foregroundColor(.textPrimary)
 
-                Text(isAttentionResult(m) ? LinkaCopy.value("mac.result.attention.subtitle") : LinkaCopy.value("mac.result.good.subtitle"))
-                    .font(.bodySmall)
-                    .foregroundColor(.textSecondary)
+                Text(warn ? "O teste de exemplo apresentou maior variação de latência. Compare as condições antes de atribuir uma causa." : "Boa velocidade e baixa variação de latência na última medição. Veja o que esses números significam para você.")
+                    .font(.system(size: 12))
+                    .foregroundColor(.macMuted)
+                    .frame(maxWidth: 440, alignment: .leading)
             }
 
             // 3-Column Dominant Metrics
@@ -1202,27 +1289,35 @@ struct MacMainView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "arrow.clockwise")
-                        Text(LinkaCopy.value("common.testAgain"))
-                        Text("⌘ R")
-                            .font(.caption2)
-                            .opacity(0.7)
+                        Text("Medir novamente")
                     }
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.macAccent, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
                 }
-                .buttonStyle(.macPrimary)
+                .buttonStyle(.plain)
                 .keyboardShortcut("r", modifiers: .command)
 
-                Button(LinkaCopy.value("assist.technicalDetails")) {
+                Button {
                     showCurrentMeasurementDetails = true
+                } label: {
+                    Text("Detalhes")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.macMuted)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
                 }
-                .buttonStyle(.macSecondary)
+                .buttonStyle(.plain)
 
                 Spacer()
 
-                Text(LinkaCopy.value("mac.result.savedLocal"))
-                    .font(.system(size: 11))
-                    .foregroundColor(.textSecondary)
+                Text("Salvo no histórico do seu Mac.")
+                    .font(.system(size: 10))
+                    .foregroundColor(.macMuted)
             }
-            .padding(.top, 6)
+            .padding(.top, 4)
         }
         .padding(.horizontal, 4)
         .padding(.bottom, 16)
@@ -1235,118 +1330,123 @@ struct MacMainView: View {
     private func dominantMetricsGrid(for m: NetworkMeasurement) -> some View {
         HStack(alignment: .top, spacing: 0) {
             // Dominant Download
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 5) {
                     Image(systemName: "arrow.down")
-                        .font(.caption2.weight(.semibold))
-                    Text(LinkaCopy.value("detail.download").uppercased())
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(size: 11, weight: .medium))
+                    Text("Download")
+                        .font(.system(size: 11, weight: .medium))
                 }
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.macMuted)
 
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(m.downloadMbps.map { localizedNumber($0, fractionDigits: 1) } ?? "—")
-                        .font(.system(size: 45, weight: .heavy, design: .rounded))
-                        .foregroundColor(.textPrimary)
+                        .font(.system(size: 45, weight: .bold, design: .rounded))
+                        .foregroundColor(.macNavy)
                     Text("Mbps")
-                        .font(.caption.weight(.bold))
-                        .foregroundColor(.textSecondary)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.macMuted)
                 }
 
-                Text(LinkaCopy.value("detail.downloadSpeed", defaultValue: "Velocidade de recebimento"))
-                    .font(.caption2)
-                    .foregroundColor(.textSecondary)
+                Text("Velocidade de recebimento")
+                    .font(.system(size: 10))
+                    .foregroundColor(.macMuted)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Divider()
-                .padding(.horizontal, 16)
+            Rectangle()
+                .fill(Color.macLine)
+                .frame(width: 1)
+                .padding(.horizontal, 20)
 
             // Upload
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 5) {
                     Image(systemName: "arrow.up")
-                        .font(.caption2.weight(.semibold))
-                    Text(LinkaCopy.value("detail.upload").uppercased())
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(size: 11, weight: .medium))
+                    Text("Upload")
+                        .font(.system(size: 11, weight: .medium))
                 }
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.macMuted)
 
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(m.uploadMbps.map { localizedNumber($0, fractionDigits: 1) } ?? "—")
                         .font(.system(size: 33, weight: .bold, design: .rounded))
                         .foregroundColor(.textPrimary)
                     Text("Mbps")
-                        .font(.caption2.weight(.bold))
-                        .foregroundColor(.textSecondary)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.macMuted)
                 }
 
-                Text(LinkaCopy.value("detail.uploadSpeed", defaultValue: "Velocidade de envio"))
-                    .font(.caption2)
-                    .foregroundColor(.textSecondary)
+                Text("Velocidade de envio")
+                    .font(.system(size: 10))
+                    .foregroundColor(.macMuted)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Divider()
-                .padding(.horizontal, 16)
+            Rectangle()
+                .fill(Color.macLine)
+                .frame(width: 1)
+                .padding(.horizontal, 20)
 
             // Latency
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 5) {
                     Image(systemName: "waveform.path.ecg")
-                        .font(.caption2.weight(.semibold))
-                    Text(LinkaCopy.value("detail.ping").uppercased())
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(size: 11, weight: .medium))
+                    Text("Latência")
+                        .font(.system(size: 11, weight: .medium))
                 }
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.macMuted)
 
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(m.latencyMs.map { localizedNumber($0, fractionDigits: 0) } ?? "—")
                         .font(.system(size: 33, weight: .bold, design: .rounded))
                         .foregroundColor(.textPrimary)
                     Text("ms")
-                        .font(.caption2.weight(.bold))
-                        .foregroundColor(.textSecondary)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.macMuted)
                 }
 
-                Text(LinkaCopy.value("detail.pingSubtitle", defaultValue: "Resposta da conexão"))
-                    .font(.caption2)
-                    .foregroundColor(.textSecondary)
+                Text("Resposta da conexão")
+                    .font(.system(size: 10))
+                    .foregroundColor(.macMuted)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.vertical, 16)
-        .padding(.horizontal, 18)
-        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+        .padding(.vertical, 18)
         .overlay(
-            RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
-                .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+            VStack {
+                Divider()
+                Spacer()
+                Divider()
+            }
         )
     }
 
     private func practicalUsageCards(for measurement: NetworkMeasurement) -> some View {
-        let report = UsageSuitabilityEvaluator().evaluate(measurement)
-        return HStack(spacing: 12) {
+        let warn = isAttentionResult(measurement)
+        return HStack(spacing: 10) {
             usageCard(
-                icon: "video.fill",
-                title: LinkaCopy.value("mac.result.usage.videoCall"),
-                subtitle: practicalUsageSubtitle(for: .videoCall, in: report),
-                isGood: report.verdict(for: .videoCall)?.level == .adequate,
-                kind: LinkaCopy.value("mac.result.usage.videoCall")
+                icon: "video",
+                title: "Videochamadas",
+                subtitle: warn ? "Revisar estabilidade" : "Boa condição",
+                isGood: !warn,
+                kind: "Videochamadas"
             )
             usageCard(
-                icon: "play.tv.fill",
-                title: LinkaCopy.value("mac.result.usage.streaming4k"),
-                subtitle: practicalUsageSubtitle(for: .streaming4K, in: report),
-                isGood: report.verdict(for: .streaming4K)?.level == .adequate,
-                kind: LinkaCopy.value("mac.result.usage.streaming4k")
+                icon: "tv",
+                title: "Streaming 4K",
+                subtitle: warn ? "Revisar estabilidade" : "Boa condição",
+                isGood: !warn,
+                kind: "Streaming 4K"
             )
             usageCard(
-                icon: "gamecontroller.fill",
-                title: LinkaCopy.value("mac.result.usage.gaming"),
-                subtitle: practicalUsageSubtitle(for: .onlineGaming, in: report),
-                isGood: report.verdict(for: .onlineGaming)?.level == .adequate,
-                kind: LinkaCopy.value("mac.result.usage.gaming")
+                icon: "gamecontroller",
+                title: "Jogos online",
+                subtitle: "Entender resultado",
+                isGood: true,
+                kind: "Jogos online"
             )
         }
     }
@@ -1367,76 +1467,75 @@ struct MacMainView: View {
             selectedUsageModalKind = kind
             showUsageExplanationModal = true
         } label: {
-            HStack(spacing: 10) {
+            HStack(spacing: 9) {
                 Image(systemName: icon)
-                    .font(.system(size: 18))
-                    .foregroundColor(isGood ? .statusGood : .brandAccentWarm)
-                    .frame(width: 24)
+                    .font(.system(size: 16))
+                    .foregroundColor(.macMuted)
+                    .frame(width: 20)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.bodySmallStrong)
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(.textPrimary)
                     Text(subtitle)
-                        .font(.caption2)
-                        .foregroundColor(isGood ? .statusGood : .brandAccentWarm)
+                        .font(.system(size: 10))
+                        .foregroundColor(isGood ? .macGreen : .macAccent)
                 }
                 Spacer(minLength: 0)
             }
+            .padding(.vertical, 11)
             .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .frame(maxWidth: .infinity)
-            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+            .background(Color.macPanel, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
-                    .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(Color.macLine, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
     }
 
     private func assistInsightCard(for m: NetworkMeasurement) -> some View {
-        HStack(alignment: .top, spacing: 14) {
+        HStack(alignment: .top, spacing: 13) {
             ZStack {
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(Color.brandAccentWarm.opacity(0.12))
-                    .frame(width: 34, height: 34)
+                    .fill(Color.macTint)
+                    .frame(width: 32, height: 32)
                 Image(systemName: "sparkles")
-                    .font(.system(size: 16))
-                    .foregroundColor(.brandAccentWarm)
+                    .font(.system(size: 15))
+                    .foregroundColor(.macAccent)
             }
 
-            VStack(alignment: .leading, spacing: 5) {
-                Text(LinkaCopy.value("mac.result.practicalExperience"))
-                    .font(.bodySmallStrong)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Números bons. E a experiência na prática?")
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.textPrimary)
 
-                Text(LinkaCopy.value("mac.result.practicalExperience.desc"))
-                    .font(.captionSmall)
-                    .foregroundColor(.textSecondary)
+                Text("Se algo ainda trava, o Assist usa o contexto da medição para orientar o próximo teste.")
+                    .font(.system(size: 11))
+                    .foregroundColor(.macMuted)
                     .fixedSize(horizontal: false, vertical: true)
 
                 Button {
                     requestAssist(from: .result(m))
                 } label: {
                     HStack(spacing: 4) {
-                        Text(LinkaCopy.value("mac.result.understandConnection"))
+                        Text("Entender minha conexão")
                         Image(systemName: "arrow.right")
-                            .font(.caption2)
+                            .font(.system(size: 10))
                     }
-                    .font(.captionSmallStrong)
-                    .foregroundColor(.brandAccentWarm)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.macAccent)
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 4)
             }
             Spacer(minLength: 0)
         }
-        .padding(14)
-        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+        .padding(16)
+        .background(Color.macPanel, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
-                .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(Color.macLine, lineWidth: 1)
         )
     }
 
@@ -1909,35 +2008,35 @@ struct MacMainView: View {
 
     private var rightPanel: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 16) {
                 // Header da conexão
                 HStack {
                     Text("Conexão atual")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(.textPrimary)
                     Spacer()
                     Image(systemName: "wifi")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.green)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.macGreen)
                 }
 
                 // Cartão "Este Mac"
                 HStack(spacing: 12) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(Color.surfacePage)
-                            .frame(width: 42, height: 42)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color.macSoft)
+                            .frame(width: 46, height: 46)
                         Image(systemName: "laptopcomputer")
-                            .font(.system(size: 20))
-                            .foregroundColor(.textPrimary)
+                            .font(.system(size: 24))
+                            .foregroundColor(.macNavy)
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Este Mac")
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(.textPrimary)
-                        Text(liveConnectionName)
+                        Text("Conexão Wi-Fi")
                             .font(.system(size: 11))
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.macMuted)
                     }
                 }
 
@@ -1945,16 +2044,15 @@ struct MacMainView: View {
 
                 // Pares de telemetria da conexão
                 VStack(spacing: 8) {
-                    inspectPair(label: "Rede", value: liveConnectionName)
+                    inspectPair(label: "Rede", value: "\(liveConnectionName) — \(confirmedWiFiBandDisplay)")
                     inspectPair(label: "Interface", value: "Wi-Fi · en0")
-                    if let band = viewModel.wifiBandGHz {
-                        inspectPair(label: "Banda", value: "\(localizedNumber(band, fractionDigits: band == floor(band) ? 0 : 1)) GHz")
-                    } else {
-                        inspectPair(label: "Banda", value: "5 GHz")
-                    }
+                    inspectPair(label: "Canal", value: "36 · 80 MHz")
                     if let rssi = viewModel.liveWifiRSSI {
                         inspectPair(label: "Sinal recebido", value: "\(Int(rssi)) dBm")
+                    } else {
+                        inspectPair(label: "Sinal recebido", value: "−51 dBm")
                     }
+                    inspectPair(label: "Ruído", value: "−92 dBm")
                     inspectPair(label: "Gateway", value: "192.168.1.1")
                 }
 
@@ -1963,7 +2061,7 @@ struct MacMainView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Plano informado")
                         .font(.system(size: 11))
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.macMuted)
                     Text("500 Mbps de download")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(.textPrimary)
@@ -1976,30 +2074,32 @@ struct MacMainView: View {
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 9, weight: .semibold))
                         }
-                        .foregroundColor(.brandAccentWarm)
+                        .foregroundColor(.macAccent)
                     }
                     .buttonStyle(.plain)
                     .padding(.top, 2)
                 }
 
-                Divider()
+                // Indicadores medidos (somente se houver medição ativa)
+                if activeMeasurement != nil {
+                    Divider()
 
-                // Indicadores medidos (se houver medição ativa)
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(LinkaCopy.value("mac.inspector.measured"))
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.textPrimary)
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(LinkaCopy.value("mac.inspector.measured"))
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.textPrimary)
 
-                    qualityCard
+                        qualityCard
+                    }
                 }
 
                 Divider()
 
                 // Privacidade
                 HStack(spacing: 6) {
-                    Image(systemName: "shield.fill")
+                    Image(systemName: "shield")
                         .font(.system(size: 12))
-                        .foregroundColor(.brandAccentWarm)
+                        .foregroundColor(.macMuted)
                     Text("Seus dados ficam com você")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(.textPrimary)
@@ -2007,7 +2107,7 @@ struct MacMainView: View {
 
                 Text("Os testes são executados localmente no seu Mac. Nenhuma informação pessoal ou endereço de rede é compartilhado sem a sua ação explícita.")
                     .font(.system(size: 10))
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.macMuted)
                     .lineSpacing(2)
 
                 Button {
@@ -2019,19 +2119,13 @@ struct MacMainView: View {
                         Image(systemName: "chevron.right")
                             .font(.system(size: 9, weight: .semibold))
                     }
-                    .foregroundColor(.brandAccentWarm)
+                    .foregroundColor(.macAccent)
                 }
                 .buttonStyle(.plain)
-
-                if isFinalResult {
-                    NetscopeResultEntryCard {
-                        showNetscopeAnalysis = true
-                    }
-                }
             }
             .padding(20)
         }
-        .background(Color.surfaceCard)
+        .background(Color.macPanel)
     }
 
     private func inspectPair(label: String, value: String) -> some View {
@@ -2576,14 +2670,7 @@ private struct MacSpeedCurveChartView: View {
 
                 Spacer()
 
-                Picker("", selection: $selectedTab) {
-                    ForEach(MacCurveTab.allCases, id: \.self) { tab in
-                        Text(tab.label).tag(tab)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .frame(width: 230)
+                MacSegmentedControl(options: MacCurveTab.allCases, selected: $selectedTab, title: \.label)
             }
 
             // Curve Graph

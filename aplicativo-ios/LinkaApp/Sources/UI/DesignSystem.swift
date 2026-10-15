@@ -95,6 +95,11 @@ public extension Color {
     static let macAccent = dynamicColor(light: hex("#BE510B"), dark: hex("#FFAD77"))
     static let macNavy = dynamicColor(light: hex("#102245"), dark: hex("#F1F2F6"))
     static let macBlue = dynamicColor(light: hex("#537994"), dark: hex("#8EAFC7"))
+    static let macMuted = dynamicColor(light: hex("#68717E"), dark: hex("#A6AAB3"))
+    static let macGreen = dynamicColor(light: hex("#257448"), dark: hex("#84C6A0"))
+    static let macPanel = dynamicColor(light: hex("#FFFFFF"), dark: hex("#282B30"))
+    static let macInk = dynamicColor(light: hex("#172238"), dark: hex("#F0F1F5"))
+    static let macOrange = dynamicColor(light: hex("#EF8C50"), dark: hex("#F09A60"))
 }
 
 public extension Font {

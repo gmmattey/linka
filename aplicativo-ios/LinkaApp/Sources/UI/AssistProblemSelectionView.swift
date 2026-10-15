@@ -184,7 +184,7 @@ struct AssistProblemSelectionView: View {
             VStack(alignment: .leading, spacing: 24) {
                 if showingContextReview {
                     macContextReviewStep
-                } else {
+                } else if let objective = selectedObjective {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(LinkaCopy.value("assist.title"))
                             .font(.title.weight(.bold))
@@ -192,19 +192,24 @@ struct AssistProblemSelectionView: View {
                             .font(.body)
                             .foregroundStyle(.secondary)
                     }
-
-                    if let objective = selectedObjective {
-                        macSubcategoryStep(for: objective)
-                    } else if showingReportedProblem {
-                        macReportedProblemStep
-                    } else {
-                        macObjectiveStep
+                    macSubcategoryStep(for: objective)
+                } else if showingReportedProblem {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(LinkaCopy.value("assist.title"))
+                            .font(.title.weight(.bold))
+                        Text(macSubtitle)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
                     }
+                    macReportedProblemStep
+                } else {
+                    macObjectiveStep
                 }
             }
-            .frame(maxWidth: 680, alignment: .leading)
-            .padding(40)
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .frame(maxWidth: 970)
+            .padding(.horizontal, 30)
+            .padding(.vertical, 28)
+            .frame(maxWidth: .infinity, alignment: .top)
         }
         .navigationTitle(LinkaCopy.value("assist.title"))
         .toolbar {
@@ -266,7 +271,7 @@ struct AssistProblemSelectionView: View {
             .padding(.bottom, 6)
 
             // 2x2 Topic Grid
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 14), GridItem(.flexible(), spacing: 14)], spacing: 14) {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
                 topicCard(
                     icon: "waveform.path.ecg",
                     title: LinkaCopy.value("mac.assist.start.topic1.title"),
@@ -292,7 +297,7 @@ struct AssistProblemSelectionView: View {
                 }
 
                 topicCard(
-                    icon: "bubble.left.and.bubble.right",
+                    icon: "bubble.left",
                     title: LinkaCopy.value("mac.assist.start.topic4.title"),
                     desc: LinkaCopy.value("mac.assist.start.topic4.desc")
                 ) {
@@ -301,7 +306,7 @@ struct AssistProblemSelectionView: View {
             }
 
             // Composer Box
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
                 TextField(
                     LinkaCopy.value("mac.assist.start.placeholder"),
                     text: $reportedProblemText
@@ -309,7 +314,7 @@ struct AssistProblemSelectionView: View {
                 .textFieldStyle(.plain)
                 .font(.system(size: 12))
                 .padding(10)
-                .background(Color.surfacePage, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .background(Color.macSoft.opacity(0.5), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
 
                 HStack {
                     HStack(spacing: 5) {
@@ -330,46 +335,37 @@ struct AssistProblemSelectionView: View {
                             reportedProblem: trimmed.isEmpty ? LinkaCopy.value("mac.assist.start.topic4.title") : trimmed
                         )
                     } label: {
-                        HStack(spacing: 4) {
+                        HStack(spacing: 6) {
                             Text(LinkaCopy.value("common.continue"))
                             Image(systemName: "arrow.right")
                                 .font(.system(size: 10, weight: .semibold))
                         }
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.brandAccentWarm, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.brandAccentWarm)
-                    .controlSize(.small)
+                    .buttonStyle(.plain)
                 }
             }
             .padding(14)
-            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                RoundedRectangle(cornerRadius: 11, style: .continuous)
                     .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
             )
             .padding(.top, 4)
-
-            // Proposal Note
-            Text(LinkaCopy.value("mac.assist.start.proposalNote"))
-                .font(.system(size: 10))
-                .foregroundColor(.textSecondary)
-                .padding(.leading, 8)
-                .overlay(
-                    Rectangle()
-                        .fill(Color.brandAccentWarm)
-                        .frame(width: 2),
-                    alignment: .leading
-                )
-                .padding(.top, 6)
         }
     }
 
     private func topicCard(icon: String, title: String, desc: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 Image(systemName: icon)
-                    .font(.system(size: 18))
+                    .font(.system(size: 19))
                     .foregroundColor(.brandAccentWarm)
+                    .frame(height: 24, alignment: .leading)
 
                 Text(title)
                     .font(.system(size: 13, weight: .semibold))
@@ -384,11 +380,11 @@ struct AssistProblemSelectionView: View {
 
                 Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity, minHeight: 96, alignment: .topLeading)
-            .padding(16)
-            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+            .frame(maxWidth: .infinity, minHeight: 115, alignment: .topLeading)
+            .padding(18)
+            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                RoundedRectangle(cornerRadius: 11, style: .continuous)
                     .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
             )
         }

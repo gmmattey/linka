@@ -78,9 +78,9 @@ struct DNSBenchmarkView: View {
                 // Pagehead
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(LinkaCopy.value("dns.title"))
+                        Text("DNS")
                             .font(.largeTitle.weight(.bold))
-                        Text(LinkaCopy.value("dns.mac.intro"))
+                        Text("Compare o tempo de resposta antes de mudar qualquer coisa.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
@@ -103,11 +103,12 @@ struct DNSBenchmarkView: View {
                     macConfigurationSection
                 }
             }
-            .frame(maxWidth: 680, alignment: .leading)
-            .padding(36)
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .frame(maxWidth: 970)
+            .padding(.horizontal, 30)
+            .padding(.vertical, 28)
+            .frame(maxWidth: .infinity, alignment: .top)
         }
-        .navigationTitle(LinkaCopy.value("dns.title"))
+        .navigationTitle("DNS")
         .sheet(isPresented: $showDNSGuideModal) {
             dnsGuideModalSheet
         }
@@ -134,14 +135,10 @@ struct DNSBenchmarkView: View {
 
     private var macNetworkRibbon: some View {
         HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.brandAccentWarm.opacity(0.12))
-                    .frame(width: 36, height: 36)
-                Image(systemName: "globe")
-                    .font(.system(size: 18))
-                    .foregroundColor(.brandAccentWarm)
-            }
+            Image(systemName: "globe")
+                .font(.system(size: 20))
+                .foregroundColor(.brandAccentWarm)
+                .frame(width: 24, height: 24)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text("DNS atual: automático da rede")
@@ -184,13 +181,14 @@ struct DNSBenchmarkView: View {
                 Button {
                     benchmark.start()
                 } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "gauge.medium")
-                        Text(LinkaCopy.value("dns.compare.start"))
-                    }
+                    Text("Comparar DNS")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 22)
+                        .padding(.vertical, 10)
+                        .background(Color.brandAccentWarm, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.brandAccentWarm)
+                .buttonStyle(.plain)
                 .padding(.top, 4)
                 .accessibilityHint(LinkaCopy.value("dns.compare.start.hint"))
             }

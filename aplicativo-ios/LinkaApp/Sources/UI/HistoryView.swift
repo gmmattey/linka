@@ -315,16 +315,16 @@ struct HistoryView: View {
             VStack(alignment: .leading, spacing: 5) {
                 Text(LinkaCopy.value("history.title"))
                     .font(.largeTitle.weight(.bold))
-                Text(LinkaCopy.value("history.observedVariation.detail"))
+                Text("Encontre padrões. Compare condições, não apenas velocidades.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
             Spacer()
             Text(historySummary)
-                .font(.caption.weight(.semibold))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(Color.surfaceCard, in: Capsule())
+                .font(.system(size: 11, weight: .medium))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.macSoft, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                 .foregroundColor(.textSecondary)
         }
     }
@@ -531,10 +531,10 @@ struct HistoryView: View {
             Divider()
 
             VStack(spacing: 8) {
-                sidebarPair(label: LinkaCopy.value("detail.upload"), value: m.uploadMbps.map { localizedNumber($0, fractionDigits: 1) + " Mbps" } ?? "—")
-                sidebarPair(label: LinkaCopy.value("assist.latency"), value: m.latencyMs.map { "\(Int(round($0))) ms" } ?? "—")
-                sidebarPair(label: LinkaCopy.value("detail.jitter"), value: m.jitterMs.map { localizedNumber($0, fractionDigits: 1) + " ms" } ?? "—")
-                sidebarPair(label: LinkaCopy.value("detail.packetLoss"), value: m.packetLossPercent.map { localizedNumber($0, fractionDigits: 1) + "%" } ?? "—")
+                sidebarPair(label: "Upload", value: m.uploadMbps.map { localizedNumber($0, fractionDigits: 1) + " Mbps" } ?? "—")
+                sidebarPair(label: "Latência", value: m.latencyMs.map { "\(Int(round($0))) ms" } ?? "—")
+                sidebarPair(label: "Jitter", value: m.jitterMs.map { localizedNumber($0, fractionDigits: 1) + " ms" } ?? "—")
+                sidebarPair(label: "Perda", value: m.packetLossPercent.map { localizedNumber($0, fractionDigits: 1) + "%" } ?? "—")
             }
 
             if let note = m.networkIdentifier, !note.isEmpty {
@@ -550,8 +550,6 @@ struct HistoryView: View {
                 .padding(.top, 4)
             }
 
-            Spacer(minLength: 0)
-
             Button {
                 onSelectMeasurement?(m)
             } label: {
@@ -564,6 +562,7 @@ struct HistoryView: View {
                 .foregroundColor(.brandAccentWarm)
             }
             .buttonStyle(.plain)
+            .padding(.top, 6)
         }
         .padding(16)
         .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
