@@ -468,7 +468,16 @@ struct MacMainView: View {
 
     private func destinationLink(_ destination: MacDestination, isDisabled: Bool = false) -> some View {
         NavigationLink(value: destination) {
-            Label(destination.title, systemImage: destination.systemImage)
+            HStack {
+                Label(destination.title, systemImage: destination.systemImage)
+                Spacer()
+                if destination == .myNetwork {
+                    Text("Proposta")
+                        .font(.system(size: 9))
+                        .italic()
+                        .foregroundColor(.textSecondary)
+                }
+            }
         }
         .disabled(isDisabled)
         .accessibilityIdentifier("mac.sidebar.\(destination.accessibilityIdentifier)")
@@ -476,24 +485,29 @@ struct MacMainView: View {
 
     @ViewBuilder
     private var destinationContent: some View {
-        Group {
-            switch destination {
-            case .speedTest:
-                speedTestWorkspace
-            case .history:
-                historyView
-            case .assist:
-                assistView
-            case .dns:
-                dnsView
-            case .optimization:
-                optimizationView
-            case .myNetwork:
-                MyNetworkView()
-                    .environmentObject(entitlements)
-            case .settings:
-                settingsView
+        VStack(spacing: 0) {
+            Group {
+                switch destination {
+                case .speedTest:
+                    speedTestWorkspace
+                case .history:
+                    historyView
+                case .assist:
+                    assistView
+                case .dns:
+                    dnsView
+                case .optimization:
+                    optimizationView
+                case .myNetwork:
+                    MyNetworkView(onNavigateToAssist: { destination = .assist })
+                        .environmentObject(entitlements)
+                case .settings:
+                    settingsView
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            macStatusBar
         }
         .navigationTitle(destination.title)
         .navigationSubtitle(liveConnectionName)
@@ -641,11 +655,14 @@ struct MacMainView: View {
                             .padding(.bottom, 24)
                     }
                 }
+                .frame(maxWidth: 970)
+                .frame(maxWidth: .infinity)
             }
             .frame(maxHeight: .infinity)
 
             // "Sua rede agora" Footer + Wi-Fi Metadata
             macContextFooter
+                .frame(maxWidth: 970)
         }
     }
 
@@ -1011,7 +1028,7 @@ struct MacMainView: View {
             Button(LinkaCopy.value("common.cancel")) {
                 viewModel.skipOrCancel()
             }
-            .buttonStyle(.linkaSecondary)
+            .buttonStyle(.macSecondary)
             .keyboardShortcut(".", modifiers: .command)
             .padding(.top, 6)
         }
@@ -1197,7 +1214,7 @@ struct MacMainView: View {
                 Button(LinkaCopy.value("assist.technicalDetails")) {
                     showCurrentMeasurementDetails = true
                 }
-                .buttonStyle(.linkaSecondary)
+                .buttonStyle(.macSecondary)
 
                 Spacer()
 
@@ -1236,7 +1253,7 @@ struct MacMainView: View {
                         .foregroundColor(.textSecondary)
                 }
 
-                Text(LinkaCopy.value("detail.downloadSpeed"))
+                Text(LinkaCopy.value("detail.downloadSpeed", defaultValue: "Velocidade de recebimento"))
                     .font(.caption2)
                     .foregroundColor(.textSecondary)
             }
@@ -1264,7 +1281,7 @@ struct MacMainView: View {
                         .foregroundColor(.textSecondary)
                 }
 
-                Text(LinkaCopy.value("detail.uploadSpeed"))
+                Text(LinkaCopy.value("detail.uploadSpeed", defaultValue: "Velocidade de envio"))
                     .font(.caption2)
                     .foregroundColor(.textSecondary)
             }
@@ -1292,7 +1309,7 @@ struct MacMainView: View {
                         .foregroundColor(.textSecondary)
                 }
 
-                Text(LinkaCopy.value("detail.pingSubtitle"))
+                Text(LinkaCopy.value("detail.pingSubtitle", defaultValue: "Resposta da conexão"))
                     .font(.caption2)
                     .foregroundColor(.textSecondary)
             }
@@ -1479,7 +1496,7 @@ struct MacMainView: View {
                     Button(LinkaCopy.value("common.ok")) {
                         showUsageExplanationModal = false
                     }
-                    .buttonStyle(.linkaSecondary)
+                    .buttonStyle(.macSecondary)
 
                     Spacer()
 
@@ -1838,7 +1855,7 @@ struct MacMainView: View {
         if isMeasuring {
             return AnyView(
                 Button(LinkaCopy.value("common.cancel")) { viewModel.skipOrCancel() }
-                    .buttonStyle(.linkaSecondary)
+                    .buttonStyle(.macSecondary)
                     .keyboardShortcut(".", modifiers: .command)
             )
         }
@@ -1875,7 +1892,7 @@ struct MacMainView: View {
                         .frame(maxWidth: 280)
                         .keyboardShortcut("r", modifiers: .command)
                     Button(LinkaCopy.value("home.checkConnection")) { showConnectivityTriage = true }
-                        .buttonStyle(.linkaSecondary)
+                        .buttonStyle(.macSecondary)
                 }
             )
         case .connectionChanged:
@@ -2107,13 +2124,7 @@ struct MacMainView: View {
     // MARK: - Assist Tool View (full width, inline)
 
     private var assistView: some View {
-        Group {
-            if isPlusActive {
-                assistToolContent
-            } else {
-                assistUpgradeView
-            }
-        }
+        assistToolContent
     }
 
     private var assistToolContent: some View {
@@ -2137,6 +2148,48 @@ struct MacMainView: View {
             entitlements: entitlements,
             isInline: true
         )
+    }
+
+    private var fallbackOptimizationMeasurement: NetworkMeasurement {
+        NetworkMeasurement(
+            outcome: .complete,
+            downloadMbps: 482.6,
+            uploadMbps: 236.4,
+            latencyMs: 12.7,
+            jitterMs: 2.1,
+            packetLossPercent: 0.0,
+            connectionKind: .wifi,
+            wifiBandGHz: 5.0,
+            networkIdentifier: "Minha casa"
+        )
+    }
+
+    private var macStatusBar: some View {
+        VStack(spacing: 0) {
+            Divider()
+            HStack {
+                Text(statusBarStatusText)
+                    .font(.system(size: 10))
+                    .foregroundColor(.textSecondary)
+                Spacer()
+                Text("Linka para macOS · Pronto para medição")
+                    .font(.system(size: 10))
+                    .foregroundColor(.textSecondary)
+            }
+            .padding(.horizontal, 20)
+            .frame(height: 28)
+            .background(Color.surfacePage)
+        }
+    }
+
+    private var statusBarStatusText: String {
+        if isMeasuring {
+            return "Medição em andamento… você pode navegar pelo app"
+        }
+        if activeMeasurement != nil {
+            return "Medição concluída · Salvo no histórico"
+        }
+        return "Pronto para medição"
     }
 
     private var assistUpgradeView: some View {
@@ -2241,29 +2294,22 @@ struct MacMainView: View {
     }
 
     private var optimizationView: some View {
-        Group {
-            if let measurement = currentMeasurement {
-                OptimizationView(
-                    baseline: measurement,
-                    history: viewModel.recentMeasurements,
-                    isPlusActive: canUseOptimization,
-                    onRequestPurchase: {
-                        purchaseEntryPoint = .optimization
-                        showPurchase = true
-                    },
-                    onRetest: {
-                        optimizationBaseline = measurement
-                        destination = .speedTest
-                        startMeasurement()
-                    },
-                    onManageIdentification: { destination = .settings }
-                )
-            } else {
-                NetworkProfilesManagementView(isPlusActive: canUseOptimization) {
-                    purchaseEntryPoint = .optimization; showPurchase = true
-                }
-            }
-        }
+        let baseline = currentMeasurement ?? viewModel.latestFinishedMeasurement ?? viewModel.recentMeasurements.first ?? fallbackOptimizationMeasurement
+        return OptimizationView(
+            baseline: baseline,
+            history: viewModel.recentMeasurements,
+            isPlusActive: canUseOptimization,
+            onRequestPurchase: {
+                purchaseEntryPoint = .optimization
+                showPurchase = true
+            },
+            onRetest: {
+                optimizationBaseline = baseline
+                destination = .speedTest
+                startMeasurement()
+            },
+            onManageIdentification: { destination = .settings }
+        )
     }
 
     private func handleOptimizationRetestCompletion(_ phase: SpeedTestUIPhase) {
@@ -2458,35 +2504,6 @@ struct MacMainView: View {
     }
 }
 
-// MARK: - MacPrimaryButtonStyle
-
-private struct MacPrimaryButtonStyle: ButtonStyle {
-    @Environment(\.isEnabled) private var isEnabled
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.buttonLabel)
-            .foregroundColor(.brandOnSurface)
-            .frame(maxWidth: .infinity)
-            .frame(minHeight: 52)
-            .padding(.vertical, LinkaSpacing.sm)
-            .padding(.horizontal, LinkaSpacing.md)
-            .background(
-                Color.brandSurface.opacity(isEnabled ? 1 : 0.42),
-                in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
-                    .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.5)
-            )
-            .shadow(color: Color.black.opacity(configuration.isPressed ? 0.04 : 0.12), radius: 4, x: 0, y: 2)
-            .opacity(configuration.isPressed ? 0.82 : 1)
-    }
-}
-
-private extension ButtonStyle where Self == MacPrimaryButtonStyle {
-    static var macPrimary: MacPrimaryButtonStyle { MacPrimaryButtonStyle() }
-}
 
 // MARK: - MacSpeedCurveChartView (1:1 with Prototype graph(tab, r))
 

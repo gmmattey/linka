@@ -86,6 +86,15 @@ public extension Color {
     /// soltos de `Color.accentColor`/`.blue` em `AssistView`. Reaproveita a
     /// cor de marca em vez de introduzir um quarto tom de laranja/azul.
     static let actionPrimary = brandAccentWarm
+
+    // MARK: - Mac Prototype Tokens
+    static let macTint = dynamicColor(light: hex("#FBEFE6"), dark: hex("#3C2E25"))
+    static let macGreenBg = dynamicColor(light: hex("#EAF5ED"), dark: hex("#273B30"))
+    static let macSoft = dynamicColor(light: hex("#F0F1F4"), dark: hex("#30333A"))
+    static let macLine = dynamicColor(light: hex("#E3E5E9"), dark: hex("#3B3E45"))
+    static let macAccent = dynamicColor(light: hex("#BE510B"), dark: hex("#FFAD77"))
+    static let macNavy = dynamicColor(light: hex("#102245"), dark: hex("#F1F2F6"))
+    static let macBlue = dynamicColor(light: hex("#537994"), dark: hex("#8EAFC7"))
 }
 
 public extension Font {
@@ -250,6 +259,60 @@ public extension ButtonStyle where Self == LinkaPrimaryButtonStyle {
 public extension ButtonStyle where Self == LinkaSecondaryButtonStyle {
     static var linkaSecondary: LinkaSecondaryButtonStyle { LinkaSecondaryButtonStyle() }
 }
+
+#if os(macOS)
+public struct MacPrimaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    public init() {}
+
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 13, weight: .medium))
+            .foregroundColor(.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 7)
+            .frame(minHeight: 33)
+            .background(
+                Color.brandAccentWarm.opacity(isEnabled ? (configuration.isPressed ? 0.85 : 1.0) : 0.45),
+                in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+            )
+            .shadow(color: Color.black.opacity(configuration.isPressed ? 0.02 : 0.08), radius: 2, x: 0, y: 1)
+    }
+}
+
+public struct MacSecondaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    public init() {}
+
+    public func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 13, weight: .medium))
+            .foregroundColor(.textPrimary.opacity(isEnabled ? 1 : 0.45))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .frame(minHeight: 31)
+            .background(
+                Color.surfaceCard.opacity(configuration.isPressed ? 0.8 : 1.0),
+                in: RoundedRectangle(cornerRadius: 7, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .stroke(Color.borderDefault.opacity(0.35), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
+    }
+}
+
+public extension ButtonStyle where Self == MacPrimaryButtonStyle {
+    static var macPrimary: MacPrimaryButtonStyle { MacPrimaryButtonStyle() }
+}
+
+public extension ButtonStyle where Self == MacSecondaryButtonStyle {
+    static var macSecondary: MacSecondaryButtonStyle { MacSecondaryButtonStyle() }
+}
+#endif
 
 public struct LinkaPlusBadge: View {
     public init() {}

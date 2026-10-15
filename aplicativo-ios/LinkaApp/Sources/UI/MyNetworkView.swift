@@ -17,6 +17,8 @@ struct MyNetworkView: View {
     @State private var managingEnvironments = false
     @State private var showPurchase = false
 
+    var onNavigateToAssist: (() -> Void)? = nil
+
     private enum ConnectionSheetTarget: Identifiable {
         case add
         case edit(DeviceConnection)
@@ -144,21 +146,250 @@ struct MyNetworkView: View {
 
     #if os(macOS)
     private var macOSContent: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(LinkaCopy.value("inventory.title"))
-                    .font(.largeTitle.weight(.bold))
-                Text(LinkaCopy.value("inventory.mac.subtitle"))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: 760, alignment: .leading)
-            .padding(.horizontal, 32)
-            .padding(.top, 28)
-            .padding(.bottom, 16)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                // Pagehead
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(LinkaCopy.value("inventory.title"))
+                            .font(.largeTitle.weight(.bold))
+                        Text(LinkaCopy.value("mac.network.subtitle", defaultValue: "Seu plano e seus equipamentos, no mesmo lugar."))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Text("Proposta para o Mac")
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Color.brandAccentWarm.opacity(0.12), in: Capsule())
+                        .foregroundColor(.brandAccentWarm)
+                }
 
-            inventoryList
-                .listStyle(.inset)
+                // Network Ribbon
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color.brandAccentWarm.opacity(0.12))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: "wifi")
+                            .font(.system(size: 18))
+                            .foregroundColor(.brandAccentWarm)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(store.activePlan?.ispName.isEmpty == false ? (store.activePlan?.ispName ?? "Minha casa") : "Minha casa")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.textPrimary)
+                        Text("Informações cadastradas por você · não é uma varredura de dispositivos")
+                            .font(.system(size: 11))
+                            .foregroundColor(.textSecondary)
+                    }
+
+                    Spacer()
+
+                    Button {
+                        if let first = store.devices.first {
+                            editing = first
+                        } else {
+                            add()
+                        }
+                    } label: {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.system(size: 14))
+                            .foregroundColor(.textSecondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Editar rede")
+                }
+                .padding(14)
+                .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                        .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+                )
+
+                // Device List (2 cards side by side)
+                HStack(alignment: .top, spacing: 14) {
+                    // Router Card
+                    VStack(alignment: .leading, spacing: 14) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color.macSoft)
+                                .frame(height: 80)
+                            Image(systemName: "wifi.router")
+                                .font(.system(size: 38))
+                                .foregroundColor(.macNavy)
+                        }
+
+                        HStack {
+                            Text(store.devices.first?.nickname ?? (store.devices.first?.identity.model.isEmpty == false ? store.devices.first!.identity.model : "Roteador da sala"))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.textPrimary)
+                            Spacer()
+                            Text("Manual")
+                                .font(.caption2.weight(.medium))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.macSoft, in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                .foregroundColor(.textSecondary)
+                        }
+
+                        let devModel = store.devices.first?.identity.model
+                        Text(devModel?.isEmpty == false ? "\(devModel!). Nenhuma ficha técnica foi presumida." : "Modelo ainda não informado. Nenhuma ficha técnica foi presumida.")
+                            .font(.system(size: 11))
+                            .foregroundColor(.textSecondary)
+                            .lineLimit(2)
+                            .frame(minHeight: 32, alignment: .topLeading)
+
+                        Button("Completar cadastro") {
+                            if let first = store.devices.first {
+                                editing = first
+                            } else {
+                                add()
+                            }
+                        }
+                        .buttonStyle(.macSecondary)
+                    }
+                    .padding(18)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                            .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+                    )
+
+                    // Plan Card
+                    VStack(alignment: .leading, spacing: 14) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color.macSoft)
+                                .frame(height: 80)
+                            Image(systemName: "globe")
+                                .font(.system(size: 38))
+                                .foregroundColor(.macNavy)
+                        }
+
+                        HStack {
+                            Text("Plano de internet")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.textPrimary)
+                            Spacer()
+                            Text("Informado")
+                                .font(.caption2.weight(.medium))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.macSoft, in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                .foregroundColor(.textSecondary)
+                        }
+
+                        let dl = store.activePlan?.nominalDownloadMbps.map { "\(Int($0))" } ?? "500"
+                        Text("\(dl) Mbps de download.\nPreço e upload ainda não informados.")
+                            .font(.system(size: 11))
+                            .foregroundColor(.textSecondary)
+                            .lineLimit(2)
+                            .frame(minHeight: 32, alignment: .topLeading)
+
+                        Button("Editar plano") {
+                            editingPlan = true
+                        }
+                        .buttonStyle(.macSecondary)
+                    }
+                    .padding(18)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                            .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+                    )
+                }
+
+                // Insight Card
+                HStack(alignment: .top, spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 9, style: .continuous)
+                            .fill(Color.brandAccentWarm.opacity(0.12))
+                            .frame(width: 34, height: 34)
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 16))
+                            .foregroundColor(.brandAccentWarm)
+                    }
+
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Mais contexto. Menos suposições.")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.textPrimary)
+
+                        Text("O cadastro pode ajudar o Assist a avaliar necessidades. Equipamentos e conexões não são descobertos automaticamente nesta proposta.")
+                            .font(.system(size: 11))
+                            .foregroundColor(.textSecondary)
+                            .lineSpacing(2)
+
+                        if let onNavigateToAssist {
+                            Button(action: onNavigateToAssist) {
+                                HStack(spacing: 4) {
+                                    Text("Avaliar meu equipamento")
+                                    Image(systemName: "arrow.right")
+                                        .font(.caption2)
+                                }
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.brandAccentWarm)
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.top, 4)
+                        }
+                    }
+                }
+                .padding(16)
+                .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                        .stroke(Color.borderDefault.opacity(0.35), lineWidth: 0.6)
+                )
+
+                // Proposal Note
+                Text("Esta tela é uma proposta navegável. Não indica que Minha Rede esteja habilitada na versão pública do Mac.")
+                    .font(.system(size: 10))
+                    .foregroundColor(.textSecondary)
+                    .padding(.leading, 8)
+                    .overlay(
+                        Rectangle()
+                            .fill(Color.brandAccentWarm)
+                            .frame(width: 2),
+                        alignment: .leading
+                    )
+                    .padding(.top, 6)
+
+                // Extra section if more devices registered
+                if store.devices.count > 1 {
+                    Divider().padding(.vertical, 8)
+                    Text("OUTROS EQUIPAMENTOS CADASTRADOS")
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.textSecondary)
+
+                    ForEach(store.devices.dropFirst()) { dev in
+                        HStack {
+                            Image(systemName: "desktopcomputer")
+                                .foregroundColor(.brandAccentWarm)
+                            Text(dev.nickname ?? (dev.identity.model.isEmpty ? "Equipamento" : dev.identity.model))
+                                .font(.system(size: 12, weight: .medium))
+                            Spacer()
+                            Text(dev.identity.brand.isEmpty ? dev.identity.model : "\(dev.identity.brand) \(dev.identity.model)")
+                                .font(.caption)
+                                .foregroundColor(.textSecondary)
+                            Button("Editar") {
+                                editing = dev
+                            }
+                            .buttonStyle(.macSecondary)
+                        }
+                        .padding(12)
+                        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    }
+                }
+            }
+            .frame(maxWidth: 680, alignment: .leading)
+            .padding(36)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
         }
     }
     #endif

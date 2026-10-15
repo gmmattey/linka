@@ -1306,3 +1306,7 @@
 "mac.assist.answer.evidence.down" = "Mbps de download";
 "mac.assist.answer.evidence.latency" = "Latência do teste";
 "mac.assist.answer.evidence.loss" = "Perda nesta amostra";
+"history.search.placeholder" = "Buscar rede ou anotação";
+"detail.downloadSpeed" = "Velocidade de recebimento";
+"detail.uploadSpeed" = "Velocidade de envio";
+"detail.pingSubtitle" = "Resposta da conexão";
