@@ -85,7 +85,7 @@ public struct DefaultLinkaGeniusKeyProvider: LinkaGeniusKeyProviding {
         let lines = content.components(separatedBy: .newlines)
         for line in lines {
             let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            if trimmed.isEmpty || trimmed.lowercased().contains("gemini") || trimmed.hasPrefix("#") {
+            if trimmed.isEmpty || trimmed.hasPrefix("#") || trimmed.lowercased().hasPrefix("gemini api key") {
                 continue
             }
             if trimmed.count >= 20 {

@@ -1,3 +1,17 @@
+# Linka 1.1.6 (60) — candidata TestFlight interno
+
+- **Linka Genius com IA (Gemini 3.8 Flash):**
+  - Diagnóstico especialista estilo Apple Genius com leitura de telemetria completa (bufferbloat, perda de pacotes, jitter, gateway e Wi-Fi).
+  - Identificação de causa-raiz e geração de script técnico pronto para copiar e acionar o suporte da operadora.
+- **Redesign Completo do Widget:**
+  - Mini-anel de velocímetro refinado com tipografia tabular monoespaçada e botão de ação rápido.
+  - Suporte completo a widgets de Tela Bloqueada (Lock Screen) e StandBy: Circular, Retangular e Inline.
+- **Design System e Contraste WCAG AA:**
+  - Alinhamento rigoroso de cores em todas as ferramentas e menus (eliminação de azuis de sistema e adoção de `brandAccentWarm`/`brandAccentWarmInk`).
+  - Contraste validado em Light e Dark Mode conforme WCAG AA e áreas de toque mínimas de 44pt.
+- **Universal Links Públicos Seguros:**
+  - Suporte e resolução de rotas universais seguras no ecossistema Apple.
+
 # Linka 1.1.6 (59) — candidata TestFlight interno
 
 - **Minha Rede Fase 3 (Desempenho e Avaliação Factual):**
