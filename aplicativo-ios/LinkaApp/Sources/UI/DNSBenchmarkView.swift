@@ -48,6 +48,7 @@ struct DNSBenchmarkView: View {
             content
             configurationSection
         }
+        .tint(.brandAccentWarm)
         .linkaGradientScreenBackground()
         .navigationTitle("Resposta de DNS")
         .toolbar {
@@ -111,6 +112,7 @@ struct DNSBenchmarkView: View {
             .padding(40)
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
+        .tint(.brandAccentWarm)
         .navigationTitle("Resposta de DNS")
         .toolbar {
             if case .running = benchmark.state {
@@ -254,10 +256,12 @@ struct DNSBenchmarkView: View {
                             showConsent = true
                         }
                         .buttonStyle(.bordered)
+                        .tint(.brandAccentWarm)
                         .accessibilityLabel("Escolher \(candidate.provider.name), \(Self.milliseconds(median))")
                     }
                     Link("Política de privacidade", destination: candidate.provider.privacyURL)
                         .font(.footnote)
+                        .foregroundColor(.brandAccentWarmInk)
                 }
             }
             .accessibilityElement(children: .contain)
@@ -290,6 +294,7 @@ struct DNSBenchmarkView: View {
         case .idle:
             Section {
                 Button("Iniciar comparação", action: benchmark.start)
+                    .foregroundColor(.brandAccentWarmInk)
                     .accessibilityHint("Envia consultas DNS sintéticas aos provedores comparados")
             } footer: {
                 Text("A comparação usa consultas sintéticas; não usa domínios da sua navegação.")
@@ -338,10 +343,12 @@ struct DNSBenchmarkView: View {
                         showConsent = true
                     }
                     .buttonStyle(.borderless)
+                    .foregroundColor(.brandAccentWarmInk)
                     .accessibilityLabel("Escolher \(candidate.provider.name), \(Self.milliseconds(median))")
                 }
                 Link("Política de privacidade", destination: candidate.provider.privacyURL)
                     .font(.caption)
+                    .foregroundColor(.brandAccentWarmInk)
             }
             .accessibilityElement(children: .contain)
         } else {
@@ -358,6 +365,7 @@ struct DNSBenchmarkView: View {
             Section {
                 Text("\(name) via DNS sobre HTTPS foi criada, mas o iPhone ainda não a ativou. Abra Ajustes > Geral > VPN e Gerenciamento de Dispositivo > DNS, ative \(name) e volte aqui para confirmar.")
                 Button("Já ativei — atualizar") { Task { await configuration.refresh() } }
+                    .foregroundColor(.brandAccentWarmInk)
                 Button("Remover configuração de DNS", role: .destructive) { Task { await configuration.remove() } }
             } header: { Text("Configuração de DNS") }
         case .active(let name):
@@ -365,7 +373,9 @@ struct DNSBenchmarkView: View {
                 Label("Ativa: \(name) via DNS sobre HTTPS", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(Color.statusGood)
                 Button("Medir de novo", action: onRetest)
+                    .foregroundColor(.brandAccentWarmInk)
                 Button("Atualizar estado") { Task { await configuration.refresh() } }
+                    .foregroundColor(.brandAccentWarmInk)
                 Button("Remover configuração de DNS", role: .destructive) { Task { await configuration.remove() } }
             } header: { Text("Configuração de DNS") }
         case .failed:
@@ -373,6 +383,7 @@ struct DNSBenchmarkView: View {
                 Text("Não foi possível confirmar a configuração. Nenhum outro DNS foi escolhido automaticamente.")
                     .foregroundStyle(.secondary)
                 Button("Tentar novamente") { Task { await configuration.refresh() } }
+                    .foregroundColor(.brandAccentWarmInk)
                 Button("Remover configuração de DNS", role: .destructive) { Task { await configuration.remove() } }
             } header: { Text("Configuração de DNS") }
         case .unavailable:

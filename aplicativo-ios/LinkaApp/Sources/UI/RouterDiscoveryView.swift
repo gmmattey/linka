@@ -42,6 +42,7 @@ struct RouterDiscoveryView: View {
                             .foregroundColor(.statusGood)
                         Text(gateway.ip).font(.footnote).foregroundColor(.secondary)
                         Button(LinkaCopy.value("router.panel.open")) { showOpenConfirmation = true }
+                            .foregroundColor(.brandAccentWarmInk)
                     }
                 case .unreachable(let gatewayIP):
                     VStack(alignment: .leading, spacing: 8) {
@@ -52,6 +53,7 @@ struct RouterDiscoveryView: View {
                             .font(.footnote)
                             .foregroundColor(.secondary)
                         Button(LinkaCopy.value("router.panel.openSettings")) { openSystemSettings() }
+                            .foregroundColor(.brandAccentWarmInk)
                     }
                 case .unavailable:
                     Text(LinkaCopy.value("router.panel.unavailable"))
@@ -61,6 +63,7 @@ struct RouterDiscoveryView: View {
                 Button(state == .locating ? LinkaCopy.value("router.panel.locating") : LinkaCopy.value("router.panel.locate")) {
                     Task { await locatePanel() }
                 }
+                .foregroundColor(state == .locating ? .textSecondary : .brandAccentWarmInk)
                 .disabled(state == .locating)
             }
 
@@ -72,6 +75,7 @@ struct RouterDiscoveryView: View {
                         hasSavedPassword = true
                     }
                 }
+                .foregroundColor(.brandAccentWarmInk)
                 if hasSavedPassword {
                     Button(LinkaCopy.value("router.password.remove"), role: .destructive) {
                         KeychainHelper.shared.delete(service: service, account: "router_admin")
@@ -81,6 +85,7 @@ struct RouterDiscoveryView: View {
                 }
             }
         }
+        .tint(.brandAccentWarm)
         .linkaGradientScreenBackground()
         .navigationTitle(LinkaCopy.value("router.title"))
         .onAppear {

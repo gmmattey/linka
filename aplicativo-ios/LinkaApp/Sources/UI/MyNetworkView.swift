@@ -387,7 +387,7 @@ struct MyNetworkView: View {
                         HStack(alignment: .center, spacing: 10) {
                             Image(systemName: mediumIcon(conn.medium))
                                 .font(.body)
-                                .foregroundStyle(.tint)
+                                .foregroundStyle(Color.brandAccentWarmInk)
                                 .frame(width: 24)
 
                             Text(connectionLabel(conn))

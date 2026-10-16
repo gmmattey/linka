@@ -121,6 +121,7 @@ struct LinkaApp: App {
     var body: some Scene {
         WindowGroup {
             rootView
+                .tint(Color.brandAccentWarm)
                 .environmentObject(entitlements)
                 .environmentObject(serviceStatus)
                 .environmentObject(ads)

@@ -80,7 +80,13 @@ struct SettingsView: View {
 
             Section(LinkaCopy.value("settings.section.tools")) {
                 NavigationLink(destination: RouterDiscoveryView()) {
-                    Label(LinkaCopy.value("settings.routerAccess"), systemImage: "router")
+                    Label {
+                        Text(LinkaCopy.value("settings.routerAccess"))
+                            .foregroundColor(.textPrimary)
+                    } icon: {
+                        Image(systemName: "router")
+                            .foregroundColor(.brandAccentWarmInk)
+                    }
                 }
             }
             #endif
@@ -102,7 +108,13 @@ struct SettingsView: View {
 
             Section(LinkaCopy.value("settings.section.serviceStatus")) {
                 NavigationLink(destination: ServiceStatusView()) {
-                    Label(LinkaCopy.value("settings.serviceStatus"), systemImage: "dot.radiowaves.left.and.right")
+                    Label {
+                        Text(LinkaCopy.value("settings.serviceStatus"))
+                            .foregroundColor(.textPrimary)
+                    } icon: {
+                        Image(systemName: "dot.radiowaves.left.and.right")
+                            .foregroundColor(.brandAccentWarmInk)
+                    }
                 }
             }
 
@@ -112,7 +124,13 @@ struct SettingsView: View {
                     Button {
                         Task { await ads.presentPrivacyOptions() }
                     } label: {
-                        Label(LinkaCopy.value("settings.adPrivacyOptions"), systemImage: "hand.raised")
+                        Label {
+                            Text(LinkaCopy.value("settings.adPrivacyOptions"))
+                                .foregroundColor(.textPrimary)
+                        } icon: {
+                            Image(systemName: "hand.raised")
+                                .foregroundColor(.brandAccentWarmInk)
+                        }
                     }
                 }
             }
@@ -120,27 +138,27 @@ struct SettingsView: View {
 
             Section(LinkaCopy.value("settings.section.about")) {
                 Link(destination: LinkaExternalLinks.about) {
-                    Label(LinkaCopy.value("settings.about"), systemImage: "info.circle")
+                    settingsAboutRow(title: LinkaCopy.value("settings.about"), systemImage: "info.circle")
                 }
                 Link(destination: LinkaExternalLinks.howWeMeasure) {
-                    Label(LinkaCopy.value("settings.howWeMeasure"), systemImage: "speedometer")
+                    settingsAboutRow(title: LinkaCopy.value("settings.howWeMeasure"), systemImage: "speedometer")
                 }
                 Link(destination: LinkaExternalLinks.privacy) {
-                    Label(LinkaCopy.value("settings.privacy"), systemImage: "hand.raised")
+                    settingsAboutRow(title: LinkaCopy.value("settings.privacy"), systemImage: "hand.raised")
                 }
                 Link(destination: LinkaExternalLinks.terms) {
-                    Label(LinkaCopy.value("settings.terms"), systemImage: "doc.text")
+                    settingsAboutRow(title: LinkaCopy.value("settings.terms"), systemImage: "doc.text")
                 }
                 Link(destination: LinkaExternalLinks.support) {
-                    Label(LinkaCopy.value("settings.support"), systemImage: "questionmark.circle")
+                    settingsAboutRow(title: LinkaCopy.value("settings.support"), systemImage: "questionmark.circle")
                 }
                 Button {
                     requestReview()
                 } label: {
-                    Label(LinkaCopy.value("settings.rate"), systemImage: "star")
+                    settingsAboutRow(title: LinkaCopy.value("settings.rate"), systemImage: "star")
                 }
                 Link(destination: LinkaExternalLinks.support) {
-                    Label(LinkaCopy.value("settings.feedback"), systemImage: "text.bubble")
+                    settingsAboutRow(title: LinkaCopy.value("settings.feedback"), systemImage: "text.bubble")
                 }
             }
 
@@ -166,6 +184,7 @@ struct SettingsView: View {
                     .foregroundColor(.textSecondary)
             }
         }
+        .tint(.brandAccentWarm)
         .linkaGradientScreenBackground()
         #endif
         }
@@ -429,7 +448,11 @@ struct SettingsView: View {
 
     private func macRow(_ title: String, systemImage: String, showsChevron: Bool) -> some View {
         HStack(spacing: 10) {
-            Label(title, systemImage: systemImage)
+            Image(systemName: systemImage)
+                .font(.system(size: 14))
+                .foregroundColor(.brandAccentWarmInk)
+                .frame(width: 20, alignment: .center)
+            Text(title)
                 .foregroundColor(.textPrimary)
             Spacer()
             if showsChevron {
@@ -452,7 +475,11 @@ struct SettingsView: View {
 
     private func settingsRow(title: String, value: String, systemImage: String) -> some View {
         HStack {
-            Label(title, systemImage: systemImage)
+            Image(systemName: systemImage)
+                .font(.body)
+                .foregroundColor(.brandAccentWarmInk)
+                .frame(width: 24, alignment: .center)
+            Text(title)
                 .foregroundColor(.textPrimary)
             Spacer()
             Text(value)
@@ -461,6 +488,21 @@ struct SettingsView: View {
                 .lineLimit(2)
             Image(systemName: "chevron.right")
                 .font(.caption.weight(.semibold))
+                .foregroundColor(.textSecondary.opacity(0.6))
+        }
+    }
+
+    private func settingsAboutRow(title: String, systemImage: String) -> some View {
+        HStack {
+            Image(systemName: systemImage)
+                .font(.body)
+                .foregroundColor(.brandAccentWarmInk)
+                .frame(width: 24, alignment: .center)
+            Text(title)
+                .foregroundColor(.textPrimary)
+            Spacer()
+            Image(systemName: "arrow.up.right")
+                .font(.system(size: 11, weight: .semibold))
                 .foregroundColor(.textSecondary.opacity(0.6))
         }
     }

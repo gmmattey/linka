@@ -70,16 +70,20 @@ struct OptimizationView: View {
 
                 Section {
                     if isPlusActive {
-                        NavigationLink("Comparar resposta de DNS") {
+                        NavigationLink {
                             DNSBenchmarkView {
                                 dismiss()
                                 onRetest()
                             }
+                        } label: {
+                            Text("Comparar resposta de DNS")
+                                .foregroundColor(.textPrimary)
                         }
                     } else {
                         Button("Comparar resposta de DNS") {
                             onRequestPurchase()
                         }
+                        .foregroundColor(.brandAccentWarmInk)
                     }
                 } header: {
                     Text("DNS")
@@ -95,8 +99,10 @@ struct OptimizationView: View {
                             dismiss()
                             onRetest()
                         }
+                        .foregroundColor(.brandAccentWarmInk)
                     } else {
                         Button(LinkaCopy.value("optimization.preview.cta"), action: onRequestPurchase)
+                            .foregroundColor(.brandAccentWarmInk)
                     }
                 } footer: {
                     Text(isPlusActive
@@ -104,6 +110,7 @@ struct OptimizationView: View {
                          : LinkaCopy.value("optimization.preview.hint"))
                 }
             }
+            .tint(.brandAccentWarm)
             .linkaGradientScreenBackground()
             .navigationTitle(LinkaCopy.value("optimization.title"))
             .task(id: baseline.id) {
@@ -181,6 +188,7 @@ struct OptimizationView: View {
                                 detail: "Mede respostas DNS nesta conexão."
                             )
                         }
+                        .buttonStyle(.plain)
                     } else {
                         Button(action: onRequestPurchase) {
                             macSecondaryAction(
@@ -323,7 +331,7 @@ struct OptimizationRetestResultView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                Image(systemName: symbol).font(.largeTitle).foregroundStyle(.tint)
+                Image(systemName: symbol).font(.largeTitle).foregroundStyle(symbolColor)
                 Text(title).font(.title3.weight(.semibold))
                 Text(message).multilineTextAlignment(.center).foregroundStyle(.secondary)
             }
@@ -332,6 +340,10 @@ struct OptimizationRetestResultView: View {
             .navigationTitle(LinkaCopy.value("optimization.title"))
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button(LinkaCopy.value("common.close")) { dismiss() } } }
         }
+    }
+    private var symbolColor: Color {
+        if case .improved = result { return .statusGood }
+        return .brandAccentWarmInk
     }
     private var symbol: String { if case .improved = result { return "checkmark.circle" }; return "equal.circle" }
     private var title: String { if case .improved = result { return LinkaCopy.value("optimization.result.improved.title") }; if case .noSignificantGain = result { return LinkaCopy.value("optimization.result.stable.title") }; return LinkaCopy.value("optimization.result.incomparable.title") }

@@ -43,6 +43,7 @@ struct NetworkProfilesSection: View {
                 .foregroundStyle(.secondary)
             Button(LinkaCopy.value("environments.disabled.manage"), action: onManageIdentification)
                 .buttonStyle(.bordered)
+                .tint(.brandAccentWarm)
         case .notWiFi:
             Label(LinkaCopy.value("environments.notWifi.title"), systemImage: "wifi")
                 .foregroundStyle(.secondary)
@@ -61,6 +62,7 @@ struct NetworkProfilesSection: View {
                     .foregroundStyle(.secondary)
                 Button(LinkaCopy.value("environments.preview.cta"), action: onRequestPurchase)
                     .buttonStyle(.bordered)
+                    .tint(.brandAccentWarm)
             } else if let assignment = coordinator.currentAssignment,
                       let environment = coordinator.environments.first(where: { $0.id == assignment.environmentID }) {
                 Label(LinkaCopy.format("environments.assigned", environment.name), systemImage: "checkmark.circle.fill")
@@ -114,6 +116,7 @@ struct NetworkProfilesSection: View {
             Label(LinkaCopy.value("environments.disabled.title"), systemImage: "wifi.slash").foregroundStyle(.secondary)
             Text(LinkaCopy.value("environments.disabled.message")).font(.footnote).foregroundStyle(.secondary)
             Button(LinkaCopy.value("environments.disabled.manage"), action: onManageIdentification)
+                .foregroundColor(.brandAccentWarmInk)
         case .notWiFi:
             Label(LinkaCopy.value("environments.notWifi.title"), systemImage: "wifi").foregroundStyle(.secondary)
             Text(LinkaCopy.value("environments.notWifi.message")).font(.footnote).foregroundStyle(.secondary)
@@ -124,6 +127,7 @@ struct NetworkProfilesSection: View {
             if !isPlusActive {
                 Text(LinkaCopy.value("environments.preview.message")).foregroundStyle(.secondary)
                 Button(LinkaCopy.value("environments.preview.cta"), action: onRequestPurchase)
+                    .foregroundColor(.brandAccentWarmInk)
             } else if let assignment = coordinator.currentAssignment, let environment = coordinator.environments.first(where: { $0.id == assignment.environmentID }) {
                 Label(LinkaCopy.format("environments.assigned", environment.name), systemImage: "checkmark.circle").foregroundStyle(.secondary)
                 Text(referenceLabel(for: environment)).font(.footnote).foregroundStyle(.secondary)
@@ -152,8 +156,10 @@ struct NetworkProfilesSection: View {
         Group {
             ForEach(coordinator.environments) { environment in
                 Button(environment.name) { Task { _ = await coordinator.assignCurrentMeasurement(to: environment) } }
+                    .foregroundColor(.textPrimary)
             }
             Button(LinkaCopy.value("environments.create.cta")) { isPresentingCreation = true }
+                .foregroundColor(.brandAccentWarmInk)
         }
     }
 
@@ -215,9 +221,14 @@ struct NetworkProfilesManagementView: View {
                         }
                     }
                 } else {
-                    Section { Text(LinkaCopy.value("environments.preview.message")); Button(LinkaCopy.value("environments.preview.cta"), action: onRequestPurchase) }
+                    Section {
+                        Text(LinkaCopy.value("environments.preview.message"))
+                        Button(LinkaCopy.value("environments.preview.cta"), action: onRequestPurchase)
+                            .foregroundColor(.brandAccentWarmInk)
+                    }
                 }
             }
+            .tint(.brandAccentWarm)
             .linkaGradientScreenBackground()
             .navigationTitle(LinkaCopy.value("environments.saved.title"))
             .task { await coordinator.loadEnvironments() }
@@ -310,9 +321,11 @@ private struct NetworkEnvironmentDetailView: View {
             }
             Section(LinkaCopy.value("environments.local.title")) {
                 Button(LinkaCopy.value("environments.rename.cta")) { renamePresented = true }
+                    .foregroundColor(.brandAccentWarmInk)
                 Button(LinkaCopy.value("environments.delete.cta"), role: .destructive) { deletePresented = true }
             }
         }
+        .tint(.brandAccentWarm)
         .linkaGradientScreenBackground()
         .navigationTitle(environment.name)
         .confirmationDialog(LinkaCopy.value("environments.delete.title"), isPresented: $deletePresented) {
@@ -346,6 +359,7 @@ private struct NetworkEnvironmentDetailView: View {
                 macCard(title: LinkaCopy.value("environments.local.title")) {
                     Button(LinkaCopy.value("environments.rename.cta")) { renamePresented = true }
                         .buttonStyle(.bordered)
+                        .tint(.brandAccentWarm)
                     Button(LinkaCopy.value("environments.delete.cta"), role: .destructive) { deletePresented = true }
                         .buttonStyle(.bordered)
                 }
@@ -354,6 +368,7 @@ private struct NetworkEnvironmentDetailView: View {
             .padding(40)
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
+        .tint(.brandAccentWarm)
         .navigationTitle(environment.name)
         .confirmationDialog(LinkaCopy.value("environments.delete.title"), isPresented: $deletePresented) {
             Button(LinkaCopy.value("environments.delete.cta"), role: .destructive) {
