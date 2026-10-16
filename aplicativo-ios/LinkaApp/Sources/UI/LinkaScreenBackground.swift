@@ -52,6 +52,9 @@ public struct LinkaScreenBackground: View {
 
     @ViewBuilder
     private var backgroundGradient: some View {
+        #if os(macOS)
+        Color.surfacePage
+        #else
         if colorScheme == .dark {
             // Dark Mode: Degradê elegante entre azul petróleo profundo (Linka Midnight Ink)
             // e preto absoluto, garantindo contraste OLED e profundidade cinematográfica.
@@ -77,6 +80,7 @@ public struct LinkaScreenBackground: View {
                 endPoint: .bottom
             )
         }
+        #endif
     }
 
     // MARK: - Ondas Concêntricas de Sinal (LagCheck Style)

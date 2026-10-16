@@ -595,12 +595,7 @@ struct MacMainView: View {
         .navigationTitle(destination.title)
         .navigationSubtitle(liveConnectionName)
         .accessibilityIdentifier("mac.workspace.\(destination.accessibilityIdentifier)")
-        .background(
-            LinkaScreenBackground(
-                variant: .gradientOnly,
-                showWaves: false
-            )
-        )
+        .background(Color.surfacePage)
         .background {
             Group {
                 Button("") { destination = .speedTest }
