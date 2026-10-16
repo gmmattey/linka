@@ -139,8 +139,6 @@ targets:
       macOS: 13.0
     settings:
       base:
-        MARKETING_VERSION: "1.1.5"
-        CURRENT_PROJECT_VERSION: "54"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_ENTITLEMENTS: LinkaApp/LinkaApp-macOS.entitlements
         CODE_SIGN_STYLE: Automatic

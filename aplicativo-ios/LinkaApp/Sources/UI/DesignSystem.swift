@@ -45,11 +45,15 @@ public extension Color {
 
     private static let lightInk = hex("#102245")
     private static let lightAccentWarm = hex("#C15300") // Darkened to meet 4.5:1 contrast in Light Mode
+    private static let lightAccentWarmInk = hex("#A34A00") // Canonical text/icon warm accent (WCAG AA >= 4.5:1)
     private static let lightBorderStrong = hex("#7C859B")
+    private static let lightChartDownload = hex("#0066CC") // Download series contrast >= 4.5:1 on light
 
     private static let darkInk = hex("#F6F6F9")
     private static let darkAccentWarm = hex("#FF9552")
+    private static let darkAccentWarmInk = hex("#FF9552")
     private static let darkBorderStrong = hex("#5C6577")
+    private static let darkChartDownload = hex("#409CFF")
 
     // UI Polish v2 (2026-08-29): surfacePage/surfaceCard/textPrimary/
     // textSecondary/borderDefault deixaram de ser hex custom e passaram a
@@ -82,6 +86,11 @@ public extension Color {
     static let brandSurface = dynamicColor(light: lightInk, dark: darkInk)
     static let brandOnSurface = dynamicColor(light: hex("#FFFFFF"), dark: hex("#000000"))
     static let brandAccentWarm = dynamicColor(light: lightAccentWarm, dark: darkAccentWarm)
+    /// Variante canônica para texto e ícones sobre superfícies claras/tintadas (tokens/colors.css).
+    static let brandAccentWarmInk = dynamicColor(light: lightAccentWarmInk, dark: darkAccentWarmInk)
+    /// Séries de medição do histórico com contraste certificado WCAG AA.
+    static let chartDownloadSeries = dynamicColor(light: lightChartDownload, dark: darkChartDownload)
+    static let chartUploadSeries = brandAccentWarm
     /// Cor de ação primária semântica (issue UI Polish v2) — substitui usos
     /// soltos de `Color.accentColor`/`.blue` em `AssistView`. Reaproveita a
     /// cor de marca em vez de introduzir um quarto tom de laranja/azul.
@@ -99,7 +108,8 @@ public extension Font {
     static let displayTitle = Font.system(.title2, design: .default, weight: .bold)
     static let displayMedium = Font.system(.title3, design: .default, weight: .bold)
     static let buttonLabel = Font.system(.headline, design: .default, weight: .semibold)
-    static let metricSecondary = Font.system(.headline, design: .default, weight: .bold)
+    static var metricHero: Font { scaledSystemFont(size: 34, weight: .bold, design: .rounded, relativeTo: .largeTitle) }
+    static var metricSecondary: Font { scaledSystemFont(size: 20, weight: .bold, design: .default, relativeTo: .title2) }
 
     // Revisão da escala tipográfica (2026-08-29): o Linka usava tamanhos
     // pequenos demais como padrão secundário (Subheadline/Footnote/
@@ -372,26 +382,29 @@ public extension View {
     }
 
     /// Largura da coluna de conteúdo principal do fluxo de medição (idle,
-    /// medindo, resultado): 500pt em compact (iPhone, igual a sempre); em
-    /// regular (iPad), sem limite — o Luiz pediu explicitamente que o app
-    /// preencha a tela inteira no iPad, sem barra lateral (decisão de
-    /// produto desta sessão, substitui uma tentativa anterior de coluna
-    /// central de 720pt). Único lugar que decide essa regra; qualquer
-    /// outra tela cheia (não-sheet) do fluxo principal reaproveita em vez
-    /// de duplicar a constante.
-    func linkaAdaptiveContentWidth() -> some View {
-        modifier(LinkaAdaptiveContentWidthModifier())
+    /// medindo, resultado): 500pt em compact (iPhone); em regular (iPad),
+    /// limitado a 680pt por padrão para eliminar o aspecto esticado mantendo
+    /// proporção e alinhamento do conteúdo central.
+    func linkaAdaptiveContentWidth(regularMaxWidth: CGFloat = 680, compactMaxWidth: CGFloat = 500) -> some View {
+        modifier(LinkaAdaptiveContentWidthModifier(regularMaxWidth: regularMaxWidth, compactMaxWidth: compactMaxWidth))
     }
 }
 
-private struct LinkaAdaptiveContentWidthModifier: ViewModifier {
+public struct LinkaAdaptiveContentWidthModifier: ViewModifier {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    var regularMaxWidth: CGFloat = 680
+    var compactMaxWidth: CGFloat = 500
 
-    func body(content: Content) -> some View {
+    public init(regularMaxWidth: CGFloat = 680, compactMaxWidth: CGFloat = 500) {
+        self.regularMaxWidth = regularMaxWidth
+        self.compactMaxWidth = compactMaxWidth
+    }
+
+    public func body(content: Content) -> some View {
         if horizontalSizeClass == .regular {
-            content
+            content.frame(maxWidth: regularMaxWidth)
         } else {
-            content.frame(maxWidth: 500)
+            content.frame(maxWidth: compactMaxWidth)
         }
     }
 }

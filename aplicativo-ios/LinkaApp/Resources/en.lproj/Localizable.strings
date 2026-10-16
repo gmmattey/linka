@@ -2,6 +2,7 @@
 "settings.language.option.system" = "System";
 "settings.language.hint" = "System uses the language set on your iPhone.";
 "common.unavailable" = "Unavailable";
+"common.delete" = "Delete";
 "network.wifiBand" = "Wi-Fi band";
 "network.wifiBand.value2_4GHz" = "2.4 GHz";
 "network.wifiBand.value5GHz" = "5 GHz";
@@ -549,6 +550,7 @@
 "assist.error.title" = "We couldn't finish";
 "assist.status.healthy" = "Healthy connection";
 "assist.status.problem" = "Problem identified";
+"assist.status.inconclusive" = "No specific cause";
 "assist.recommendations.title" = "What to do to fix or improve it";
 "assist.openRouterSettings" = "Open router settings";
 "assist.noAction" = "No action is needed. Your connection is operating within ideal ranges for any use.";

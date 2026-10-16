@@ -35,7 +35,7 @@ final class LinkaEntitlementsTests: XCTestCase {
         let date = LinkaTemporaryFreeOffer.endsAt.addingTimeInterval(-60)
         XCTAssertEqual(LinkaEntitlementSnapshotResolver.resolve(at: date, promotionSupported: false), .free)
         #if os(macOS)
-        XCTAssertEqual(LinkaEntitlementSnapshotResolver.resolve(at: date), .free)
+        XCTAssertEqual(LinkaEntitlementSnapshotResolver.resolve(at: date), .plus(status: .active, source: .promotion, validUntil: LinkaTemporaryFreeOffer.endsAt))
         #endif
     }
 
@@ -264,25 +264,24 @@ final class LinkaEntitlementsTests: XCTestCase {
 
 @MainActor
 final class StoreKitEntitlementProviderTests: XCTestCase {
-    private let now = Date(timeIntervalSince1970: 100_000)
+    private let afterPromotion = LinkaTemporaryFreeOffer.endsAt.addingTimeInterval(1)
 
     func testIsEntitledOnlyForActivePlus() {
         XCTAssertFalse(StoreKitEntitlementProvider.isEntitled(.free))
         XCTAssertFalse(
             StoreKitEntitlementProvider.isEntitled(
-                .plus(status: .expired, source: .subscription, validUntil: now)
+                .plus(status: .expired, source: .subscription, validUntil: afterPromotion)
             )
         )
         XCTAssertTrue(
             StoreKitEntitlementProvider.isEntitled(
-                .plus(status: .active, source: .subscription, validUntil: now.addingTimeInterval(60))
+                .plus(status: .active, source: .subscription, validUntil: afterPromotion.addingTimeInterval(60))
             )
         )
     }
 
     func testProductStartsNilBeforeAnyLoadResolves() {
-        let now = self.now
-        let provider = StoreKitEntitlementProvider(now: { now })
+        let provider = StoreKitEntitlementProvider(now: { [afterPromotion] in afterPromotion })
         XCTAssertEqual(provider.productState, .loading)
         XCTAssertEqual(provider.snapshot, .free)
     }
@@ -292,14 +291,10 @@ final class StoreKitEntitlementProviderTests: XCTestCase {
             LinkaTemporaryFreeOffer.endsAt.addingTimeInterval(-1)
         })
 
-        #if os(iOS)
         XCTAssertEqual(provider.snapshot.plan, .plus)
         XCTAssertEqual(provider.snapshot.status, .active)
         XCTAssertEqual(provider.snapshot.source, .promotion)
         XCTAssertEqual(provider.snapshot.validUntil, LinkaTemporaryFreeOffer.endsAt)
-        #else
-        XCTAssertEqual(provider.snapshot, .free)
-        #endif
     }
 
     func testLoadProductWithAnUnknownIDResolvesToNilProductAndStopsLoading() async {
@@ -314,7 +309,7 @@ final class StoreKitEntitlementProviderTests: XCTestCase {
     }
 
     func testHandleUserCancelledKeepsFreeSnapshotAndReportsCancellation() async throws {
-        let provider = StoreKitEntitlementProvider()
+        let provider = StoreKitEntitlementProvider(now: { [afterPromotion] in afterPromotion })
 
         let outcome = try await provider.handle(.userCancelled)
 
@@ -323,7 +318,7 @@ final class StoreKitEntitlementProviderTests: XCTestCase {
     }
 
     func testHandlePendingKeepsFreeSnapshotAndReportsPending() async throws {
-        let provider = StoreKitEntitlementProvider()
+        let provider = StoreKitEntitlementProvider(now: { [afterPromotion] in afterPromotion })
 
         let outcome = try await provider.handle(.pending)
 
@@ -333,7 +328,7 @@ final class StoreKitEntitlementProviderTests: XCTestCase {
 
     #if DEBUG
     func testDebugForcePlusAndResetRoundTrip() {
-        let provider = StoreKitEntitlementProvider()
+        let provider = StoreKitEntitlementProvider(now: { [afterPromotion] in afterPromotion })
         XCTAssertEqual(provider.snapshot, .free)
 
         provider.debugForcePlus()
@@ -347,7 +342,7 @@ final class StoreKitEntitlementProviderTests: XCTestCase {
     #endif
 
     func testRefreshSnapshotFailsAndIsNotEntitledWithoutAnyKnownPurchase() async {
-        let provider = StoreKitEntitlementProvider()
+        let provider = StoreKitEntitlementProvider(now: { [afterPromotion] in afterPromotion })
 
         await provider.refreshSnapshot()
 

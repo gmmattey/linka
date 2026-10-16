@@ -1,6 +1,7 @@
 #if os(macOS)
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 import LinkaEngine
 import MeasurementHistory
 import NetworkCore
@@ -70,6 +71,7 @@ struct MacMainView: View {
     @State private var showAdvancedWiFiUnavailable = false
     @State private var showMeasurementDetails = false
     @State private var showLiveNetworkDetails = false
+    @State private var showSidePanel = false
 
     // MARK: Computed
 
@@ -139,8 +141,12 @@ struct MacMainView: View {
                     case .speedTest:
                         HStack(spacing: 0) {
                             mainStage
-                            rightPanel
-                                .frame(width: 280)
+                            if showSidePanel {
+                                Divider()
+                                rightPanel
+                                    .frame(width: 280)
+                                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                            }
                         }
                     case .myNetwork:
                         MyNetworkView()
@@ -158,12 +164,7 @@ struct MacMainView: View {
             }
         }
         .frame(minWidth: 960, minHeight: 600)
-        .background(
-            LinkaScreenBackground(
-                variant: .gradientOnly,
-                showWaves: false
-            )
-        )
+        .background(Color.surfacePage)
         .sheet(isPresented: $showPurchase, onDismiss: handlePurchaseDismissal) {
             PurchaseSheet(entryPoint: purchaseEntryPoint) {
                 if purchaseEntryPoint == .assist {
@@ -362,7 +363,7 @@ struct MacMainView: View {
         Button { destination = dest } label: {
             Label(title, systemImage: systemImage)
                 .font(.system(size: 14, weight: destination == dest ? .semibold : .medium))
-                .foregroundColor(destination == dest ? .brandAccentWarm : .textSecondary)
+                .foregroundColor(destination == dest ? .brandAccentWarmInk : .textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
@@ -384,7 +385,7 @@ struct MacMainView: View {
         VStack(spacing: 0) {
             VStack(spacing: 0) {
                 // Header (Network name)
-                HStack {
+                HStack(spacing: 12) {
                     Text(liveConnectionName)
                         .font(.bodySmallStrong)
                         .foregroundColor(.textPrimary)
@@ -394,6 +395,17 @@ struct MacMainView: View {
                         resultToolbarActions(for: measurement)
                     }
                     statusPill
+                    Button {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            showSidePanel.toggle()
+                        }
+                    } label: {
+                        Image(systemName: "sidebar.right")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(showSidePanel ? .brandAccentWarm : .textSecondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help(showSidePanel ? "Ocultar painel lateral" : "Mostrar histórico e qualidade")
                 }
                 .padding(.horizontal, 28)
                 .padding(.top, 36)
@@ -408,19 +420,64 @@ struct MacMainView: View {
                             .padding(.top, 8)
                     }
                     .padding(.bottom, 28)
+                } else if viewModel.uiPhase == .error {
+                    // Estado: Erro na medição
+                    errorCenterView
+                        .padding(.bottom, 28)
                 } else if let m = activeMeasurement {
                     // Estado: Resultado Ativo (Recém medido ou selecionado do histórico)
-                    VStack(spacing: 20) {
+                    VStack(spacing: 16) {
                         Text("Medição concluída")
                             .font(.title3.weight(.semibold))
                             .foregroundColor(.textPrimary)
                         horizontalHero(for: m)
                         measurementMetadataLine(for: m)
+
+                        // Destinos do Resultado no Mac
+                        HStack(spacing: 10) {
+                            Button {
+                                showCurrentMeasurementDetails = true
+                            } label: {
+                                Label("Detalhes", systemImage: "doc.text.magnifyingglass")
+                                    .font(.captionMedium)
+                            }
+                            .buttonStyle(.linkaSecondary)
+
+                            Button {
+                                showUsageDiagnostics = true
+                            } label: {
+                                Label("Uso", systemImage: "chart.bar.doc.horizontal")
+                                    .font(.captionMedium)
+                            }
+                            .buttonStyle(.linkaSecondary)
+
+                            if connectionPathReport != nil {
+                                Button {
+                                    showConnectionPath = true
+                                } label: {
+                                    Label("Caminho", systemImage: "point.filled.topleft.down.curvedto.point.bottomright.up")
+                                        .font(.captionMedium)
+                                }
+                                .buttonStyle(.linkaSecondary)
+                            }
+
+                            if m.outcome == .complete {
+                                Button {
+                                    showShareSheet = true
+                                } label: {
+                                    Label("Compartilhar", systemImage: "square.and.arrow.up")
+                                        .font(.captionMedium)
+                                }
+                                .buttonStyle(.linkaSecondary)
+                            }
+                        }
+                        .padding(.top, 4)
+
                         DisclosureGroup(isExpanded: $showMeasurementDetails) {
                             advancedMetricsRow(for: m)
                                 .padding(.top, 10)
                         } label: {
-                            Label("Detalhes da medição", systemImage: "chevron.down")
+                            Label("Métricas avançadas", systemImage: "chevron.down")
                                 .font(.bodySmallMedium)
                                 .foregroundColor(.textPrimary)
                         }
@@ -472,37 +529,33 @@ struct MacMainView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func measurementMetadataBadge(for m: NetworkMeasurement) -> some View {
-        HStack(spacing: 14) {
-            HStack(spacing: 5) {
-                Image(systemName: "calendar")
-                    .font(.system(size: 11, weight: .regular))
-                Text(Self.dateFormatter.string(from: m.measuredAt))
-                    .font(.captionMedium)
+    private var errorCenterView: some View {
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(Color.surfaceCard)
+                    .frame(width: 88, height: 88)
+                Image(systemName: "wifi.exclamationmark")
+                    .font(.system(size: 40, weight: .light))
+                    .foregroundColor(.statusCritical)
             }
-            Text("•")
-                .foregroundColor(.borderDefault)
-            HStack(spacing: 5) {
-                Image(systemName: "network")
-                    .font(.system(size: 11, weight: .regular))
-                Text(networkLabel(for: m))
-                    .font(.captionMedium)
+            .padding(.bottom, 4)
+
+            Text(viewModel.failureReason == .offline ? "Sem conexão com a internet" : "Não foi possível concluir a medição")
+                .font(.displayTitle)
+                .foregroundColor(.textPrimary)
+
+            Text("Verifique sua rede e tente novamente.")
+                .font(.bodySmall)
+                .foregroundColor(.textSecondary)
+
+            Button("Tentar novamente") {
+                startMeasurement()
             }
-            if let server = m.networkIdentifier, !server.isEmpty {
-                Text("•")
-                    .foregroundColor(.borderDefault)
-                HStack(spacing: 5) {
-                    Image(systemName: "server.rack")
-                        .font(.system(size: 11, weight: .regular))
-                    Text(server)
-                        .font(.captionMedium)
-                }
-            }
+            .buttonStyle(.linkaSecondary)
+            .padding(.top, 8)
         }
-        .foregroundColor(.textSecondary)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 6)
-        .background(Color.surfaceCard, in: Capsule())
+        .frame(maxWidth: .infinity)
     }
 
     private func measurementMetadataLine(for m: NetworkMeasurement) -> some View {
@@ -725,7 +778,7 @@ struct MacMainView: View {
                         icon: "checkmark.circle.fill",
                         statusColor: .statusGood
                     )
-                } else {
+                } else if viewModel.liveConnectionKind != nil {
                     liveMetricCard(
                         title: LinkaCopy.value("Interface"),
                         value: liveConnectionName,
@@ -737,6 +790,19 @@ struct MacMainView: View {
                         value: LinkaCopy.value("Ativo"),
                         icon: "checkmark.circle.fill",
                         statusColor: .statusGood
+                    )
+                } else {
+                    liveMetricCard(
+                        title: LinkaCopy.value("Interface"),
+                        value: "Desconectado",
+                        icon: "network.slash",
+                        statusColor: .textSecondary
+                    )
+                    liveMetricCard(
+                        title: LinkaCopy.value("Estado"),
+                        value: "Sem conexão",
+                        icon: "exclamationmark.circle",
+                        statusColor: .statusAttention
                     )
                 }
             }
@@ -969,27 +1035,6 @@ struct MacMainView: View {
         }
     }
 
-    // MARK: Footer stat blocks
-
-    private func footerStatBlock(label: String, value: String, unit: String) -> some View {
-        VStack(spacing: 6) {
-            Text(label)
-                .font(.captionMedium)
-                .foregroundColor(.textSecondary)
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(value)
-                    .font(.system(size: 24, weight: .semibold, design: .monospaced))
-                    .foregroundColor(.textPrimary)
-                Text(unit)
-                    .font(.captionSmallStrong)
-                    .foregroundColor(.textSecondary)
-            }
-        }
-    }
-
-    private var pingFooterValue: String {
-        viewModel.hasMeasuredPing ? "\(viewModel.ping)" : "—"
-    }
     private var downloadFooterValue: String {
         viewModel.downloadSpeed > 0 ? String(format: "%.1f", viewModel.downloadSpeed) : "—"
     }
@@ -1194,10 +1239,23 @@ struct MacMainView: View {
                     }
                 }
             }
-            Button("Ver histórico completo") { destination = .history }
-                .buttonStyle(.linkaSecondary)
-                .disabled(isMeasuring)
-                .padding(.top, 8)
+            HStack(spacing: 8) {
+                Button("Ver histórico completo") { destination = .history }
+                    .buttonStyle(.linkaSecondary)
+                    .disabled(isMeasuring)
+
+                if !viewModel.recentMeasurements.isEmpty {
+                    Button {
+                        exportCSV()
+                    } label: {
+                        Label("CSV", systemImage: "square.and.arrow.up")
+                    }
+                    .buttonStyle(.linkaSecondary)
+                    .disabled(isMeasuring)
+                    .help("Exportar histórico em CSV")
+                }
+            }
+            .padding(.top, 8)
         }
     }
 
@@ -1247,13 +1305,30 @@ struct MacMainView: View {
             .padding(.vertical, 8)
             .background(rowBackground, in: RoundedRectangle(cornerRadius: LinkaRadius.sm, style: .continuous))
         }
-        .buttonStyle(.plain)
         .contextMenu {
             Button("Abrir detalhes")   { selectedHistoricalMeasurement = m }
             Button("Inspecionar no centro") {
                 withAnimation { inspectedHistoricalMeasurement = m }
             }
+            Button("Exportar histórico (CSV)") { exportCSV() }
             Button("Testar novamente") { startMeasurement() }
+            Divider()
+            Button(role: .destructive) {
+                deleteMeasurement(m)
+            } label: {
+                Label("Excluir medição", systemImage: "trash")
+            }
+        }
+    }
+
+    private func deleteMeasurement(_ m: NetworkMeasurement) {
+        Task { @MainActor in
+            let repo = LinkaMeasurementHistory.makeRepository(entitlements: entitlements)
+            try? await repo.delete(id: m.id)
+            if inspectedHistoricalMeasurement?.id == m.id {
+                inspectedHistoricalMeasurement = nil
+            }
+            viewModel.loadLastTest()
         }
     }
 
@@ -1540,39 +1615,18 @@ struct MacMainView: View {
         viewModel.liveNetworkLabel.isEmpty ? LinkaCopy.value("Conexão atual") : viewModel.liveNetworkLabel
     }
 
-    // MARK: - Gauge helpers
+    // MARK: - CSV Export
 
-    private var gaugeFraction: Double {
-        guard let value = downloadGaugeValue else { return 0 }
-        let scale = max(speedGaugeUpperBound, Self.speedGaugeScale(for: value))
-        return max(0, min(1, value / scale))
-    }
-
-    private var downloadGaugeValue: Double? {
-        switch viewModel.uiPhase {
-        case .downloading, .uploading, .done: return viewModel.downloadSpeed
-        default: return nil
-        }
-    }
-
-    private var macRingValue: String {
-        guard downloadGaugeValue != nil else { return "" }
-        return String(format: "%.2f", viewModel.downloadSpeed)
-    }
-
-    private var macRingUnit: String? {
-        downloadGaugeValue != nil ? "Mbps" : nil
-    }
-
-    private var gaugeAccessibilityValue: String {
-        switch viewModel.uiPhase {
-        case .idle:             return "Pronto para medir"
-        case .connecting:       return "Conectando ao servidor"
-        case .downloading:      return "Download: \(Int(round(viewModel.downloadSpeed))) Mbps, medição em andamento"
-        case .uploading:        return "Download medido: \(Int(round(viewModel.downloadSpeed))) Mbps. Medindo upload"
-        case .done:             return "Download: \(Int(round(viewModel.downloadSpeed))) Mbps. Medição concluída"
-        case .error:            return "Medição indisponível"
-        case .connectionChanged:return "Medição interrompida porque a rede mudou"
+    private func exportCSV() {
+        guard !viewModel.recentMeasurements.isEmpty else { return }
+        let data = MeasurementCSVExporter.generateCSVData(from: viewModel.recentMeasurements)
+        let panel = NSSavePanel()
+        panel.title = "Exportar Histórico em CSV"
+        panel.nameFieldStringValue = "linka-historico.csv"
+        panel.allowedContentTypes = [.commaSeparatedText]
+        panel.canCreateDirectories = true
+        if panel.runModal() == .OK, let url = panel.url {
+            try? data.write(to: url)
         }
     }
 
@@ -1647,51 +1701,5 @@ private struct MacPrimaryButtonStyle: ButtonStyle {
 
 private extension ButtonStyle where Self == MacPrimaryButtonStyle {
     static var macPrimary: MacPrimaryButtonStyle { MacPrimaryButtonStyle() }
-}
-
-// MARK: - MacMetricRing
-
-private struct MacMetricRing: View {
-    var isConnecting: Bool
-    var progress: Double
-    var value: String
-    var unit: String?
-
-    private var clamped: Double { max(0, min(1, progress)) }
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .stroke(Color.borderDefault, lineWidth: 10)
-
-            if !isConnecting {
-                Circle()
-                    .trim(from: 0, to: max(0.001, clamped))
-                    .stroke(Color.brandAccentWarm, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-                    .animation(.linear(duration: 0.08), value: clamped)
-            }
-
-            VStack(spacing: 4) {
-                if isConnecting {
-                    ProgressView()
-                        .controlSize(.large)
-                        .tint(Color.brandAccentWarm)
-                } else if !value.isEmpty {
-                    Text(value)
-                        .font(.system(size: 42, weight: .semibold, design: .monospaced))
-                        .foregroundColor(.textPrimary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.5)
-                    if let unit {
-                        Text(unit.uppercased())
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.textSecondary)
-                            .tracking(0.8)
-                    }
-                }
-            }
-        }
-    }
 }
 #endif

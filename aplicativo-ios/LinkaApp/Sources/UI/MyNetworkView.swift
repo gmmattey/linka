@@ -660,7 +660,7 @@ private struct DeviceDetailView: View {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: "point.3.connected.trianglepath.dotted")
                     .font(.title3)
-                    .foregroundStyle(.tint)
+                    .foregroundStyle(Color.brandAccentWarmInk)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(LinkaCopy.value("inventory.connection.prompt.title"))
                         .font(.headline)
@@ -701,7 +701,7 @@ private struct DeviceDetailView: View {
         return HStack(alignment: .center, spacing: 12) {
             Image(systemName: mediumIcon(conn.medium))
                 .font(.title3)
-                .foregroundStyle(.tint)
+                .foregroundStyle(Color.brandAccentWarmInk)
                 .frame(width: 28)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -827,9 +827,9 @@ private struct DeviceEditorView: View {
                     identificationSection
                     researchSection
                     if let validation = session.draftValidationMessage {
-                        Text(validation).foregroundStyle(.red)
+                        Text(validation).foregroundStyle(Color.statusCritical)
                     }
-                    if let error = store.error { Text(error).foregroundStyle(.red) }
+                    if let error = store.error { Text(error).foregroundStyle(Color.statusCritical) }
                 }
                 .padding(24)
                 .frame(maxWidth: 620, alignment: .leading)
@@ -1080,8 +1080,8 @@ private struct DeviceInstallationEditor: View {
                     }
                 }
                 installationSection
-                if let message = session.draftValidationMessage { Section { Text(message).foregroundStyle(.red) } }
-                if let error = store.error { Section { Text(error).foregroundStyle(.red) } }
+                if let message = session.draftValidationMessage { Section { Text(message).foregroundStyle(Color.statusCritical) } }
+                if let error = store.error { Section { Text(error).foregroundStyle(Color.statusCritical) } }
             }
             #if os(macOS)
             .formStyle(.grouped)

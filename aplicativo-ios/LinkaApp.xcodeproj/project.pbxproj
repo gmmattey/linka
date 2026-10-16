@@ -1343,7 +1343,6 @@
 				CODE_SIGN_ENTITLEMENTS = "LinkaApp/LinkaApp-macOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 54;
 				DEVELOPMENT_TEAM = 2Z4T8228GR;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "LinkaApp/Info-macOS.plist";
@@ -1352,7 +1351,6 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.linka.assist;
 				PRODUCT_NAME = LinkaApp;
 				SDKROOT = macosx;
@@ -1580,7 +1578,6 @@
 				CODE_SIGN_ENTITLEMENTS = "LinkaApp/LinkaApp-macOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 54;
 				DEVELOPMENT_TEAM = 2Z4T8228GR;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "LinkaApp/Info-macOS.plist";
@@ -1589,7 +1586,6 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.linka.assist;
 				PRODUCT_NAME = LinkaApp;
 				SDKROOT = macosx;
@@ -1625,7 +1621,6 @@
 				CODE_SIGN_ENTITLEMENTS = "LinkaApp/LinkaApp-macOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 54;
 				DEVELOPMENT_TEAM = 2Z4T8228GR;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "LinkaApp/Info-macOS.plist";
@@ -1634,7 +1629,6 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.linka.assist;
 				PRODUCT_NAME = LinkaApp;
 				SDKROOT = macosx;

@@ -22,9 +22,9 @@ struct ConnectivityTriageView: View {
         NavigationStack {
             Group {
                 if isLoading {
-                    ProgressView("triage.checking")
+                    ProgressView(LinkaCopy.value("triage.checking"))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .accessibilityLabel("triage.checking.accessibility")
+                        .accessibilityLabel(LinkaCopy.value("triage.checking.accessibility"))
                 } else if let report {
                     VStack(alignment: .leading, spacing: 20) {
                         Text(eyebrow(for: report))
@@ -42,10 +42,10 @@ struct ConnectivityTriageView: View {
                             dismiss()
                             onRetry()
                         } label: {
-                            Text("common.retry")
+                            Text(LinkaCopy.value("common.retry"))
                         }
                         .buttonStyle(.linkaPrimary)
-                        .accessibilityHint("triage.retry.hint")
+                        .accessibilityHint(LinkaCopy.value("triage.retry.hint"))
 
                     }
                     .padding(24)
@@ -53,8 +53,8 @@ struct ConnectivityTriageView: View {
                     .accessibilityElement(children: .contain)
                 } else {
                     LinkaUnavailableState(
-                        title: "triage.unavailable.title",
-                        message: "triage.unavailable.message",
+                        title: LinkaCopy.value("triage.unavailable.title"),
+                        message: LinkaCopy.value("triage.unavailable.message"),
                         systemImage: "wifi.exclamationmark"
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

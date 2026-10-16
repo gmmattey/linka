@@ -91,28 +91,22 @@ final class SpeedTestViewModelScenePhaseTests: XCTestCase {
 
     // MARK: - .background durante medição em andamento, COM snapshot válido
 
-    func test_background_duringDownload_withSnapshot_restoresDone() {
+    func test_background_duringDownload_withSnapshot_goesIdle() {
         let viewModel = SpeedTestViewModel()
         let snapshot = makeSnapshot(downloadSpeed: 87.3)
         viewModel.lastValidResultSnapshot = snapshot
         viewModel.uiPhase = .downloading
         viewModel.isTesting = true
-        // Campos "sujos" do reteste em andamento — devem ser sobrescritos
-        // pelo snapshot, nunca deixados como estavam (aceite #2: nunca um
-        // `uiPhase` que sugira teste completo sem valores consistentes).
         viewModel.downloadSpeed = 3.1
 
         viewModel.handleScenePhaseChange(.background)
 
-        XCTAssertEqual(viewModel.uiPhase, .done)
+        XCTAssertEqual(viewModel.uiPhase, .idle)
         XCTAssertFalse(viewModel.isTesting)
-        XCTAssertEqual(viewModel.downloadSpeed, snapshot.downloadSpeed)
-        XCTAssertEqual(viewModel.uploadSpeed, snapshot.uploadSpeed)
-        XCTAssertEqual(viewModel.ping, snapshot.ping)
-        XCTAssertEqual(viewModel.progress, 1.0)
+        XCTAssertEqual(viewModel.progress, 0.0)
     }
 
-    func test_background_duringUpload_withSnapshot_restoresDone() {
+    func test_background_duringUpload_withSnapshot_goesIdle() {
         let viewModel = SpeedTestViewModel()
         let snapshot = makeSnapshot(downloadSpeed: 55.0)
         viewModel.lastValidResultSnapshot = snapshot
@@ -121,9 +115,9 @@ final class SpeedTestViewModelScenePhaseTests: XCTestCase {
 
         viewModel.handleScenePhaseChange(.background)
 
-        XCTAssertEqual(viewModel.uiPhase, .done)
+        XCTAssertEqual(viewModel.uiPhase, .idle)
         XCTAssertFalse(viewModel.isTesting)
-        XCTAssertEqual(viewModel.downloadSpeed, snapshot.downloadSpeed)
+        XCTAssertEqual(viewModel.progress, 0.0)
     }
 
     // MARK: - .background em estado terminal (.done/.error) não mexe em nada
@@ -207,10 +201,10 @@ final class SpeedTestViewModelScenePhaseTests: XCTestCase {
         XCTAssertFalse(viewModel.isTesting)
     }
 
-    /// Retorno a `.active` quando o resultado já foi restaurado (`.done`)
-    /// NÃO deve reiniciar sozinho; o estado `.idle` também permanece pronto
+    /// Retorno a `.active` quando o teste foi cancelado por backgrounding
+    /// NÃO deve reiniciar sozinho; o estado `.idle` permanece pronto
     /// para uma ação explícita da pessoa.
-    func test_active_afterDoneFromBackground_doesNotRestart() {
+    func test_active_afterBackgroundDuringTest_staysIdleAndDoesNotRestart() {
         let viewModel = SpeedTestViewModel()
         let snapshot = makeSnapshot()
         viewModel.lastValidResultSnapshot = snapshot
@@ -218,11 +212,11 @@ final class SpeedTestViewModelScenePhaseTests: XCTestCase {
         viewModel.isTesting = true
 
         viewModel.handleScenePhaseChange(.background)
-        XCTAssertEqual(viewModel.uiPhase, .done)
+        XCTAssertEqual(viewModel.uiPhase, .idle)
 
         viewModel.handleScenePhaseChange(.active)
 
-        XCTAssertEqual(viewModel.uiPhase, .done)
+        XCTAssertEqual(viewModel.uiPhase, .idle)
         XCTAssertFalse(viewModel.isTesting)
     }
 

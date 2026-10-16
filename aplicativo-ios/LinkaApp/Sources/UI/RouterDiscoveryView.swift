@@ -46,7 +46,7 @@ struct RouterDiscoveryView: View {
                 case .unreachable(let gatewayIP):
                     VStack(alignment: .leading, spacing: 8) {
                         Label(LinkaCopy.value("router.panel.unreachable.title"), systemImage: "exclamationmark.shield")
-                            .foregroundColor(.orange)
+                            .foregroundColor(.statusAttention)
                         Text(gatewayIP).font(.footnote).foregroundColor(.secondary)
                         Text(LinkaCopy.value("router.panel.unreachable.message"))
                             .font(.footnote)

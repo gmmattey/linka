@@ -73,7 +73,7 @@ public enum LinkaTemporaryFreeOffer {
     }
 
     public static var isSupportedOnCurrentPlatform: Bool {
-        #if os(iOS)
+        #if os(iOS) || os(macOS)
         return true
         #else
         return false

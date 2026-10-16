@@ -41,7 +41,7 @@ struct UsageDiagnosticsView: View {
             List {
                 Section {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("usage.summary.title")
+                        Text(LinkaCopy.value("usage.summary.title"))
                             .font(.captionSmallStrong)
                             .foregroundColor(.textSecondary)
                             .textCase(.uppercase)
@@ -55,7 +55,7 @@ struct UsageDiagnosticsView: View {
                 }
 
                 if let report {
-                    Section("usage.cases") {
+                    Section(LinkaCopy.value("usage.cases")) {
                         ForEach(UsageCase.allCases, id: \.self) { usageCase in
                             if let verdict = report.verdict(for: usageCase) {
                                 UsageVerdictRow(usageCase: usageCase, verdict: verdict)
@@ -65,8 +65,8 @@ struct UsageDiagnosticsView: View {
                 } else {
                     Section {
                         LinkaUnavailableState(
-                            title: "usage.noMeasurement.title",
-                            message: "usage.noMeasurement.message",
+                            title: LinkaCopy.value("usage.noMeasurement.title"),
+                            message: LinkaCopy.value("usage.noMeasurement.message"),
                             systemImage: "speedometer"
                         )
                         .frame(maxWidth: .infinity)
@@ -103,8 +103,8 @@ struct UsageDiagnosticsView: View {
                     } else {
                         macCard(title: LinkaCopy.value("usage.summary.title")) {
                             LinkaUnavailableState(
-                                title: "usage.noMeasurement.title",
-                                message: "usage.noMeasurement.message",
+                                title: LinkaCopy.value("usage.noMeasurement.title"),
+                                message: LinkaCopy.value("usage.noMeasurement.message"),
                                 systemImage: "speedometer"
                             )
                             .frame(maxWidth: .infinity)

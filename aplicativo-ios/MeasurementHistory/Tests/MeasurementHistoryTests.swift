@@ -313,6 +313,38 @@ final class MeasurementHistoryTests: XCTestCase {
         XCTAssertEqual(restored?.wifiContext, measurement.wifiContext)
     }
 
+    func testMeasurementCSVExporterOutputsHeaderAndRowsWithEscaping() {
+        let m1 = NetworkMeasurement(
+            id: UUID(uuidString: "11111111-1111-1111-1111-111111111111")!,
+            measuredAt: Date(timeIntervalSince1970: 1_700_000_000),
+            outcome: .complete,
+            downloadMbps: 123.45,
+            uploadMbps: 67.89,
+            latencyMs: 14.2,
+            jitterMs: 1.5,
+            packetLossPercent: 0.0,
+            dnsResolutionMs: 8.0,
+            connectionKind: .wifi,
+            wifiBandGHz: 5.0,
+            networkIdentifier: "Provedor, SP",
+            devicePlatform: "macOS"
+        )
+
+        let csv = MeasurementCSVExporter.generateCSV(from: [m1])
+        XCTAssertTrue(csv.hasPrefix("\u{FEFF}ID,Data/Hora,Tipo de Conexao"))
+        XCTAssertTrue(csv.contains("11111111-1111-1111-1111-111111111111"))
+        XCTAssertTrue(csv.contains("Wi-Fi"))
+        XCTAssertTrue(csv.contains("123.45"))
+        XCTAssertTrue(csv.contains("67.89"))
+        XCTAssertTrue(csv.contains("14.2"))
+        XCTAssertTrue(csv.contains("1.5"))
+        XCTAssertTrue(csv.contains("\"Provedor, SP\""))
+        XCTAssertTrue(csv.contains("macOS"))
+
+        let data = MeasurementCSVExporter.generateCSVData(from: [m1])
+        XCTAssertFalse(data.isEmpty)
+    }
+
     private func makeMeasurement(
         id: UUID = UUID(),
         measuredAt: Date = Date(),

@@ -247,10 +247,10 @@ struct MainView: View {
             switch v.level {
             case .adequate: return (LinkaCopy.value("home.verdict.good"), .statusGood)
             case .limited: return (LinkaCopy.value("home.verdict.fair"), .statusAttention)
-            case .notAssessed: return (LinkaCopy.value("home.verdict.poor"), .statusCritical)
+            case .notAssessed: return ("--", .textSecondary)
             }
         }
-        return (LinkaCopy.value("home.verdict.poor"), .statusCritical)
+        return ("--", .textSecondary)
     }
 
     private var gamingVerdict: (label: String, color: Color) {
@@ -258,20 +258,24 @@ struct MainView: View {
             switch v.level {
             case .adequate: return (LinkaCopy.value("home.verdict.good"), .statusGood)
             case .limited: return (LinkaCopy.value("home.verdict.fair"), .statusAttention)
-            case .notAssessed: return (LinkaCopy.value("home.verdict.poor"), .statusCritical)
+            case .notAssessed: return ("--", .textSecondary)
             }
         }
-        return (LinkaCopy.value("home.verdict.poor"), .statusCritical)
+        return ("--", .textSecondary)
     }
 
     private var streamingVerdict: (label: String, color: Color) {
-        if let v4k = usageSuitabilityReport?.verdict(for: .streaming4K), v4k.level == .adequate {
+        guard let report = usageSuitabilityReport else { return ("--", .textSecondary) }
+        if let v4k = report.verdict(for: .streaming4K), v4k.level == .adequate {
             return (LinkaCopy.value("home.verdict.4k"), .statusGood)
-        } else if let vHD = usageSuitabilityReport?.verdict(for: .streamingHD), vHD.level == .adequate {
-            return (LinkaCopy.value("home.verdict.hd"), .statusGood)
-        } else {
-            return (LinkaCopy.value("home.verdict.sd"), .statusAttention)
+        } else if let vHD = report.verdict(for: .streamingHD) {
+            switch vHD.level {
+            case .adequate: return (LinkaCopy.value("home.verdict.hd"), .statusGood)
+            case .limited: return (LinkaCopy.value("home.verdict.sd"), .statusAttention)
+            case .notAssessed: return ("--", .textSecondary)
+            }
         }
+        return ("--", .textSecondary)
     }
 
     var body: some View {
@@ -539,6 +543,8 @@ struct MainView: View {
                 Image(systemName: "house")
                     .font(.body.weight(.medium))
                     .foregroundColor(.textPrimary)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .accessibilityLabel(LinkaCopy.value("home.accessibility.back"))
         }
@@ -551,6 +557,8 @@ struct MainView: View {
                 Image(systemName: "clock")
                     .font(.body.weight(.medium))
                     .foregroundColor(.textPrimary)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .accessibilityLabel(LinkaCopy.value("home.accessibility.history"))
         }
@@ -561,6 +569,8 @@ struct MainView: View {
         if MinhaRedeAvailability.isEnabled && (viewModel.uiPhase == .idle || viewModel.uiPhase == .error || viewModel.uiPhase == .connectionChanged) {
             Button { navPath.append(AppRoute.myNetwork) } label: {
                 Label(LinkaCopy.value("inventory.title"), systemImage: "wifi.router")
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .accessibilityIdentifier("inventory.open")
         }
@@ -568,13 +578,15 @@ struct MainView: View {
 
     @ViewBuilder
     private var toolbarShareButton: some View {
-        if viewModel.uiPhase == .done {
+        if viewModel.uiPhase == .done, currentMeasurement?.outcome == .complete {
             Button {
                 showShareSheet = true
             } label: {
                 Image(systemName: "square.and.arrow.up")
                     .font(.body.weight(.medium))
                     .foregroundColor(.textPrimary)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .accessibilityLabel(LinkaCopy.value("home.accessibility.share"))
         }
@@ -587,6 +599,8 @@ struct MainView: View {
                 Image(systemName: "slider.horizontal.3")
                     .font(.body.weight(.medium))
                     .foregroundColor(.textPrimary)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .accessibilityLabel(LinkaCopy.value("home.accessibility.settings"))
         }
@@ -807,12 +821,12 @@ struct MainView: View {
                 } label: {
                     Text(LinkaCopy.value("detail.identify"))
                         .font(.captionSmallStrong)
-                        .foregroundColor(.brandAccentWarm)
+                        .foregroundColor(.brandAccentWarmInk)
                         .padding(.horizontal, 7)
                         .padding(.vertical, 2)
                         .background(Color.brandAccentWarm.opacity(0.12), in: Capsule())
                 }
-                .frame(minHeight: 44)
+                .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
                 .buttonStyle(.plain)
             }
@@ -996,7 +1010,7 @@ struct MainView: View {
                             .frame(maxWidth: .infinity)
                         metricColumn(title: LinkaCopy.value("metric.ping"), value: metricValue(Double(viewModel.ping), isMeasured: viewModel.hasMeasuredPing), unit: viewModel.hasMeasuredPing ? "ms" : nil)
                             .frame(maxWidth: .infinity)
-                        metricColumn(title: LinkaCopy.value("metric.loss"), value: viewModel.packetLossPercent.map { "\(Int(round($0)))" } ?? LinkaCopy.value("metric.notMeasured"), unit: viewModel.packetLossPercent == nil ? nil : "%")
+                        metricColumn(title: LinkaCopy.value("metric.loss"), value: viewModel.packetLossPercent.map { loss in loss == 0 ? "0" : String(format: "%.1f", loss) } ?? LinkaCopy.value("metric.notMeasured"), unit: viewModel.packetLossPercent == nil ? nil : "%")
                             .frame(maxWidth: .infinity)
                     }
                     .padding(.horizontal, 16)
@@ -1018,7 +1032,41 @@ struct MainView: View {
                     streaming: streamingVerdict
                 )
                 .padding(.horizontal, 24)
-                .padding(.bottom, 18)
+                .padding(.bottom, 14)
+
+                // Destinos do Resultado: Detalhes, Diagnóstico de Uso e Rota
+                HStack(spacing: 8) {
+                    Button {
+                        showDetails = true
+                    } label: {
+                        Label(LinkaCopy.value("detail.title"), systemImage: "doc.text.magnifyingglass")
+                            .font(.captionSmallStrong)
+                            .lineLimit(1)
+                    }
+                    .buttonStyle(.linkaSecondary)
+
+                    Button {
+                        showUsage = true
+                    } label: {
+                        Label(LinkaCopy.value("usage.title"), systemImage: "chart.bar.doc.horizontal")
+                            .font(.captionSmallStrong)
+                            .lineLimit(1)
+                    }
+                    .buttonStyle(.linkaSecondary)
+
+                    if connectionPathReport != nil {
+                        Button {
+                            showConnectionPath = true
+                        } label: {
+                            Label(LinkaCopy.value("connectionPath.title"), systemImage: "point.filled.topleft.down.curvedto.point.bottomright.up")
+                                .font(.captionSmallStrong)
+                                .lineLimit(1)
+                        }
+                        .buttonStyle(.linkaSecondary)
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 16)
 
                 NetscopeResultEntryCard {
                     showNetscopeAnalysis = true

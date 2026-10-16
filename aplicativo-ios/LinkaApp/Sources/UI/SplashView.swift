@@ -7,6 +7,7 @@ private let splashFadeInDuration: Double = 0.8
 
 struct SplashView: View {
     var onComplete: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var opacity: Double = 0.0
 
     var body: some View {
@@ -20,6 +21,12 @@ struct SplashView: View {
                 .opacity(opacity)
         }
         .onAppear {
+            if reduceMotion {
+                opacity = 1.0
+                onComplete()
+                return
+            }
+
             // `#available(iOS 17.0, *)` sozinho não protege o macOS: o `*`
             // cai no deployment target mínimo do target (macOS 13.0), e
             // `withAnimation(_:completion:)` só existe a partir do macOS

@@ -101,7 +101,13 @@ struct AssistV4Screen: View {
                 Text(question.text).font(.displayMedium)
                 ForEach(question.options, id: \.id) { option in
                     Button { model.selectedOptionID = option.id } label: {
-                        HStack { Image(systemName: model.selectedOptionID == option.id ? "largecircle.fill.circle" : "circle"); Text(option.text); Spacer() }
+                        HStack {
+                            Image(systemName: model.selectedOptionID == option.id ? "largecircle.fill.circle" : "circle")
+                            Text(option.text)
+                            Spacer()
+                        }
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .font(.bodyRegular)

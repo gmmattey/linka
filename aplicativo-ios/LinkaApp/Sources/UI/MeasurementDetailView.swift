@@ -140,7 +140,8 @@ struct MeasurementDetailView: View {
                             LabeledContent(LinkaCopy.value("detail.jitter"), value: milliseconds(jitter))
                         }
                         if let packetLoss = measurement.packetLossPercent {
-                            LabeledContent(LinkaCopy.value("detail.packetLoss"), value: "\(Int(packetLoss))%")
+                            let formattedLoss = packetLoss == 0 ? "0%" : String(format: "%.1f%%", packetLoss)
+                            LabeledContent(LinkaCopy.value("detail.packetLoss"), value: formattedLoss)
                         }
                         if let dns = measurement.dnsResolutionMs {
                             LabeledContent(LinkaCopy.value("detail.dns"), value: milliseconds(dns))
@@ -309,7 +310,7 @@ struct MeasurementDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar {
-            if let measurement {
+            if let measurement, measurement.outcome == .complete {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         showShareSheet = true

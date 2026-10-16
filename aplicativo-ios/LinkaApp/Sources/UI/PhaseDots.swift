@@ -16,7 +16,7 @@ struct PhaseDots: View {
                 let isActive = phase.key == activeKey
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(isActive ? Color.brandSurface : Color.textSecondary.opacity(0.4))
+                        .fill(isActive ? Color.brandSurface : Color.borderStrong)
                         .frame(width: 6, height: 6)
                         .animation(reduceMotion ? nil : LinkaMotion.fade, value: activeKey)
                     

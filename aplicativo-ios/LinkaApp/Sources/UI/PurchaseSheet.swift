@@ -87,7 +87,7 @@ struct PurchaseSheet: View {
                                 HStack(spacing: 12) {
                                     Image(systemName: "checkmark.circle.fill")
                                         .font(.bodyRegularStrong)
-                                        .foregroundColor(.brandAccentWarm)
+                                        .foregroundColor(.brandAccentWarmInk)
                                     Text(benefit)
                                         .font(.bodyRegular)
                                         .foregroundColor(.textPrimary)
@@ -153,11 +153,13 @@ struct PurchaseSheet: View {
 
                     HStack(spacing: 4) {
                         Link(copy("legal.terms", "Terms of Use"), destination: LinkaExternalLinks.terms)
+                            .underline()
                         Text("·").foregroundColor(.textSecondary)
                         Link(copy("legal.privacy", "Privacy"), destination: LinkaExternalLinks.privacy)
+                            .underline()
                     }
                     .font(.captionSmall)
-                    .foregroundColor(.brandSurface)
+                    .foregroundColor(.brandAccentWarmInk)
                     .padding(.top, 6)
                     .padding(.bottom, 16)
                 }

@@ -188,7 +188,7 @@ struct AssistView: View {
                 .padding(.horizontal, 24)
                 Button(LinkaCopy.value("common.back")) { closeSheet() }
                     .buttonStyle(.plain)
-                    .foregroundColor(.brandAccentWarm)
+                    .foregroundColor(.brandAccentWarmInk)
             }
             .frame(maxHeight: .infinity)
         case .success(let data):
@@ -196,13 +196,13 @@ struct AssistView: View {
                 VStack(alignment: .leading, spacing: 20) {
 
                     // ─── 1. PROBLEMA IDENTIFICADO / ESTADO DA CONEXÃO ───
-                    let isHealthy = isHealthyAnalysis(headerStatus: data.headerStatus, title: data.title, recommendation: data.recommendation)
+                    let (statusColor, statusText) = assistStatusAppearance(headerStatus: data.headerStatus, title: data.title, recommendation: data.recommendation)
                     VStack(alignment: .leading, spacing: 10) {
                         HStack(spacing: 8) {
                             Circle()
-                                .fill(isHealthy ? Color.statusGood : Color.statusAttention)
+                                .fill(statusColor)
                                 .frame(width: 9, height: 9)
-                            Text(isHealthy ? LinkaCopy.value("assist.status.healthy") : LinkaCopy.value("assist.status.problem"))
+                            Text(statusText)
                                 .font(.captionStrong)
                                 .foregroundColor(.textSecondary)
                                 .textCase(.uppercase)
@@ -226,7 +226,7 @@ struct AssistView: View {
                                 Text(attribution)
                                     .font(.caption2.weight(.medium))
                             }
-                            .foregroundColor(.textSecondary.opacity(0.8))
+                            .foregroundColor(.textSecondary)
                             .padding(.top, 4)
                             .accessibilityElement(children: .combine)
                             .accessibilityLabel(Text("Origem da análise: \(attribution)"))
@@ -247,7 +247,7 @@ struct AssistView: View {
                                 HStack(alignment: .top, spacing: 10) {
                                     Image(systemName: "lightbulb.fill")
                                         .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.brandAccentWarm)
+                                        .foregroundColor(.brandAccentWarmInk)
                                     
                                     VStack(alignment: .leading, spacing: 6) {
                                         Text(rec.title)
@@ -261,7 +261,7 @@ struct AssistView: View {
                                                     HStack(alignment: .top, spacing: 6) {
                                                         Text(detailLines.count > 1 ? "\(index + 1)." : "•")
                                                             .font(.bodySmallStrong)
-                                                            .foregroundColor(.brandAccentWarm)
+                                                            .foregroundColor(.brandAccentWarmInk)
                                                         Text(line)
                                                             .font(.bodySmall)
                                                             .foregroundColor(.textSecondary)
@@ -282,7 +282,7 @@ struct AssistView: View {
                                                         .font(.system(size: 13, weight: .semibold))
                                                     Text(label)
                                                 }
-                                                .foregroundColor(.brandAccentWarm)
+                                                .foregroundColor(.brandAccentWarmInk)
                                                 .padding(.vertical, 8)
                                                 .padding(.horizontal, 12)
                                                 .background(Color.brandAccentWarm.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
@@ -380,7 +380,7 @@ struct AssistView: View {
                                         .font(.system(size: 12, weight: .semibold))
                                 }
                                 .font(.bodySmallStrong)
-                                .foregroundColor(.brandAccentWarm)
+                                .foregroundColor(.brandAccentWarmInk)
                                 .padding(.vertical, 8)
                             }
                             .buttonStyle(.plain)
@@ -545,14 +545,24 @@ struct AssistView: View {
         return summary.isEmpty ? data.summary : summary
     }
 
-    private func isHealthyAnalysis(headerStatus: String, title: String, recommendation: NetworkAssistRecommendation?) -> Bool {
-        if isGoodStatus(headerStatus) { return true }
-        if recommendation == nil { return true }
+    private func assistStatusAppearance(headerStatus: String, title: String, recommendation: NetworkAssistRecommendation?) -> (Color, String) {
         let t = title.lowercased()
-        if t.contains("sem causa") || t.contains("saudável") || t.contains("tudo certo") || t.contains("normal") || t.contains("no specific cause") || t.contains("no se identificó") {
-            return true
+
+        // "Sem causa" / inconclusivo nunca pode virar "Conexão saudável" verde
+        if t.contains("sem causa") || t.contains("inconclus") || t.contains("no specific cause") || t.contains("no se identificó") {
+            return (.textSecondary, LinkaCopy.value("assist.status.inconclusive"))
         }
-        return false
+
+        if isGoodStatus(headerStatus) || t.contains("saudável") || t.contains("tudo certo") || t.contains("all good") || t.contains("todo bien") {
+            return (.statusGood, LinkaCopy.value("assist.status.healthy"))
+        }
+
+        if recommendation != nil || !headerStatus.isEmpty {
+            let label = headerStatus.isEmpty ? LinkaCopy.value("assist.status.problem") : headerStatus
+            return (.statusAttention, label)
+        }
+
+        return (.textSecondary, LinkaCopy.value("assist.status.inconclusive"))
     }
 
     private func isGoodStatus(_ status: String) -> Bool {
@@ -602,6 +612,7 @@ struct AssistView: View {
                 .padding(.horizontal, 24)
             Button(LinkaCopy.value("common.back"), action: closeSheet)
                 .font(.bodySmallStrong)
+                .foregroundColor(.brandAccentWarmInk)
         }
         .frame(maxHeight: .infinity)
     }
@@ -643,7 +654,6 @@ private struct AssistCollectingMeasurementView: View {
 
 private struct AssistWaitingAnalysisView: View {
     let measurement: NetworkMeasurement
-    @State private var checkedCount: Int = 0
 
     private struct FactItem: Identifiable {
         let id: String
@@ -701,32 +711,19 @@ private struct AssistWaitingAnalysisView: View {
                     .padding(.horizontal, 24)
             }
 
-            // Fatos preenchidos aos poucos com intervalos aleatórios
+            // Fatos reais observados na medição
             VStack(spacing: 12) {
                 ForEach(Array(facts.enumerated()), id: \.element.id) { index, fact in
                     HStack {
                         Text(fact.title)
                             .font(.bodyRegular)
-                            .foregroundColor(index <= checkedCount ? .textPrimary : .textSecondary.opacity(0.45))
+                            .foregroundColor(.textPrimary)
 
                         Spacer()
 
-                        if index < checkedCount {
-                            Text(fact.value)
-                                .font(.bodyRegularStrong)
-                                .foregroundColor(.textSecondary)
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.statusGood)
-                                .transition(.scale.combined(with: .opacity))
-                        } else if index == checkedCount {
-                            ProgressView()
-                                .controlSize(.small)
-                                .transition(.opacity)
-                        } else {
-                            Image(systemName: "circle")
-                                .font(.system(size: 14))
-                                .foregroundColor(.textSecondary.opacity(0.25))
-                        }
+                        Text(fact.value)
+                            .font(.bodyRegularStrong)
+                            .foregroundColor(.textSecondary)
                     }
                     if index < facts.count - 1 {
                         Divider()
@@ -747,21 +744,6 @@ private struct AssistWaitingAnalysisView: View {
             Spacer()
         }
         .padding(.vertical, 20)
-        .task {
-            await animateFactsProgress()
-        }
-    }
-
-    private func animateFactsProgress() async {
-        checkedCount = 0
-        for i in 1...facts.count {
-            let randomDelay = Double.random(in: 0.35...0.7)
-            try? await Task.sleep(nanoseconds: UInt64(randomDelay * 1_000_000_000))
-            if Task.isCancelled { break }
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                checkedCount = i
-            }
-        }
     }
 
     private func formattedSpeed(_ value: Double) -> String {

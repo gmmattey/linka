@@ -146,8 +146,8 @@ def run():
         targets = spec['targets']
         require({'LinkaApp', 'LinkaWidgetExtension', 'LinkaApp_macOS'} <= set(targets), 'Targets essenciais ausentes.')
         require(all(t.get('platform') in ('iOS', 'macOS') for t in targets.values()), 'Plataforma não suportada.')
-        mac_pairs = {name: version_pair(t['settings']['base']) for name, t in targets.items()
-                     if t['platform'] == 'macOS'}
+        mac_pairs = {name: version_pair({**spec['settings']['base'], **t.get('settings', {}).get('base', {})})
+                     for name, t in targets.items() if t['platform'] == 'macOS'}
         nodes = list(version_nodes(yaml.compose(text)))
         writable = []
         for path, node in nodes:
@@ -157,8 +157,7 @@ def run():
             elif len(path) >= 4 and path[0] == 'targets' and path[2] == 'settings':
                 name = path[1]
                 wanted = current if targets[name]['platform'] == 'iOS' else mac_pairs[name]
-                if targets[name]['platform'] == 'iOS':
-                    writable.append(node)
+                writable.append(node)
             else:
                 continue
             require(str(node.value) == wanted[KEYS.index(path[-1])], 'Override divergente: ' + '.'.join(path))

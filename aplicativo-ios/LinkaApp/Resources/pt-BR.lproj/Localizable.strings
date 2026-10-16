@@ -2,6 +2,7 @@
 "settings.language.option.system" = "Sistema";
 "settings.language.hint" = "Sistema usa o idioma definido no iPhone.";
 "common.unavailable" = "Não disponível";
+"common.delete" = "Excluir";
 "network.wifiBand" = "Banda Wi-Fi";
 "network.wifiBand.value2_4GHz" = "2,4 GHz";
 "network.wifiBand.value5GHz" = "5 GHz";
@@ -549,6 +550,7 @@
 "assist.error.title" = "Não foi possível concluir";
 "assist.status.healthy" = "Conexão saudável";
 "assist.status.problem" = "Problema identificado";
+"assist.status.inconclusive" = "Sem causa identificada";
 "assist.recommendations.title" = "O que fazer para resolver ou melhorar";
 "assist.openRouterSettings" = "Abrir configurações do roteador";
 "assist.noAction" = "Nenhuma ação necessária. Sua conexão está operando nos parâmetros ideais para qualquer uso.";

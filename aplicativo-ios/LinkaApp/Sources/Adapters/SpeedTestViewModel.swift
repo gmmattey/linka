@@ -687,12 +687,8 @@ public class SpeedTestViewModel: ObservableObject {
             // (seria cancelado de novo no instante seguinte) e contradiz
             // "nenhuma promessa de conclusão em segundo plano". O reinício,
             // quando fizer sentido, só acontece na volta a `.active`.
-            if let snapshot = lastValidResultSnapshot {
-                restoreLastValidSnapshot(snapshot)
-            } else {
-                progress = 0.0
-                uiPhase = .idle
-            }
+            progress = 0.0
+            uiPhase = .idle
 
         case .active:
             // A rota pode ter mudado enquanto o app não estava visível. A

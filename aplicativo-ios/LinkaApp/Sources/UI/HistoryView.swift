@@ -1,5 +1,6 @@
 import SwiftUI
 import MapKit
+import UniformTypeIdentifiers
 import MeasurementHistory
 import NetworkCore
 import NetworkInsights
@@ -178,6 +179,13 @@ struct HistoryView: View {
                                     HistorySingleMeasurementSummary(measurement: measurement)
                                 }
                                 .buttonStyle(.plain)
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        deleteMeasurement(measurement)
+                                    } label: {
+                                        Label(LinkaCopy.value("common.delete"), systemImage: "trash")
+                                    }
+                                }
                             }
                             .listRowBackground(Color.clear)
                         }
@@ -190,6 +198,20 @@ struct HistoryView: View {
                                         AppleStyleHistoryRow(measurement: measurement)
                                     }
                                     .buttonStyle(.plain)
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        Button(role: .destructive) {
+                                            deleteMeasurement(measurement)
+                                        } label: {
+                                            Label(LinkaCopy.value("common.delete"), systemImage: "trash")
+                                        }
+                                    }
+                                    .contextMenu {
+                                        Button(role: .destructive) {
+                                            deleteMeasurement(measurement)
+                                        } label: {
+                                            Label(LinkaCopy.value("common.delete"), systemImage: "trash")
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -203,6 +225,17 @@ struct HistoryView: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbarBackground(.hidden, for: .navigationBar)
         #endif
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    exportCSV()
+                } label: {
+                    Label("Exportar CSV", systemImage: "square.and.arrow.up")
+                }
+                .disabled(measurements.isEmpty)
+                .help("Exportar histórico de medições em CSV")
+            }
+        }
         .sheet(isPresented: $showPurchase) {
             PurchaseSheet(entryPoint: purchaseEntryPoint) {
                 loadData()
@@ -219,6 +252,45 @@ struct HistoryView: View {
             guard resolved else { return }
             prepareHistoryAdIfEligible()
         }
+    }
+
+    private func deleteMeasurement(_ measurement: NetworkMeasurement) {
+        Task { @MainActor in
+            try? await repository.delete(id: measurement.id)
+            measurements.removeAll { $0.id == measurement.id }
+        }
+    }
+
+    private func exportCSV() {
+        guard !measurements.isEmpty else { return }
+        let targetList = filteredMeasurements.isEmpty ? measurements : filteredMeasurements
+        #if os(macOS)
+        let data = MeasurementCSVExporter.generateCSVData(from: targetList)
+        let panel = NSSavePanel()
+        panel.title = "Exportar Histórico em CSV"
+        panel.nameFieldStringValue = "linka-historico.csv"
+        panel.allowedContentTypes = [.commaSeparatedText]
+        panel.canCreateDirectories = true
+        if panel.runModal() == .OK, let url = panel.url {
+            try? data.write(to: url)
+        }
+        #elseif os(iOS)
+        let csvString = MeasurementCSVExporter.generateCSV(from: targetList)
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("linka-historico.csv")
+        if let data = csvString.data(using: .utf8) {
+            try? data.write(to: tempURL)
+            let activityVC = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootVC = windowScene.windows.first?.rootViewController {
+                if let popover = activityVC.popoverPresentationController {
+                    popover.sourceView = rootVC.view
+                    popover.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
+                    popover.permittedArrowDirections = []
+                }
+                rootVC.present(activityVC, animated: true)
+            }
+        }
+        #endif
     }
 
     private var filteredMeasurements: [NetworkMeasurement] {
@@ -377,12 +449,8 @@ private struct HistorySingleMeasurementSummary: View {
 
 // MARK: - Gráfico em Linha Horizontal Estilo Ondas (Dois Eixos)
 
-/// Cor da série de download nos gráficos e linhas de histórico — sem token
-/// equivalente no Design System (`DesignSystem.swift` só define a cor de
-/// marca laranja); mantida aqui como constante única em vez de duplicada em
-/// cada view para evitar drift entre `HistoryWaveChartView` e
-/// `AppleStyleHistoryRow`.
-let linkaDownloadSeriesColor = Color(red: 0.12, green: 0.53, blue: 0.98) // Azul Royal Apple
+/// Cor da série de download nos gráficos e linhas de histórico ancorada no Design System.
+let linkaDownloadSeriesColor = Color.chartDownloadSeries
 
 struct HistoryWaveChartView: View {
     let measurements: [NetworkMeasurement]
@@ -414,7 +482,7 @@ struct HistoryWaveChartView: View {
     }
 
     private let downloadColor = linkaDownloadSeriesColor
-    private let uploadColor = Color(red: 0.95, green: 0.50, blue: 0.15)   // Laranja Quente Linka
+    private let uploadColor = Color.chartUploadSeries
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -462,7 +530,7 @@ struct HistoryWaveChartView: View {
         }
         .padding(18)
         .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous).stroke(Color.borderDefault.opacity(0.4), lineWidth: 0.6))
+        .overlay(RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous).stroke(Color.borderStrong.opacity(0.4), lineWidth: 0.6))
     }
 
     @ViewBuilder
@@ -513,18 +581,18 @@ struct HistoryWaveChartView: View {
     private func chartGrid(height: CGFloat) -> some View {
         let bands = chartBands(height: height)
         return ZStack(alignment: .topLeading) {
-            gridLine(opacity: 0.35).offset(y: bands.top)
-            gridLine(opacity: 0.25).offset(y: bands.mid)
-            gridLine(opacity: 0.35).offset(y: bands.bottom)
+            gridLine(opacity: 0.45).offset(y: bands.top)
+            gridLine(opacity: 0.40).offset(y: bands.mid)
+            gridLine(opacity: 0.45).offset(y: bands.bottom)
 
             Text("↓ \(Int(round(maxDownload))) Mbps")
                 .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                .foregroundColor(downloadColor.opacity(0.8))
+                .foregroundColor(downloadColor)
                 .offset(y: max(bands.top - 13, 0))
 
             Text("↑ \(Int(round(maxUpload))) Mbps")
                 .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                .foregroundColor(uploadColor.opacity(0.8))
+                .foregroundColor(.brandAccentWarmInk)
                 .offset(y: bands.mid - 13)
         }
     }
@@ -704,7 +772,7 @@ struct AppleStyleHistoryRow: View {
                         HStack(spacing: 2) {
                             Image(systemName: "arrow.up")
                                 .font(.caption2.weight(.semibold))
-                                .foregroundColor(.brandAccentWarm)
+                                .foregroundColor(.brandAccentWarmInk)
                             Text("\(Int(round(up)))")
                                 .font(.caption2.weight(.semibold).monospacedDigit())
                                 .foregroundColor(.textSecondary)
@@ -727,7 +795,7 @@ struct AppleStyleHistoryRow: View {
             // 4. Chevron Nativo Apple
             Image(systemName: "chevron.right")
                 .font(.caption.weight(.semibold))
-                .foregroundColor(.textSecondary.opacity(0.35))
+                .foregroundColor(.textSecondary.opacity(0.6))
                 .padding(.leading, 2)
         }
         .padding(.vertical, 6)
@@ -810,7 +878,7 @@ struct HistoryRow: View {
                 HStack(spacing: 4) {
                     Image(systemName: "arrow.down")
                         .font(.captionSmallStrong)
-                        .foregroundColor(.brandAccentWarm)
+                        .foregroundColor(linkaDownloadSeriesColor)
                     Text("\(formatSpeed(measurement.downloadMbps)) Mbps")
                         .font(.bodySmallStrong)
                         .foregroundColor(.textPrimary)
@@ -819,7 +887,7 @@ struct HistoryRow: View {
                 HStack(spacing: 4) {
                     Image(systemName: "arrow.up")
                         .font(.captionSmall)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.brandAccentWarmInk)
                     Text("\(formatSpeed(measurement.uploadMbps)) Mbps")
                         .font(.captionSmall)
                         .foregroundColor(.textSecondary)

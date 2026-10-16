@@ -154,7 +154,7 @@ struct SettingsView: View {
                 }
                 .tint(.brandAccentWarm)
             } header: {
-                Text(LinkaCopy.value("settings.debug.title")).foregroundColor(.brandAccentWarm)
+                Text(LinkaCopy.value("settings.debug.title")).foregroundColor(.brandAccentWarmInk)
             } footer: {
                 Text(LinkaCopy.value("settings.debug.footer"))
             }
@@ -288,17 +288,34 @@ struct SettingsView: View {
                 }
 
                 macSection(title: LinkaCopy.value("Preferências")) {
-                    HStack {
-                        Label("Aparência", systemImage: "circle.lefthalf.filled")
-                        Spacer()
-                        Picker("Aparência", selection: $appAppearance) {
-                            Text("Sistema").tag("system")
-                            Text("Claro").tag("light")
-                            Text("Escuro").tag("dark")
+                    VStack(spacing: 12) {
+                        HStack {
+                            Label("Aparência", systemImage: "circle.lefthalf.filled")
+                            Spacer()
+                            Picker("Aparência", selection: $appAppearance) {
+                                Text("Sistema").tag("system")
+                                Text("Claro").tag("light")
+                                Text("Escuro").tag("dark")
+                            }
+                            .labelsHidden()
+                            .pickerStyle(.segmented)
+                            .frame(width: 220)
                         }
-                        .labelsHidden()
-                        .pickerStyle(.segmented)
-                        .frame(width: 220)
+
+                        Divider()
+
+                        HStack {
+                            Label(LinkaCopy.value("settings.language.title"), systemImage: "globe")
+                            Spacer()
+                            Picker(LinkaCopy.value("settings.language.title"), selection: $languagePreference) {
+                                ForEach(LinkaLanguagePreference.allCases) { language in
+                                    Text(language.displayName).tag(language.rawValue)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(width: 220)
+                        }
+                        .accessibilityHint(LinkaCopy.value("settings.language.hint"))
                     }
                 }
 
@@ -660,7 +677,7 @@ private struct MacRouterPanelView: View {
             .disabled(state == .locating)
         }
         .padding(24)
-        .frame(minWidth: 480, minHeight: 300, alignment: .topLeading)
+        .frame(minWidth: 480, minHeight: 360, alignment: .topLeading)
         .navigationTitle("Painel do roteador")
         .task { await locatePanel() }
         .confirmationDialog("Abrir o painel do roteador?", isPresented: $showOpenConfirmation, titleVisibility: .visible) {
@@ -670,7 +687,7 @@ private struct MacRouterPanelView: View {
             Button("Cancelar", role: .cancel) {}
         } message: {
             if case .found(let gateway) = state {
-                Text("Você vai abrir a página de administração da sua rede em \(gateway.ip) no navegador. O Linka não acessa nem guarda suas credenciais.")
+                Text(String(format: LinkaCopy.value("router.panel.confirmation.message"), locale: LinkaLanguagePreference.currentLocale, gateway.ip))
             }
         }
     }
