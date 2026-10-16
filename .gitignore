@@ -27,11 +27,15 @@ dist-ssr
 *.sln
 *.sw?
 
-# Claude Code worktrees (embedded git repos — não commitar)
+# Worktrees locais (embedded git repos — não commitar)
 .claude/worktrees/
+.worktrees/
 
 # Claude Code lockfiles do harness (runtime — não versionar)
 .claude/*.lock
+
+# Vercel CLI local
+.vercel/
 
 # Capacitor / Android toolchain local (não versionado)
 _android-toolchain/

@@ -1,10 +1,10 @@
 ---
 name: linka-app-store-aso
-description: Pesquisa e revisão ASO do Linka fundamentada no app Apple real, não em SEO web.
+description: Pesquisa e revisão ASO do Linka fundamentada no app Apple real, conduzida com Priscila e Giam.
 ---
 
 # Linka App Store ASO
 
-Use para descoberta na App Store. Confirme os destinos que são distribuídos e funções reais antes de propor nome, subtítulo, palavras-chave, descrição, categoria, localization, screenshots ou preview. Não crie sitemap, robots ou promessa SEO para o app.
+Use para descoberta e conversão na App Store. Confirme os destinos distribuídos (iPhone, iPad, Mac) e as funções reais implementadas antes de propor nome, subtítulo, palavras-chave, descrição, categoria, localização, screenshots ou preview. Não confunda ASO da App Store com SEO web (sitemap/robots).
 
-Use somente capturas reais e dados/sinais aos quais há acesso autorizado. Não invente volume, ranking, conversão ou capacidades. Garanta que metadados, preço/compra e materiais representem a experiência real por plataforma; screenshots devem ser de uso do app e não arte genérica. Para submissão, Giam revisa risco de App Review e Luiz autoriza qualquer mudança externa.
+Use somente capturas reais da build validada pela **Priscila** e pelo **Renan**, e dados aos quais há acesso autorizado. Não invente volume de busca, ranking, taxa de conversão ou capacidade futura. Garanta que metadados, preço/compra (Free / Linka+) e materiais representem fielmente a experiência de cada plataforma. Para submissão, **Giam** revisa risco de App Review e **Luiz** autoriza qualquer mudança externa.
