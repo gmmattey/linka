@@ -61,6 +61,8 @@ xcodebuild -project LinkaApp.xcodeproj \
            -scheme LinkaApp_macOS \
            -configuration Debug \
            -derivedDataPath "$DERIVED_DATA_DIR" \
+           CODE_SIGN_IDENTITY="-" \
+           CODE_SIGN_ENTITLEMENTS="" \
            build > /dev/null
 
 BUILT_APP="$DERIVED_DATA_DIR/Build/Products/Debug/LinkaApp.app"
