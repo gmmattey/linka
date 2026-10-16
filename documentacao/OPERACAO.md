@@ -1,12 +1,12 @@
 # Operação
 
-Responsável: Marco/Codex e executor da candidata. Revisão: 2026-10-04, base main `39269c7a`. Procedimento local; não comprova release ou estado atual da Apple.
+Responsável: Marco (Orquestração), Bia (Preparação Local) e Renan (Validação & QA Físico). Revisão: 2026-10-15. Fonte de verdade canônica de operação e release do Linka.
 
 ## Ambiente e validação
 
 GitHub guarda código/PRs. Actions foi desativado por decisão do Luiz, e os workflows foram removidos. Não reativar CI hospedada sem nova decisão. Usar o [Fastlane](../fastlane/Fastfile) e o [script de preparação](../.agents/scripts/release.sh) existentes, sem wrappers ou checklists novos por tentativa.
 
-A raiz Git é `ios/` no workspace original. Requisitos: Mac, Xcode/SDK compatíveis, XcodeGen, Ruby/Bundler e Python 3 com PyYAML. [Gemfile.lock](../Gemfile.lock) fixa as dependências:
+A raiz Git é diretamente a pasta do projeto (`/Users/giammattey/Projetos/linka`). Requisitos: Mac, Xcode/SDK compatíveis, XcodeGen, Ruby/Bundler e Python 3 com PyYAML. [Gemfile.lock](../Gemfile.lock) fixa as dependências:
 
 ```sh
 export BUNDLE_PATH=build/bundle
@@ -95,9 +95,9 @@ A PR [#274](https://github.com/gmmattey/linka/pull/274) registrou testes simulad
 
 | Pendente | Responsável | Quando e condição de fechamento |
 |---|---|---|
-| Testes/jornadas da candidata | Executor/Tito | Próxima candidata: revisão, build, destinos e resultados registrados, incluindo físico/visual conforme escopo |
+| Testes/jornadas da candidata | Bia/Renan | Próxima candidata: revisão, build, destinos e resultados registrados, incluindo físico/visual conforme escopo |
 | Assinatura, catálogo e processamento | Executor | TestFlight autorizado: conferir identidade/hash e estado real na Apple |
-| Texto, URLs, privacidade e capturas | Íris/Marco | Antes de submissão: materiais confrontados com candidata/portal; atualizar site quando afetado |
+| Texto, URLs, privacidade e capturas | Priscila/Giam/Marco | Antes de submissão: materiais confrontados com candidata/portal; atualizar site quando afetado |
 
 Referências: [Produto](PRODUTO.md), [Arquitetura](ARQUITETURA.md), [Governança](GOVERNANCA.md).
 
@@ -111,11 +111,11 @@ Ordem: preservar refs/stashes/WIP → integrar correções independentes → cor
 
 | Gate | Responsável e condição de fechamento |
 |---|---|
-| Integridade local | Camillo/Tito: reinício/offline, conflito/revisão, corrupção/schema futuro, falha de escrita, renomear/excluir Ambiente e falha parcial, duas instâncias e notificações, sem alterar assignments/Histórico |
-| Editor/OCR | Pedro/Tito: descarte, permissões, etiqueta ambígua/credenciais mescladas, resposta tardia após troca/cancelamento/exclusão; confirmar ausência de foto/OCR bruto em armazenamento/payload |
-| Contrato/fontes | Camillo/Íris/Tito: fixtures app/backend, unidades/estruturas, modelos inexistentes, variantes/conflitos, fontes efetivamente consultadas e confiáveis, instruções adversariais, revisão antes de persistir; não aceitar eco de identidade como prova |
+| Integridade local | Camillo/Renan: reinício/offline, conflito/revisão, corrupção/schema futuro, falha de escrita, renomear/excluir Ambiente e falha parcial, duas instâncias e notificações, sem alterar assignments/Histórico |
+| Editor/OCR | Bia/Renan: descarte, permissões, etiqueta ambígua/credenciais mescladas, resposta tardia após troca/cancelamento/exclusão; confirmar ausência de foto/OCR bruto em armazenamento/payload |
+| Contrato/fontes | Camillo/Priscila/Renan: fixtures app/backend, unidades/estruturas, modelos inexistentes, variantes/conflitos, fontes efetivamente consultadas e confiáveis, instruções adversariais, revisão antes de persistir; não aceitar eco de identidade como prova |
 | Piloto de custo | Luiz/operador: aprovar provider/modelo, limite de ferramentas/tokens e reserva conservadora por pior caso, teto global e duração do piloto; testar reserva atômica pré-dispatch, concorrência/cache, timeout/incerteza e kill switch antes de tráfego pago |
-| Plataforma/QA | Tito/Íris: candidata identificada em iPhone/iPad/Mac, dispositivo físico para câmera/permissões e serviço real, VoiceOver/Dynamic Type/teclado, CRUD/offline/fontes, regressão medição/Histórico/Ambientes/Assist/DNS/Otimização/Ferramentas |
+| Plataforma/QA | Renan/Priscila: candidata identificada em iPhone/iPad/Mac, dispositivo físico para câmera/permissões e serviço real, VoiceOver/Dynamic Type/teclado, CRUD/offline/fontes, regressão medição/Histórico/Ambientes/Assist/DNS/Otimização/Ferramentas |
 | Ativação/publicação | Luiz/executor: autorização explícita para recursos/deploy/tráfego pago e, separadamente, distribuição/loja; disclosures, App Privacy, política/site e materiais confrontados com comportamento real |
 
 Não colocar chave no app, logs, fixtures ou PR. Definir bindings/migrations localmente não provisiona nem autoriza deploy. Serviço deve permanecer indisponível quando desligado, sem política válida ou com inconsistência financeira real. Falta de documentação produz resultado vazio; falha de conteúdo/provedor encerra apenas a consulta e libera sua concorrência, preservando o valor reservado. Custo máximo precisa de evidência do modelo e ferramentas aprovados, não apenas variável de ambiente afirmando aprovação. Definir retenção/cache/expurgo e reconciliar ledger ao mudar política. Quando pesquisa falha, manter cadastro/ficha anterior e permitir nova tentativa explícita.
@@ -222,7 +222,7 @@ Uma interface async não prova streaming; só registrar progresso quando evento 
 
 **D — Homologação/ativação:** #318. Flags separadas para modalidade remota, pergunta aberta, jornadas e handoff; ofertas desligadas. Não usar shadow mode com perguntas reais sem autorização: isso também envia dados a fornecedor.
 
-Nenhuma issue de implementação é encerrada apenas pela publicação desta documentação. #310 continua aberta enquanto persistência real, backend/auth e gates de execução não estiverem demonstrados.
+Nenhuma issue de implementação é encerrada apenas pela publicação desta documentação. Gate #310 concluído em 10/10/2026 com relay V4 isolado e prova física de App Attest em iPhone 17 ([Auditoria Assist V4](arquitetura/AUDITORIA-ASSIST-V4.md)).
 
 <a id="assist-v4-rollout"></a>
 ### V4-O6 Preparação operacional e rollback
@@ -257,6 +257,6 @@ Papéis sugeridos não indicam delegação ou aprovação ocorrida.
 - [ ] UI, pergunta aberta, ações, reteste e Oportunidades funcionando de ponta a ponta.
 - [ ] Segurança, avaliação técnica, contrato e QA físico executados com evidências.
 - [ ] Orçamento/processadores/retenção/políticas aprovados antes da ativação dependente.
-- [ ] #310 só concluída com seus gates reais; #318 só concluída após homologação e reversão exercitadas.
+- [x] #310 concluída com seus gates reais em 10/10/2026 ([Auditoria Assist V4](arquitetura/AUDITORIA-ASSIST-V4.md)); #318 só concluída após homologação e reversão exercitadas.
 
 **Limite desta integração documental:** nenhum teste ou deploy foi executado para V4, nenhum fornecedor ativado, nenhum preço alterado, nenhuma release enviada. As evidências anteriores acima continuam restritas às candidatas e capacidades a que se referem.

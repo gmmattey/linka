@@ -1,8 +1,8 @@
 # Linka — Caderno visual de protótipos do Assist Contextual V4
 
-**Referência de produto e UI/UX** · Fase 4 · Não representa implementação concluída.
+**Referência de produto e UI/UX** · Fase 4 · Guardiã: **Priscila** (`priscila`).
 
-Este documento reúne em uma única página os quatro wireframes visuais registrados no repositório. Os SVGs são reconstruções estáticas, **não screenshots originais** das telas interativas navegadas na conversa. Para implementar, conferir também os fluxos e estados das issues vinculadas.
+Este documento reúne os quatro wireframes visuais registrados no repositório para o Assist Contextual V4. Os SVGs são referências estruturais de fluxo e hierarquia; a implementação em SwiftUI por **Bia** deve respeitar os tokens nativos do [`DesignSystem.swift`](../../aplicativo-ios/LinkaApp/Sources/UI/DesignSystem.swift) e os estados descritos em [`PRODUTO.md`](../PRODUTO.md#assist-contextual-v4).
 
 ## 1. Entrada do Assist e pergunta aberta
 
@@ -27,13 +27,11 @@ Este documento reúne em uma única página os quatro wireframes visuais registr
 
 ## 4. Oportunidades de melhoria → Assist
 
-![Oportunidades e Assist](documentacao/wireframes/assist-v4-oportunidades-integracao.svg)
+![Oportunidades e Assist](wireframes/assist-v4-oportunidades-integracao.svg)
 
 - Medição → oportunidade determinística → investigar com Assist → ação → reteste.
 - [Issue #321](https://github.com/gmmattey/linka/issues/321)
 
 ## Regras transversais
 
-SwiftUI nativo, identidade Linka, listas compactas, um CTA primário, Dynamic Type, VoiceOver, claro/escuro, dados com procedência, estados offline/erro/carregamento, consentimento contextual, nenhuma conclusão inventada. Capturas reais da conversa devem ser anexadas futuramente caso seja exigida fidelidade pixel a pixel.
-
-**Nota:** existe também um caderno Word gerado na conversa, com reconstruções PNG. Este Markdown é a versão GitHub com os SVGs versionados; não é uma cópia binária do arquivo Word.
+SwiftUI nativo, identidade Linka, listas compactas, um CTA primário, Dynamic Type, VoiceOver, claro/escuro, dados com procedência, estados offline/erro/carregamento, consentimento contextual e zero conclusão inventada.

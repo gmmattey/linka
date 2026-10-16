@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Linka — Protótipo de Fundo Signal Waves (LagCheck Style)</title>
+<style>
+  :root {
+    --font-display: ui-rounded, "SF Pro Rounded", -apple-system, "SF Pro Text", system-ui, sans-serif;
+    --font-body: -apple-system, "SF Pro Text", system-ui, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, monospace;
+
+    --radius-l: 24px;
+    --radius-m: 16px;
+    --radius-s: 10px;
+    --radius-pill: 999px;
+
+    /* Light Mode Tokens */
+    color-scheme: light;
+    --ink: #102245;
+    --accent: #C15300;
+    --accent-warm: #C15300;
+    --on-accent: #FFFFFF;
+    --bg-page: #F2F2F7; /* systemGroupedBackground */
+    --surface-card: #FFFFFF; /* secondarySystemGroupedBackground */
+    --muted: #6E798F;
+    --hairline: rgba(16, 34, 69, 0.12);
+    --fill-subtle: rgba(16, 34, 69, 0.05);
+
+    --wave-primary: rgba(193, 83, 0, 0.08);
+    --wave-secondary: rgba(16, 34, 69, 0.04);
+    --bg-gradient-top: #F9F9FB;
+    --bg-gradient-bottom: #ECECF2;
+  }
+
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --ink: #F6F6F9;
+    --accent: #FF9552;
+    --accent-warm: #FF9552;
+    --on-accent: #000000;
+    --bg-page: #000000;
+    --surface-card: #1C1C1E;
+    --muted: #9BA3B4;
+    --hairline: rgba(255, 255, 255, 0.12);
+    --fill-subtle: rgba(255, 255, 255, 0.08);
+
+    --wave-primary: rgba(255, 149, 82, 0.16);
+    --wave-secondary: rgba(16, 34, 69, 0.08);
+    --bg-gradient-top: #0C1424; /* Linka Midnight Ink */
+    --bg-gradient-bottom: #000000;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #0D0F12;
+    color: #F6F6F9;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+
+  /* Control Panel Header */
+  .control-panel {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
+    padding: 16px 20px;
+    width: 100%;
+    max-width: 840px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .panel-badge {
+    background: #FF9552;
+    color: #000;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+  }
+
+  .controls-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .seg-control {
+    display: inline-flex;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    padding: 3px;
+  }
+  .seg-btn {
+    all: unset;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
+    color: #8E9BAE;
+    transition: all 0.2s ease;
+  }
+  .seg-btn.active {
+    background: #FF9552;
+    color: #000;
+    box-shadow: 0 2px 8px rgba(255, 149, 82, 0.3);
+  }
+
+  /* Comparison Showcase Container */
+  .showcase {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 900px;
+  }
+
+  /* Phone Mockup Frame */
+  .phone-frame {
+    width: 390px;
+    height: 780px;
+    border-radius: 50px;
+    background: var(--bg-page);
+    color: var(--ink);
+    border: 10px solid #23272F;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  /* Dynamic Background Layers */
+  .bg-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .bg-gradient-layer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, var(--bg-gradient-top) 0%, var(--bg-gradient-bottom) 100%);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .bg-gradient-layer.visible {
+    opacity: 1;
+  }
+
+  /* SVG Waves (LagCheck style) */
+  .waves-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .waves-svg.visible {
+    opacity: 1;
+  }
+
+  .wave-ring {
+    fill: none;
+    stroke-width: 1.2px;
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* Phone Internal Header */
+  .phone-status-bar {
+    height: 48px;
+    padding: 12px 24px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 10;
+  }
+  .phone-nav-bar {
+    padding: 12px 24px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+  }
+  .brand-wordmark {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+  .brand-wordmark span {
+    color: var(--accent-warm);
+  }
+
+  /* Main View Content */
+  .app-content {
+    flex: 1;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 24px 32px;
+    position: relative;
+  }
+
+  /* Server Pill */
+  .server-pill {
+    background: var(--surface-card);
+    border: 1px solid var(--hairline);
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  .server-pill .label { color: var(--muted); font-weight: 500; }
+
+  /* Metric Ring */
+  .metric-ring-wrap {
+    position: relative;
+    width: 230px;
+    height: 230px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ring-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  .ring-track {
+    fill: none;
+    stroke: var(--hairline);
+    stroke-width: 10;
+  }
+  .ring-progress {
+    fill: none;
+    stroke: var(--accent-warm);
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 680;
+    stroke-dashoffset: 680;
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .ring-val {
+    font-family: var(--font-display);
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--ink);
+    letter-spacing: -0.03em;
+  }
+  .ring-unit {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-top: 4px;
+  }
+
+  /* Status and Action Buttons */
+  .status-subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 500;
+    margin-bottom: 28px;
+  }
+
+  .cta-button {
+    background: var(--accent-warm);
+    color: var(--on-accent);
+    border: none;
+    padding: 16px 28px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0 6px 18px rgba(193, 83, 0, 0.25);
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+  .cta-button:active {
+    transform: scale(0.97);
+  }
+
+  /* Teaser Card (Assist) */
+  .teaser-card {
+    background: var(--surface-card);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-l);
+    padding: 16px 18px;
+    width: 100%;
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+  }
+  .teaser-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: rgba(193, 83, 0, 0.12);
+    color: var(--accent-warm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .teaser-text h4 {
+    margin: 0 0 2px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .teaser-text p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* Description Footer */
+  .explanation-card {
+    margin-top: 24px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 20px;
+    max-width: 840px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #9BA3B4;
+  }
+  .explanation-card strong {
+    color: #F6F6F9;
+  }
+</style>
+</head>
+<body data-theme="dark">
+
+  <!-- TOP CONTROL PANEL -->
+  <div class="control-panel">
+    <div class="panel-title">
+      <span>Linka Design Lab</span>
+      <span class="panel-badge">Signal Waves Prototype</span>
+    </div>
+
+    <div class="controls-group">
+      <!-- Theme Switch -->
+      <div class="seg-control" id="theme-control">
+        <button class="seg-btn" onclick="setTheme('light')">Light Mode</button>
+        <button class="seg-btn active" onclick="setTheme('dark')">Dark Mode</button>
+      </div>
+
+      <!-- Background Style Switch -->
+      <div class="seg-control" id="bg-control">
+        <button class="seg-btn" onclick="setBgMode('flat')">Flat Anterior</button>
+        <button class="seg-btn" onclick="setBgMode('gradient')">Gradiente Fixo</button>
+        <button class="seg-btn active" onclick="setBgMode('dynamic')">★ Gradiente + Ondas ao Medir</button>
+        <button class="seg-btn" onclick="setBgMode('always')">Ondas Sempre</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHONE SHOWCASE -->
+  <div class="showcase">
+    <div class="phone-frame" id="phone">
+      
+      <!-- BACKGROUND LAYERS -->
+      <div class="bg-canvas">
+        <!-- Layer 1: Flat is native CSS --bg-page -->
+
+        <!-- Layer 2: Gradient -->
+        <div class="bg-gradient-layer visible" id="layer-gradient"></div>
+
+        <!-- Layer 3: Concentric Signal Waves (LagCheck style) -->
+        <svg class="waves-svg visible" id="layer-waves" viewBox="0 0 390 780" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="waveGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="var(--accent-warm)" stop-opacity="0.22" />
+              <stop offset="60%" stop-color="var(--ink)" stop-opacity="0.08" />
+              <stop offset="100%" stop-color="var(--accent-warm)" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <!-- Center anchor at (195, 220) - directly behind the Metric Ring -->
+          <circle class="wave-ring" cx="195" cy="220" r="140" stroke="url(#waveGrad)" stroke-opacity="0.9" />
+          <circle class="wave-ring" cx="195" cy="220" r="210" stroke="url(#waveGrad)" stroke-opacity="0.65" />
+          <circle class="wave-ring" cx="195" cy="220" r="280" stroke="url(#waveGrad)" stroke-opacity="0.4" />
+          <circle class="wave-ring" cx="195" cy="220" r="360" stroke="url(#waveGrad)" stroke-opacity="0.2" />
+          <circle class="wave-ring" cx="195" cy="220" r="450" stroke="url(#waveGrad)" stroke-opacity="0.08" />
+        </svg>
+      </div>
+
+      <!-- STATUS BAR -->
+      <div class="phone-status-bar">
+        <span>9:41</span>
+        <span>5G • 100%</span>
+      </div>
+
+      <!-- NAV BAR -->
+      <div class="phone-nav-bar">
+        <div class="brand-wordmark">linka<span>.</span></div>
+        <div style="font-size: 13px; font-weight: 600; color: var(--accent-warm);">Assist</div>
+      </div>
+
+      <!-- MAIN APP CONTENT -->
+      <div class="app-content">
+        <div class="server-pill">
+          <span class="label">Conexão</span>
+          <span>Wi-Fi 5 GHz (Fast 600)</span>
+        </div>
+
+        <div class="metric-ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 230 230">
+            <circle class="ring-track" cx="115" cy="115" r="102" />
+            <circle class="ring-progress" id="ring-progress-el" cx="115" cy="115" r="102" />
+          </svg>
+          <div class="ring-center">
+            <div class="ring-val" id="metric-val">428</div>
+            <div class="ring-unit">Mbps Download</div>
+          </div>
+        </div>
+
+        <div class="status-subtitle" id="status-text">Latência 9ms • Jitter 1.2ms • 0% perda</div>
+
+        <button class="cta-button" onclick="runSimulation()">Testar Novamente</button>
+
+        <div class="teaser-card">
+          <div class="teaser-icon">⚡️</div>
+          <div class="teaser-text">
+            <h4>Assist Diagnóstico</h4>
+            <p>Sua rede suporta Streaming 4K e Jogos sem instabilidade.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- EXPLANATION CARD -->
+  <div class="explanation-card">
+    <strong>Como o fundo foi construído no protótipo:</strong>
+    <p>
+      1. <strong>Origem Ancorada no Velocímetro</strong>: Os 5 anéis concêntricos vetoriais têm o centro alinhado perfeitamente no meio do velocímetro (<code>x: 50%</code>, <code>y: 28%</code>). Isso cria uma sensação de ondas eletromagnéticas/Wi-Fi se propagando a partir da medição.<br>
+      2. <strong>Gradiente de Tonalidade (Midnight Ink)</strong>: No Modo Escuro, usamos o azul petróleo da marca (<code>#0C1424</code>) fundindo suavemente com o preto absoluto na base, garantindo que o preto OLED continue elegante.<br>
+      3. <strong>Light Mode Limpo</strong>: No Modo Claro, a opacidade dos anéis cai para menos de 4%, mantendo a conformidade com as diretrizes da Apple (HIG) para telas de utilidade e sem competir com os textos.
+    </p>
+  </div>
+
+  <script>
+    function setTheme(theme) {
+      document.body.setAttribute('data-theme', theme);
+      const btns = document.querySelectorAll('#theme-control .seg-btn');
+      btns[0].classList.toggle('active', theme === 'light');
+      btns[1].classList.toggle('active', theme === 'dark');
+    }
+
+    let currentBgMode = 'dynamic';
+
+    function setBgMode(mode) {
+      currentBgMode = mode;
+      const gradLayer = document.getElementById('layer-gradient');
+      const wavesLayer = document.getElementById('layer-waves');
+      const btns = document.querySelectorAll('#bg-control .seg-btn');
+
+      btns[0].classList.toggle('active', mode === 'flat');
+      btns[1].classList.toggle('active', mode === 'gradient');
+      btns[2].classList.toggle('active', mode === 'dynamic');
+      btns[3].classList.toggle('active', mode === 'always');
+
+      if (mode === 'flat') {
+        gradLayer.classList.remove('visible');
+        wavesLayer.classList.remove('visible');
+      } else if (mode === 'gradient') {
+        gradLayer.classList.add('visible');
+        wavesLayer.classList.remove('visible');
+      } else if (mode === 'dynamic') {
+        gradLayer.classList.add('visible');
+        // Em repouso, as ondas começam invisíveis
+        wavesLayer.classList.remove('visible');
+      } else {
+        gradLayer.classList.add('visible');
+        wavesLayer.classList.add('visible');
+      }
+    }
+
+    function runSimulation() {
+      const ring = document.getElementById('ring-progress-el');
+      const val = document.getElementById('metric-val');
+      const status = document.getElementById('status-text');
+      const wavesLayer = document.getElementById('layer-waves');
+
+      // Se estiver no modo dinâmico, fade-in suave das ondas ao começar a medição
+      if (currentBgMode === 'dynamic') {
+        wavesLayer.classList.add('visible');
+      }
+
+      ring.style.strokeDashoffset = '680';
+      val.innerText = '—';
+      status.innerText = 'Medindo rota e velocidade...';
+
+      let count = 0;
+      const interval = setInterval(() => {
+        count += 35;
+        if (count > 428) count = 428;
+        val.innerText = count;
+        if (count >= 428) {
+          clearInterval(interval);
+          // Ao concluir a medição no modo dinâmico, suave fade-out das ondas
+          if (currentBgMode === 'dynamic') {
+            setTimeout(() => {
+              wavesLayer.classList.remove('visible');
+            }, 600);
+          }
+        }
+      }, 50);
+
+      setTimeout(() => {
+        ring.style.strokeDashoffset = '180';
+        status.innerText = 'Latência 9ms • Jitter 1.2ms • 0% perda';
+      }, 200);
+    }
+  </script>
+</body>
+</html>

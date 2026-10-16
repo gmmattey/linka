@@ -1,7 +1,7 @@
 # Produto Linka
 
-Responsável: Codex principal; Íris mantém intenção, experiência e critérios de produto.
-Revisão: 2026-10-04. Base: checkout de integração `docs/quatro-fontes`, sobre main `39269c7a`, incluindo a correção de Atalhos da PR #273 e o material WIP integrado.
+Responsável: Giam (Produto & Escopo) e Priscila (Experiência & UX/UI).
+Revisão: 2026-10-15. Fonte de verdade canônica de produto e jornada do Linka.
 Alcance: síntese das capacidades e limites documentados, com conferência estática das regras críticas; não certifica a build distribuída.
 Fontes pares: [Arquitetura](ARQUITETURA.md) para contratos e mapa técnico; [Operação](OPERACAO.md) para configuração, validação e publicação; [Governança](GOVERNANCA.md) para trabalho e autoridade.
 
@@ -32,7 +32,7 @@ A Home usa observação HTTP efêmera e aquecimento antes de interpretar. Ping n
 A leitura viva deve ser invalidada na troca de rede, pausada durante o teste e separada do resultado salvo. Ela não alimenta o histórico como se fosse nova medição formal.
 A [triagem de conectividade](../aplicativo-ios/LinkaApp/Sources/UI/ConnectivityTriageView.swift) oferece recuperação após falha: falta de caminho, acesso a endpoint, falha de resolução, suspeita de portal ou resultado inconclusivo. Um endpoint acessível não prova saúde de toda a Internet; suspeita de portal não é confirmação.
 
-**Pendente:** Camillo/Pedro, antes de alterar a interpretação do resultado, devem reconciliar o caso de todas as sondas falharem com valores zero e a persistência de parciais. Tito fecha a validação com build identificada, rede lenta/offline, troca de conexão, cancelamento e resultado parcial. Referência regional requer resposta real do protocolo antes de ser anunciada operacional.
+**Pendente:** Camillo/Bia, antes de alterar a interpretação do resultado, devem reconciliar o caso de todas as sondas falharem com valores zero e a persistência de parciais. Renan fecha a validação com build identificada, rede lenta/offline, troca de conexão, cancelamento e resultado parcial. Referência regional requer resposta real do protocolo antes de ser anunciada operacional.
 
 ## Histórico, comparação e Ambientes
 
@@ -47,7 +47,7 @@ A associação exige resultado completo Wi-Fi, identificação habilitada e SSID
 Nomes repetidos são permitidos, com identidades distintas. A referência exige ao menos três leituras anteriores elegíveis em 30 dias; a medição atual não conta como sua própria referência.
 Ambientes e associações são locais, sem sincronização CloudKit. A migração preserva nomes/identidades, mas não atribui medições antigas automaticamente nem restaura reconhecimento por fingerprint.
 
-**Pendente:** Tito, na próxima candidata de histórico/Ambientes, valida exclusão offline e em dois aparelhos, migração, nomes repetidos e associação nas três plataformas. Camillo decide paridade de campos sincronizados antes de prometê-la. Íris/Codex devem decidir se a antiga ação “Refazer referência” será descartada ou especificada; ela não é capacidade comprovada. Agrupamento legado por identificador de provedor não prova identidade da rede.
+**Pendente:** Renan, na próxima candidata de histórico/Ambientes, valida exclusão offline e em dois aparelhos, migração, nomes repetidos e associação nas três plataformas. Camillo decide paridade de campos sincronizados antes de prometê-la. Giam/Priscila devem decidir se a antiga ação “Refazer referência” será descartada ou especificada; ela não é capacidade comprovada. Agrupamento legado por identificador de provedor não prova identidade da rede.
 
 ## Assist e interpretação
 
@@ -57,7 +57,7 @@ Carregamento, resposta, erro, falta de configuração, falta de acesso e evidên
 Relato da pessoa não se torna fato medido. Validação de IDs e estrutura da resposta não garante a verdade de cada frase. Investigação local de falha é distinta da interpretação remota.
 “Sem causa identificada” não significa “conexão saudável”. Não atribuir modelo/provedor de IA por um fallback de texto; não afirmar que toda evidência local chega ao backend.
 
-**Pendente:** Íris/Camillo, antes da próxima mudança de Assist, definem validade e reuso da medição em cada entrada. Íris e responsável pelo serviço reconciliam a copy positiva de ausência de causa; Camillo revisa atribuição de procedência. Tito fecha timeout, offline, idioma e falta de evidência na candidata. Segurança e ativação de novos transportes são tratadas em Arquitetura/Operação; proposta Netscope não comprova substituição do caminho atual.
+**Pendente:** Giam/Priscila/Camillo, antes da próxima mudança de Assist, definem validade e reuso da medição em cada entrada. Priscila/Giam e responsável pelo serviço reconciliam a copy positiva de ausência de causa; Camillo revisa atribuição de procedência. Renan fecha timeout, offline, idioma e falta de evidência na candidata. Segurança e ativação de novos transportes são tratadas em Arquitetura/Operação; proposta Netscope não comprova substituição do caminho atual.
 
 ## Otimização e DNS
 
@@ -70,7 +70,7 @@ Sugestão de proximidade do roteador não se aplica ao celular. Regra específic
 Aplicar DNS exige seleção e confirmação informada: efeito no dispositivo, consultas enviadas ao provedor e possibilidade de remoção. Salvo não significa ativo; a configuração precisa aparecer habilitada após nova leitura do sistema.
 O app remove sua própria configuração, não gerencia perfis de terceiros. Comparar DNS não promete aumento de download, não é VPN e não modifica o roteador.
 
-**Pendente:** Camillo/Íris, antes de prometer comparabilidade, alinham o critério de rota e a apresentação de métricas que pioraram. Tito valida reteste, cancelamento e recuperação; DNS exige candidata assinada, ativação, reinício, remoção e conflitos VPN/MDM. Sem capability/provisionamento, aplicação deve permanecer indisponível honestamente; declarar entitlement no projeto não fecha esse aceite.
+**Pendente:** Camillo/Priscila, antes de prometer comparabilidade, alinham o critério de rota e a apresentação de métricas que pioraram. Renan valida reteste, cancelamento e recuperação; DNS exige candidata assinada, ativação, reinício, remoção e conflitos VPN/MDM. Sem capability/provisionamento, aplicação deve permanecer indisponível honestamente; declarar entitlement no projeto não fecha esse aceite.
 
 ## Wi-Fi, roteador e serviços externos
 
@@ -84,7 +84,7 @@ No iOS, senha pode ser guardada e removida no Keychain a pedido da pessoa; o cam
 [Status de serviços](../aplicativo-ios/LinkaApp/Sources/UI/ServiceStatusView.swift) consulta catálogo/incidentes, permite buscar e acompanhar serviços elegíveis. Incidente remoto não diagnostica a conexão local.
 Preferência de alerta, permissão do sistema, token e entrega push são etapas distintas. A ausência de incidente no catálogo não é garantia de disponibilidade, sobretudo após falha de atualização.
 
-**Pendente:** Tito valida Atalho real, cancelamento, permissões, contexto parcial e associação em iPhone/Mac antes de anunciar a capacidade na candidata. Para roteador, fecha painel real/inacessível, rede local negada e senha. Íris/Pedro decidem como mostrar status antigo; Tito/Codex verificam registro de instalação mesmo sem alertas e entrega APNs antes de prometer notificações operacionais. Ofertas de equipamentos/afiliados exigem decisão explícita de Luiz e não estão implementadas.
+**Pendente:** Renan valida Atalho real, cancelamento, permissões, contexto parcial e associação em iPhone/Mac antes de anunciar a capacidade na candidata. Para roteador, fecha painel real/inacessível, rede local negada e senha. Priscila/Bia decidem como mostrar status antigo; Renan/Marco verificam registro de instalação mesmo sem alertas e entrega APNs antes de prometer notificações operacionais. Ofertas de equipamentos/afiliados exigem decisão explícita de Luiz e não estão implementadas.
 
 ## Free, Plus e publicidade
 
@@ -95,7 +95,7 @@ Preço vem do StoreKit; não de screenshot, comentário ou fallback do site. Com
 [Publicidade](../aplicativo-ios/LinkaApp/Sources/Adapters/Ads/LinkaAdsCoordinator.swift) depende de plataforma, configuração, entitlement e consentimento. Home e Histórico elegíveis disputam uma tentativa por sessão; Histórico precisa ter conteúdo.
 Iniciar medição cancela o fluxo pendente e remove anúncio. Anúncio não cobre resultado, imita controle ou interrompe teste. O adapter Mac não apresenta anúncios. Configuração de anúncios não personalizados não autoriza afirmar ausência de coleta do SDK.
 
-**Pendente:** Tito, antes da release comercial, valida compra/restauração/expiração, promoção/Free/Plus pago e início do teste durante consentimento. Pedro fecha a fronteira temporal exata do encerramento da campanha antes desse evento; Codex confronta política, candidata e comunicação pública sem inferir preço vigente.
+**Pendente:** Renan, antes da release comercial, valida compra/restauração/expiração, promoção/Free/Plus pago e início do teste durante consentimento. Bia/Camillo fecham a fronteira temporal exata do encerramento da campanha antes desse evento; Giam/Marco confrontam política, candidata e comunicação pública sem inferir preço vigente.
 
 ## Integrações Apple e compartilhamento
 
@@ -105,7 +105,7 @@ O [compartilhamento](../aplicativo-ios/LinkaApp/Sources/UI/ShareCardView.swift) 
 O cartão inclui métricas, data, tipo de conexão e banda confirmada quando disponível. Não lê SSID, provedor/identificador de rede, IP ou BSSID; não há opt-in para incluí-los nessa implementação. Disponibilidade de destinos depende do sistema, sem integração dedicada a mensageiro.
 Essa proteção do cartão não comprova anonimização de todo o produto. Contexto local, sincronização, Assist, SDKs e serviços têm limites próprios; política pública deve refletir a composição real.
 
-**Pendente:** Tito/executor, na candidata que alterar integrações, conferem cada ação Free/Plus, instalação do widget, idioma e atualização do resumo. Compartilhamento não fica classificado como “não implementado”; permanece pendente a validação da imagem gerada, campos ausentes, privacidade e apresentação por plataforma. Codex mantém medição silenciosa indisponível até decisão e implementação comprovadas.
+**Pendente:** Renan/Bia, na candidata que alterar integrações, conferem cada ação Free/Plus, instalação do widget, idioma e atualização do resumo. Compartilhamento não fica classificado como “não implementado”; permanece pendente a validação da imagem gerada, campos ausentes, privacidade e apresentação por plataforma. Marco/Giam mantêm medição silenciosa indisponível até decisão e implementação comprovadas.
 
 ## Experiência, acessibilidade e identidade
 
@@ -126,7 +126,7 @@ Direção macOS vigente:
 [Protótipo](design/prototipo/) orienta fluxo/geometria e [recursos do Design System](design/design_system/) orientam identidade. Demos, frame Android histórico e JSX não comprovam capacidades nativas: MetricRing não mede, AdSlot não integra anúncios; Button tem variantes, não é “único ghost”.
 Usar wordmarks e ícones oficiais, sem redesenho ou substituição por texto. O [catálogo do app](../aplicativo-ios/LinkaApp/Sources/Assets.xcassets/) é a origem do [kit brand](../brand/manifest.json); preservar proporções, cores e transparência e atualizar cópias pelo manifesto. O site tem implementação própria de marca.
 
-**Pendente:** Íris/Tito, antes de declarar padronização, percorrem todos os destinos alcançáveis — sidebar, menu, toolbar, sheets, alertas e detalhes — nos estados vazio/carregando/resultado/erro/destrutivo aplicáveis. Fechamento exige build identificada, janela ampla/estreita, iPad retrato/paisagem/Split View, teclado, VoiceOver, texto ampliado, contraste e Reduzir Movimento. Referências antigas e componentes de demonstração são confrontados ao serem reutilizados; não geram redesign automático.
+**Pendente:** Priscila/Renan, antes de declarar padronização, percorrem todos os destinos alcançáveis — sidebar, menu, toolbar, sheets, alertas e detalhes — nos estados vazio/carregando/resultado/erro/destrutivo aplicáveis. Fechamento exige build identificada, janela ampla/estreita, iPad retrato/paisagem/Split View, teclado, VoiceOver, texto ampliado, contraste e Reduzir Movimento. Referências antigas e componentes de demonstração são confrontados ao serem reutilizados; não geram redesign automático.
 
 ## Site e comunicação pública
 
@@ -134,7 +134,7 @@ Usar wordmarks e ícones oficiais, sem redesenho ou substituição por texto. O 
 As três imagens da landing foram preservadas como ilustração antiga: Home/medição anteriores e resultado individual associado à ideia de evolução. Mudança de pasta não atualizou a aparência. Nenhuma captura sem build identificada é prova da candidata.
 Copy pública deve descrever medição e acompanhamento, com limites de plataforma/permissão/configuração; não prometer descobrir a causa da rede travar. Texto comercial completo, URLs de suporte/privacidade/termos e preparação da loja pertencem a Operação.
 
-**Pendente:** Íris/executor, antes da próxima publicação, alinham imagens e títulos ao estado visível, removem promessa de servidor “ideal” sem base e reconciliam páginas Sobre/Privacidade com as capacidades reais. Codex verifica preço, CTA, URLs e versão distribuída; Tito confere navegação, acessibilidade e comportamento no host. Políticas de outros produtos presentes no site não são apagadas por inferência.
+**Pendente:** Priscila/Bia, antes da próxima publicação, alinham imagens e títulos ao estado visível, removem promessa de servidor “ideal” sem base e reconciliam páginas Sobre/Privacidade com as capacidades reais. Giam/Marco verificam preço, CTA, URLs e versão distribuída; Renan confere navegação, acessibilidade e comportamento no host. Políticas de outros produtos presentes no site não são apagadas por inferência.
 
 ## Critério de conclusão de produto
 
@@ -199,7 +199,7 @@ O estado existente descrito acima continua válido para a modalidade de mediçã
 
 O Assist será o técnico pessoal da rede: conhece os dados cadastrados e autorizados, consulta referências técnicas pertinentes, utiliza medições elegíveis e ajuda a investigar problemas e decidir melhorias. Não depende de o usuário conhecer backhaul, latência, AP ou gateway.
 
-A escolha proposta é **um agente especialista supervisionado**, não vários agentes conversando entre si. Combina instruções de domínio, procedimentos, documentação recuperada, ferramentas delimitadas e memória explícita da consulta. Não requer treinamento de modelo próprio nem nova identidade visual. É o agente de atendimento do produto, não os agentes de desenvolvimento do Codex.
+A escolha proposta é **um agente especialista supervisionado**, não vários agentes conversando entre si. Combina instruções de domínio, procedimentos, documentação recuperada, ferramentas delimitadas e memória explícita da consulta. Não requer treinamento de modelo próprio nem nova identidade visual. É o agente de atendimento do produto, não os agentes de desenvolvimento da Squad 2.0.
 
 O modelo interpreta a pergunta, relaciona evidências e propõe a próxima etapa; o software controla leitura, envio, execução, orçamento e apresentação. O agente pode orientar além de parafrasear regras existentes, mas não declarar fatos sobre a residência sem base nem criar poderes que o aplicativo não possui. A distinção entre workflows e agentes embasa esta escolha de arquitetura, não uma promessa de superioridade universal. [V4-R2]
 
@@ -413,7 +413,7 @@ Aceite exige percurso completo e evidência de execução. Matriz de testes e ro
 | Consultoria no Mac | Produto + QA | Interface, autenticação e ferramentas homologadas. |
 | Ofertas | Produto + backend | Cobertura, atualização e condições verificáveis. |
 
-Pendências não impedem contratos e testes locais; impedem ativar ou anunciar o que delas depende. #310 permanece aberta enquanto gates operacionais não estiverem comprovados.
+Pendências não impedem contratos e testes locais; impedem ativar ou anunciar o que delas depende. Gate #310 concluído em 10/10/2026 (ver [Auditoria Assist V4](arquitetura/AUDITORIA-ASSIST-V4.md) e [ADR Assist V4](arquitetura/ADR-ASSIST-V4-CONSULTORIA-ISOLADA.md)); wireframes em [Caderno Visual Assist V4](design/ASSIST-V4-CADERNO-VISUAL.md).
 
 **Referências do documento de origem (registradas em 09/10/2026; conferir requisitos vigentes antes de ativar):**
 

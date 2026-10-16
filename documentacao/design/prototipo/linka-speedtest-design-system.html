@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linka SpeedTest — Design System</title>
+<style>
+  /* ============ TOKENS ============ */
+  :root{
+    --font-display: ui-rounded, "SF Pro Rounded", -apple-system, "SF Pro Text", system-ui, sans-serif;
+    --font-body: -apple-system, "SF Pro Text", system-ui, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, monospace;
+
+    --radius-l: 26px;
+    --radius-m: 18px;
+    --radius-s: 12px;
+    --radius-pill: 999px;
+
+    color-scheme: light;
+    --ink: #102245;
+    --accent: #E0701F;
+    --accent-text: color-mix(in oklch, var(--accent) 75%, black 25%);
+    --on-accent: var(--ink);
+    --bg: oklch(99% 0.002 240);
+    --surface: oklch(100% 0 0);
+    --muted: #5F6C88;
+    --hairline: color-mix(in oklch, var(--ink) 12%, transparent);
+    --fill-subtle: color-mix(in oklch, var(--ink) 6%, var(--surface));
+    --fill-tinted: color-mix(in oklch, var(--accent) 14%, var(--surface));
+
+    --good: oklch(38% 0.12 155);
+    --warn: oklch(45% 0.15 75);
+    --bad:  oklch(48% 0.19 25);
+    --good-bg: color-mix(in oklch, var(--good) 14%, var(--surface));
+    --warn-bg: color-mix(in oklch, var(--warn) 14%, var(--surface));
+    --bad-bg:  color-mix(in oklch, var(--bad) 14%, var(--surface));
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --ink: oklch(97% 0.004 262);
+    --accent: #FF9552;
+    --accent-text: var(--accent);
+    --on-accent: #000000;
+    --bg: #000000;
+    --surface: oklch(16% 0.006 262);
+    --muted: #9BA3B4;
+    --hairline: color-mix(in oklch, var(--ink) 16%, transparent);
+    --fill-subtle: color-mix(in oklch, var(--ink) 10%, var(--surface));
+    --fill-tinted: color-mix(in oklch, var(--accent) 18%, var(--surface));
+
+    --good: oklch(78% 0.13 155);
+    --warn: oklch(80% 0.14 80);
+    --bad:  oklch(75% 0.16 25);
+    --good-bg: color-mix(in oklch, var(--good) 18%, var(--surface));
+    --warn-bg: color-mix(in oklch, var(--warn) 18%, var(--surface));
+    --bad-bg:  color-mix(in oklch, var(--bad) 18%, var(--surface));
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    transition:background .2s ease, color .2s ease;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+
+  a{ color:inherit; }
+  .squircle{ border-radius: var(--radius-l); corner-shape: squircle; -webkit-corner-shape: squircle; }
+  .squircle-s{ border-radius: var(--radius-s); corner-shape: squircle; -webkit-corner-shape: squircle; }
+
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
+
+  /* ============ LAYOUT ============ */
+  .shell{ display:flex; min-height:100vh; max-width:1400px; margin:0 auto; }
+
+  .sidebar{
+    width:264px; flex-shrink:0; position:sticky; top:0; align-self:flex-start;
+    height:100vh; overflow-y:auto; padding:28px 16px 40px;
+    border-right:0.5px solid var(--hairline);
+  }
+  .brand{ display:flex; align-items:center; justify-content:space-between; padding:4px 10px 22px; }
+  .brand-mark{ width:64px; height:auto; line-height:0; overflow:hidden; border-radius:14px; corner-shape:squircle; -webkit-corner-shape:squircle; flex-shrink:0; }
+  .brand-mark svg{ display:block; width:100%; height:auto; }
+
+  .theme-toggle{
+    display:flex; align-items:center; gap:6px; background:var(--fill-subtle);
+    border:0.5px solid var(--hairline); border-radius:var(--radius-pill); padding:3px; cursor:pointer;
+  }
+  .theme-toggle button{
+    all:unset; cursor:pointer; font-family:var(--font-body); font-size:12px; font-weight:600;
+    padding:6px 12px; border-radius:var(--radius-pill); color:var(--muted);
+  }
+  .theme-toggle button[aria-pressed="true"]{ background:var(--surface); color:var(--ink); }
+  .theme-toggle button:hover[aria-pressed="false"]{ color:var(--ink); }
+
+  nav.index{ display:flex; flex-direction:column; gap:2px; }
+  nav.index .group-label{
+    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--muted); padding:16px 10px 6px;
+  }
+  nav.index a{
+    text-decoration:none; font-size:14px; color:var(--muted); padding:8px 10px;
+    border-radius:var(--radius-s); display:block; font-weight:500;
+  }
+  nav.index a:hover{ background:var(--fill-subtle); color:var(--ink); }
+  nav.index a.active{ background:var(--fill-tinted); color:var(--accent-text); font-weight:600; }
+
+  main{ flex:1; min-width:0; padding:56px 64px 140px; }
+  .intro{ max-width:640px; margin-bottom:64px; }
+  .intro p{ font-size:17px; line-height:1.6; color:var(--muted); }
+
+  section{ margin-bottom:96px; scroll-margin-top:32px; }
+  .eyebrow{
+    font-family:var(--font-body); font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.08em; color:var(--muted); margin:0 0 8px;
+  }
+  .eyebrow.accent{ color:var(--accent-text); }
+  h1.page-title{ font-family:var(--font-display); font-size:40px; font-weight:800; letter-spacing:-0.02em; margin:0 0 12px; }
+  h2.section-title{ font-family:var(--font-display); font-size:28px; font-weight:700; letter-spacing:-0.01em; margin:0 0 6px; }
+  .section-desc{ font-size:15px; color:var(--muted); max-width:620px; line-height:1.55; margin:0 0 32px; }
+  h3.sub-title{ font-family:var(--font-display); font-size:19px; font-weight:700; margin:0 0 14px; }
+
+  .divider{ height:0.5px; background:var(--hairline); border:none; margin:0 0 32px; }
+
+  /* ============ COLOR ============ */
+  .swatch-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:16px; }
+  .swatch{ border:0.5px solid var(--hairline); overflow:hidden; }
+  .swatch-fill{ height:88px; }
+  .swatch-meta{ padding:12px 14px; background:var(--surface); }
+  .swatch-name{ font-size:13px; font-weight:600; }
+  .swatch-value{ font-family:var(--font-mono); font-size:11px; color:var(--muted); margin-top:3px; }
+
+  /* ============ TYPE ============ */
+  .type-row{ display:flex; align-items:baseline; gap:24px; padding:20px 0; border-bottom:0.5px solid var(--hairline); }
+  .type-row:last-child{ border-bottom:none; }
+  .type-meta{ width:200px; flex-shrink:0; }
+  .type-meta .label{ font-size:13px; font-weight:600; }
+  .type-meta .spec{ font-family:var(--font-mono); font-size:11px; color:var(--muted); margin-top:3px; }
+  .type-sample{ flex:1; min-width:0; }
+
+  /* ============ BUTTONS ============ */
+  .btn-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+  .btn-col{ display:flex; flex-direction:column; gap:12px; align-items:flex-start; }
+  .btn-col-label{ font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:2px; }
+  .btn-state-label{ font-family:var(--font-mono); font-size:10px; color:var(--muted); }
+
+  .btn{
+    font-family:var(--font-body); font-size:15px; font-weight:600; border:none; cursor:pointer;
+    padding:10px 20px; border-radius:var(--radius-pill); transition:background-color .12s ease, color .12s ease, transform .08s ease;
+    min-height:44px; display:inline-flex; align-items:center; justify-content:center;
+  }
+  .btn-plain{ background:transparent; color:var(--accent-text); padding-left:8px; padding-right:8px; }
+  .btn-plain:hover{ background:var(--fill-subtle); }
+  .btn-plain:active{ transform:scale(0.97); background:var(--fill-subtle); }
+  .btn-plain:disabled{ color:var(--muted); opacity:0.4; cursor:default; }
+
+  .btn-subtle{ background:var(--fill-subtle); color:var(--ink); }
+  .btn-subtle:hover{ background:color-mix(in oklch, var(--ink) 10%, var(--surface)); }
+  .btn-subtle:active{ transform:scale(0.97); background:color-mix(in oklch, var(--ink) 13%, var(--surface)); }
+  .btn-subtle:disabled{ opacity:0.4; cursor:default; }
+
+  .btn-tinted{ background:var(--fill-tinted); color:var(--accent-text); }
+  .btn-tinted:hover{ background:color-mix(in oklch, var(--accent) 22%, var(--surface)); }
+  .btn-tinted:active{ transform:scale(0.97); background:color-mix(in oklch, var(--accent) 28%, var(--surface)); }
+  .btn-tinted:disabled{ opacity:0.4; cursor:default; }
+
+  .btn-filled{ background:var(--accent); color:var(--on-accent); }
+  .btn-filled:hover{ background:color-mix(in oklch, var(--accent) 90%, black 10%); }
+  .btn-filled:active{ transform:scale(0.97); background:color-mix(in oklch, var(--accent) 82%, black 18%); }
+  .btn-filled:disabled{ opacity:0.35; cursor:default; }
+
+  /* ============ CARDS ============ */
+  .card-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:20px; }
+  .card{
+    background:var(--surface); border:0.5px solid var(--hairline); padding:24px;
+  }
+  .card-eyebrow{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:8px; }
+  .card-title{ font-family:var(--font-display); font-weight:700; font-size:18px; margin:0 0 6px; }
+  .card-body{ font-size:14px; color:var(--muted); line-height:1.5; margin:0; }
+  .card-dashed{
+    background:transparent; border:1.5px dashed var(--hairline); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; padding:32px 24px; gap:6px; min-height:120px;
+  }
+  .card-dashed .tag{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); }
+  .card-dashed .sub{ font-size:13px; color:var(--muted); }
+
+  /* ============ COMPONENT DEMO WRAPPER ============ */
+  .demo-block{ margin-bottom:56px; }
+  .demo-stage{
+    background:var(--surface); border:0.5px solid var(--hairline); padding:40px;
+    display:flex; align-items:center; justify-content:center; gap:48px; flex-wrap:wrap;
+  }
+  .demo-caption{ font-family:var(--font-mono); font-size:11px; color:var(--muted); text-align:center; margin-top:10px; }
+  .variant-set{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+
+  /* ============ METRIC RING ============ */
+  .metric-ring{ position:relative; width:180px; height:180px; }
+  .metric-ring svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .metric-ring circle{ fill:none; stroke-linecap:round; }
+  .metric-ring .track{ stroke:var(--hairline); stroke-width:10; }
+  .metric-ring .progress{ stroke:var(--accent); stroke-width:10; transition:stroke-dashoffset .3s ease; }
+  .metric-ring .center{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .metric-ring .center .val{ font-family:var(--font-mono); font-size:32px; font-weight:600; letter-spacing:-0.02em; }
+  .metric-ring .center .unit{ font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.06em; margin-top:2px; }
+  .metric-ring.active .progress{ animation: ring-spin 1.6s ease-in-out infinite; transform-origin:center; }
+  @keyframes ring-spin{ 0%{ stroke-dashoffset:390; } 50%{ stroke-dashoffset:120; } 100%{ stroke-dashoffset:390; } }
+
+  /* ============ PHASE DOTS ============ */
+  .phase-dots{ display:flex; align-items:flex-start; gap:28px; }
+  .phase-item{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .phase-dot{
+    width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    border:1.5px solid var(--hairline); background:transparent; position:relative;
+  }
+  .phase-dot.done{ background:var(--ink); border-color:var(--ink); }
+  .phase-dot.done svg{ width:11px; height:11px; }
+  .phase-dot.done path{ stroke:var(--bg); stroke-width:2.4; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .phase-dot.active{ border-color:var(--accent); background:var(--accent); }
+  .phase-dot.active::after{
+    content:""; position:absolute; inset:-5px; border-radius:50%; border:1.5px solid var(--accent);
+    opacity:0.5; animation:pulse-ring 1.4s ease-out infinite;
+  }
+  @keyframes pulse-ring{ 0%{ transform:scale(0.85); opacity:0.6; } 100%{ transform:scale(1.35); opacity:0; } }
+  .phase-label{ font-size:12px; font-weight:600; color:var(--muted); }
+  .phase-item.is-active .phase-label{ color:var(--ink); }
+
+  /* ============ STAT DISPLAY ============ */
+  .stat-display{ display:flex; align-items:baseline; gap:8px; justify-content:center; }
+  .stat-display .num{ font-family:var(--font-mono); font-weight:600; letter-spacing:-0.02em; color:var(--ink); }
+  .stat-display .unit{ font-family:var(--font-body); font-weight:600; color:var(--muted); }
+  .stat-display.hero .num{ font-size:64px; }
+  .stat-display.hero .unit{ font-size:20px; }
+  .stat-display.compact .num{ font-size:24px; }
+  .stat-display.compact .unit{ font-size:13px; }
+  .stat-display.row-item .num{ font-size:15px; }
+  .stat-display.row-item .unit{ font-size:12px; }
+
+  /* ============ DETAILS DISCLOSURE ============ */
+  .disclosure{ width:100%; max-width:360px; }
+  .disclosure summary{
+    list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
+    padding:14px 4px; font-size:15px; font-weight:600; color:var(--ink);
+  }
+  .disclosure summary::-webkit-details-marker{ display:none; }
+  .disclosure .chevron{ width:11px; height:11px; flex-shrink:0; transition:transform .18s ease; color:var(--muted); }
+  .disclosure[open] .chevron{ transform:rotate(90deg); }
+  .disclosure .rows{ padding:4px 4px 14px; display:flex; flex-direction:column; gap:0; }
+  .disclosure .row{
+    display:flex; align-items:center; justify-content:space-between; padding:9px 0;
+    border-top:0.5px solid var(--hairline); font-size:13px;
+  }
+  .disclosure .row .k{ color:var(--muted); }
+  .disclosure .row .v{ font-family:var(--font-mono); color:var(--ink); font-weight:500; }
+
+  /* ============ STATUS LABEL ============ */
+  .status-label{
+    display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:var(--radius-pill);
+    font-size:12px; font-weight:700;
+  }
+  .status-label .dot{ width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .status-label.good{ background:var(--good-bg); color:var(--good); }
+  .status-label.warn{ background:var(--warn-bg); color:var(--warn); }
+  .status-label.bad{ background:var(--bad-bg); color:var(--bad); }
+  .status-label.neutral{ background:var(--fill-subtle); color:var(--muted); }
+
+  /* ============ TEXT LINK ============ */
+  .text-link{
+    color:var(--accent-text); font-weight:600; font-size:15px; text-decoration:underline;
+    text-decoration-color:color-mix(in oklch, var(--accent-text) 40%, transparent);
+    text-underline-offset:3px; cursor:pointer;
+  }
+  .text-link:hover{ text-decoration-color:var(--accent-text); }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:880px){
+    .shell{ flex-direction:column; }
+    .sidebar{ position:static; width:100%; height:auto; border-right:none; border-bottom:0.5px solid var(--hairline); padding:16px; }
+    .brand{ padding:4px 4px 14px; }
+    nav.index{ flex-direction:row; flex-wrap:wrap; }
+    nav.index .group-label{ width:100%; padding:10px 6px 4px; }
+    main{ padding:36px 20px 100px; }
+    .btn-grid{ grid-template-columns:repeat(2,1fr); }
+    .card-grid{ grid-template-columns:1fr; }
+    .demo-stage{ padding:28px 16px; gap:28px; }
+    .phase-dots{ gap:20px; }
+  }
+</style>
+</head>
+<body data-od-id="design-system-page">
+
+<div class="shell">
+  <aside class="sidebar" data-od-id="sidebar-nav">
+    <div class="brand">
+      <div class="brand-mark" data-od-id="brand-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 288 166" width="288" height="166" role="img" aria-label="linka"><rect width="288" height="166" fill="#102245"></rect><g fill="none" stroke="#FFFFFF" stroke-width="9.6" stroke-linecap="round" stroke-linejoin="round"><path d="M53.5 59V108"></path><path d="M92.5 75V108"></path><path d="M92.5 87c0-8 8-12.5 17.5-12.5 6.5 0 9.5 5.5 9.5 12v21"></path><path d="M139 59.5V107.5"></path><path d="M163.5 75.5 142.5 96.5"></path><path d="m149 91 16.5 16.5"></path><ellipse cx="195.5" cy="91.5" rx="16.25" ry="17.8"></ellipse><path d="M211.5 75v32.5"></path></g><path d="M72.5 86.75v30.25" fill="none" stroke="#FFFFFF" stroke-width="11.4" stroke-linecap="round"></path><circle cx="72.5" cy="67.5" r="10" fill="#F2823B"></circle></svg></div>
+      <div class="theme-toggle" data-od-id="theme-toggle" role="group" aria-label="Alternar tema">
+        <button type="button" data-theme-btn="light" aria-pressed="true">Claro</button>
+        <button type="button" data-theme-btn="dark" aria-pressed="false">Escuro</button>
+      </div>
+    </div>
+    <nav class="index" data-od-id="toc">
+      <span class="group-label">Fundamentos</span>
+      <a href="#color">Cores</a>
+      <a href="#typography">Tipografia</a>
+      <span class="group-label">Ações</span>
+      <a href="#buttons">Botões</a>
+      <span class="group-label">Superfícies</span>
+      <a href="#cards">Cards</a>
+      <span class="group-label">Medição</span>
+      <a href="#metric-ring">MetricRing</a>
+      <a href="#phase-dots">PhaseDots</a>
+      <a href="#stat-display">StatDisplay</a>
+      <a href="#details-disclosure">DetailsDisclosure</a>
+      <span class="group-label">Rótulos</span>
+      <a href="#status-label">StatusLabel</a>
+      <a href="#text-link">TextLink</a>
+      <a href="#eyebrow">Eyebrow</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="intro">
+      <p class="eyebrow accent">Design System · v1.0</p>
+      <h1 class="page-title">Linka SpeedTest</h1>
+      <p>Sistema visual nativo do ecossistema Apple. Segue a filosofia do Human Interface Guidelines — tipografia robusta, superfícies planas separadas por hairlines, zero gradientes complexos e zero sombras. Todo o design existe para servir um único objetivo: o dado da medição, sem atrito, do abrir ao repetir.</p>
+    </div>
+
+    <!-- COLOR -->
+    <section id="color" data-od-id="section-color">
+      <p class="eyebrow">Fundamentos</p>
+      <h2 class="section-title">Cores</h2>
+      <p class="section-desc">Paleta única com dois modos. Ink e Accent Warm carregam a identidade; Muted governa hierarquia textual secundária. Hairlines e preenchimentos são derivados via <code>color-mix</code>, nunca hardcoded.</p>
+
+      <h3 class="sub-title">Modo Claro</h3>
+      <div class="swatch-grid" style="margin-bottom:36px;">
+        <div class="swatch"><div class="swatch-fill" style="background:#102245;"></div><div class="swatch-meta"><div class="swatch-name">Ink</div><div class="swatch-value">#102245</div></div></div>
+        <div class="swatch"><div class="swatch-fill" style="background:#E0701F;"></div><div class="swatch-meta"><div class="swatch-name">Accent Warm</div><div class="swatch-value">#E0701F</div></div></div>
+        <div class="swatch"><div class="swatch-fill" style="background:oklch(99% 0.002 240); border-bottom:0.5px solid #10224520;"></div><div class="swatch-meta"><div class="swatch-name">Background</div><div class="swatch-value">oklch(99% .002 240)</div></div></div>
+        <div class="swatch"><div class="swatch-fill" style="background:oklch(100% 0 0); border-bottom:0.5px solid #10224520;"></div><div class="swatch-meta"><div class="swatch-name">Surface / Card</div><div class="swatch-value">oklch(100% 0 0)</div></div></div>
+        <div class="swatch"><div class="swatch-fill" style="background:#5F6C88;"></div><div class="swatch-meta"><div class="swatch-name">Muted</div><div class="swatch-value">#5F6C88</div></div></div>
+      </div>
+
+      <h3 class="sub-title">Modo Escuro</h3>
+      <div class="swatch-grid">
+        <div class="swatch"><div class="swatch-fill" style="background:oklch(97% 0.004 262);"></div><div class="swatch-meta"><div class="swatch-name">Ink</div><div class="swatch-value">oklch(97% .004 262)</div></div></div>
+        <div class="swatch"><div class="swatch-fill" style="background:#FF9552;"></div><div class="swatch-meta"><div class="swatch-name">Accent Warm</div><div class="swatch-value">#FF9552</div></div></div>
+        <div class="swatch"><div class="swatch-fill" style="background:#000000;"></div><div class="swatch-meta"><div class="swatch-name">Background</div><div class="swatch-value">#000000</div></div></div>
+        <div class="swatch"><div class="swatch-fill" style="background:oklch(16% 0.006 262);"></div><div class="swatch-meta"><div class="swatch-name">Surface / Card</div><div class="swatch-value">oklch(16% .006 262)</div></div></div>
+        <div class="swatch"><div class="swatch-fill" style="background:#9BA3B4;"></div><div class="swatch-meta"><div class="swatch-name">Muted</div><div class="swatch-value">#9BA3B4</div></div></div>
+      </div>
+    </section>
+
+    <!-- TYPOGRAPHY -->
+    <section id="typography" data-od-id="section-typography">
+      <p class="eyebrow">Fundamentos</p>
+      <h2 class="section-title">Tipografia</h2>
+      <p class="section-desc">Três famílias, três papéis. Display para títulos e identidade; Body para leitura corrida; Mono exclusivamente para números de medição.</p>
+
+      <div class="type-row">
+        <div class="type-meta"><div class="label">Display · Large Title</div><div class="spec">SF Pro Rounded · 34/40 · 800</div></div>
+        <div class="type-sample" style="font-family:var(--font-display); font-weight:800; font-size:34px; letter-spacing:-0.02em;">Sua conexão, sem atrito</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="label">Display · Title 2</div><div class="spec">SF Pro Rounded · 22/28 · 700</div></div>
+        <div class="type-sample" style="font-family:var(--font-display); font-weight:700; font-size:22px; letter-spacing:-0.01em;">Resultado do teste</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="label">Body · Body</div><div class="spec">SF Pro Text · 17/24 · 400</div></div>
+        <div class="type-sample" style="font-family:var(--font-body); font-size:17px; line-height:1.5;">Toque para medir novamente a qualidade da sua conexão.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="label">Body · Subheadline</div><div class="spec">SF Pro Text · 15/20 · 500</div></div>
+        <div class="type-sample" style="font-family:var(--font-body); font-size:15px; font-weight:500; color:var(--muted);">Última medição há 2 minutos</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="label">Body · Footnote</div><div class="spec">SF Pro Text · 13/18 · 500</div></div>
+        <div class="type-sample" style="font-family:var(--font-body); font-size:13px; font-weight:500; color:var(--muted);">Servidor: São Paulo, BR</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="label">Mono · Metric Hero</div><div class="spec">SF Mono · 64/64 · 600</div></div>
+        <div class="type-sample" style="font-family:var(--font-mono); font-size:64px; font-weight:600; letter-spacing:-0.02em;">342.6</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="label">Mono · Metric Compact</div><div class="spec">SF Mono · 20/24 · 600</div></div>
+        <div class="type-sample" style="font-family:var(--font-mono); font-size:20px; font-weight:600; letter-spacing:-0.02em;">8 ms</div>
+      </div>
+    </section>
+
+    <!-- BUTTONS -->
+    <section id="buttons" data-od-id="section-buttons">
+      <p class="eyebrow">Ações</p>
+      <h2 class="section-title">Botões</h2>
+      <p class="section-desc">Quatro níveis de ênfase seguindo o HIG. Um único botão de ação primária por tela — os demais níveis servem ações secundárias e terciárias.</p>
+
+      <div class="btn-grid">
+        <div class="btn-col" data-od-id="button-plain">
+          <span class="btn-col-label">Plain</span>
+          <button class="btn btn-plain">Repetir teste</button>
+          <span class="btn-state-label">default</span>
+          <button class="btn btn-plain" disabled>Repetir teste</button>
+          <span class="btn-state-label">disabled</span>
+        </div>
+        <div class="btn-col" data-od-id="button-subtle">
+          <span class="btn-col-label">Subtle</span>
+          <button class="btn btn-subtle">Compartilhar</button>
+          <span class="btn-state-label">default</span>
+          <button class="btn btn-subtle" disabled>Compartilhar</button>
+          <span class="btn-state-label">disabled</span>
+        </div>
+        <div class="btn-col" data-od-id="button-tinted">
+          <span class="btn-col-label">Tinted</span>
+          <button class="btn btn-tinted">Ver detalhes</button>
+          <span class="btn-state-label">default</span>
+          <button class="btn btn-tinted" disabled>Ver detalhes</button>
+          <span class="btn-state-label">disabled</span>
+        </div>
+        <div class="btn-col" data-od-id="button-filled">
+          <span class="btn-col-label">Filled</span>
+          <button class="btn btn-filled">Medir agora</button>
+          <span class="btn-state-label">default</span>
+          <button class="btn btn-filled" disabled>Medir agora</button>
+          <span class="btn-state-label">disabled</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARDS -->
+    <section id="cards" data-od-id="section-cards">
+      <p class="eyebrow">Superfícies</p>
+      <h2 class="section-title">Cards</h2>
+      <p class="section-desc">Superfícies planas, sem sombra, separadas apenas por hairlines de 0.5px. Cantos em raio contínuo (squircle). A variante tracejada é reservada para espaços de anúncio.</p>
+
+      <div class="card-grid">
+        <div class="card squircle" data-od-id="card-solid">
+          <div class="card-eyebrow">Histórico</div>
+          <h4 class="card-title">Última medição</h4>
+          <p class="card-body">Download de 342.6 Mbps às 14:32, servidor São Paulo. Conexão classificada como excelente.</p>
+        </div>
+        <div class="card-dashed squircle" data-od-id="card-ad-slot">
+          <span class="tag">Espaço de anúncio</span>
+          <span class="sub">320 × 100</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- METRIC RING -->
+    <section id="metric-ring" data-od-id="section-metric-ring">
+      <p class="eyebrow">Medição</p>
+      <h2 class="section-title">MetricRing</h2>
+      <p class="section-desc">Anel de progresso circular usado durante a medição ativa e como indicador de conclusão.</p>
+      <div class="demo-block">
+        <div class="demo-stage">
+          <div class="variant-set">
+            <div class="metric-ring" data-od-id="metric-ring-idle">
+              <svg viewBox="0 0 180 180">
+                <circle class="track" cx="90" cy="90" r="80"></circle>
+              </svg>
+              <div class="center"><span class="val">—</span><span class="unit">Mbps</span></div>
+            </div>
+            <span class="demo-caption">idle</span>
+          </div>
+          <div class="variant-set">
+            <div class="metric-ring active" data-od-id="metric-ring-active">
+              <svg viewBox="0 0 180 180">
+                <circle class="track" cx="90" cy="90" r="80"></circle>
+                <circle class="progress" cx="90" cy="90" r="80" stroke-dasharray="503" stroke-dashoffset="180"></circle>
+              </svg>
+              <div class="center"><span class="val">228</span><span class="unit">Mbps</span></div>
+            </div>
+            <span class="demo-caption">medindo</span>
+          </div>
+          <div class="variant-set">
+            <div class="metric-ring" data-od-id="metric-ring-complete">
+              <svg viewBox="0 0 180 180">
+                <circle class="track" cx="90" cy="90" r="80"></circle>
+                <circle class="progress" cx="90" cy="90" r="80" stroke-dasharray="503" stroke-dashoffset="0"></circle>
+              </svg>
+              <div class="center"><span class="val">342.6</span><span class="unit">Mbps</span></div>
+            </div>
+            <span class="demo-caption">concluído</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PHASE DOTS -->
+    <section id="phase-dots" data-od-id="section-phase-dots">
+      <h2 class="section-title">PhaseDots</h2>
+      <p class="section-desc">Indicador das três fases do teste — ping, download e upload — com estado pendente, ativo e concluído.</p>
+      <div class="demo-block">
+        <div class="demo-stage">
+          <div class="phase-dots" data-od-id="phase-dots-demo">
+            <div class="phase-item">
+              <div class="phase-dot done"><svg viewBox="0 0 12 12"><path d="M2 6.2 4.8 9 10 3"></path></svg></div>
+              <span class="phase-label">Ping</span>
+            </div>
+            <div class="phase-item is-active">
+              <div class="phase-dot active"></div>
+              <span class="phase-label">Download</span>
+            </div>
+            <div class="phase-item">
+              <div class="phase-dot"></div>
+              <span class="phase-label">Upload</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAT DISPLAY -->
+    <section id="stat-display" data-od-id="section-stat-display">
+      <h2 class="section-title">StatDisplay</h2>
+      <p class="section-desc">Exibição numérica em SF Mono, em três escalas: hero para o resultado principal, compacta para listas, e row-item para detalhes técnicos.</p>
+      <div class="demo-block">
+        <div class="demo-stage">
+          <div class="variant-set">
+            <div class="stat-display hero" data-od-id="stat-display-hero"><span class="num">342.6</span><span class="unit">Mbps</span></div>
+            <span class="demo-caption">hero</span>
+          </div>
+          <div class="variant-set">
+            <div class="stat-display compact" data-od-id="stat-display-compact"><span class="num">8</span><span class="unit">ms</span></div>
+            <span class="demo-caption">compact</span>
+          </div>
+          <div class="variant-set">
+            <div class="stat-display row-item" data-od-id="stat-display-row"><span class="num">0.4</span><span class="unit">% perda</span></div>
+            <span class="demo-caption">row-item</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DETAILS DISCLOSURE -->
+    <section id="details-disclosure" data-od-id="section-details-disclosure">
+      <h2 class="section-title">DetailsDisclosure</h2>
+      <p class="section-desc">Revela dados técnicos avançados sob demanda, mantendo a tela principal livre de ruído.</p>
+      <div class="demo-block">
+        <div class="demo-stage" style="justify-content:flex-start;">
+          <details class="disclosure" data-od-id="details-disclosure-demo" open>
+            <summary>Detalhes técnicos
+              <svg class="chevron" viewBox="0 0 12 12" fill="none"><path d="M4 2l5 4-5 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </summary>
+            <div class="rows">
+              <div class="row"><span class="k">Jitter</span><span class="v">1.2 ms</span></div>
+              <div class="row"><span class="k">Perda de pacotes</span><span class="v">0.4%</span></div>
+              <div class="row"><span class="k">Servidor</span><span class="v">São Paulo, BR</span></div>
+              <div class="row"><span class="k">Protocolo</span><span class="v">HTTP/3</span></div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATUS LABEL -->
+    <section id="status-label" data-od-id="section-status-label">
+      <p class="eyebrow">Rótulos</p>
+      <h2 class="section-title">StatusLabel</h2>
+      <p class="section-desc">Classificação rápida da qualidade da conexão ou do estado da medição.</p>
+      <div class="demo-block">
+        <div class="demo-stage" style="gap:12px;">
+          <span class="status-label good" data-od-id="status-label-good"><span class="dot"></span>Excelente</span>
+          <span class="status-label warn" data-od-id="status-label-warn"><span class="dot"></span>Instável</span>
+          <span class="status-label bad" data-od-id="status-label-bad"><span class="dot"></span>Ruim</span>
+          <span class="status-label neutral" data-od-id="status-label-neutral"><span class="dot"></span>Testando…</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEXT LINK -->
+    <section id="text-link" data-od-id="section-text-link">
+      <h2 class="section-title">TextLink</h2>
+      <p class="section-desc">Link textual inline, usado dentro de parágrafos e rodapés — nunca como ação primária.</p>
+      <div class="demo-block">
+        <div class="demo-stage" style="justify-content:flex-start;">
+          <p style="font-size:15px; color:var(--muted); max-width:420px; line-height:1.6;">
+            Não sabe interpretar o resultado? <a class="text-link" data-od-id="text-link-demo" href="#">Saiba mais sobre sua conexão</a>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- EYEBROW -->
+    <section id="eyebrow" data-od-id="section-eyebrow">
+      <h2 class="section-title">Eyebrow</h2>
+      <p class="section-desc">Rótulo em caixa alta posicionado acima de títulos, usado para contextualizar uma seção.</p>
+      <div class="demo-block">
+        <div class="demo-stage" style="justify-content:flex-start; flex-direction:column; align-items:flex-start; gap:4px;">
+          <p class="eyebrow accent" data-od-id="eyebrow-demo">Qualidade da conexão</p>
+          <h3 class="sub-title" style="margin:0;">Estável sob carga</h3>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  (function(){
+    var root = document.documentElement;
+    var stored = localStorage.getItem('linka-ds-theme');
+    var system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    var initial = stored || system;
+    setTheme(initial);
+
+    function setTheme(mode){
+      if(mode === 'dark'){ root.setAttribute('data-theme','dark'); } else { root.removeAttribute('data-theme'); }
+      document.querySelectorAll('[data-theme-btn]').forEach(function(btn){
+        btn.setAttribute('aria-pressed', btn.getAttribute('data-theme-btn') === mode ? 'true' : 'false');
+      });
+      localStorage.setItem('linka-ds-theme', mode);
+    }
+    document.querySelectorAll('[data-theme-btn]').forEach(function(btn){
+      btn.addEventListener('click', function(){ setTheme(btn.getAttribute('data-theme-btn')); });
+    });
+
+    var links = Array.prototype.slice.call(document.querySelectorAll('nav.index a'));
+    var sections = links.map(function(l){ return document.querySelector(l.getAttribute('href')); }).filter(Boolean);
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          var id = '#' + entry.target.id;
+          links.forEach(function(l){ l.classList.toggle('active', l.getAttribute('href') === id); });
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    sections.forEach(function(s){ observer.observe(s); });
+  })();
+</script>
+</body>
+</html>

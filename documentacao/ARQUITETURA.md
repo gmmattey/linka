@@ -1,6 +1,6 @@
 # Arquitetura do Linka
 
-Responsável: Camillo pelos contratos; Codex principal pela integração. Revisão: 2026-10-04, inspeção estática da base `39269c7a`, branch `docs/quatro-fontes`.
+Responsável: Camillo (Arquitetura, Motor & Contratos) e Marco (Integração). Revisão: 2026-10-15. Fonte de verdade canônica de arquitetura do Linka.
 Este documento distingue implementação local, decisões preservadas e dependências ainda abertas. Não comprova operação externa, distribuição ou aceite em aparelho.
 Os pares são [Produto](PRODUTO.md), [Operação](OPERACAO.md) e [Governança](GOVERNANCA.md): intenção, procedimentos e autoridade não são duplicados aqui.
 
@@ -81,7 +81,7 @@ Migração do schema 1 conserva nome/ID/datas, descarta identidade/referências 
 ### Compartilhamento e widget
 
 [ShareCardView / ShareCardRenderer](../aplicativo-ios/LinkaApp/Sources/UI/ShareCardView.swift) são a fonte única do cartão: `ImageRenderer` → PNG → compartilhamento nativo, sem screenshot da janela, sem recalcular métricas e sem SSID/provedor/IP/BSSID.
-**Decisão preservada: compartilhar somente resultado concluído atual ou histórico**, mas MainView exige `.done`, enquanto [MeasurementDetailView](../aplicativo-ios/LinkaApp/Sources/UI/MeasurementDetailView.swift) e presenters checam medição não nula sem exigir `outcome == .complete`, portanto o gate uniforme e sua validação em runtime permanecem pendentes com Pedro/Tito antes de declarar o contrato integral; PNG inválido/ausente não é sucesso de compartilhamento.
+**Decisão preservada: compartilhar somente resultado concluído atual ou histórico**, mas MainView exige `.done`, enquanto [MeasurementDetailView](../aplicativo-ios/LinkaApp/Sources/UI/MeasurementDetailView.swift) e presenters checam medição não nula sem exigir `outcome == .complete`, portanto o gate uniforme e sua validação em runtime permanecem pendentes com Bia/Renan antes de declarar o contrato integral; PNG inválido/ausente não é sucesso de compartilhamento.
 O caminho inspecionado exporta um cartão individual; não foi localizado exportador CSV/PDF em lote. Não equiparar cartão, arquivo interno do store e contrato externo.
 [LinkaWidgetShared](../aplicativo-ios/LinkaWidgetShared/Sources/LinkaWidgetShared.swift) guarda resumo Codable e idioma no App Group `group.com.linka.assist`, sem identificadores Wi-Fi. O app publica e recarrega a timeline; [provider](../aplicativo-ios/LinkaWidget/Sources/LinkaWidgetTimelineProvider.swift) usa `.never`, sem polling periódico. Dado ausente/indecodificável permanece ausente.
 
@@ -168,18 +168,18 @@ Não há geração automática garantindo equivalência CSS↔Swift. Preservar m
 
 | Contrato / risco | Responsável; evento | Fechamento necessário |
 |---|---|---|
-| Motor: zero após todas as sondas falharem; prova física da referência regional; alta confiança versus legado | Camillo/Pedro/Tito; próxima mudança/release da metodologia | Tratar ausência sem zero inventado, reconciliar metodologia/testes e medir cancelamento, rede lenta, carga nas duas direções e protocolo regional em aparelho. |
-| Save de parcial, rollback em falha de disco e zero no resumo do widget | Camillo/Pedro; próxima revisão de persistência | Decidir semântica, cobrir disco indisponível e consumidores; memória alterada antes de persistir não é gravação confirmada. |
-| Schema externo/CloudKit incompletos; migração Ambientes e exclusão offline | Camillo/Tito; antes de ampliar sincronização/intercâmbio | Matriz campo a campo, round-trip, privacidade, migração/CRUD/assignments e dois aparelhos assinados com tombstones. |
-| Insights: testes legados de jogos versus evidência exigida; 4K >25; causalidade do caminho; agrupamento legado por provedor | Íris/Camillo/Pedro; próxima mudança das regras | Decisão de limiares e fixtures coerentes, linguagem sem causa não medida e separação de redes distintas. |
-| Home viva e paridade Apple | Tito/Íris; release afetada | Troca/background/0–8 amostras, baseline e estados/destinos acessíveis em build identificada; não herdar aceite visual histórico. |
-| Assist: reuso de resultado, copy positiva sem causa e procedência “ChatGPT – Luna” sem modelLabel | Íris/Camillo/responsável NDS; próxima revisão do contrato | Separar ausência de achado de saúde, definir validade do contexto e só mostrar procedência comprovada. Codex confirma revogação da credencial histórica antes de encerrar segurança. |
-| Otimização: estabilidade da rota; oportunidade de banda; Refazer referência | Íris/Camillo; quando priorizados | Decidir regra/escopo; comparador atual não garante rota estável, builder não implementa oportunidade de banda e baseline de ambientes é derivada. DoT/adapters de roteador seguem futuros. |
-| Wi-Fi, DNS, roteador, StoreKit/ads e status | Tito/Codex; antes de release das capacidades | Atalho físico/parcial/expirado, provisioning DNS/aplicar/remover, painel sem permissão, persistência Keychain, compra/restauração/expiração, ausência do pedido ATT, consentimento UMP e NPA, frescor de status/APNs e disclosure do registro de instalação. |
-| Netscope L01 versus L02/codec e consentimento | Camillo/Íris; antes de compor transporte | Resolver path insatisfeito→unknown, alinhar allowlist real/OpenAPI/fixtures e obter consentimento específico sem inferi-lo do campo true. |
-| Netscope remoto: host, challenges, Keychain, App Attest, HTTP e orçamento | Camillo/operador backend/Luiz/Tito; antes de tráfego/custo | OpenAPI/commit externo, replay concorrente, redirects, timeout/cancelamento, prova física iPhone/iPad, avaliação do provider e teto/kill switch; Mac exige decisão separada. |
-| Netscope privacidade/infraestrutura/marca | Codex/Luiz/operador; antes da ação dependente | Reconciliar autorizações já existentes de repo/domínio/recursos, retenção implementada, isolamento negativo SignallQ/NDS e clearance de marca; não reaprovar por inferência nem presumir produção. |
-| Equipamentos/ofertas comissionadas | Íris/Luiz; somente se priorizados | Proposta futura desligada: sem busca/impressão/clique enquanto off; evidência→provider→guardrails, até três ofertas e transparência. APIs comerciais/compatibilidade não verificadas; sem oferta quando faltam fatos ou provider falha. |
+| Motor: zero após todas as sondas falharem; prova física da referência regional; alta confiança versus legado | Camillo/Bia/Renan; próxima mudança/release da metodologia | Tratar ausência sem zero inventado, reconciliar metodologia/testes e medir cancelamento, rede lenta, carga nas duas direções e protocolo regional em aparelho. |
+| Save de parcial, rollback em falha de disco e zero no resumo do widget | Camillo/Bia; próxima revisão de persistência | Decidir semântica, cobrir disco indisponível e consumidores; memória alterada antes de persistir não é gravação confirmada. |
+| Schema externo/CloudKit incompletos; migração Ambientes e exclusão offline | Camillo/Renan; antes de ampliar sincronização/intercâmbio | Matriz campo a campo, round-trip, privacidade, migração/CRUD/assignments e dois aparelhos assinados com tombstones. |
+| Insights: testes legados de jogos versus evidência exigida; 4K >25; causalidade do caminho; agrupamento legado por provedor | Priscila/Camillo/Bia; próxima mudança das regras | Decisão de limiares e fixtures coerentes, linguagem sem causa não medida e separação de redes distintas. |
+| Home viva e paridade Apple | Renan/Priscila; release afetada | Troca/background/0–8 amostras, baseline e estados/destinos acessíveis em build identificada; não herdar aceite visual histórico. |
+| Assist: reuso de resultado, copy positiva sem causa e procedência “ChatGPT – Luna” sem modelLabel | Priscila/Camillo/responsável NDS; próxima revisão do contrato | Separar ausência de achado de saúde, definir validade do contexto e só mostrar procedência comprovada. Marco confirma revogação da credencial histórica antes de encerrar segurança. |
+| Otimização: estabilidade da rota; oportunidade de banda; Refazer referência | Priscila/Camillo; quando priorizados | Decidir regra/escopo; comparador atual não garante rota estável, builder não implementa oportunidade de banda e baseline de ambientes é derivada. DoT/adapters de roteador seguem futuros. |
+| Wi-Fi, DNS, roteador, StoreKit/ads e status | Renan/Marco; antes de release das capacidades | Atalho físico/parcial/expirado, provisioning DNS/aplicar/remover, painel sem permissão, persistência Keychain, compra/restauração/expiração, ausência do pedido ATT, consentimento UMP e NPA, frescor de status/APNs e disclosure do registro de instalação. |
+| Netscope L01 versus L02/codec e consentimento | Camillo/Priscila; antes de compor transporte | Resolver path insatisfeito→unknown, alinhar allowlist real/OpenAPI/fixtures e obter consentimento específico sem inferi-lo do campo true. |
+| Netscope remoto: host, challenges, Keychain, App Attest, HTTP e orçamento | Camillo/operador backend/Luiz/Renan; antes de tráfego/custo | OpenAPI/commit externo, replay concorrente, redirects, timeout/cancelamento, prova física iPhone/iPad, avaliação do provider e teto/kill switch; Mac exige decisão separada. |
+| Netscope privacidade/infraestrutura/marca | Marco/Giam/Luiz/operador; antes da ação dependente | Reconciliar autorizações já existentes de repo/domínio/recursos, retenção implementada, isolamento negativo SignallQ/NDS e clearance de marca; não reaprovar por inferência nem presumir produção. |
+| Equipamentos/ofertas comissionadas | Giam/Luiz; somente se priorizados | Proposta futura desligada: sem busca/impressão/clique enquanto off; evidência→provider→guardrails, até três ofertas e transparência. APIs comerciais/compatibilidade não verificadas; sem oferta quando faltam fatos ou provider falha. |
 
 Evidência desta revisão: leitura dos manifests, fontes e contratos acima, reconciliando arquitetura anterior, mapas das 15 capacidades, design e L01/L02/L03/L05. Detalhes históricos permanecem no Git; esta fonte não mantém cópias de planos nem os marca como entregues.
 Fontes de testes para futuras mudanças: [engine](../aplicativo-ios/LinkaEngine/Tests/), [histórico](../aplicativo-ios/MeasurementHistory/Tests/), [CloudKit](../aplicativo-ios/MeasurementHistoryCloudKit/Tests/), [Insights](../aplicativo-ios/NetworkInsights/Tests/), [Assist](../aplicativo-ios/NetworkAssist/Tests/), [NetscopeEvidence](../aplicativo-ios/NetscopeEvidence/Tests/) e [NetscopeTransport](../aplicativo-ios/NetscopeTransport/Tests/). Presença de asserção não significa teste aprovado.
@@ -258,7 +258,7 @@ Integrada na main pelas PRs #296 (Core e Guarda B1), #297 (UI de Planos e Conex�
 | `AssistContainer.swift` [V4-T3] | Entitlement, flag remota, BuildeaDiagnosticAPI, timeout 55 s | Reutilizar fronteiras; app não comprova auth/retenção/capacidade do Worker. |
 | `HouseholdRepository.swift` [V4-T4] | Coordena dispositivos, planos, conexões, perfil e Ambientes | Adapter de leitura; snapshot consistente precisa de revisão específica. |
 
-A inspeção não executou suites, Xcode, endpoints ou aparelhos, nem certificou integralmente as fases 1–3. Requisitos de auditoria operacional em #310 permanecem abertos.
+A inspeção não executou suites, Xcode, endpoints ou aparelhos, nem certificou integralmente as fases 1–3. Gate de auditoria #310 e prova física de App Attest concluídos em 10/10/2026 (ver [Auditoria Assist V4](arquitetura/AUDITORIA-ASSIST-V4.md) e [ADR Assist V4](arquitetura/ADR-ASSIST-V4-CONSULTORIA-ISOLADA.md)).
 
 ### V4-T2 Composição e responsabilidades
 
@@ -531,7 +531,7 @@ Reutilizar avaliadores e oportunidades; novas regras têm ID, versão, entradas/
 
 Reinício manual precisa de motivo e aviso, nunca reflexo universal de queda de desempenho. Não orientar desativar segurança, acesso de terceiros, reset de fábrica ou manipulação de fibra como passo genérico. Consultoria não se implementa ligando `mayInferRootCause` ou ignorando `mustGroundInProvidedData`.
 
-Fechamento: contratos/fixtures #311, orquestrador #320, UI #312, jornadas #313–#316/#319, acompanhamento #317, Oportunidades #321 e QA #318. Procedimentos, rubricas, prova técnica e rollback estão em [Operação](OPERACAO.md#assist-contextual-v4), sem declarar execução por este documento. Auth, provedor, orçamento, retenção, consentimento e disponibilidade Mac permanecem gates humanos; #310 não é fechada por documentação.
+Fechamento: contratos/fixtures #311, orquestrador #320, UI #312, jornadas #313–#316/#319, acompanhamento #317, Oportunidades #321 e QA #318. Procedimentos, rubricas, prova técnica e rollback estão em [Operação](OPERACAO.md#assist-contextual-v4), sem declarar execução por este documento. Auth, provedor, orçamento, retenção, consentimento e disponibilidade Mac permanecem gates humanos; Gate #310 concluído com prova física em iPhone 17 (ver [Auditoria Assist V4](arquitetura/AUDITORIA-ASSIST-V4.md)).
 
 ### V4-T13 Referências da documentação de origem
 
