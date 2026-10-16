@@ -1,75 +1,33 @@
 import SwiftUI
-import MeasurementHistory
 import NetworkCore
+import NetworkInventory
 import NetworkAssist
-import LinkaEntitlements
-import LinkaModules
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
 
-struct AssistView: View {
-    @Environment(\.dismiss) var dismiss
-    @Environment(\.openURL) private var openURL
+/// Tela conversacional inteligente do Linka Genius (alimentada por Gemini 3.8 Flash).
+/// Substitui o fluxo legado de diagnóstico estático por um especialista interativo de redes.
+public struct AssistView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var viewModel: LinkaGeniusViewModel
 
-    @StateObject private var viewModel: AssistViewModel
-    @StateObject private var stabilityViewModel: NetworkStabilityPatternsViewModel
-    @State private var showRecommendationDetails = false
+    public let currentMeasurement: NetworkMeasurement?
+    public let recentMeasurements: [NetworkMeasurement]
+    public let isCollectingMeasurement: Bool
+    public let usageContext: String?
+    public let failureSignal: NetworkAssistFailureSignal?
+    public let onRetry: (() -> Void)?
+    public let onRetest: (() -> Void)?
+    public let onShowDetails: (() -> Void)?
+    public let onCloseSheet: (() -> Void)?
 
-    /// Fecha o sheet inteiro: usa `onCloseSheet` (fluxo guiado via
-    /// `AssistProblemSelectionView`) quando fornecido, senão cai no
-    /// `dismiss()` local (fluxo direto de `HistoryView`/`MainView` legado).
-    private func closeSheet() {
-        if let onCloseSheet {
-            onCloseSheet()
-        } else {
-            dismiss()
-        }
-    }
+    @State private var hasCopiedScript: Bool = false
+    @State private var copyResetTask: Task<Void, Never>?
 
-    let currentMeasurement: NetworkMeasurement?
-    let recentMeasurements: [NetworkMeasurement]
-    /// Quando o Assist foi aberto sem amostra, a coleta acontece por trás
-    /// deste sheet. Não se usa nenhum resultado anterior nesse intervalo.
-    let isCollectingMeasurement: Bool
-    let usageContext: String?
-    let failureSignal: NetworkAssistFailureSignal?
-    let onRetry: (() -> Void)?
-    /// Ação real de "Ver detalhes da medição" (issue UI Polish v2) — antes
-    /// esse botão só chamava `dismiss()`, sem navegar a lugar nenhum
-    /// (visualmente parecia ir a algum lugar, na prática só voltava).
-    /// Quando fornecido (hoje só por `MainView`, que tem um estado
-    /// `detailsOpen` para expandir), o botão abre os detalhes de verdade
-    /// antes de fechar este sheet. `nil` quando não existe um destino de
-    /// detalhes no contexto do chamador (ex.: `HistoryView`, que empurra
-    /// esta view numa `NavigationStack` sem resultado "vivo" para expandir)
-    /// — nesse caso o botão vira "Voltar", copy honesta para o que
-    /// `dismiss()` realmente faz.
-    let onShowDetails: (() -> Void)?
-    let entitlements: StoreKitEntitlementProvider?
-    /// Macro-grupo e subcategoria coletados por `AssistProblemSelectionView`
-    /// antes de abrir esta tela, quando o usuário passou pela seleção
-    /// guiada. `nil`/`nil` no fluxo observacional puro (comportamento de
-    /// hoje, sem mudança).
-    let objective: String?
-    let subcategory: String?
-    /// Texto livre de "Outro problema" (ver `AssistProblemSelectionView`),
-    /// quando o usuário optou por descrever em vez de escolher um
-    /// `objective` fechado. Mutuamente exclusivo com `objective`/
-    /// `subcategory` na prática — o fluxo guiado nunca preenche os dois.
-    let reportedProblem: String?
-    /// Fecha o sheet INTEIRO em vez de só dar pop dentro do `NavigationStack`
-    /// local (bug reportado na revisão do PR #141): quando `AssistView` é
-    /// empurrada por `AssistProblemSelectionView.swift` via
-    /// `navigationDestination` dentro do próprio `NavigationStack` daquela
-    /// tela, `@Environment(\.dismiss)` capturado aqui só faz pop de volta
-    /// para a seleção — não fecha o sheet apresentado por `MainView`.
-    /// `AssistProblemSelectionView` passa aqui o `dismiss` capturado na
-    /// RAIZ do seu próprio `NavigationStack` (que sim fecha o sheet).
-    /// `nil` (default) preserva o comportamento existente de `HistoryView`,
-    /// que empurra `AssistView` no seu próprio `NavigationStack` direto,
-    /// sem tela de seleção no meio — lá `dismiss()` local já faz a coisa
-    /// certa.
-    let onCloseSheet: (() -> Void)?
-
-    init(
+    public init(
         currentMeasurement: NetworkMeasurement?,
         recentMeasurements: [NetworkMeasurement] = [],
         isCollectingMeasurement: Bool = false,
@@ -79,672 +37,669 @@ struct AssistView: View {
         subcategory: String? = nil,
         reportedProblem: String? = nil,
         onRetry: (() -> Void)? = nil,
+        onRetest: (() -> Void)? = nil,
         onShowDetails: (() -> Void)? = nil,
-        entitlements: StoreKitEntitlementProvider? = nil,
-        assistProvider: (any NetworkAssistProviding)? = nil,
-        assistIsRemote: Bool = AssistContainer.isRemoteAssistEnabled(),
-        onCloseSheet: (() -> Void)? = nil
+        entitlements: Any? = nil,
+        assistProvider: Any? = nil,
+        assistIsRemote: Bool = true,
+        onCloseSheet: (() -> Void)? = nil,
+        geniusViewModel: LinkaGeniusViewModel? = nil
     ) {
         self.currentMeasurement = currentMeasurement
         self.recentMeasurements = recentMeasurements
         self.isCollectingMeasurement = isCollectingMeasurement
         self.usageContext = usageContext
         self.failureSignal = failureSignal
-        self.objective = objective
-        self.subcategory = subcategory
-        self.reportedProblem = reportedProblem
         self.onRetry = onRetry
+        self.onRetest = onRetest
         self.onShowDetails = onShowDetails
-        self.entitlements = entitlements
         self.onCloseSheet = onCloseSheet
 
-        let resolvedProvider: any NetworkAssistProviding
-        if let assistProvider {
-            resolvedProvider = assistProvider
-        } else if let entitlements {
-            resolvedProvider = AssistContainer.makeAssistProvider(entitlements: entitlements)
+        if let geniusViewModel {
+            self._viewModel = StateObject(wrappedValue: geniusViewModel)
         } else {
-            resolvedProvider = NetworkAssistService(transport: UnconfiguredNetworkAssistTransport())
+            let capturedMeasurement = currentMeasurement
+            self._viewModel = StateObject(
+                wrappedValue: LinkaGeniusViewModel(
+                    measurementProvider: { capturedMeasurement }
+                )
+            )
         }
-
-        self._viewModel = StateObject(wrappedValue: AssistViewModel(assistProvider: resolvedProvider))
-        self._stabilityViewModel = StateObject(
-            wrappedValue: NetworkStabilityPatternsViewModel(entitlements: entitlements)
-        )
     }
 
-    var body: some View {
+    private func closeSheet() {
+        if let onCloseSheet {
+            onCloseSheet()
+        } else {
+            dismiss()
+        }
+    }
+
+    public var body: some View {
         NavigationStack {
             ZStack {
                 LinkaScreenBackground(variant: .gradientOnly, showWaves: false)
                     .ignoresSafeArea()
-                contentView
+
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: LinkaSpacing.md) {
+                        // 1. Header Hero do Genius
+                        headerView
+
+                        // 2. Prontuário visual da rede
+                        telemetryCard
+
+                        // 3. Área de Interação ou Resposta
+                        switch viewModel.state {
+                        case .idle:
+                            interactionSection
+                        case .readingTelemetry, .consultingGenius, .finalizing:
+                            loadingSection
+                        case .success(let analysis):
+                            analysisResultSection(analysis: analysis)
+                        case .failure(let error):
+                            errorSection(error: error)
+                        }
+
+                        // 4. Rodapé sutil de atribuição da IA
+                        footerView
+                    }
+                    .padding(.horizontal, LinkaSpacing.md)
+                    .padding(.top, LinkaSpacing.sm)
+                    .padding(.bottom, LinkaSpacing.xl)
+                }
             }
-            .linkaSheetToolbar(title: LinkaCopy.value("assist.title"), onDismiss: closeSheet)
-            // Uma única tarefa coordena análise e estabilidade para a mesma
-            // identidade de medição. Duas `.task(id:)` paralelas reagem ao
-            // mesmo redraw e deixam o ciclo de análise suscetível a repetição.
-            .task(id: currentMeasurement?.id) {
-                guard !isCollectingMeasurement, let current = currentMeasurement else { return }
-                // A análise de histórico muda a altura do ScrollView. Ela
-                // precisa terminar antes de publicar o diagnóstico, para a
-                // pessoa não perder o ponto que estava lendo quando a
-                // seção de padrões aparece no meio da tela.
-                await stabilityViewModel.load(currentMeasurement: current)
-                await loadAssist(with: current)
-            }
+            .linkaSheetToolbar(
+                title: LinkaCopy.value("genius.title"),
+                onDismiss: closeSheet
+            )
         }
     }
 
-    private func loadAssist(with measurement: NetworkMeasurement) async {
-        await viewModel.load(
-            currentMeasurement: measurement,
-            recentMeasurements: recentMeasurements,
-            usageContext: usageContext,
-            failureSignal: failureSignal,
-            objective: objective,
-            subcategory: subcategory,
-            reportedProblem: reportedProblem
-        )
-    }
-    
-    @ViewBuilder
-    private var contentView: some View {
-        switch viewModel.state {
-        case .idle, .loading:
-            if isCollectingMeasurement {
-                AssistCollectingMeasurementView()
-            } else if let currentMeasurement {
-                AssistWaitingAnalysisView(measurement: currentMeasurement)
-            } else {
-                unavailableMeasurementView
-            }
-        case .error(let message):
-            VStack(spacing: 16) {
-                Image(systemName: "exclamationmark.triangle")
-                    .font(.system(size: 40))
-                    .foregroundColor(.statusAttention)
-                Text(LinkaCopy.value("assist.error.title"))
+    // MARK: - 1. Header
+
+    private var headerView: some View {
+        VStack(spacing: 6) {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.brandAccentWarm)
+                Text(LinkaCopy.value("genius.title"))
                     .font(.displayTitle)
-                Text(message)
-                    .font(.bodyRegular)
-                    .foregroundColor(.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-                Button(LinkaCopy.value("common.tryAgain")) {
-                    Task {
-                        await viewModel.retry(
-                            currentMeasurement: currentMeasurement,
-                            recentMeasurements: recentMeasurements,
-                            usageContext: usageContext,
-                            failureSignal: failureSignal,
-                            objective: objective,
-                            subcategory: subcategory,
-                            reportedProblem: reportedProblem
-                        )
-                    }
-                }
-                .buttonStyle(.linkaPrimary)
-                .padding(.horizontal, 24)
-                Button(LinkaCopy.value("common.back")) { closeSheet() }
-                    .buttonStyle(.plain)
-                    .foregroundColor(.brandAccentWarmInk)
+                    .foregroundColor(.textPrimary)
             }
-            .frame(maxHeight: .infinity)
-        case .success(let data):
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 20) {
-
-                    // ─── 1. PROBLEMA IDENTIFICADO / ESTADO DA CONEXÃO ───
-                    let (statusColor, statusText) = assistStatusAppearance(headerStatus: data.headerStatus, title: data.title, recommendation: data.recommendation)
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack(spacing: 8) {
-                            Circle()
-                                .fill(statusColor)
-                                .frame(width: 9, height: 9)
-                            Text(statusText)
-                                .font(.captionStrong)
-                                .foregroundColor(.textSecondary)
-                                .textCase(.uppercase)
-                        }
-
-                        Text(data.title)
-                            .font(.displayMedium)
-                            .foregroundColor(.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        Text(summaryWithoutRepeatedRecommendation(data))
-                            .font(.bodyRegular)
-                            .foregroundColor(.textSecondary)
-                            .lineSpacing(4)
-
-                        if let attribution = data.aiAttribution {
-                            HStack(spacing: 5) {
-                                Image(systemName: "sparkles")
-                                    .font(.caption2)
-                                    .accessibilityHidden(true)
-                                Text(attribution)
-                                    .font(.caption2.weight(.medium))
-                            }
-                            .foregroundColor(.textSecondary)
-                            .padding(.top, 4)
-                            .accessibilityElement(children: .combine)
-                            .accessibilityLabel(Text("Origem da análise: \(attribution)"))
-                        }
-                    }
-                    .padding(20)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg))
-
-                    // ─── 2. O QUE FAZER PARA RESOLVER OU MELHORAR ───
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(LinkaCopy.value("assist.recommendations.title"))
-                            .font(.bodyRegularStrong)
-                            .foregroundColor(.textPrimary)
-
-                        if let rec = data.recommendation {
-                            VStack(alignment: .leading, spacing: 10) {
-                                HStack(alignment: .top, spacing: 10) {
-                                    Image(systemName: "lightbulb.fill")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.brandAccentWarmInk)
-                                    
-                                    VStack(alignment: .leading, spacing: 6) {
-                                        Text(rec.title)
-                                            .font(.bodyRegularStrong)
-                                            .foregroundColor(.textPrimary)
-                                        
-                                        let detailLines = recommendationDetailLines(rec, summary: data.summary)
-                                        if !detailLines.isEmpty {
-                                            VStack(alignment: .leading, spacing: 6) {
-                                                ForEach(Array(detailLines.enumerated()), id: \.offset) { index, line in
-                                                    HStack(alignment: .top, spacing: 6) {
-                                                        Text(detailLines.count > 1 ? "\(index + 1)." : "•")
-                                                            .font(.bodySmallStrong)
-                                                            .foregroundColor(.brandAccentWarmInk)
-                                                        Text(line)
-                                                            .font(.bodySmall)
-                                                            .foregroundColor(.textSecondary)
-                                                    }
-                                                }
-                                            }
-                                            .padding(.top, 4)
-                                        }
-
-                                        if let actionURL = rec.actionURL ?? currentMeasurement?.wifiContext?.gatewayAdminURL.flatMap(URL.init),
-                                           (rec.actionLabel != nil || rec.title.lowercased().contains("roteador") || rec.title.lowercased().contains("wi-fi") || rec.title.lowercased().contains("canal")) {
-                                            let label = rec.actionLabel ?? LinkaCopy.value("assist.openRouterSettings")
-                                            Button(action: {
-                                                openURL(actionURL)
-                                            }) {
-                                                HStack(spacing: 6) {
-                                                    Image(systemName: "slider.horizontal.3")
-                                                        .font(.system(size: 13, weight: .semibold))
-                                                    Text(label)
-                                                }
-                                                .foregroundColor(.brandAccentWarmInk)
-                                                .padding(.vertical, 8)
-                                                .padding(.horizontal, 12)
-                                                .background(Color.brandAccentWarm.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
-                                            }
-                                            .buttonStyle(.plain)
-                                            .padding(.top, 6)
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(18)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg))
-                        } else {
-                            HStack(alignment: .center, spacing: 12) {
-                                Image(systemName: "checkmark.seal.fill")
-                                    .font(.title2)
-                                    .foregroundColor(.statusGood)
-
-                                Text(LinkaCopy.value("assist.noAction"))
-                                    .font(.bodyRegular)
-                                    .foregroundColor(.textSecondary)
-                            }
-                            .padding(18)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg))
-                        }
-                    }
-
-                    // ─── 3. COMO CHEGOU À CONCLUSÃO ───
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(LinkaCopy.value("assist.evidence.title"))
-                            .font(.bodyRegularStrong)
-                            .foregroundColor(.textPrimary)
-
-                        VStack(spacing: 10) {
-                            if !data.dimensions.isEmpty {
-                                ForEach(data.dimensions, id: \.name) { dim in
-                                    dimensionRow(dim)
-                                    if dim.name != data.dimensions.last?.name {
-                                        Divider()
-                                    }
-                                }
-                            } else if let measurement = currentMeasurement {
-                                measurementEvidenceRow(
-                                    title: LinkaCopy.value("detail.download"),
-                                    value: measurement.downloadMbps.map(formattedSpeed) ?? LinkaCopy.value("common.unavailable")
-                                )
-                                if let upload = measurement.uploadMbps, upload > 0 {
-                                    Divider()
-                                    measurementEvidenceRow(
-                                        title: LinkaCopy.value("detail.upload"),
-                                        value: formattedSpeed(upload)
-                                    )
-                                }
-                                Divider()
-                                measurementEvidenceRow(
-                                    title: LinkaCopy.value("assist.latency"),
-                                    value: measurement.latencyMs.map(formattedMilliseconds) ?? LinkaCopy.value("common.unavailable")
-                                )
-                                Divider()
-                                measurementEvidenceRow(
-                                    title: LinkaCopy.value("assist.network"),
-                                    value: measurement.connectionKind.map { connectionLabel($0) } ?? LinkaCopy.value("common.unavailable")
-                                )
-                            }
-                        }
-                        .padding(18)
-                        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg))
-                    }
-
-                    // Padrões no seu histórico (quando aplicável)
-                    stabilityPatternsSection
-
-                    // Ações de Rodapé
-                    VStack(spacing: 12) {
-                        if let retry = onRetry {
-                            Button(action: {
-                                closeSheet()
-                                retry()
-                            }) {
-                                Text(LinkaCopy.value("common.retry"))
-                            }
-                            .buttonStyle(.linkaPrimary)
-                        }
-
-                        if let onShowDetails {
-                            Button(action: {
-                                closeSheet()
-                                onShowDetails()
-                            }) {
-                                HStack(spacing: 6) {
-                                    Text(LinkaCopy.value("assist.technicalDetails"))
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 12, weight: .semibold))
-                                }
-                                .font(.bodySmallStrong)
-                                .foregroundColor(.brandAccentWarmInk)
-                                .padding(.vertical, 8)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.top, 8)
-                    .padding(.bottom, 32)
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
-            }
+            Text(LinkaCopy.value("genius.subtitle"))
+                .font(.bodySmall)
+                .foregroundColor(.textSecondary)
         }
-    }
-
-    @ViewBuilder
-    private var stabilityPatternsSection: some View {
-        switch stabilityViewModel.state {
-        case .loading, .unavailable:
-            // `.unavailable` cobre Free, sem histórico ou falha ao
-            // consultar — silenciar a seção é honesto aqui porque a
-            // `AssistView` já é Plus-only na entrada; não é um bloqueio
-            // escondido, é a ausência de dado para essa leitura específica.
-            EmptyView()
-        case .insufficientHistory:
-            stabilityPatternsContainer {
-                Text(LinkaCopy.value("assist.history.insufficient"))
-                    .font(.bodyRegular)
-                    .foregroundColor(.textSecondary)
-            }
-        case .noPatternDetected:
-            stabilityPatternsContainer {
-                Text(LinkaCopy.value("assist.history.noPattern"))
-                    .font(.bodyRegular)
-                    .foregroundColor(.textSecondary)
-            }
-        case .detected(let sentences):
-            stabilityPatternsContainer {
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(Array(sentences.enumerated()), id: \.offset) { _, sentence in
-                        HStack(alignment: .top, spacing: 12) {
-                            Image(systemName: "clock.arrow.circlepath")
-                                .font(.title2)
-                                .foregroundColor(.statusAttention)
-                            Text(sentence)
-                                .font(.bodyRegular)
-                                .foregroundColor(.textPrimary)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func stabilityPatternsContainer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(LinkaCopy.value("assist.history.title"))
-                .font(.bodyRegularStrong)
-                .foregroundColor(.textPrimary)
-            content()
-        }
-    }
-
-    /// Checklist compacto (issue UI Polish v2) — antes cada dimensão tinha
-    /// um círculo de 40pt com ícone dentro; agora é uma linha simples, mais
-    /// próxima de um `Form`/lista nativa: um símbolo de estado + rótulo +
-    /// valor à direita.
-    private func dimensionRow(_ dimension: NetworkAssistDimension) -> some View {
-        let statusColor = colorForStatus(dimension.status)
-        return HStack(spacing: 10) {
-            Image(systemName: iconForStatus(dimension.status))
-                .font(.bodyRegular)
-                .foregroundColor(statusColor)
-                .frame(width: 20)
-
-            Text(labelForDimension(dimension.name))
-                .font(.bodyRegular)
-                .foregroundColor(.textPrimary)
-
-            Spacer()
-
-            Text(labelForStatus(dimension.status, metric: dimension.name))
-                .font(.bodyRegularStrong)
-                .foregroundColor(statusColor)
-        }
+        .padding(.vertical, 4)
+        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
     }
 
-    private func iconForStatus(_ status: String) -> String {
-        switch status.lowercased() {
-        case "excellent", "good": return "checkmark.circle.fill"
-        case "attention": return "exclamationmark.circle.fill"
-        case "critical": return "xmark.circle.fill"
-        default: return "circle"
-        }
-    }
-    
-    private func labelForDimension(_ name: String) -> String {
-        switch name.lowercased() {
-        case "download": return LinkaCopy.value("detail.download")
-        case "upload": return LinkaCopy.value("detail.upload")
-        case "latency": return LinkaCopy.value("assist.latency")
-        case "stability", "packet_loss", "perda": return LinkaCopy.value("assist.dimension.stability")
-        default: return name.capitalized
-        }
-    }
-    
-    private func labelForStatus(_ status: String, metric: String) -> String {
-        let metricLower = metric.lowercased()
-        switch status.lowercased() {
-        case "excellent":
-            if metricLower == "latency" { return LinkaCopy.value("assist.status.excellent.feminine") }
-            if metricLower == "stability" || metricLower == "packet_loss" || metricLower == "perda" { return LinkaCopy.value("assist.status.noLoss") }
-            return LinkaCopy.value("assist.status.excellent")
-        case "good":
-            if metricLower == "latency" { return LinkaCopy.value("assist.status.good.feminine") }
-            if metricLower == "stability" || metricLower == "packet_loss" || metricLower == "perda" { return LinkaCopy.value("assist.status.stable") }
-            return LinkaCopy.value("assist.status.good")
-        case "attention":
-            return LinkaCopy.value("assist.status.attention")
-        case "critical":
-            return LinkaCopy.value("assist.status.poor")
-        case "unknown":
-            return LinkaCopy.value("assist.status.notAssessed")
-        default:
-            return status.capitalized
-        }
-    }
-    
-    /// A resposta do NDS costuma repetir a mesma frase em
-    /// `recommendation.description` e em `recommendation.steps` (e às vezes
-    /// no próprio `summary` da Hero) — issue UI Polish v2. Aqui a UI escolhe
-    /// uma única fonte de detalhe por recomendação: os passos quando
-    /// existem (são a forma mais acionável), senão a descrição, e nunca a
-    /// descrição se ela só repete o que "O que isso significa" já disse.
-    private func recommendationDetailLines(_ rec: NetworkAssistRecommendation, summary: String) -> [String] {
-        if !rec.steps.isEmpty {
-            return rec.steps
-        }
-        let trimmedDescription = rec.description.trimmingCharacters(in: .whitespacesAndNewlines)
-        let trimmedSummary = summary.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedDescription.isEmpty, trimmedDescription != trimmedSummary else { return [] }
-        return [rec.description]
-    }
+    // MARK: - 2. Prontuário de Rede
 
-    /// O problema descreve o que foi medido; a recomendação guarda a próxima
-    /// ação. Quando o servidor repete literalmente a ação no resumo, removê-la
-    /// do primeiro cartão evita duas instruções iguais em sequência.
-    private func summaryWithoutRepeatedRecommendation(_ data: AssistViewModel.DiagnosticData) -> String {
-        guard let recommendation = data.recommendation else { return data.summary }
-        let action = recommendation.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !action.isEmpty else {
-            return data.summary
-        }
+    @ViewBuilder
+    private var telemetryCard: some View {
+        if let measurement = currentMeasurement {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text(LinkaCopy.value("genius.telemetry.title"))
+                        .font(.captionStrong)
+                        .foregroundColor(.textSecondary)
+                        .textCase(.uppercase)
+                    Spacer()
+                    connectionBadge(for: measurement)
+                }
 
-        let sentences = data.summary.split(whereSeparator: { ".!?".contains($0) })
-        let summary = sentences
-            .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.localizedCaseInsensitiveContains(action) }
-            .joined(separator: ". ")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        return summary.isEmpty ? data.summary : summary
-    }
+                HStack(spacing: 12) {
+                    telemetryMetric(
+                        icon: "arrow.down.circle.fill",
+                        iconColor: .chartDownloadSeries,
+                        title: LinkaCopy.value("detail.download"),
+                        value: measurement.downloadMbps.map(formattedSpeed) ?? LinkaCopy.value("common.unavailable")
+                    )
 
-    private func assistStatusAppearance(headerStatus: String, title: String, recommendation: NetworkAssistRecommendation?) -> (Color, String) {
-        let t = title.lowercased()
+                    telemetryMetric(
+                        icon: "arrow.up.circle.fill",
+                        iconColor: .brandAccentWarm,
+                        title: LinkaCopy.value("detail.upload"),
+                        value: measurement.uploadMbps.map(formattedSpeed) ?? LinkaCopy.value("common.unavailable")
+                    )
 
-        // "Sem causa" / inconclusivo nunca pode virar "Conexão saudável" verde
-        if t.contains("sem causa") || t.contains("inconclus") || t.contains("no specific cause") || t.contains("no se identificó") {
-            return (.textSecondary, LinkaCopy.value("assist.status.inconclusive"))
-        }
-
-        if isGoodStatus(headerStatus) || t.contains("saudável") || t.contains("tudo certo") || t.contains("all good") || t.contains("todo bien") {
-            return (.statusGood, LinkaCopy.value("assist.status.healthy"))
-        }
-
-        if recommendation != nil || !headerStatus.isEmpty {
-            let label = headerStatus.isEmpty ? LinkaCopy.value("assist.status.problem") : headerStatus
-            return (.statusAttention, label)
-        }
-
-        return (.textSecondary, LinkaCopy.value("assist.status.inconclusive"))
-    }
-
-    private func isGoodStatus(_ status: String) -> Bool {
-        let s = status.uppercased()
-        return s.contains("TUDO CERTO") || s.contains("BOM") || s.contains("EXCELENTE") || s.contains("SAUDÁVEL") || s.contains("CONCLUÍDO") || s.contains("ALL GOOD") || s.contains("TODO BIEN")
-    }
-
-    private func measurementEvidenceRow(title: String, value: String, isWarning: Bool = false) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: isWarning ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
-                .font(.bodyRegular)
-                .foregroundColor(isWarning ? .statusAttention : .statusGood)
-                .frame(width: 20)
-
-            Text(title)
-                .font(.bodyRegular)
-                .foregroundColor(.textPrimary)
-
-            Spacer()
-
-            Text(value)
-                .font(.bodyRegularStrong)
-                .foregroundColor(isWarning ? .statusAttention : .textSecondary)
-        }
-    }
-
-    private func colorForStatus(_ status: String) -> Color {
-        switch status.lowercased() {
-        case "excellent", "good": return .statusGood
-        case "attention": return .statusAttention
-        case "critical": return .statusCritical
-        default: return .textSecondary
-        }
-    }
-    
-    private var unavailableMeasurementView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.system(size: 40))
-                .foregroundColor(.textSecondary)
-            Text(LinkaCopy.value("assist.unavailable.title"))
-                .font(.displayTitle)
-            Text(LinkaCopy.value("assist.unavailable.message"))
-                .font(.bodyRegular)
-                .foregroundColor(.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
-            Button(LinkaCopy.value("common.back"), action: closeSheet)
-                .font(.bodySmallStrong)
-                .foregroundColor(.brandAccentWarmInk)
-        }
-        .frame(maxHeight: .infinity)
-    }
-
-    private func formattedSpeed(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(1)).locale(LinkaLanguagePreference.currentLocale)) + " Mbps"
-    }
-
-    private func formattedMilliseconds(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(0)).locale(LinkaLanguagePreference.currentLocale)) + " ms"
-    }
-
-    private func connectionLabel(_ kind: NetworkConnectionKind) -> String {
-        switch kind {
-        case .wifi: return LinkaCopy.value("network.wifi")
-        case .cellular: return LinkaCopy.value("network.cellular")
-        case .ethernet: return LinkaCopy.value("network.ethernet")
-        case .other: return LinkaCopy.value("network.other")
-        }
-    }
-}
-
-private struct AssistCollectingMeasurementView: View {
-    var body: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .controlSize(.large)
-            Text(LinkaCopy.value("assist.collecting.title"))
-                .font(.displayTitle)
-            Text(LinkaCopy.value("assist.collecting.message"))
-                .font(.bodyRegular)
-                .foregroundColor(.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
-        }
-        .frame(maxHeight: .infinity)
-    }
-}
-
-private struct AssistWaitingAnalysisView: View {
-    let measurement: NetworkMeasurement
-
-    private struct FactItem: Identifiable {
-        let id: String
-        let title: String
-        let value: String
-    }
-
-    private var facts: [FactItem] {
-        var list: [FactItem] = []
-        if let dl = measurement.downloadMbps {
-            list.append(FactItem(id: "dl", title: LinkaCopy.value("assist.fact.download"), value: formattedSpeed(dl)))
-        }
-        if let ul = measurement.uploadMbps {
-            list.append(FactItem(id: "ul", title: LinkaCopy.value("assist.fact.upload"), value: formattedSpeed(ul)))
-        }
-        if let ping = measurement.latencyMs {
-            list.append(FactItem(id: "ping", title: LinkaCopy.value("assist.latency"), value: formattedMilliseconds(ping)))
-        }
-        if let kind = measurement.connectionKind {
-            list.append(FactItem(id: "kind", title: LinkaCopy.value("assist.fact.networkType"), value: connectionLabel(kind)))
-        }
-        if let adv = measurement.advancedWiFiDiagnostics {
-            if let band = adv.bandGHz {
-                list.append(FactItem(id: "band", title: LinkaCopy.value("assist.fact.wifiFrequency"), value: formattedGigahertz(band)))
-            } else if let channel = adv.channelNumber {
-                list.append(FactItem(id: "chan", title: LinkaCopy.value("assist.fact.wifiChannel"), value: String(format: LinkaCopy.value("assist.fact.wifiChannel.value"), locale: LinkaLanguagePreference.currentLocale, channel)))
-            }
-        } else if let band = measurement.wifiBandGHz {
-            list.append(FactItem(id: "band", title: LinkaCopy.value("assist.fact.wifiFrequency"), value: formattedGigahertz(band)))
-        } else if let jitter = measurement.jitterMs {
-            list.append(FactItem(id: "jitter", title: LinkaCopy.value("assist.fact.stability"), value: formattedMilliseconds(jitter)))
-        }
-        return list
-    }
-
-    var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
-
-            // Assist Wordmark
-            Image("AssistWordmark")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 44)
-                .padding(.horizontal, 40)
-
-            VStack(spacing: 8) {
-                Text(LinkaCopy.value("assist.analyzing.title"))
-                    .font(.displayMedium)
-                    .foregroundColor(.textPrimary)
-                Text(LinkaCopy.value("assist.analyzing.message"))
-                    .font(.bodyRegular)
-                    .foregroundColor(.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
-            }
-
-            // Fatos reais observados na medição
-            VStack(spacing: 12) {
-                ForEach(Array(facts.enumerated()), id: \.element.id) { index, fact in
-                    HStack {
-                        Text(fact.title)
-                            .font(.bodyRegular)
-                            .foregroundColor(.textPrimary)
-
-                        Spacer()
-
-                        Text(fact.value)
-                            .font(.bodyRegularStrong)
-                            .foregroundColor(.textSecondary)
-                    }
-                    if index < facts.count - 1 {
-                        Divider()
-                    }
+                    telemetryMetric(
+                        icon: "gauge.with.dots.needle.bottom.50percent",
+                        iconColor: .textSecondary,
+                        title: LinkaCopy.value("assist.latency"),
+                        value: measurement.latencyMs.map(formattedMilliseconds) ?? LinkaCopy.value("common.unavailable")
+                    )
                 }
             }
-            .padding(18)
-            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg))
-            .padding(.horizontal, 24)
+            .padding(LinkaSpacing.md)
+            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous)
+                    .stroke(Color.borderDefault.opacity(0.2), lineWidth: 1)
+            )
+        } else {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 8) {
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.brandAccentWarm)
+                    Text(LinkaCopy.value("genius.telemetry.empty.title"))
+                        .font(.bodyRegularStrong)
+                        .foregroundColor(.textPrimary)
+                }
 
-            HStack(spacing: 8) {
-                ProgressView().controlSize(.small)
-                Text(LinkaCopy.value("assist.analyzing.synthesizing"))
+                Text(LinkaCopy.value("genius.telemetry.empty.message"))
                     .font(.bodySmall)
                     .foregroundColor(.textSecondary)
+                    .lineSpacing(2)
+
+                if let testAction = onRetest ?? onRetry {
+                    Button(action: {
+                        closeSheet()
+                        testAction()
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "play.circle.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                            Text(LinkaCopy.value("genius.telemetry.testNow"))
+                                .font(.bodySmallStrong)
+                        }
+                        .foregroundColor(.brandAccentWarmInk)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 12)
+                        .background(Color.brandAccentWarm.opacity(0.12), in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 2)
+                }
+            }
+            .padding(LinkaSpacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous)
+                    .stroke(Color.borderDefault.opacity(0.2), lineWidth: 1)
+            )
+        }
+    }
+
+    private func telemetryMetric(icon: String, iconColor: Color, title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(iconColor)
+                Text(title)
+                    .font(.captionMedium)
+                    .foregroundColor(.textSecondary)
+            }
+            Text(value)
+                .font(.bodySmallStrong)
+                .foregroundColor(.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func connectionBadge(for measurement: NetworkMeasurement) -> some View {
+        let label: String
+        let icon: String
+
+        if let kind = measurement.connectionKind {
+            switch kind {
+            case .wifi:
+                let band = measurement.advancedWiFiDiagnostics?.bandGHz ?? measurement.wifiBandGHz
+                if let band {
+                    label = "Wi-Fi \(formattedGigahertz(band))"
+                } else {
+                    label = LinkaCopy.value("network.wifi")
+                }
+                icon = "wifi"
+            case .cellular:
+                label = LinkaCopy.value("network.cellular")
+                icon = "antenna.radiowaves.left.and.right"
+            case .ethernet:
+                label = LinkaCopy.value("network.ethernet")
+                icon = "cable.connector"
+            case .other:
+                label = LinkaCopy.value("network.other")
+                icon = "network"
+            }
+        } else {
+            label = LinkaCopy.value("network.wifi")
+            icon = "wifi"
+        }
+
+        return HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .semibold))
+            Text(label)
+                .font(.captionSmallStrong)
+        }
+        .foregroundColor(.textSecondary)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 3)
+        .background(Color.surfacePage, in: Capsule())
+    }
+
+    // MARK: - 3. Interação (Campo + Atalhos)
+
+    private var interactionSection: some View {
+        VStack(alignment: .leading, spacing: LinkaSpacing.md) {
+            // Campo de pergunta aberta
+            promptInputField
+
+            // Atalhos rápidos em pills
+            shortcutsSection
+        }
+    }
+
+    private var promptInputField: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 16))
+                .foregroundColor(.brandAccentWarm)
+                .accessibilityHidden(true)
+
+            TextField(
+                LinkaCopy.value("genius.prompt.placeholder"),
+                text: $viewModel.draft
+            )
+            .font(.bodyRegular)
+            .textFieldStyle(.plain)
+            .onSubmit {
+                viewModel.submitDraft()
             }
 
-            Spacer()
+            let canSubmit = !viewModel.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            Button(action: {
+                viewModel.submitDraft()
+            }) {
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundColor(canSubmit ? .brandAccentWarm : .borderStrong.opacity(0.4))
+            }
+            .buttonStyle(.plain)
+            .disabled(!canSubmit)
+            .accessibilityLabel(Text(LinkaCopy.value("genius.prompt.send")))
         }
-        .padding(.vertical, 20)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                .stroke(Color.borderDefault.opacity(0.3), lineWidth: 1)
+        )
     }
+
+    private var shortcutsSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(LinkaCopy.value("genius.shortcuts.title"))
+                .font(.captionStrong)
+                .foregroundColor(.textSecondary)
+                .textCase(.uppercase)
+
+            let localeTag = LinkaLanguagePreference.currentLanguageTag
+
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: 10),
+                    GridItem(.flexible(), spacing: 10)
+                ],
+                spacing: 10
+            ) {
+                ForEach(LinkaGeniusShortcut.allCases) { shortcut in
+                    shortcutButton(shortcut: shortcut, locale: localeTag)
+                }
+            }
+        }
+    }
+
+    private func shortcutButton(shortcut: LinkaGeniusShortcut, locale: String) -> some View {
+        Button(action: {
+            withAnimation(LinkaMotion.spring) {
+                viewModel.ask(shortcut: shortcut)
+            }
+        }) {
+            HStack(spacing: 8) {
+                Image(systemName: iconForShortcut(shortcut))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.brandAccentWarmInk)
+                    .frame(width: 18)
+
+                Text(shortcut.title(for: locale))
+                    .font(.bodySmallStrong)
+                    .foregroundColor(.textPrimary)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+
+                Spacer(minLength: 0)
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                    .stroke(Color.borderDefault.opacity(0.25), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func iconForShortcut(_ shortcut: LinkaGeniusShortcut) -> String {
+        switch shortcut {
+        case .slowCalls:
+            return "video.badge.waveform"
+        case .routerAdequacy:
+            return "wifi.router"
+        case .operatorScript:
+            return "doc.text.fill"
+        case .meshNeed:
+            return "point.3.filled.connected.trianglepath.dotted"
+        }
+    }
+
+    // MARK: - 4. Estados de Carregamento
+
+    private var loadingSection: some View {
+        VStack(spacing: 18) {
+            ProgressView()
+                .controlSize(.large)
+                .tint(.brandAccentWarm)
+                .padding(.top, 16)
+
+            VStack(spacing: 6) {
+                Text(viewModel.state.loadingStepText ?? LinkaCopy.value("genius.loading.telemetry"))
+                    .font(.bodyRegularStrong)
+                    .foregroundColor(.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .transition(.opacity)
+
+                Text("Correlacionando telemetria, estabilidade e capacidade...")
+                    .font(.captionMedium)
+                    .foregroundColor(.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, LinkaSpacing.md)
+            .padding(.bottom, 16)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
+        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous)
+                .stroke(Color.brandAccentWarm.opacity(0.2), lineWidth: 1)
+        )
+    }
+
+    // MARK: - 5. Exibição de Resposta
+
+    private func analysisResultSection(analysis: LinkaGeniusAnalysis) -> some View {
+        VStack(alignment: .leading, spacing: LinkaSpacing.md) {
+            // Sintoma
+            resultCard(
+                icon: "stethoscope",
+                iconColor: .brandAccentWarmInk,
+                title: LinkaCopy.value("genius.result.symptom"),
+                content: analysis.symptom
+            )
+
+            // Causa provável
+            resultCard(
+                icon: "wrench.and.screwdriver.fill",
+                iconColor: .statusAttention,
+                title: LinkaCopy.value("genius.result.cause"),
+                content: analysis.cause
+            )
+
+            // Ações imediatas
+            if !analysis.actions.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checklist")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.statusGood)
+                        Text(LinkaCopy.value("genius.result.actions"))
+                            .font(.captionStrong)
+                            .foregroundColor(.textSecondary)
+                            .textCase(.uppercase)
+                    }
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(Array(analysis.actions.enumerated()), id: \.offset) { index, action in
+                            HStack(alignment: .top, spacing: 10) {
+                                Text("\(index + 1)")
+                                    .font(.captionSmallStrong)
+                                    .foregroundColor(.brandAccentWarmInk)
+                                    .frame(width: 20, height: 20)
+                                    .background(Color.brandAccentWarm.opacity(0.12), in: Circle())
+
+                                Text(action)
+                                    .font(.bodyRegular)
+                                    .foregroundColor(.textPrimary)
+                                    .lineSpacing(3)
+                            }
+                        }
+                    }
+                }
+                .padding(LinkaSpacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous)
+                        .stroke(Color.borderDefault.opacity(0.2), lineWidth: 1)
+                )
+            }
+
+            // Script para a operadora (quando presente)
+            let trimmedScript = analysis.operatorScript.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmedScript.isEmpty {
+                operatorScriptBlock(script: trimmedScript)
+            }
+
+            // Ações de fluxo (Reteste e Nova Pergunta)
+            VStack(spacing: 12) {
+                if analysis.needsRetest, let testAction = onRetest ?? onRetry {
+                    Button(action: {
+                        closeSheet()
+                        testAction()
+                    }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.system(size: 15, weight: .semibold))
+                            Text(LinkaCopy.value("genius.result.retest"))
+                        }
+                    }
+                    .buttonStyle(.linkaPrimary)
+                }
+
+                Button(action: {
+                    withAnimation(LinkaMotion.spring) {
+                        viewModel.reset()
+                    }
+                }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.bubble")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text(LinkaCopy.value("genius.result.newQuestion"))
+                    }
+                }
+                .buttonStyle(.linkaSecondary)
+            }
+            .padding(.top, 4)
+        }
+    }
+
+    private func resultCard(icon: String, iconColor: Color, title: String, content: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(iconColor)
+                Text(title)
+                    .font(.captionStrong)
+                    .foregroundColor(.textSecondary)
+                    .textCase(.uppercase)
+            }
+
+            Text(content)
+                .font(.bodyRegular)
+                .foregroundColor(.textPrimary)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(LinkaSpacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous)
+                .stroke(Color.borderDefault.opacity(0.2), lineWidth: 1)
+        )
+    }
+
+    private func operatorScriptBlock(script: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                HStack(spacing: 6) {
+                    Image(systemName: "phone.bubble.left.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.brandAccentWarmInk)
+                    Text(LinkaCopy.value("genius.result.script"))
+                        .font(.captionStrong)
+                        .foregroundColor(.textSecondary)
+                        .textCase(.uppercase)
+                }
+
+                Spacer()
+
+                Button(action: {
+                    copyToClipboard(text: script)
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: hasCopiedScript ? "checkmark" : "doc.on.doc")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text(hasCopiedScript ? LinkaCopy.value("genius.result.script.copied") : LinkaCopy.value("genius.result.script.copy"))
+                            .font(.captionSmallStrong)
+                    }
+                    .foregroundColor(hasCopiedScript ? .statusGood : .brandAccentWarmInk)
+                    .padding(.vertical, 5)
+                    .padding(.horizontal, 10)
+                    .background(
+                        (hasCopiedScript ? Color.statusGood : Color.brandAccentWarm).opacity(0.12),
+                        in: Capsule()
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+
+            Text(script)
+                .font(.system(.footnote, design: .monospaced))
+                .foregroundColor(.textPrimary)
+                .lineSpacing(3)
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.surfacePage, in: RoundedRectangle(cornerRadius: LinkaRadius.sm, style: .continuous))
+        }
+        .padding(LinkaSpacing.md)
+        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous)
+                .stroke(Color.borderDefault.opacity(0.2), lineWidth: 1)
+        )
+    }
+
+    private func copyToClipboard(text: String) {
+        #if canImport(UIKit)
+        UIPasteboard.general.string = text
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        #elseif canImport(AppKit)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        #endif
+
+        withAnimation(LinkaMotion.spring) {
+            hasCopiedScript = true
+        }
+
+        copyResetTask?.cancel()
+        copyResetTask = Task {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                withAnimation(LinkaMotion.fade) {
+                    hasCopiedScript = false
+                }
+            }
+        }
+    }
+
+    // MARK: - 6. Erro
+
+    private func errorSection(error: LinkaGeniusError) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 36))
+                .foregroundColor(.statusAttention)
+
+            Text(LinkaCopy.value("genius.error.title"))
+                .font(.displayMedium)
+                .foregroundColor(.textPrimary)
+
+            Text(error.localizedDescription)
+                .font(.bodyRegular)
+                .foregroundColor(.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
+
+            Button(action: {
+                viewModel.retry()
+            }) {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.clockwise")
+                    Text(LinkaCopy.value("genius.error.retry"))
+                }
+            }
+            .buttonStyle(.linkaPrimary)
+            .padding(.top, 4)
+
+            Button(action: {
+                viewModel.reset()
+            }) {
+                Text(LinkaCopy.value("common.back"))
+                    .font(.bodySmallStrong)
+                    .foregroundColor(.brandAccentWarmInk)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(LinkaSpacing.lg)
+        .frame(maxWidth: .infinity)
+        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous))
+    }
+
+    // MARK: - 7. Rodapé
+
+    private var footerView: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "sparkle")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.brandAccentWarm)
+                .accessibilityHidden(true)
+            Text(LinkaCopy.value("genius.footer.attribution"))
+                .font(.caption2)
+                .foregroundColor(.textSecondary)
+        }
+        .padding(.top, 8)
+        .accessibilityElement(children: .combine)
+    }
+
+    // MARK: - Helpers
 
     private func formattedSpeed(_ value: Double) -> String {
         value.formatted(.number.precision(.fractionLength(1)).locale(LinkaLanguagePreference.currentLocale)) + " Mbps"
@@ -757,14 +712,5 @@ private struct AssistWaitingAnalysisView: View {
     private func formattedGigahertz(_ value: Double) -> String {
         let precision = value.truncatingRemainder(dividingBy: 1) == 0 ? 0 : 1
         return value.formatted(.number.precision(.fractionLength(precision)).locale(LinkaLanguagePreference.currentLocale)) + " GHz"
-    }
-
-    private func connectionLabel(_ kind: NetworkConnectionKind) -> String {
-        switch kind {
-        case .wifi: return LinkaCopy.value("network.wifi")
-        case .cellular: return LinkaCopy.value("network.cellular")
-        case .ethernet: return LinkaCopy.value("network.ethernet")
-        case .other: return LinkaCopy.value("network.other")
-        }
     }
 }

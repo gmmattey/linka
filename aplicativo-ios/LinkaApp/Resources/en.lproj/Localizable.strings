@@ -1060,3 +1060,30 @@
 "inventory.evaluation.download" = "Download";
 "inventory.evaluation.upload" = "Upload";
 "inventory.evaluation.delivered" = "%@ of %@ contracted (%@)";
+
+/* Linka Genius (Gemini 3.8 Flash) */
+"genius.title" = "Linka Genius";
+"genius.subtitle" = "Apple Network Specialist";
+"genius.badge" = "Genius";
+"genius.telemetry.title" = "Network Record";
+"genius.telemetry.empty.title" = "No recent measurement available";
+"genius.telemetry.empty.message" = "Run a speed test for more accurate diagnostics or ask general network questions below.";
+"genius.telemetry.testNow" = "Test now";
+"genius.prompt.placeholder" = "Ask Genius...";
+"genius.prompt.send" = "Consult Genius";
+"genius.shortcuts.title" = "Frequently Asked Questions";
+"genius.loading.telemetry" = "Reading network telemetry...";
+"genius.loading.consulting" = "Consulting Genius...";
+"genius.loading.finalizing" = "Finalizing diagnostic...";
+"genius.result.symptom" = "Symptom";
+"genius.result.cause" = "Probable cause";
+"genius.result.actions" = "Immediate actions";
+"genius.result.script" = "Script for provider";
+"genius.result.script.copy" = "Copy script";
+"genius.result.script.copied" = "Copied!";
+"genius.result.retest" = "Test again";
+"genius.result.newQuestion" = "Ask another question";
+"genius.footer.attribution" = "Powered by Gemini 3.8 Flash";
+"genius.error.title" = "Could not complete diagnostic";
+"genius.error.retry" = "Try again";
+

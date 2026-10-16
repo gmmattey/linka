@@ -53,7 +53,6 @@ struct MacMainView: View {
     @State private var pendingPurchaseDismissalAction: MacPurchaseDismissalAction?
     @State private var purchaseEntryPoint: PurchaseEntryPoint = .settings
     @State private var assistEntryPoint: MacAssistEntryPoint = .fresh
-    @State private var showAssistProblemSelection = false
     @State private var showAssistResult = false
     @State private var showNetscopeAnalysis = false
     @State private var pendingAssistMeasurement = false
@@ -187,31 +186,18 @@ struct MacMainView: View {
                 .environmentObject(entitlements)
                 .frame(minWidth: 620, minHeight: 560)
         }
-        .sheet(isPresented: $showAssistProblemSelection, onDismiss: beginPendingAssistCollection) {
-            AssistProblemSelectionView(
-                currentMeasurement: assistEntryPoint.measurement,
-                recentMeasurements: [],
-                onStartFreshMeasurement: { objective, subcategory, reportedProblem in
-                    pendingAssistObjective = objective
-                    pendingAssistSubcategory = subcategory
-                    pendingAssistReportedProblem = reportedProblem
-                    pendingAssistMeasurement = true
-                },
-                entitlements: entitlements
-            )
-            .frame(minWidth: 680, minHeight: 620)
-        }
         .sheet(isPresented: $showAssistResult) {
             AssistView(
                 currentMeasurement: assistMeasurement,
-                recentMeasurements: [],
-                isCollectingMeasurement: pendingAssistMeasurement,
-                objective: pendingAssistObjective,
-                subcategory: pendingAssistSubcategory,
-                reportedProblem: pendingAssistReportedProblem,
-                onRetry: { pendingAssistMeasurement = true; viewModel.startTest() },
-                onShowDetails: {},
-                entitlements: entitlements
+                recentMeasurements: viewModel.recentMeasurements,
+                onRetry: {
+                    pendingAssistMeasurement = true
+                    viewModel.startTest()
+                },
+                onRetest: {
+                    pendingAssistMeasurement = true
+                    viewModel.startTest()
+                }
             )
             .frame(minWidth: 680, minHeight: 620)
         }
@@ -1385,25 +1371,22 @@ struct MacMainView: View {
     }
 
     private var assistToolContent: some View {
-        AssistProblemSelectionView(
+        AssistView(
             currentMeasurement: assistEntryPoint.measurement ?? activeMeasurement ?? viewModel.latestFinishedMeasurement,
             recentMeasurements: viewModel.recentMeasurements,
-            onRetry: { startMeasurement() },
+            onRetry: {
+                destination = .speedTest
+                startMeasurement()
+            },
+            onRetest: {
+                destination = .speedTest
+                startMeasurement()
+            },
             onShowDetails: {
                 if let m = assistEntryPoint.measurement ?? activeMeasurement ?? viewModel.latestFinishedMeasurement {
                     selectedHistoricalMeasurement = m
                 }
-            },
-            onStartFreshMeasurement: { objective, subcategory, reportedProblem in
-                pendingAssistObjective = objective
-                pendingAssistSubcategory = subcategory
-                pendingAssistReportedProblem = reportedProblem
-                pendingAssistMeasurement = true
-                destination = .speedTest
-                startMeasurement()
-            },
-            entitlements: entitlements,
-            isInline: true
+            }
         )
     }
 
@@ -1553,7 +1536,7 @@ struct MacMainView: View {
         guard let action = pendingPurchaseDismissalAction else { return }
         pendingPurchaseDismissalAction = nil
         switch action {
-        case .assistProblemSelection: showAssistProblemSelection = true
+        case .assistProblemSelection: destination = .assist
         case .subscriptionManagement: showSubscriptionManagement = true
         }
     }

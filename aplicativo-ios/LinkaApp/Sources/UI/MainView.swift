@@ -133,7 +133,6 @@ struct MainView: View {
     @State private var optimizationRetestResult: OptimizationRetestComparison?
     @State private var showOptimizationRetestResult = false
     @State private var purchaseEntryPoint: PurchaseEntryPoint = .settings
-    @State private var showAssistProblemSelection: Bool = false
     @State private var showAssistResult: Bool = false
     @State private var showAssistV4Local: Bool = false
     @State private var showNetscopeAnalysis: Bool = false
@@ -333,30 +332,13 @@ struct MainView: View {
 
     private func attachAssistPresentation<Content: View>(_ content: Content) -> some View {
         content
-            .sheet(
-                isPresented: $showAssistProblemSelection,
-                onDismiss: beginPendingAssistCollection
-            ) {
-                AssistProblemSelectionView(
-                    currentMeasurement: assistEntryPoint.measurement,
-                    recentMeasurements: [],
-                    onStartFreshMeasurement: { objective, subcategory, reportedProblem in
-                        startAssistMeasurement(objective: objective, subcategory: subcategory, reportedProblem: reportedProblem)
-                    },
-                    entitlements: entitlements
-                )
-            }
             .sheet(isPresented: $showAssistResult) {
                 AssistView(
                     currentMeasurement: assistMeasurement,
-                    recentMeasurements: [],
-                    isCollectingMeasurement: pendingAssistMeasurement,
-                    objective: pendingAssistObjective,
-                    subcategory: pendingAssistSubcategory,
-                    reportedProblem: pendingAssistReportedProblem,
+                    recentMeasurements: viewModel.recentMeasurements,
                     onRetry: { retryAssistMeasurement() },
-                    onShowDetails: { showDetails = true },
-                    entitlements: entitlements
+                    onRetest: { startSpeedTest() },
+                    onShowDetails: { showDetails = true }
                 )
             }
             #if os(iOS)
@@ -434,7 +416,7 @@ struct MainView: View {
             }
             .sheet(isPresented: $showPurchase) {
                 PurchaseSheet(entryPoint: purchaseEntryPoint) {
-                    if purchaseEntryPoint == .assist { showAssistProblemSelection = true }
+                    if purchaseEntryPoint == .assist { showAssistResult = true }
                 }
                 .environmentObject(entitlements)
             }
@@ -690,8 +672,7 @@ struct MainView: View {
         AppStoreReviewPromptPresentationPolicy.isSafe(
             sceneIsActive: scenePhase == .active,
             resultIsVisible: navPath.isEmpty && viewModel.uiPhase == .done,
-            hasBlockingPresentation: showAssistProblemSelection
-                || showAssistResult
+            hasBlockingPresentation: showAssistResult
                 || showPurchase
                 || showShareSheet
                 || showDetails
@@ -1453,7 +1434,7 @@ struct MainView: View {
     private func requestAssist(from entryPoint: AssistEntryPoint) {
         assistEntryPoint = entryPoint
         if isPlusActive {
-            showAssistProblemSelection = true
+            showAssistResult = true
         } else {
             purchaseEntryPoint = .assist
             showPurchase = true

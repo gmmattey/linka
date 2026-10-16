@@ -1060,3 +1060,30 @@
 "inventory.evaluation.download" = "Download";
 "inventory.evaluation.upload" = "Upload";
 "inventory.evaluation.delivered" = "%@ de %@ contratados (%@)";
+
+/* Linka Genius (Gemini 3.8 Flash) */
+"genius.title" = "Linka Genius";
+"genius.subtitle" = "Especialista Apple em Redes";
+"genius.badge" = "Genius";
+"genius.telemetry.title" = "Prontuário de Rede";
+"genius.telemetry.empty.title" = "Nenhuma medição recente realizada";
+"genius.telemetry.empty.message" = "Faça um teste de velocidade para diagnósticos mais precisos ou tire dúvidas gerais de rede abaixo.";
+"genius.telemetry.testNow" = "Testar agora";
+"genius.prompt.placeholder" = "Pergunte ao Genius...";
+"genius.prompt.send" = "Consultar Genius";
+"genius.shortcuts.title" = "Perguntas frequentes";
+"genius.loading.telemetry" = "Lendo telemetria da rede...";
+"genius.loading.consulting" = "Consultando o Genius...";
+"genius.loading.finalizing" = "Finalizando diagnóstico...";
+"genius.result.symptom" = "Sintoma";
+"genius.result.cause" = "Causa provável";
+"genius.result.actions" = "Ações imediatas";
+"genius.result.script" = "Script para o provedor";
+"genius.result.script.copy" = "Copiar script";
+"genius.result.script.copied" = "Copiado!";
+"genius.result.retest" = "Testar novamente";
+"genius.result.newQuestion" = "Fazer outra pergunta";
+"genius.footer.attribution" = "Alimentado por Gemini 3.8 Flash";
+"genius.error.title" = "Não foi possível concluir o diagnóstico";
+"genius.error.retry" = "Tentar novamente";
+
