@@ -29,15 +29,25 @@ public struct AssistConsultationSystemAppAttestProvider: AssistConsultationAppAt
 /// Armazena exclusivamente o Key ID público/opaco. A service namespace não é
 /// compartilhada com Netscope, Assist legado ou qualquer outra funcionalidade.
 public final class AssistConsultationKeychainAppAttestKeyIDStore: AssistConsultationAppAttestKeyIDStoring, @unchecked Sendable {
-    private static let service = "com.buildea.linka.assist-consultation-v4.app-attest"
+    public enum Environment: String, Sendable {
+        case development
+        case production
+    }
+
+    private let service: String
     private static let account = "key-id"
 
-    public init() {}
+    /// App Attest keys are bound to Apple environments. Keeping their public
+    /// key IDs in distinct Keychain services prevents a development key from
+    /// being replayed against the production consultation D1 store.
+    public init(environment: Environment) {
+        service = "com.buildea.linka.assist-consultation-v4.app-attest.\(environment.rawValue)"
+    }
 
     public func loadKeyID() async throws -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: Self.service,
+            kSecAttrService as String: service,
             kSecAttrAccount as String: Self.account,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
@@ -59,7 +69,7 @@ public final class AssistConsultationKeychainAppAttestKeyIDStore: AssistConsulta
         let data = Data(keyID.utf8)
         let lookup: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: Self.service,
+            kSecAttrService as String: service,
             kSecAttrAccount as String: Self.account
         ]
         let attributes: [String: Any] = [

@@ -1076,14 +1076,16 @@ private extension ConsultationTurnResponse {
         guard Set(claims.map(\.id)).count == claims.count else { throw ContractError.invalid("Claims duplicadas.") }
         for claim in claims {
             guard !claim.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  !claim.evidenceRefs.isEmpty,
                   !claim.appliesToRefs.isEmpty,
                   Set(claim.evidenceRefs).isSubset(of: knownRefs),
                   Set(claim.appliesToRefs).isSubset(of: knownRefs) else { throw ContractError.invalid("Claim sem evidência ou escopo válido.") }
         }
         if let assessment {
             guard !assessment.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  !assessment.evidenceRefs.isEmpty,
                   Set(assessment.evidenceRefs).isSubset(of: knownRefs),
-                  Set(assessment.unknowns.flatMap(\.evidenceRefs)).isSubset(of: knownRefs) else { throw ContractError.invalid("Assessment inválido.") }
+                  assessment.unknowns.allSatisfy({ !$0.evidenceRefs.isEmpty && Set($0.evidenceRefs).isSubset(of: knownRefs) }) else { throw ContractError.invalid("Assessment inválido.") }
         }
         switch (disposition, next) {
         case (.awaitingAnswer, .question(let question)):

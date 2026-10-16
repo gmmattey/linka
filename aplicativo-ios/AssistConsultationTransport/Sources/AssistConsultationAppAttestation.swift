@@ -162,7 +162,25 @@ public protocol AssistConsultationAppAttestKeyIDStoring: Sendable {
 
 public enum AssistConsultationAttestationOutcome: Equatable, Sendable {
     case authorized(AssistConsultationRequestAttestation)
-    case unavailable
+    case unavailable(AssistConsultationAttestationFailure)
+}
+
+/// A fase é deliberadamente livre de payload, identificador de chave, nonce ou
+/// resposta do relay. Ela permite ao composition root observar uma falha real
+/// no aparelho sem transformar material de atestação em telemetria.
+public enum AssistConsultationAttestationFailure: String, Error, Equatable, Sendable {
+    case unsupported
+    case keyStore
+    case registrationChallenge
+    case registrationChallengeInvalid
+    case keyGeneration
+    case keyIDEncoding
+    case attestationGeneration
+    case registrationSubmission
+    case keyPersistence
+    case assertionChallenge
+    case assertionChallengeInvalid
+    case assertionGeneration
 }
 
 /// Orquestra a primeira atestação e as assertions seguintes. Falha fechada:
@@ -188,18 +206,23 @@ public struct AssistConsultationAppAttestAuthorizer: Sendable {
         exactBody: Data,
         now: Date = Date()
     ) async -> AssistConsultationAttestationOutcome {
-        guard await appAttest.isSupported() else { return .unavailable }
+        guard await appAttest.isSupported() else { return .unavailable(.unsupported) }
 
         do {
-            let keyID = try await registeredKeyID(now: now)
+            let appleKeyID = try await registeredKeyID(now: now)
+            guard let keyID = canonicalWireKeyID(appleKeyID) else { return .unavailable(.keyIDEncoding) }
             let binding = AssistConsultationAssertionBinding(exactBody: exactBody)
-            let challenge = try await exchange.requestAssertionChallenge(for: binding, keyID: keyID)
-            guard challenge.isValid(for: binding, now: now) else { return .unavailable }
+            let challenge: AssistConsultationAssertionChallenge
+            do { challenge = try await exchange.requestAssertionChallenge(for: binding, keyID: keyID) }
+            catch { return .unavailable(.assertionChallenge) }
+            guard challenge.isValid(for: binding, now: now) else { return .unavailable(.assertionChallengeInvalid) }
             guard let clientDataHash = assertionClientDataHash(exactBody: exactBody, challenge: challenge) else {
-                return .unavailable
+                return .unavailable(.assertionChallengeInvalid)
             }
-            let assertion = try await appAttest.generateAssertion(keyID, clientDataHash: clientDataHash)
-            guard !assertion.isEmpty else { return .unavailable }
+            let assertion: Data
+            do { assertion = try await appAttest.generateAssertion(appleKeyID, clientDataHash: clientDataHash) }
+            catch { return .unavailable(.assertionGeneration) }
+            guard !assertion.isEmpty else { return .unavailable(.assertionGeneration) }
 
             return .authorized(.init(
                 keyID: keyID,
@@ -208,31 +231,58 @@ public struct AssistConsultationAppAttestAuthorizer: Sendable {
                 timestampUnixMilliseconds: challenge.timestampUnixMilliseconds,
                 requestSHA256: binding.requestSHA256
             ))
+        } catch let failure as AssistConsultationAttestationFailure {
+            return .unavailable(failure)
         } catch {
-            return .unavailable
+            return .unavailable(.keyStore)
         }
     }
 
     private func registeredKeyID(now: Date) async throws -> String {
-        if let existing = try await keyIDStore.loadKeyID(), !existing.isEmpty {
+        let existing: String?
+        do { existing = try await keyIDStore.loadKeyID() }
+        catch { throw AssistConsultationAttestationFailure.keyStore }
+        if let existing, !existing.isEmpty {
             return existing
         }
 
-        let challenge = try await exchange.requestRegistrationChallenge()
-        guard challenge.isValid(now: now) else { throw AssistConsultationAttestationError.invalidChallenge }
-        let keyID = try await appAttest.generateKey()
-        guard !keyID.isEmpty else { throw AssistConsultationAttestationError.invalidKeyID }
+        let challenge: AssistConsultationRegistrationChallenge
+        do { challenge = try await exchange.requestRegistrationChallenge() }
+        catch { throw AssistConsultationAttestationFailure.registrationChallenge }
+        guard challenge.isValid(now: now) else { throw AssistConsultationAttestationFailure.registrationChallengeInvalid }
+        let keyID: String
+        do { keyID = try await appAttest.generateKey() }
+        catch { throw AssistConsultationAttestationFailure.keyGeneration }
+        guard !keyID.isEmpty else { throw AssistConsultationAttestationFailure.keyGeneration }
+        guard let wireKeyID = canonicalWireKeyID(keyID) else { throw AssistConsultationAttestationFailure.keyIDEncoding }
         let clientDataHash = Data(SHA256.hash(data: Data(challenge.nonce.utf8)))
-        let attestation = try await appAttest.attestKey(keyID, clientDataHash: clientDataHash)
-        guard !attestation.isEmpty else { throw AssistConsultationAttestationError.emptyProof }
-        try await exchange.register(.init(
-            keyID: keyID,
-            attestation: attestation.base64URLEncodedString(),
-            nonce: challenge.nonce,
-            timestampUnixMilliseconds: String(Self.unixMilliseconds(now))
-        ))
-        try await keyIDStore.saveKeyID(keyID)
+        let attestation: Data
+        do { attestation = try await appAttest.attestKey(keyID, clientDataHash: clientDataHash) }
+        catch { throw AssistConsultationAttestationFailure.attestationGeneration }
+        guard !attestation.isEmpty else { throw AssistConsultationAttestationFailure.attestationGeneration }
+        do {
+            try await exchange.register(.init(
+                keyID: wireKeyID,
+                attestation: attestation.base64URLEncodedString(),
+                nonce: challenge.nonce,
+                timestampUnixMilliseconds: String(Self.unixMilliseconds(now))
+            ))
+        } catch { throw AssistConsultationAttestationFailure.registrationSubmission }
+        do { try await keyIDStore.saveKeyID(keyID) }
+        catch { throw AssistConsultationAttestationFailure.keyPersistence }
         return keyID
+    }
+
+    /// DeviceCheck keeps its own key reference in Apple's base64 spelling.
+    /// The V4 wire contract is canonical base64url, so only the HTTP-facing
+    /// copy changes; Keychain and DeviceCheck keep the original identifier.
+    private func canonicalWireKeyID(_ appleKeyID: String) -> String? {
+        let padded = appleKeyID
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        let normalized = padded + String(repeating: "=", count: (4 - padded.count % 4) % 4)
+        guard let bytes = Data(base64Encoded: normalized), bytes.count == 32 else { return nil }
+        return bytes.base64URLEncodedString()
     }
 
     private func assertionClientDataHash(
@@ -275,12 +325,6 @@ public struct AssistConsultationAppAttestAuthorizer: Sendable {
     fileprivate static func unixMilliseconds(_ date: Date) -> Int64 {
         Int64((date.timeIntervalSince1970 * 1_000).rounded(.down))
     }
-}
-
-public enum AssistConsultationAttestationError: Error, Equatable, Sendable {
-    case invalidChallenge
-    case invalidKeyID
-    case emptyProof
 }
 
 private extension AssistConsultationRegistrationChallenge {

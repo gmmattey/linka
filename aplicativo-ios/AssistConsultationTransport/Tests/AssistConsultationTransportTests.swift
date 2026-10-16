@@ -17,7 +17,11 @@ final class AssistConsultationTransportTests: XCTestCase {
         XCTAssertNil(configuration.endpoint.fragment)
     }
 
-    func testConfigurationRejectsAnyEndpointOtherThanTheFixedV4Route() throws {
+    func testConfigurationAcceptsOnlyTheTwoCompiledV4Routes() throws {
+        let development = try AssistConsultationTransportConfiguration(
+            endpoint: AssistConsultationTransportConfiguration.developmentEndpoint
+        )
+        XCTAssertEqual(development.endpoint, AssistConsultationTransportConfiguration.developmentEndpoint)
         XCTAssertThrowsError(try AssistConsultationTransportConfiguration(
             endpoint: try XCTUnwrap(URL(string: "https://linka-assist-relay.buildealabs.workers.dev/v2/assist"))
         ))
@@ -26,7 +30,7 @@ final class AssistConsultationTransportTests: XCTestCase {
         ))
     }
 
-    func testInfoConfigurationDefaultsToDisabledAndRejectsDifferentDeclaredEndpoint() throws {
+    func testInfoConfigurationDefaultsToDisabledAndRejectsEndpointsOutsideTheCompiledAllowlist() throws {
         let configuration = try AssistConsultationTransportConfiguration(infoDictionary: [:])
         XCTAssertFalse(configuration.isEnabled)
 
@@ -34,6 +38,12 @@ final class AssistConsultationTransportTests: XCTestCase {
             "LinkaAssistConsultationEnabled": "YES",
             "LinkaAssistConsultationEndpoint": "https://linka-assist-relay.buildealabs.workers.dev/v2/assist"
         ]))
+        let debug = try AssistConsultationTransportConfiguration(infoDictionary: [
+            "LinkaAssistConsultationEnabled": "YES",
+            "LinkaAssistConsultationEndpoint": AssistConsultationTransportConfiguration.developmentEndpoint.absoluteString
+        ])
+        XCTAssertTrue(debug.isEnabled)
+        XCTAssertEqual(debug.endpoint, AssistConsultationTransportConfiguration.developmentEndpoint)
         XCTAssertThrowsError(try AssistConsultationTransportConfiguration(infoDictionary: [
             "LinkaAssistConsultationEnabled": "YES"
         ]))
@@ -129,16 +139,16 @@ final class AssistConsultationTransportTests: XCTestCase {
         let outcome = await authorizer.authorize(exactBody: body, now: timestamp)
 
         guard case let .authorized(proof) = outcome else { return XCTFail("Expected a V4 App Attest proof") }
-        XCTAssertEqual(proof.keyID, "device-key-001")
+        XCTAssertEqual(proof.keyID, Self.canonicalKeyID)
         XCTAssertEqual(proof.nonce, "assertion_nonce-001")
         XCTAssertEqual(proof.timestampUnixMilliseconds, "1791547200000")
         XCTAssertEqual(proof.requestSHA256, Data(SHA256.hash(data: body)).base64URL)
         XCTAssertEqual(proof.assertion, Data("assertion".utf8).base64URL)
 
         let savedKeyID = try await keyStore.loadKeyID()
-        XCTAssertEqual(savedKeyID, "device-key-001")
+        XCTAssertEqual(savedKeyID, Self.appleKeyID)
         let registrationProof = try await exchange.registrationProof()
-        XCTAssertEqual(registrationProof?.keyID, "device-key-001")
+        XCTAssertEqual(registrationProof?.keyID, Self.canonicalKeyID)
         XCTAssertEqual(registrationProof?.nonce, "registration_nonce-001")
         XCTAssertEqual(registrationProof?.timestampUnixMilliseconds, "1791547200000")
         let registrationHash = try await appAttest.attestationHash()
@@ -154,7 +164,7 @@ final class AssistConsultationTransportTests: XCTestCase {
 
     func testAppAttestReusesStoredKeyWithoutASecondRegistration() async throws {
         let timestamp = Date(timeIntervalSince1970: 1_791_547_200)
-        let keyStore = RecordingKeyIDStore(keyID: "existing-key-001")
+        let keyStore = RecordingKeyIDStore(keyID: Self.appleKeyID)
         let appAttest = RecordingAppAttest()
         let exchange = RecordingAttestationExchange(now: timestamp)
         let authorizer = AssistConsultationAppAttestAuthorizer(appAttest: appAttest, keyIDStore: keyStore, exchange: exchange)
@@ -174,14 +184,14 @@ final class AssistConsultationTransportTests: XCTestCase {
 
     func testAppAttestRejectsAChallengeThatDoesNotEchoExactV4BindingBeforeAssertion() async throws {
         let timestamp = Date(timeIntervalSince1970: 1_791_547_200)
-        let keyStore = RecordingKeyIDStore(keyID: "existing-key-001")
+        let keyStore = RecordingKeyIDStore(keyID: Self.appleKeyID)
         let appAttest = RecordingAppAttest()
         let exchange = RecordingAttestationExchange(now: timestamp, mutatesAssertionBinding: true)
         let authorizer = AssistConsultationAppAttestAuthorizer(appAttest: appAttest, keyIDStore: keyStore, exchange: exchange)
 
         let outcome = await authorizer.authorize(exactBody: Data("{\"a\":1}".utf8), now: timestamp)
         let assertionCount = await appAttest.assertionCount()
-        XCTAssertEqual(outcome, .unavailable)
+        XCTAssertEqual(outcome, .unavailable(.assertionChallengeInvalid))
         XCTAssertEqual(assertionCount, 0)
     }
 
@@ -196,7 +206,7 @@ final class AssistConsultationTransportTests: XCTestCase {
         let keyStoreLoadCount = await keyStore.loadCount()
         let registrationChallengeCount = await exchange.registrationChallengeCount()
         let assertionChallengeCount = await exchange.assertionChallengeCount()
-        XCTAssertEqual(outcome, .unavailable)
+        XCTAssertEqual(outcome, .unavailable(.unsupported))
         XCTAssertEqual(keyStoreLoadCount, 0)
         XCTAssertEqual(registrationChallengeCount, 0)
         XCTAssertEqual(assertionChallengeCount, 0)
@@ -245,6 +255,9 @@ final class AssistConsultationTransportTests: XCTestCase {
         }
         return Data(SHA256.hash(data: frame))
     }
+
+    private static let appleKeyID = Data(repeating: 0xA5, count: 32).base64EncodedString()
+    private static let canonicalKeyID = Data(repeating: 0xA5, count: 32).base64URL
 
     private func ref(_ value: String) -> PseudonymousReference { try! PseudonymousReference(value) }
 
@@ -339,11 +352,11 @@ private actor RecordingAppAttest: AssistConsultationAppAttestProviding {
 
     func generateKey() -> String {
         generatedKeys += 1
-        return "device-key-001"
+        return Data(repeating: 0xA5, count: 32).base64EncodedString()
     }
 
     func attestKey(_ keyID: String, clientDataHash: Data) -> Data {
-        XCTAssertEqual(keyID, "device-key-001")
+        XCTAssertEqual(keyID, Data(repeating: 0xA5, count: 32).base64EncodedString())
         attestations.append(clientDataHash)
         return Data("attestation".utf8)
     }

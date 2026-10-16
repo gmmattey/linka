@@ -7,12 +7,16 @@ import Foundation
 /// cliente. A flag nasce desligada: instalar este pacote não cria tráfego.
 public struct AssistConsultationTransportConfiguration: Equatable, Sendable {
     public static let fixedEndpoint = URL(string: "https://linka-assist-relay.buildealabs.workers.dev/v1/assist/consultations")!
+    /// Debug never shares the production App Attest verifier or D1. This is an
+    /// allowlisted deployment endpoint, not client-configurable routing.
+    public static let developmentEndpoint = URL(string: "https://linka-assist-relay-development.buildealabs.workers.dev/v1/assist/consultations")!
+    private static let allowedEndpoints: Set<URL> = [fixedEndpoint, developmentEndpoint]
 
     public let isEnabled: Bool
     public let endpoint: URL
 
     public init(isEnabled: Bool = false, endpoint: URL = Self.fixedEndpoint) throws {
-        guard endpoint == Self.fixedEndpoint,
+        guard Self.allowedEndpoints.contains(endpoint),
               endpoint.scheme?.lowercased() == "https",
               endpoint.user == nil,
               endpoint.password == nil,
@@ -25,7 +29,8 @@ public struct AssistConsultationTransportConfiguration: Equatable, Sendable {
     }
 
     /// Lê somente a chave V4 do Info.plist. Ausência ou qualquer valor que não
-    /// seja `YES` mantém o recurso desligado; URL diferente nunca é aceita.
+    /// seja `YES` mantém o recurso desligado; só os dois endpoints V4
+    /// compilados para produção e desenvolvimento são aceitos.
     public init(infoDictionary: [String: Any]) throws {
         let enabled = (infoDictionary["LinkaAssistConsultationEnabled"] as? String) == "YES"
         let declaredEndpoint = infoDictionary["LinkaAssistConsultationEndpoint"] as? String

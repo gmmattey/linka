@@ -61,6 +61,64 @@ final class AssistV4PresentationModelTests: XCTestCase {
         XCTAssertEqual(model.turns.map(\.text), ["Posso usar um roteador antigo como AP?"])
     }
 
+    func testRemoteFollowUpPreservesTheQuestionAndRendersTheValidatedConclusion() async {
+        let model = AssistV4PresentationModel(submitOpenQuestionRemote: { payload in
+            let response: ConsultationTurnResponse
+            switch payload.input {
+            case .userMessage:
+                response = ConsultationTurnResponse(
+                    intent: .openQuestion,
+                    disposition: .awaitingAnswer,
+                    next: .question(ConsultationQuestion(
+                        id: try! PseudonymousReference("remote-location"),
+                        text: "Em qual ambiente fica o roteador?",
+                        options: [QuestionOption(id: try! PseudonymousReference("remote-room"), text: "Na sala")],
+                        rationale: "A posição muda a orientação seguinte."
+                    ))
+                )
+            case .answer:
+                response = ConsultationTurnResponse(
+                    intent: .openQuestion,
+                    disposition: .answered,
+                    limitations: ["Não houve medição de Wi-Fi nesta consulta."],
+                    assessment: ConsultationAssessment(
+                        conclusion: .safeAction,
+                        summary: "Teste o posicionamento do roteador antes de trocar equipamento."
+                    ),
+                    next: .none
+                )
+            default:
+                return .recoverableFailure("Entrada inesperada.")
+            }
+            return .response(ConsultationResponse(
+                requestID: payload.requestID,
+                transportSessionID: payload.transportSessionID,
+                turnID: payload.turnID,
+                revision: payload.expectedRevision,
+                outcome: .turn(response)
+            ))
+        })
+        model.draft = "Meu Wi-Fi está ruim"
+        model.submitOpenQuestion()
+        model.sendOpenQuestionOnly()
+        for _ in 0..<20 { await Task.yield() }
+
+        guard case let .remoteQuestion(question) = model.state else {
+            return XCTFail("Expected validated remote follow-up")
+        }
+        XCTAssertEqual(question.text, "Em qual ambiente fica o roteador?")
+        model.selectedRemoteOptionID = question.options[0].id
+        model.continueRemoteQuestion()
+        for _ in 0..<20 { await Task.yield() }
+
+        guard case let .remoteResult(turn) = model.state else {
+            return XCTFail("Expected validated remote conclusion")
+        }
+        XCTAssertEqual(turn.assessment?.summary, "Teste o posicionamento do roteador antes de trocar equipamento.")
+        XCTAssertTrue(turn.claims.isEmpty)
+        XCTAssertTrue(model.copyableText(for: turn).contains("Limites"))
+    }
+
     func testGuidedEntryShowsOneQuestionAndDoesNotSendAnything() {
         let model = AssistV4PresentationModel()
         model.start(.slowConnection)
@@ -129,6 +187,31 @@ final class AssistV4PresentationModelTests: XCTestCase {
         XCTAssertEqual(orientation.actionProgress.status, .ignored)
         XCTAssertNotNil(orientation.actionProgress.confirmedAt)
         XCTAssertNil(orientation.actionProgress.evidenceRef)
+    }
+
+    func testEligibleMeasurementIsAttachedOnlyToTheCurrentLocalOrientation() {
+        let model = AssistV4PresentationModel()
+        reachSlowConnectionOrientation(on: model)
+        let measuredAt = Date(timeIntervalSince1970: 1_700_000_000)
+
+        model.recordSuggestedMeasurement(
+            .init(
+                measuredAt: measuredAt,
+                downloadMbps: 123.4,
+                uploadMbps: 45.6,
+                latencyMs: 12.0,
+                connectionKind: "wifi"
+            )
+        )
+
+        guard case let .localOrientation(orientation) = model.state else {
+            return XCTFail("Expected local orientation with a measurement")
+        }
+        XCTAssertEqual(orientation.actionProgress.status, .completed)
+        XCTAssertNotNil(orientation.actionProgress.evidenceRef)
+        XCTAssertEqual(orientation.measurement?.measuredAt, measuredAt)
+        XCTAssertEqual(orientation.measurement?.downloadMbps, 123.4)
+        XCTAssertEqual(orientation.measurement?.connectionKind, "wifi")
     }
 
     func testOpenQuestionDuringGuidancePreservesTheLocalQuestionAndSelection() {

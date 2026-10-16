@@ -1,11 +1,39 @@
 #if os(iOS)
 import SwiftUI
+import UIKit
 import AssistConsultation
+import NetworkCore
 
 struct AssistV4Screen: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    @StateObject private var model = AssistV4PresentationModel()
+    @StateObject private var model: AssistV4PresentationModel
+    @State private var measurementRequestInFlight = false
+    @State private var requestedMeasurementAt: Date?
+
+    private let latestMeasurement: NetworkMeasurement?
+    private let isSpeedTestRunning: Bool
+    private let canStartSpeedTest: Bool
+    private let startSpeedTest: () -> Void
+
+    init(
+        latestMeasurement: NetworkMeasurement? = nil,
+        isSpeedTestRunning: Bool = false,
+        canStartSpeedTest: Bool = false,
+        startSpeedTest: @escaping () -> Void = {}
+    ) {
+        self.latestMeasurement = latestMeasurement
+        self.isSpeedTestRunning = isSpeedTestRunning
+        self.canStartSpeedTest = canStartSpeedTest
+        self.startSpeedTest = startSpeedTest
+        let history = AssistV4ConsultationHistory.shared
+        _model = StateObject(wrappedValue: AssistV4PresentationModel(
+            submitOpenQuestionRemote: AssistV4RemoteComposition.submitter(),
+            persistRemoteResult: { question, response in
+                try history.save(question: question, response: response)
+            }
+        ))
+    }
 
     var body: some View {
         NavigationStack {
@@ -30,6 +58,9 @@ struct AssistV4Screen: View {
                 guard phase == .background else { return }
                 model.pauseForBackground()
             }
+            .onChange(of: isSpeedTestRunning) { running in
+                finishRequestedMeasurementIfNeeded(running: running)
+            }
         }
     }
 
@@ -49,7 +80,9 @@ struct AssistV4Screen: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Sua rede")
                 .font(.bodyRegularStrong)
-            Text("Nenhum plano, equipamento ou medição foi autorizado nesta prova local.")
+            Text(canStartSpeedTest
+                 ? "Uma medição só começa se você tocar em Fazer teste. Perguntas livres só saem do aparelho após seu consentimento."
+                 : "Perguntas livres só saem do aparelho após seu consentimento. Plano, equipamentos e medições não entram sem uma autorização específica.")
                 .font(.caption)
                 .foregroundColor(.textSecondary)
         }
@@ -122,12 +155,16 @@ struct AssistV4Screen: View {
             openQuestionConsent(question)
         case .submittingOpenQuestion:
             submittingOpenQuestion
+        case let .remoteQuestion(question):
+            remoteQuestion(question)
+        case let .remoteTestApproval(request):
+            remoteTestApproval(request)
         case let .remoteUnavailable(message):
             remoteUnavailable(message)
         case let .remoteRecoverableError(message):
             remoteRecoverableError(message)
-        case let .remoteResult(assessment):
-            remoteResult(assessment)
+        case let .remoteResult(turn):
+            remoteResult(turn)
         case let .unavailableOpenQuestion(text, canResumeGuidance):
             unavailableOpenQuestion(text, canResumeGuidance: canResumeGuidance)
         case let .limitation(text):
@@ -203,11 +240,66 @@ struct AssistV4Screen: View {
         .accessibilityIdentifier("assist-v4.remote-recoverable-error")
     }
 
-    private func remoteResult(_ assessment: ConsultationAssessment) -> some View {
+    private func remoteQuestion(_ question: ConsultationQuestion) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(question.text).font(.displayMedium)
+            ForEach(question.options, id: \.id) { option in
+                Button { model.selectedRemoteOptionID = option.id } label: {
+                    HStack {
+                        Image(systemName: model.selectedRemoteOptionID == option.id ? "largecircle.fill.circle" : "circle")
+                        Text(option.text)
+                        Spacer()
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(option.text)
+            }
+            if question.allowFreeText {
+                TextField("Escreva sua resposta", text: $model.remoteFreeText, axis: .vertical)
+                    .textFieldStyle(.roundedBorder)
+            }
+            Button("Continuar") { model.continueRemoteQuestion() }
+                .buttonStyle(.linkaPrimary)
+                .disabled(model.selectedRemoteOptionID == nil && model.remoteFreeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+        .accessibilityIdentifier("assist-v4.remote-question")
+    }
+
+    private func remoteTestApproval(_ request: InvestigationToolRequest) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Antes de fazer um teste").font(.displayMedium)
+            Text("O Assist pediu para usar um teste já existente do Linka. Nada começa sem sua confirmação.")
+                .font(.bodyRegular)
+                .foregroundColor(.textSecondary)
+            Text("Tipo: \(request.toolType.rawValue)")
+                .font(.caption)
+                .foregroundColor(.textSecondary)
+            if canStartSpeedTest {
+                Text("A execução conectada dessa proposta ainda depende da integração do resultado do teste à sessão. Não vamos fingir que ela aconteceu.")
+                    .font(.bodyRegular)
+                    .foregroundColor(.textSecondary)
+            }
+            Button("Não fazer teste") { model.declineRemoteTest() }
+                .buttonStyle(.linkaSecondary)
+        }
+        .accessibilityIdentifier("assist-v4.remote-test-approval")
+    }
+
+    private func remoteResult(_ turn: ConsultationTurnResponse) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Assist").font(.bodyRegularStrong)
-            Text(assessment.summary).font(.displayMedium)
-            if !assessment.unknowns.isEmpty {
+            if let assessment = turn.assessment {
+                Text(assessment.summary).font(.displayMedium)
+            }
+            if !turn.claims.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("O que sustenta a resposta").font(.bodyRegularStrong)
+                    ForEach(turn.claims, id: \.id) { claim in
+                        Text(claim.text).font(.bodyRegular).foregroundColor(.textSecondary)
+                    }
+                }
+            }
+            if let assessment = turn.assessment, !assessment.unknowns.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("O que ainda não sabemos").font(.bodyRegularStrong)
                     ForEach(assessment.unknowns, id: \.id) { unknown in
@@ -215,8 +307,24 @@ struct AssistV4Screen: View {
                     }
                 }
             }
+            if !turn.limitations.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Limites").font(.bodyRegularStrong)
+                    ForEach(turn.limitations, id: \.self) { limitation in
+                        Text(limitation).font(.bodyRegular).foregroundColor(.textSecondary)
+                    }
+                }
+            }
+            if case let .actionProposal(action) = turn.next {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(action.title).font(.bodyRegularStrong)
+                    ForEach(action.steps, id: \.self) { step in
+                        Text(step).font(.bodyRegular).foregroundColor(.textSecondary)
+                    }
+                }
+            }
             DisclosureGroup("Dados e limites desta resposta") {
-                if assessment.evidenceRefs.isEmpty {
+                if turn.assessment?.evidenceRefs.isEmpty != false {
                     Text("A resposta não usa medição, plano ou equipamento.")
                         .font(.caption)
                         .foregroundColor(.textSecondary)
@@ -227,9 +335,15 @@ struct AssistV4Screen: View {
                 }
             }
             .font(.bodyRegularStrong)
-            Button("Copiar e salvar estarão disponíveis com o histórico da consulta") {}
-                .buttonStyle(.linkaSecondary)
-                .disabled(true)
+            HStack {
+                Button("Copiar") { UIPasteboard.general.string = model.copyableText(for: turn) }
+                    .buttonStyle(.linkaSecondary)
+                Button("Salvar") { model.saveRemoteResult() }
+                    .buttonStyle(.linkaPrimary)
+            }
+            if let feedback = model.saveFeedback {
+                Text(feedback).font(.caption).foregroundColor(.textSecondary)
+            }
         }
         .accessibilityIdentifier("assist-v4.remote-result")
     }
@@ -329,7 +443,7 @@ struct AssistV4Screen: View {
                 }
             }
             orientationEvidence(orientation)
-            suggestedActionFeedback(orientation.actionProgress.status)
+            suggestedActionFeedback(orientation)
             Button("Revisar conexão usada") { model.reviseSlowConnectionAnswers() }
                 .buttonStyle(.linkaSecondary)
                 .accessibilityIdentifier("assist-v4.action.revise-answers")
@@ -412,30 +526,64 @@ struct AssistV4Screen: View {
                     .font(.caption)
                     .foregroundColor(.textSecondary)
             }
-            Text("Nenhuma medição, especificação, oferta ou fonte externa foi consultada nesta prova local. Ela não permite atribuir a causa à operadora.")
-                .font(.caption)
-                .foregroundColor(.textSecondary)
+            if let measurement = orientation.measurement {
+                Text("Medição formal do Linka, concluída em \(measurement.measuredAt.formatted(date: .abbreviated, time: .shortened)).")
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+                Text(measurementSummary(measurement))
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+                Text("Nenhuma especificação, oferta ou fonte externa foi consultada. Esta medição não permite atribuir a causa à operadora.")
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+            } else {
+                Text("Nenhuma medição, especificação, oferta ou fonte externa foi consultada nesta prova local. Ela não permite atribuir a causa à operadora.")
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
+            }
         }
         .font(.bodyRegularStrong)
         .accessibilityIdentifier("assist-v4.evidence-boundary")
     }
 
-    @ViewBuilder private func suggestedActionFeedback(_ status: LocalActionStatus) -> some View {
-        switch status {
+    @ViewBuilder private func suggestedActionFeedback(_ orientation: AssistV4PresentationModel.LocalOrientation) -> some View {
+        switch orientation.actionProgress.status {
         case .pending:
             VStack(alignment: .leading, spacing: 8) {
-                Text("Quando terminar essa ação fora do app, confirme aqui.")
-                    .font(.bodyRegular)
-                    .foregroundColor(.textSecondary)
-                Button("Marcar como concluída") { model.completeSuggestedAction() }
-                    .buttonStyle(.linkaPrimary)
-                    .accessibilityIdentifier("assist-v4.action.complete")
-                Button("Agora não") { model.deferSuggestedAction() }
-                    .buttonStyle(.linkaSecondary)
-                    .accessibilityIdentifier("assist-v4.action.defer")
+                if canStartSpeedTest {
+                    Text("O teste usa tráfego de rede e, se concluir, entra no histórico do Linka. Ele não envia esta investigação ao Assist.")
+                        .font(.bodyRegular)
+                        .foregroundColor(.textSecondary)
+                    if measurementRequestInFlight {
+                        ProgressView("Medindo sua conexão…")
+                            .accessibilityIdentifier("assist-v4.measurement.running")
+                    } else {
+                        Button("Fazer teste agora") { startSuggestedMeasurement() }
+                            .buttonStyle(.linkaPrimary)
+                            .disabled(isSpeedTestRunning)
+                            .accessibilityIdentifier("assist-v4.action.run-test")
+                    }
+                    Button("Agora não") { model.deferSuggestedAction() }
+                        .buttonStyle(.linkaSecondary)
+                        .accessibilityIdentifier("assist-v4.action.defer")
+                } else {
+                    Text("Quando terminar essa ação fora do app, confirme aqui.")
+                        .font(.bodyRegular)
+                        .foregroundColor(.textSecondary)
+                    Button("Marcar como concluída") { model.completeSuggestedAction() }
+                        .buttonStyle(.linkaPrimary)
+                        .accessibilityIdentifier("assist-v4.action.complete")
+                    Button("Agora não") { model.deferSuggestedAction() }
+                        .buttonStyle(.linkaSecondary)
+                        .accessibilityIdentifier("assist-v4.action.defer")
+                }
             }
         case .completed:
-            actionFeedback("Ação marcada como concluída nesta sessão local.")
+            if let measurement = orientation.measurement {
+                measurementFeedback(measurement)
+            } else {
+                actionFeedback("Ação marcada como concluída nesta sessão local.")
+            }
         case .ignored:
             actionFeedback("Ação adiada nesta sessão local.")
         case .unavailable:
@@ -451,6 +599,76 @@ struct AssistV4Screen: View {
                 .foregroundColor(.textSecondary)
         }
         .accessibilityIdentifier("assist-v4.action-feedback")
+    }
+
+    private func measurementFeedback(_ measurement: AssistV4PresentationModel.LocalMeasurementEvidence) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Medição concluída no Linka")
+                .font(.bodyRegularStrong)
+            Text(measurementSummary(measurement))
+                .font(.bodyRegular)
+                .foregroundColor(.textSecondary)
+            Text("Origem: teste formal do Linka em \(measurement.measuredAt.formatted(date: .abbreviated, time: .shortened)). Esse resultado não identifica sozinho LAN, Internet, DNS ou operadora.")
+                .font(.caption)
+                .foregroundColor(.textSecondary)
+        }
+        .accessibilityIdentifier("assist-v4.measurement.result")
+    }
+
+    private func startSuggestedMeasurement() {
+        guard canStartSpeedTest, !isSpeedTestRunning else { return }
+        requestedMeasurementAt = Date()
+        measurementRequestInFlight = true
+        startSpeedTest()
+    }
+
+    private func finishRequestedMeasurementIfNeeded(running: Bool) {
+        guard measurementRequestInFlight, !running else { return }
+        defer {
+            measurementRequestInFlight = false
+            requestedMeasurementAt = nil
+        }
+        guard let requestedMeasurementAt,
+              let latestMeasurement,
+              latestMeasurement.measuredAt >= requestedMeasurementAt else {
+            model.markSuggestedMeasurementUnavailable()
+            return
+        }
+        model.recordSuggestedMeasurement(
+            .init(
+                measuredAt: latestMeasurement.measuredAt,
+                downloadMbps: latestMeasurement.downloadMbps,
+                uploadMbps: latestMeasurement.uploadMbps,
+                latencyMs: latestMeasurement.latencyMs,
+                connectionKind: latestMeasurement.connectionKind?.rawValue
+            )
+        )
+    }
+
+    private func measurementSummary(_ measurement: AssistV4PresentationModel.LocalMeasurementEvidence) -> String {
+        [
+            measurement.connectionKind.map(connectionLabel),
+            metric("Download", measurement.downloadMbps, suffix: "Mbps"),
+            metric("Upload", measurement.uploadMbps, suffix: "Mbps"),
+            metric("Latência", measurement.latencyMs, suffix: "ms")
+        ]
+        .compactMap { $0 }
+        .joined(separator: " · ")
+    }
+
+    private func metric(_ label: String, _ value: Double?, suffix: String) -> String {
+        guard let value else { return "\(label): não medido" }
+        return "\(label): \(value.formatted(.number.precision(.fractionLength(1)))) \(suffix)"
+    }
+
+    private func connectionLabel(_ connectionKind: String) -> String {
+        switch connectionKind {
+        case "wifi": "Wi-Fi"
+        case "ethernet": "Cabo de rede"
+        case "cellular": "Dados móveis"
+        case "other": "Outra conexão"
+        default: "Conexão não identificada"
+        }
     }
 
     private var composer: some View {

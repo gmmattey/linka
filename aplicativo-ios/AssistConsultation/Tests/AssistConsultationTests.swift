@@ -53,7 +53,7 @@ final class AssistConsultationTests: XCTestCase {
     }
 
     private func assessment() -> ConsultationAssessment {
-        ConsultationAssessment(conclusion: .safeAction, summary: "Ação local segura, sem inferir uma causa da rede.")
+        ConsultationAssessment(conclusion: .safeAction, summary: "Ação local segura, sem inferir uma causa da rede.", evidenceRefs: [ref("snapshot-001")])
     }
 
     func testOpenQuestionHasValidMinimalPayloadWithoutMeasurement() throws {
@@ -926,7 +926,7 @@ final class AssistConsultationTests: XCTestCase {
         let validResponse = response(for: request, outcome: .turn(ConsultationTurnResponse(
             intent: .openQuestion,
             disposition: .answered,
-            claims: [ConsultationClaim(id: ref("claim-general-001"), kind: .generalKnowledge, text: "Um ponto de acesso amplia uma rede existente.", evidenceRefs: [], appliesToRefs: [context.snapshotID])],
+            claims: [ConsultationClaim(id: ref("claim-general-001"), kind: .generalKnowledge, text: "Um ponto de acesso amplia uma rede existente.", evidenceRefs: [context.snapshotID], appliesToRefs: [context.snapshotID])],
             assessment: assessment(),
             next: .none
         )))
@@ -935,7 +935,7 @@ final class AssistConsultationTests: XCTestCase {
         let unresolvedClaim = response(for: request, outcome: .turn(ConsultationTurnResponse(
             intent: .openQuestion,
             disposition: .answered,
-            claims: [ConsultationClaim(id: ref("claim-general-002"), kind: .generalKnowledge, text: "Um ponto de acesso amplia uma rede existente.", evidenceRefs: [], appliesToRefs: [ref("entity-missing")])],
+            claims: [ConsultationClaim(id: ref("claim-general-002"), kind: .generalKnowledge, text: "Um ponto de acesso amplia uma rede existente.", evidenceRefs: [context.snapshotID], appliesToRefs: [ref("entity-missing")])],
             assessment: assessment(),
             next: .none
         )))
@@ -1011,6 +1011,16 @@ final class AssistConsultationTests: XCTestCase {
         for invalidFixture in ["schema-incompatible-invalid", "unknown-field-invalid"] {
             XCTAssertThrowsError(try AssistConsultationContract.decode(try fixture(invalidFixture), now: now), "\(invalidFixture) deveria falhar")
         }
+    }
+
+    func testBackendResponseFixturePassesTheSameSwiftReducerContract() throws {
+        let response = try JSONDecoder().decode(ConsultationResponse.self, from: fixture("linka-valid-response"))
+        try response.validate(for: payload(), at: now)
+    }
+
+    func testSharedFabricatedResponseCorpusFailsTheSameReducerContract() throws {
+        let response = try JSONDecoder().decode(ConsultationResponse.self, from: fixture("linka-fabricated-response-invalid"))
+        XCTAssertThrowsError(try response.validate(for: payload(), at: now))
     }
 
     func testContextAssemblerKeepsOnlyAuthorizedCurrentEvidence() throws {
