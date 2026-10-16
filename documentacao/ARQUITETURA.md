@@ -1,12 +1,23 @@
 # Arquitetura do Linka
 
-Responsável: Camillo (Arquitetura, Motor & Contratos) e Marco (Integração). Revisão: 2026-10-15. Fonte de verdade canônica de arquitetura do Linka.
+Responsável: Camillo (Arquitetura, Motor & Contratos) e Marco (Integração). Revisão: 2026-10-16. Fonte de verdade canônica de arquitetura do Linka.
 Este documento distingue implementação local, decisões preservadas e dependências ainda abertas. Não comprova operação externa, distribuição ou aceite em aparelho.
 Os pares são [Produto](PRODUTO.md), [Operação](OPERACAO.md) e [Governança](GOVERNANCA.md): intenção, procedimentos e autoridade não são duplicados aqui.
 
 ## 1. Fronteiras e composição
 
 O motor mede; adapters convertem fatos e integram APIs Apple; bibliotecas calculam, armazenam ou interpretam; SwiftUI apresenta. Nenhuma superfície deve reimplementar metodologia para satisfazer uma demonstração visual.
+
+### Universal Links públicos
+
+O app iOS e macOS declara `applinks:linka.signallq.com`. O adapter
+`PublicUniversalLinkParser` aceita somente HTTPS no host canônico e as rotas
+`/abrir/teste`, `/abrir/historico` e `/abrir/minha-rede` (com ou sem barra final).
+Elas abrem, respectivamente, a Home, Histórico e Minha Rede; nenhuma inicia uma
+medição. Query strings de campanha não alteram o destino. O esquema privado
+`linka://wifi-advanced?payload=…` continua isolado para a importação local e não
+compartilha o parser público. Provisionamento da capability e validação em aparelho
+continuam externos ao repositório.
 
 ```text
 LinkaEngine.SpeedTestCore → MeasurementState → SpeedTestViewModel

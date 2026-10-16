@@ -394,6 +394,12 @@ struct MainView: View {
             .onChange(of: intentCoordinator.pendingOpenLatestMeasurement) { pending in
                 handleOpenLatestMeasurementRequest(pending)
             }
+            .onChange(of: intentCoordinator.pendingPublicUniversalLink) { route in
+                handlePublicUniversalLink(route)
+            }
+            .onAppear {
+                handlePublicUniversalLink(intentCoordinator.pendingPublicUniversalLink)
+            }
     }
 
     private func attachResultPresentation<Content: View>(_ content: Content) -> some View {
@@ -1462,6 +1468,22 @@ struct MainView: View {
         guard pending else { return }
         navPath.append(AppRoute.history)
         intentCoordinator.consumeOpenHistory()
+    }
+
+    private func handlePublicUniversalLink(_ route: PublicUniversalLink?) {
+        guard let route else { return }
+        defer { intentCoordinator.consumePublicUniversalLink() }
+        guard !isMeasuring else { return }
+
+        navPath = NavigationPath()
+        switch route {
+        case .home:
+            break
+        case .history:
+            navPath.append(AppRoute.history)
+        case .myNetwork:
+            navPath.append(AppRoute.myNetwork)
+        }
     }
 
     private func handleAssistMeasurementCompletion(_ phase: SpeedTestUIPhase) {
