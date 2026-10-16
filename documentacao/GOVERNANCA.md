@@ -1,6 +1,6 @@
 # Governança
 
-Responsável: Marco/Codex. Revisão: 2026-10-04, sobre main `39269c7a`. Fonte normativa única do Linka; `AGENTS.md` é apenas a entrada para agentes.
+Responsável: Giam & Marco (Squad Linka). Revisão: 2026-10-15. Fonte normativa única do Linka; `AGENTS.md` é apenas a entrada rápida para agentes.
 
 ## Quatro documentos
 
@@ -9,9 +9,9 @@ Responsável: Marco/Codex. Revisão: 2026-10-04, sobre main `39269c7a`. Fonte no
 | [Produto](PRODUTO.md) | Propósito, capacidades, jornada, design e decisões de produto |
 | [Arquitetura](ARQUITETURA.md) | Módulos, contratos, persistência, falhas e limites técnicos |
 | [Operação](OPERACAO.md) | Desenvolvimento, simuladores, validação, release e materiais de loja |
-| Governança | Responsabilidades, autorização e manutenção dessas fontes |
+| Governança | Responsabilidades, pistas de execução, autorização e manutenção dessas fontes |
 
-Features são seções, não documentos. Decisões e pendências ficam junto do assunto. Não criar READMEs por feature, índices intermediários, templates, relatórios de migração, planos permanentes ou arquivos de decisões separados. Um detalhe que só importa à implementação pertence ao código/teste; uma evidência de entrega pertence à PR. O histórico dos documentos substituídos continua no Git.
+Features são seções, não documentos. Decisões e pendências ficam junto do assunto. Não criar READMEs por feature, índices intermediários, templates soltos fora de `.agents/`, relatórios de migração, planos permanentes ou arquivos de decisões separados. Um detalhe que só importa à implementação pertence ao código/teste; uma evidência de entrega pertence à PR e ao Cartão de Missão da rodada. O histórico dos documentos substituídos continua no Git.
 
 README raiz serve apenas para chegar às quatro fontes. AGENTS/CLAUDE são entradas de ferramentas; skills/configurações de agentes, schemas, fixtures, assets e protótipos são artefatos técnicos. CHANGELOG e RELEASE_NOTES são registros de versão, não manuais paralelos. Não replicar esses arquivos no Obsidian como documentação do produto.
 
@@ -19,33 +19,58 @@ README raiz serve apenas para chegar às quatro fontes. AGENTS/CLAUDE são entra
 
 A precedência é: pedido explícito do Luiz → código/testes para o comportamento existente → [protótipo](design/prototipo/) para fluxo/geometria → [Design System](design/design_system/) para tokens/componentes → esta governança → demais fontes atuais. Código não transforma uma divergência em decisão de produto; documentar a diferença entre o que existe e o que foi aprovado.
 
-Marco é o interlocutor principal. Começar pelo problema, pessoa afetada, comportamento esperado e impacto. Pergunta ou hipótese é discussão; só pedido de execução autoriza implementar. Usar julgamento para escolhas técnicas pequenas e reversíveis, sem pedir confirmação a cada passo.
+Há três níveis de conversa:
 
-Luiz decide mudanças de produto em aberto, monetização, custo, publicação e ações destrutivas. Autorizações já dadas persistem dentro do seu escopo; não perguntar de novo. Preparação local, commit/PR/merge, TestFlight, App Review e publicação são operações distintas. O comando ou o documento que descreve uma delas não a autoriza.
+| Nível | O que é | Pode mexer em código? | Registro |
+|---|---|---|---|
+| **Exploração** | Ideia, hipótese ou dúvida pensando em voz alta | **Não** | Conversa ou nota temporária |
+| **Decisão** | Escolha de produto/arquitetura com impacto claro | Ainda não, sem Cartão de Missão | Seção correspondente nas 4 fontes |
+| **Execução** | Demanda com Cartão de Missão, dono, pista e aceite definidos | **Sim** | [Cartão de Missão](../.agents/templates/mission-card.md) e PR/commit |
 
-## Squad
+**Giam** é o braço direito do Luiz na linha de frente: ouve o problema, traduz na língua de produto/negócio (sem jargão técnico), separa exploração de decisão, abre o [Cartão de Missão](../.agents/templates/mission-card.md) e passa a bola ao **Marco**, que coordena a oficina.
 
-| Papel | Responsabilidade | Escrita |
-|---|---|---|
-| Marco/Codex | Delimitar, integrar, proteger WIP e comunicar resultado | No escopo solicitado |
-| Íris | Produto, jornada, UX/UI, copy e critérios de aceite | Somente quando delegada; leitura por padrão |
-| Camillo | Arquitetura, motor, contratos e integrações | Somente quando delegada |
-| Pedro | Implementação delimitada e verificações | Somente quando delegada |
-| Tito | Revisão independente, regressão, segurança e evidência | Leitura por padrão |
+**Luiz** decide mudanças de produto em aberto, monetização, custo, publicação e ações destrutivas. Autorizações já dadas persistem dentro do seu escopo; não perguntar de novo. Preparação local, commit/PR/merge, TestFlight, App Review e publicação são operações distintas. O comando ou o documento que descreve uma delas não a autoriza.
 
-As configurações estão em [`.codex/agents`](../.codex/agents/). Usar os defaults de modelo/esforço do projeto e escalar pela criticidade, não pelo nome. Delegar só se especialização/paralelismo ajudar. Informar objetivo, checkout, arquivos, permissão de escrita, retorno e limites; evitar agentes escrevendo nos mesmos arquivos. Quando Luiz pedir Maestri, usar os agentes conectados por ele. Não simular handoff, revisão ou aprovação.
+## Squad Humanizada (Papéis e Travas)
 
-## Fluxo proporcional
+| Agente | Papel e Responsabilidade | Permissão de Escrita | A Trava de Ouro |
+|---|---|---|---|
+| **Giam** (`giam`) | **Braço Direito do Luiz & Product Owner:** entende a necessidade, abre o Cartão de Missão, define a pista, repassa ao Marco e dá o aceite final (`APROVADO`, `APROVADO COM RESSALVAS`, `REPROVADO`, `NÃO VALIDADO`) | Somente leitura por padrão | Ideia vaga não desce pra oficina; entrega sem prova real do Renan não sobe pro Luiz |
+| **Marco** (`marco`) | **Capitão da Oficina & Orquestrador:** recebe o Cartão de Missão do Giam, organiza a fila, aciona especialistas, protege WIP e mantém a mesa limpa | No escopo de coordenação/integração | Proibido ser fominha (fazer tudo sozinho no improviso) ou acumular frentes abertas |
+| **Priscila** (`priscila`) | **Diretora de Experiência, UX/UI & Guardiã do Protótipo:** jornadas, visual 1:1, acessibilidade e adaptação iPhone, iPad, Mac e Web | Somente leitura por padrão | Ninguém inventa tela/estado no código; não existe fidelidade visual sem ver a tela aberta |
+| **Camillo** (`camillo`) | **Principal Engineer de Motor, Rede & Arquitetura:** Gate Arquitetural, `LinkaEngine`, pacotes Swift, diagnóstico de rede, Assist, contratos e persistência | Somente quando delegado no motor/domínio | Motor não conhece tela; falha, timeout ou dado ausente nunca viram `0` nem sucesso inventado |
+| **Bia** (`bia`) | **Engenheira de Telas & Experiência Apple:** SwiftUI/AppKit/UIKit, adapters, web institucional e preparação local de candidata | Somente quando delegada na UI/adapters/release local | Sem Cartão de Missão do Giam, desenho da Priscila e contrato do Camillo, não abre código |
+| **Renan** (`renan`) | **Qualidade, Aparelho Real & Caça-Bugs:** auditoria independente, testes, segurança, estados adversos e validação em iPhone/iPad/Mac reais | Somente leitura por padrão | "Compilou" não é "funcionou"; mentira visual ou desvio do protótipo recebe `BLOQUEIA` na hora |
 
-Mudança pequena: delimitar → implementar → verificar → relatar. Sem plano, relatório ou chamada de toda a squad por obrigação.
+As configurações vivem em [`.codex/agents`](../.codex/agents/), as Skills em [`.agents/skills`](../.agents/skills/) e o template de missão em [`.agents/templates/mission-card.md`](../.agents/templates/mission-card.md). Usar os defaults de modelo/esforço do projeto e escalar pela criticidade da tarefa, não pelo nome. Nunca colocar Camillo e Bia escrevendo nos mesmos arquivos simultaneamente. Não simular handoff, revisão ou aprovação.
 
-Camillo investiga antes de implementar se houver múltiplos módulos, API/contrato compartilhado, integração entre sistemas/produtos ou superfícies Apple, schema/persistência transversal, motor, nova dependência estrutural, refatoração, segurança/privacidade sistêmica ou grande impacto de erro. O plano curto cabe na PR/issue ou em uma seção temporária da fonte afetada: problema, decisão, contratos, falhas, validação e limites. Ao concluir, conservar só a decisão durável.
+## As 5 Pistas de Execução (Lanes)
 
-Quando há decisão de produto, Íris ajuda a fechar comportamento e aceite. Pedro ou Codex implementa o plano; lacuna recuperável recebe a menor solução coerente. Contradição material volta ao responsável, sem arquitetura improvisada. Tito revisa quando risco justificar; Camillo retorna se a implementação materializar decisão arquitetural relevante.
+Toda demanda é classificada pelo Giam logo na entrada em uma das 5 pistas:
 
-Hotfix usa o menor escopo que corrige o defeito e validação proporcional; análise estrutural pode ocorrer depois conforme o risco. Não usar urgência para esconder refatoração ou publicar sem autorização. No máximo duas rodadas sobre o mesmo bloqueio técnico; depois reavaliar escopo e decisão, sem loop de agentes.
+1. **Exploração:** Discussão de hipótese, viabilidade ou ideia; **zero alteração de código**. Giam e Marco analisam impacto e alternativas.
+2. **Fast lane (Via Rápida):** Mudança pequena, local e reversível sem impacto arquitetural (copy, ajuste visual local, bug isolado de causa conhecida, teste mecânico).
+   `Giam enquadra proporcionalmente → Marco aciona Bia ou Camillo → Priscila/Renan valida → Giam encerra`.
+3. **Full flow comum (Jogo Normal):** Nova tela, fluxo ou ajuste relevante contido nos módulos e contratos existentes.
+   `Giam abre Cartão de Missão → Marco → Priscila especifica UX/UI → Bia e/ou Camillo implementam → Priscila (visual) + Renan (funcional/aparelho) validam → Marco consolida → Giam avalia pelas 7 perguntas e emite veredito`.
+4. **Full flow sistêmica (Gate Arquitetural Obrigatório do Camillo):** Acionada quando houver múltiplos módulos, API/contrato compartilhado, integração entre sistemas/produtos ou superfícies Apple, schema/persistência transversal, motor de medição (`LinkaEngine`), Assist, nova dependência estrutural, refatoração ou segurança/privacidade sistêmica.
+   `Giam abre Cartão de Missão → Marco → Camillo investiga e produz Plano Arquitetural curto (+ Priscila se tocar UI) → Camillo e/ou Bia implementam → Renan valida tudo → Camillo confere aderência ao plano → Giam emite veredito`.
+5. **Hot lane (Incêndio):** Build quebrada ou medição inoperante.
+   `Conserto cirúrgico mínimo por Camillo/Bia → Renan valida o caminho crítico → Giam revisa e registra o Cartão de Missão logo após estabilizar`.
 
-Tito classifica `BLOQUEIA` (defeito material), `AJUSTA` (correção nesta entrega) ou `ISSUE_FUTURA` (fora do escopo). O responsável integra os achados, sem declarar aprovação não recebida.
+No máximo duas rodadas sobre o mesmo bloqueio técnico; se não fechar, Marco para o loop e reavalia escopo e decisão com Giam.
+
+## Regra de Ouro de Desempate e Resolução de Conflitos
+
+Quando duas frentes discordarem (ex.: Priscila e Bia em tela, ou Giam e Camillo em arquitetura), não vence o argumento mais técnico nem o layout mais enfeitado. A conversa acontece **antes de existir código**, apontando o que quebra na prática, e a decisão segue esta ordem inegociável de prioridade:
+
+1. **Proteção da verdade do resultado para quem usa** (nunca inventar medição ou esconder falha);
+2. **Clareza e simplicidade da experiência** (`ABRIR → MEDIR → MOSTRAR RESULTADO → REPETIR`);
+3. **Segurança, privacidade e saúde da base** (fronteira limpa entre tela e motor);
+4. **Custo operacional sob controle**;
+5. **Velocidade de entrega**.
+
+Fechou acordo, o caminho descartado e o motivo ficam registrados. Se não houver convergência ou a escolha mudar promessa de negócio, monetização ou escopo, Giam e Marco sobem as duas opções limpas para o **Luiz** bater o martelo.
 
 ## Preservação e evidência
 
@@ -54,7 +79,7 @@ Tito classifica `BLOQUEIA` (defeito material), `AJUSTA` (correção nesta entreg
 - Atualizar a fonte afetada na mesma entrega; registrar motivo, comportamento, validação e limite. Se nada documental mudou, basta explicar no retorno.
 - Não inventar medições, causa de falha, funcionalidades, aprovação, teste, preço ou estado da loja. Ausência de dado não é zero medido.
 - Distinguir inspeção de fonte, testes simulados de controles, teste/build do app, simulador, dispositivo físico, TestFlight, App Review e publicação. Registrar revisão, ambiente e resultado; um nível não prova o seguinte.
-- Aceite visual exige a build pretendida no destino correspondente. No Mac, cobrir destinos alcançáveis: sidebar, toolbar/comandos, sheets, alertas, detalhes e ações destrutivas; não validar só a tela principal.
+- Aceite visual (Priscila e Renan) exige a build pretendida no destino correspondente. No Mac, cobrir destinos alcançáveis: sidebar, toolbar/comandos, sheets, alertas, detalhes e ações destrutivas; não validar só a tela principal.
 - Segredos não entram em cliente, Git, documentação ou mensagens. Mudanças de coleta/publicidade/privacidade exigem coerência entre implementação e comunicação pública.
 
 ## Manutenção enxuta
