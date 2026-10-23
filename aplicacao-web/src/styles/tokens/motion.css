@@ -1,8 +1,0 @@
-:root{
---ease-spring:cubic-bezier(0.32,0.72,0,1); /* @kind other */
---ease-standard:cubic-bezier(0.4,0,0.2,1); /* @kind other */
---duration-fast:0.15s; /* @kind other */
---duration-base:0.25s; /* @kind other */
---duration-slow:0.35s; /* @kind other */
---press-scale:0.96; /* @kind other */
-}

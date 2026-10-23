@@ -1,6 +1,6 @@
 # Linka
 
-SpeedTest minimalista e nativo para **iPhone, iPad e Mac**, com diagnóstico contextual e inventário residencial (**Minha Rede**). O site em `aplicacao-web/` é institucional.
+SpeedTest minimalista e nativo para **iPhone, iPad e Mac**, com diagnóstico contextual e inventário residencial (**Minha Rede**). O site institucional e landing page pública estão centralizados em `~/Projetos/web/landings` (`sites/linka/`).
 
 ---
 
@@ -37,7 +37,6 @@ linka/
 │   ├── NetworkInventory/         # Minha Rede (Equipamentos, Planos, Topologia e Avaliador B1)
 │   ├── AssistConsultation/       # Núcleo e contratos tipados da consultoria Assist V4
 │   └── ...                       # Demais pacotes modulares (History, Insights, Assist, DNS, Netscope)
-├── aplicacao-web/                # Site institucional (React + TypeScript + Vite / Firebase Hosting)
 ├── documentacao/                 # Os 4 Pilares Canônicos + subpastas técnicas
 │   ├── PRODUTO.md                # Pilar 1: Produto, capacidades e jornadas
 │   ├── ARQUITETURA.md            # Pilar 2: Arquitetura, módulos e contratos
