@@ -1,6 +1,7 @@
 import SwiftUI
 import NetworkInventory
 import NetworkProfiles
+import NetworkSpatial
 import UniformTypeIdentifiers
 import LinkaEntitlements
 #if os(iOS)
@@ -16,6 +17,14 @@ struct MyNetworkView: View {
     @State private var connectionSheet: ConnectionSheetTarget?
     @State private var managingEnvironments = false
     @State private var showPurchase = false
+    @State private var spatialSummary: SpatialSummary?
+
+    struct SpatialSummary: Sendable {
+        var houseName: String
+        var totalCoveragePercent: Int
+        var measuredCount: Int
+        var totalRoomsCount: Int
+    }
 
     private enum ConnectionSheetTarget: Identifiable {
         case add
@@ -35,6 +44,10 @@ struct MyNetworkView: View {
 
             if store.activePlan != nil {
                 planPerformanceSection
+            }
+
+            if #available(iOS 17.0, macOS 14.0, *) {
+                spatialCoverageSection
             }
 
             devicesSection
@@ -64,7 +77,12 @@ struct MyNetworkView: View {
             }
         }
         .overlay { if store.loading { ProgressView() } }
-        .task { await store.reload() }
+        .task {
+            await store.reload()
+            if #available(iOS 17.0, macOS 14.0, *) {
+                loadSpatialSummary()
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: LinkaHousehold.didChange)) { _ in Task { await store.reload() } }
         .sheet(item: $editing) { device in
             DeviceEditorView(device: device, store: store)
@@ -326,6 +344,71 @@ struct MyNetworkView: View {
                 title: LinkaCopy.value("inventory.evaluation.meeting.title"),
                 message: LinkaCopy.value("inventory.evaluation.meeting.message")
             )
+        }
+    }
+
+    @available(iOS 17.0, macOS 14.0, *)
+    private func loadSpatialSummary() {
+        self.spatialSummary = SpatialCoverageBridge.shared.loadSummary()
+    }
+
+    @available(iOS 17.0, macOS 14.0, *)
+    @ViewBuilder
+    private var spatialCoverageSection: some View {
+        Section(LinkaCopy.value("inventory.section.spatialCoverage", defaultValue: "Cobertura Residencial")) {
+            let summary = spatialSummary ?? SpatialCoverageBridge.shared.loadSummary()
+
+            NavigationLink {
+                HomeView(
+                    dataStore: SpatialCoverageBridge.shared.dataStore,
+                    wrapInNavigationStack: false,
+                    title: LinkaCopy.value("inventory.spatial.title", defaultValue: "Cobertura Residencial")
+                )
+            } label: {
+                HStack(spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color.brandAccentWarm.opacity(0.15))
+                            .frame(width: 44, height: 44)
+
+                        Image(systemName: "house.and.flag.fill")
+                            .font(.title3)
+                            .foregroundStyle(Color.brandAccentWarm)
+                    }
+                    .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack {
+                            Text(summary.houseName)
+                                .font(.headline)
+                                .foregroundStyle(Color.textPrimary)
+
+                            if summary.measuredCount > 0 {
+                                Spacer()
+                                Text("\(summary.totalCoveragePercent)%")
+                                    .font(.subheadline.weight(.bold))
+                                    .foregroundStyle(summary.totalCoveragePercent >= 80 ? Color.statusGood : (summary.totalCoveragePercent >= 50 ? Color.statusAttention : Color.statusCritical))
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 2)
+                                    .background((summary.totalCoveragePercent >= 80 ? Color.statusGood : (summary.totalCoveragePercent >= 50 ? Color.statusAttention : Color.statusCritical)).opacity(0.12))
+                                    .clipShape(Capsule())
+                            }
+                        }
+
+                        if summary.measuredCount > 0 {
+                            Text("\(summary.measuredCount) de \(summary.totalRoomsCount) cômodos medidos")
+                                .font(.caption)
+                                .foregroundStyle(Color.textSecondary)
+                        } else {
+                            Text(LinkaCopy.value("inventory.spatial.unmeasured", defaultValue: "\(summary.totalRoomsCount) cômodos cadastrados · Toque para mapear"))
+                                .font(.caption)
+                                .foregroundStyle(Color.textSecondary)
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            .accessibilityIdentifier("inventory.spatialCoverage.row")
         }
     }
 
@@ -1167,3 +1250,27 @@ private struct DeviceLabelCamera: UIViewControllerRepresentable {
     }
 }
 #endif
+
+// MARK: - Spatial Coverage Bridge (iOS 17+ / macOS 14+)
+
+@available(iOS 17.0, macOS 14.0, *)
+@MainActor
+final class SpatialCoverageBridge: ObservableObject {
+    static let shared = SpatialCoverageBridge()
+    let dataStore: DataStore
+
+    init() {
+        self.dataStore = DataStore()
+    }
+
+    func loadSummary() -> MyNetworkView.SpatialSummary {
+        let house = dataStore.fetchOrCreateDefaultHouse()
+        let measured = house.rooms.compactMap(\.lastMeasurement).count
+        return MyNetworkView.SpatialSummary(
+            houseName: house.name,
+            totalCoveragePercent: house.totalCoveragePercent,
+            measuredCount: measured,
+            totalRoomsCount: house.rooms.count
+        )
+    }
+}
