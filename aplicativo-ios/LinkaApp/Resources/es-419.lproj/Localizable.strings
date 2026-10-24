@@ -400,7 +400,9 @@
 "settings.advancedWiFi.message.active" = "Atajos proporciona datos adicionales cuando ejecutas la integración.";
 "settings.advancedWiFi.message.disabled" = "La integración está configurada, pero no se ejecuta antes de las mediciones.";
 "settings.subscription.checking" = "Verificando";
-"settings.subscription.temporaryFree" = "Gratis hasta el 31 de octubre";
+"settings.subscription.temporaryFree" = "Gratis hasta %@";
+"settings.subscription.promotion.title" = "Todo está liberado";
+"settings.subscription.promotion.message" = "Todas las funciones de Linka Plus están disponibles hasta %@. Durante la promoción, Linka muestra anuncios.";
 "settings.subscription.learnPlus" = "Conocer Linka Plus";
 "settings.subscription.active" = "Activa";
 "settings.subscription.inactive" = "Suscripción inactiva";

@@ -15,6 +15,7 @@ struct MyNetworkView: View {
     @StateObject private var store = LinkaInventoryStore()
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @EnvironmentObject private var entitlements: StoreKitEntitlementProvider
+    @EnvironmentObject private var ads: LinkaAdsCoordinator
     @Environment(\.openURL) private var openURL
     @State private var editing: RegisteredNetworkDevice?
     @State private var editingPlan = false
@@ -43,6 +44,14 @@ struct MyNetworkView: View {
             } else {
                 devicesSection
                 planSection
+
+                if showsMyNetworkAd {
+                    Section {
+                        BannerView(placement: .myNetwork)
+                    }
+                    .listRowInsets(EdgeInsets(top: 10, leading: 4, bottom: 10, trailing: 4))
+                    .listRowBackground(Color.clear)
+                }
 
                 if #available(iOS 17.0, macOS 14.0, *) {
                     spatialCoverageSection
@@ -77,11 +86,21 @@ struct MyNetworkView: View {
         .overlay { if store.loading { ProgressView() } }
         .task {
             await store.reload()
+            prepareMyNetworkAdIfEligible()
             if #available(iOS 17.0, macOS 14.0, *) {
                 loadSpatialSummary()
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: LinkaHousehold.didChange)) { _ in Task { await store.reload() } }
+        .onReceive(NotificationCenter.default.publisher(for: LinkaHousehold.didChange)) { _ in
+            Task {
+                await store.reload()
+                prepareMyNetworkAdIfEligible()
+            }
+        }
+        .onChange(of: entitlements.isEntitlementResolved) { resolved in
+            guard resolved else { return }
+            prepareMyNetworkAdIfEligible()
+        }
         .sheet(item: $editing) { device in
             DeviceEditorView(device: device, store: store)
                 #if os(macOS)
@@ -187,6 +206,27 @@ struct MyNetworkView: View {
             Text(advancedWiFiMessage)
         }
         #endif
+    }
+
+    private var isEligibleForAds: Bool {
+        LinkaEntitlementPolicy.shouldShowAds(for: entitlements.snapshot, at: Date())
+    }
+
+    private var showsMyNetworkAd: Bool {
+        #if os(iOS)
+        return !store.devices.isEmpty && entitlements.isEntitlementResolved && isEligibleForAds
+            && ads.nativeAd(for: .myNetwork) != nil
+        #else
+        return false
+        #endif
+    }
+
+    private func prepareMyNetworkAdIfEligible() {
+        guard !store.devices.isEmpty else { return }
+        ads.prepareMyNetworkAd(
+            isEligibleForAds: isEligibleForAds,
+            isEntitlementResolved: entitlements.isEntitlementResolved
+        )
     }
 
     private var planSection: some View {

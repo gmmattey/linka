@@ -35,7 +35,7 @@ final class LinkaEntitlementsTests: XCTestCase {
         let date = LinkaTemporaryFreeOffer.endsAt.addingTimeInterval(-60)
         XCTAssertEqual(LinkaEntitlementSnapshotResolver.resolve(at: date, promotionSupported: false), .free)
         #if os(macOS)
-        XCTAssertEqual(LinkaEntitlementSnapshotResolver.resolve(at: date), .plus(status: .active, source: .promotion, validUntil: LinkaTemporaryFreeOffer.endsAt))
+        XCTAssertEqual(LinkaEntitlementSnapshotResolver.resolve(at: date), .free)
         #endif
     }
 
@@ -291,10 +291,14 @@ final class StoreKitEntitlementProviderTests: XCTestCase {
             LinkaTemporaryFreeOffer.endsAt.addingTimeInterval(-1)
         })
 
+        #if os(iOS)
         XCTAssertEqual(provider.snapshot.plan, .plus)
         XCTAssertEqual(provider.snapshot.status, .active)
         XCTAssertEqual(provider.snapshot.source, .promotion)
         XCTAssertEqual(provider.snapshot.validUntil, LinkaTemporaryFreeOffer.endsAt)
+        #else
+        XCTAssertEqual(provider.snapshot, .free)
+        #endif
     }
 
     func testLoadProductWithAnUnknownIDResolvesToNilProductAndStopsLoading() async {

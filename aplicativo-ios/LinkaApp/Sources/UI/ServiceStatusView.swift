@@ -1,7 +1,10 @@
 import SwiftUI
+import LinkaEntitlements
 
 struct ServiceStatusView: View {
     @EnvironmentObject private var store: ServiceStatusStore
+    @EnvironmentObject private var entitlements: StoreKitEntitlementProvider
+    @EnvironmentObject private var ads: LinkaAdsCoordinator
     @State private var query = ""
     @State private var expandedIncidentIDs: Set<String> = []
 
@@ -51,13 +54,24 @@ struct ServiceStatusView: View {
                         }
                     }
                 }
+                if showsServicesAd {
+                    Section {
+                        BannerView(placement: .services)
+                    }
+                    .listRowInsets(EdgeInsets(top: 10, leading: 4, bottom: 10, trailing: 4))
+                    .listRowBackground(Color.clear)
+                }
             }
         }
         .linkaGradientScreenBackground()
         .searchable(text: $query, prompt: "Buscar serviço")
         .navigationTitle("Status de serviços")
-        .task { await store.refresh() }
-        .refreshable { await store.refresh() }
+        .task { await store.refresh(); prepareServicesAdIfEligible() }
+        .refreshable { await store.refresh(); prepareServicesAdIfEligible() }
+        .onChange(of: entitlements.isEntitlementResolved) { resolved in
+            guard resolved else { return }
+            prepareServicesAdIfEligible()
+        }
     }
 
     private var emptyState: some View {
@@ -67,6 +81,24 @@ struct ServiceStatusView: View {
             Text("Atualize novamente em alguns instantes.").font(.footnote).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, minHeight: 160)
+    }
+
+    private var showsServicesAd: Bool {
+        #if os(iOS)
+        return !visibleServices.isEmpty && entitlements.isEntitlementResolved
+            && LinkaEntitlementPolicy.shouldShowAds(for: entitlements.snapshot)
+            && ads.nativeAd(for: .services) != nil
+        #else
+        return false
+        #endif
+    }
+
+    private func prepareServicesAdIfEligible() {
+        guard !visibleServices.isEmpty else { return }
+        ads.prepareServicesAd(
+            isEligibleForAds: LinkaEntitlementPolicy.shouldShowAds(for: entitlements.snapshot),
+            isEntitlementResolved: entitlements.isEntitlementResolved
+        )
     }
 
     private func iOSServiceRow(_ service: LinkaService) -> some View {

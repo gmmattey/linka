@@ -60,20 +60,34 @@ public enum LinkaAdEligibility: Equatable, Sendable {
     case unresolvedEntitlement
 }
 
-/// Campanha de lançamento: todos os recursos ficam disponíveis sem compra
-/// até o fim de 31/10/2026 no horário de São Paulo.
+/// Campanha: todos os recursos ficam disponíveis sem compra até o fim de
+/// 01/01/2027 no horário de São Paulo.
 ///
 /// A data é centralizada para que UI, Atalhos e provedores de dados usem o
 /// mesmo limite. Depois dela, a política normal de entitlement volta a valer.
 public enum LinkaTemporaryFreeOffer {
-    public static let endsAt = Date(timeIntervalSince1970: 1_793_501_999)
+    private static let saoPauloTimeZone = TimeZone(identifier: "America/Sao_Paulo")!
+
+    public static let endsAt: Date = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = saoPauloTimeZone
+        return calendar.date(from: DateComponents(
+            timeZone: saoPauloTimeZone,
+            year: 2027,
+            month: 1,
+            day: 1,
+            hour: 23,
+            minute: 59,
+            second: 59
+        ))!
+    }()
 
     public static func isWithinOfferPeriod(at date: Date) -> Bool {
         date <= endsAt
     }
 
     public static var isSupportedOnCurrentPlatform: Bool {
-        #if os(iOS) || os(macOS)
+        #if os(iOS)
         return true
         #else
         return false

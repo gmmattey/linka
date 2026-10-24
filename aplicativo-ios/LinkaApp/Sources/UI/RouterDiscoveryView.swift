@@ -1,5 +1,6 @@
 import SwiftUI
 import NetworkDiagnostics
+import LinkaEntitlements
 
 #if os(iOS)
 import UIKit
@@ -21,10 +22,14 @@ private enum RouterPanelState: Equatable {
 /// ativa, confirmado por HTTP/HTTPS antes de ser oferecido ao usuário.
 struct RouterDiscoveryView: View {
     @Environment(\.openURL) private var openURL
+    @EnvironmentObject private var entitlements: StoreKitEntitlementProvider
+    @EnvironmentObject private var ads: LinkaAdsCoordinator
     @State private var state: RouterPanelState = .idle
     @State private var showOpenConfirmation = false
     @State private var savedPassword = ""
     @State private var hasSavedPassword = false
+    @State private var adIndex: Int?
+    @AppStorage("linka.ads.router.nextIndex") private var nextRouterAdIndex = 0
     private let service = "com.linka.router"
 
     var body: some View {
@@ -67,6 +72,8 @@ struct RouterDiscoveryView: View {
                 .disabled(state == .locating)
             }
 
+            // Credenciais ficam antes de publicidade para não sugerir que o
+            // anúncio participa do acesso ao roteador.
             Section(header: Text(LinkaCopy.value("router.password.title")), footer: Text(LinkaCopy.value("router.password.footer"))) {
                 SecureField(LinkaCopy.value("router.password.field"), text: $savedPassword)
                 Button(LinkaCopy.value("common.savePassword")) {
@@ -84,6 +91,14 @@ struct RouterDiscoveryView: View {
                     }
                 }
             }
+
+            if case .found = state, let adIndex, showsRouterAd {
+                Section {
+                    BannerView(placement: .router(adIndex))
+                }
+                .listRowInsets(EdgeInsets(top: 10, leading: 4, bottom: 10, trailing: 4))
+                .listRowBackground(Color.clear)
+            }
         }
         .tint(.brandAccentWarm)
         .linkaGradientScreenBackground()
@@ -94,6 +109,14 @@ struct RouterDiscoveryView: View {
                 savedPassword = password
                 hasSavedPassword = true
             }
+        }
+        .onChange(of: entitlements.isEntitlementResolved) { resolved in
+            guard resolved, case .found = state, let adIndex else { return }
+            ads.prepareRouterAd(
+                index: adIndex,
+                isEligibleForAds: LinkaEntitlementPolicy.shouldShowAds(for: entitlements.snapshot),
+                isEntitlementResolved: true
+            )
         }
         .confirmationDialog(LinkaCopy.value("router.panel.confirmation.title"), isPresented: $showOpenConfirmation, titleVisibility: .visible) {
             if case .found(let gateway) = state, let url = gateway.adminURL {
@@ -110,6 +133,7 @@ struct RouterDiscoveryView: View {
     @MainActor
     private func locatePanel() async {
         state = .locating
+        adIndex = nil
         guard let ip = await ActiveGatewayDiscovery().discoverGateway() else {
             state = .unavailable
             return
@@ -117,11 +141,26 @@ struct RouterDiscoveryView: View {
         let gateway = await GatewayProber().probe(gatewayIP: ip)
         if gateway.isAccessible, gateway.adminURL != nil {
             state = .found(gateway)
+            let selectedIndex = nextRouterAdIndex % 2
+            adIndex = selectedIndex
+            nextRouterAdIndex = (selectedIndex + 1) % 2
+            ads.prepareRouterAd(
+                index: selectedIndex,
+                isEligibleForAds: LinkaEntitlementPolicy.shouldShowAds(for: entitlements.snapshot),
+                isEntitlementResolved: entitlements.isEntitlementResolved
+            )
         } else {
             // O gateway foi identificado (temos o IP real da rota ativa), mas o
             // painel não respondeu: diferente de não termos achado gateway algum.
             state = .unreachable(gatewayIP: ip)
         }
+    }
+
+    private var showsRouterAd: Bool {
+        guard let adIndex else { return false }
+        return entitlements.isEntitlementResolved
+            && LinkaEntitlementPolicy.shouldShowAds(for: entitlements.snapshot)
+            && ads.nativeAd(for: .router(adIndex)) != nil
     }
 
     private func openSystemSettings() {

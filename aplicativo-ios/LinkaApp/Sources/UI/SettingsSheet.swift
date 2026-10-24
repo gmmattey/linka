@@ -17,6 +17,7 @@ struct SettingsView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var purchaseEntryPoint: PurchaseEntryPoint = .settings
     @State private var showPurchase = false
+    @State private var showPromotionStatus = false
     @State private var showSubscriptionManagement = false
     @AppStorage("appAppearance") private var appAppearance = "system"
     @AppStorage(LinkaLanguagePreference.storageKey) private var languagePreference = LinkaLanguagePreference.system.rawValue
@@ -169,6 +170,9 @@ struct SettingsView: View {
                     showSubscriptionManagement = true
                 }
             }
+        }
+        .sheet(isPresented: $showPromotionStatus) {
+            LinkaPlusPromotionStatusSheet(endDate: promotionEndDate)
         }
         .sheet(isPresented: $showSubscriptionManagement) { SubscriptionManagementSheet() }
         .task {
@@ -345,7 +349,7 @@ struct SettingsView: View {
 
     private var subscriptionStatusText: String {
         if LinkaTemporaryFreeOffer.isActive() {
-            return LinkaCopy.value("settings.subscription.temporaryFree")
+            return LinkaCopy.format("settings.subscription.temporaryFree", promotionEndDate)
         }
         if entitlements.isRefreshingSnapshot { return LinkaCopy.value("settings.subscription.checking") }
         switch entitlements.snapshot.plan {
@@ -356,9 +360,19 @@ struct SettingsView: View {
         }
     }
 
+    private var promotionEndDate: String {
+        let formatter = DateFormatter()
+        formatter.locale = LinkaLanguagePreference.fromStoredValue(languagePreference).locale
+        formatter.timeZone = TimeZone(identifier: "America/Sao_Paulo")
+        formatter.setLocalizedDateFormatFromTemplate("dMMMM y")
+        return formatter.string(from: LinkaTemporaryFreeOffer.endsAt)
+    }
 
     private func openSubscription() {
-        guard !LinkaTemporaryFreeOffer.isActive() else { return }
+        if LinkaTemporaryFreeOffer.isActive() {
+            showPromotionStatus = true
+            return
+        }
         if entitlements.snapshot.plan == .plus, entitlements.snapshot.status == .active {
             if let onSubscriptionManagementRequest {
                 onSubscriptionManagementRequest()
@@ -373,6 +387,47 @@ struct SettingsView: View {
         }
     }
 
+}
+
+private struct LinkaPlusPromotionStatusSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let endDate: String
+
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 20) {
+                LinkaPlusWordmarkView(height: 28)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(LinkaCopy.value("settings.subscription.promotion.title"))
+                        .font(.title2.weight(.bold))
+                    Text(LinkaCopy.format("settings.subscription.promotion.message", endDate))
+                        .foregroundColor(.textSecondary)
+                }
+
+                Spacer(minLength: 0)
+
+                Button(LinkaCopy.value("common.continue")) {
+                    dismiss()
+                }
+                .buttonStyle(.linkaPrimary)
+            }
+            .padding(24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .navigationTitle("Linka Plus")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(LinkaCopy.value("common.close")) {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        #if os(iOS)
+        .presentationDetents([.medium])
+        #endif
+    }
 }
 
 typealias SettingsSheet = SettingsView

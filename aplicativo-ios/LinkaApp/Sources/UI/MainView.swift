@@ -935,7 +935,7 @@ struct MainView: View {
                 // O card fica integralmente na área de conteúdo, antes dos
                 // casos de uso. Isso preserva o resultado como protagonista e
                 // evita que o native ad encoste na tab bar flutuante.
-                BannerView(placement: .result)
+                BannerView(placement: ads.currentResultPlacement())
 
                 ResultUsageCasesView(report: usageSuitabilityReport)
 

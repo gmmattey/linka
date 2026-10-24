@@ -1,19 +1,27 @@
 import XCTest
 
 final class AssistV4FixtureUITests: XCTestCase {
+    private func continueGuided(in app: XCUIApplication) {
+        let action = app.buttons["assist-v4.guided.continue"]
+        for _ in 0..<4 where !action.isHittable { app.swipeUp() }
+        XCTAssertTrue(action.isHittable)
+        action.tap()
+    }
+
     private func reachSlowConnectionOrientation(in app: XCUIApplication) {
         app.buttons["assist-v4.shortcut.slow_connection"].tap()
         XCTAssertTrue(app.buttons["Em um cômodo"].waitForExistence(timeout: 3))
         app.buttons["Em um cômodo"].tap()
-        app.buttons["Continuar"].tap()
+        continueGuided(in: app)
         app.buttons["Em tudo"].tap()
-        app.buttons["Continuar"].tap()
+        continueGuided(in: app)
         XCTAssertTrue(app.buttons["Em certos horários"].waitForExistence(timeout: 3))
         app.buttons["Em certos horários"].tap()
-        app.buttons["Continuar"].tap()
+        continueGuided(in: app)
         XCTAssertTrue(app.buttons["Wi-Fi"].waitForExistence(timeout: 3))
         app.buttons["Wi-Fi"].tap()
-        app.buttons["Continuar"].tap()
+        app.swipeUp()
+        continueGuided(in: app)
         XCTAssertTrue(app.descendants(matching: .any)["assist-v4.local-orientation"].waitForExistence(timeout: 3))
     }
 
@@ -52,18 +60,19 @@ final class AssistV4FixtureUITests: XCTestCase {
         XCTAssertTrue(room.waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Investigação local · etapa 1 de 4"].exists)
         room.tap()
-        app.buttons["Continuar"].tap()
+        continueGuided(in: app)
         let usage = app.buttons["Em tudo"]
         XCTAssertTrue(usage.waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Investigação local · etapa 2 de 4"].exists)
         usage.tap()
-        app.buttons["Continuar"].tap()
+        continueGuided(in: app)
         XCTAssertTrue(app.staticTexts["Investigação local · etapa 3 de 4"].exists)
         app.buttons["O tempo todo"].tap()
-        app.buttons["Continuar"].tap()
+        continueGuided(in: app)
         XCTAssertTrue(app.staticTexts["Investigação local · etapa 4 de 4"].exists)
         app.buttons["Wi-Fi"].tap()
-        app.buttons["Continuar"].tap()
+        app.swipeUp()
+        continueGuided(in: app)
         XCTAssertTrue(app.staticTexts["Próxima etapa sugerida"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Por quê"].exists)
         XCTAssertTrue(app.staticTexts["Próxima ação"].exists)
