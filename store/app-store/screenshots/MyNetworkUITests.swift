@@ -127,7 +127,7 @@ final class MyNetworkUITests: XCTestCase {
 
     private func openInventory(_ app: XCUIApplication) {
         if app.buttons["Entendi"].waitForExistence(timeout: 2) { app.buttons["Entendi"].tap() }
-        let entry = app.buttons["wifi.router"]
+        let entry = app.buttons["Minha Rede"]
         XCTAssertTrue(entry.waitForExistence(timeout: 10)); entry.tap()
         let emptyCTA = app.buttons["inventory.devices.add"]
         let overview = app.buttons["inventory.devices.overview"]
