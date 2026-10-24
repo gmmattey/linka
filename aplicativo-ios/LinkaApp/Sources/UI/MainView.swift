@@ -258,51 +258,6 @@ struct MainView: View {
         return UsageSuitabilityEvaluator().evaluate(currentMeasurement)
     }
 
-    private var usageQualityLevel: UsageQualityLevel? {
-        guard let usageSuitabilityReport else { return nil }
-        return UsageSuitabilityCopy.qualityLevel(for: usageSuitabilityReport)
-    }
-
-    private var videoCallVerdict: (label: String, color: Color) {
-        if let v = usageSuitabilityReport?.verdict(for: .videoCall) {
-            switch v.level {
-            case .adequate: return (LinkaCopy.value("home.verdict.good"), .statusGood)
-            case .limited: return (LinkaCopy.value("home.verdict.fair"), .statusAttention)
-            case .notAssessed: return unavailableUsageVerdict
-            }
-        }
-        return unavailableUsageVerdict
-    }
-
-    private var gamingVerdict: (label: String, color: Color) {
-        if let v = usageSuitabilityReport?.verdict(for: .onlineGaming) {
-            switch v.level {
-            case .adequate: return (LinkaCopy.value("home.verdict.good"), .statusGood)
-            case .limited: return (LinkaCopy.value("home.verdict.fair"), .statusAttention)
-            case .notAssessed: return unavailableUsageVerdict
-            }
-        }
-        return unavailableUsageVerdict
-    }
-
-    private var streamingVerdict: (label: String, color: Color) {
-        guard let report = usageSuitabilityReport else { return unavailableUsageVerdict }
-        if let v4k = report.verdict(for: .streaming4K), v4k.level == .adequate {
-            return (LinkaCopy.value("home.verdict.4k"), .statusGood)
-        } else if let vHD = report.verdict(for: .streamingHD) {
-            switch vHD.level {
-            case .adequate: return (LinkaCopy.value("home.verdict.hd"), .statusGood)
-            case .limited: return (LinkaCopy.value("home.verdict.sd"), .statusAttention)
-            case .notAssessed: return unavailableUsageVerdict
-            }
-        }
-        return unavailableUsageVerdict
-    }
-
-    private var unavailableUsageVerdict: (label: String, color: Color) {
-        (LinkaCopy.value("common.unavailable"), .textSecondary)
-    }
-
     var body: some View {
         #if os(iOS)
         TabView(selection: $selectedTab) {
@@ -347,6 +302,14 @@ struct MainView: View {
             .tag(LinkaPrimaryNavigationDestination.settings)
         }
         .tint(.brandAccentWarm)
+        .onChange(of: selectedTab) { destination in
+            // Resultado é um estado temporário da medição recém-concluída.
+            // Ao voltar para a aba Medir, a pessoa deve reencontrar a tela
+            // inicial, não uma cópia persistente do último teste. A medição
+            // continua disponível no Histórico.
+            guard destination == .speedTest, viewModel.uiPhase == .done else { return }
+            viewModel.resetToIdle()
+        }
         #else
         NavigationStack(path: $navPath) {
             navigationContent
@@ -403,7 +366,8 @@ struct MainView: View {
                     recentMeasurements: viewModel.recentMeasurements,
                     onRetry: { retryAssistMeasurement() },
                     onRetest: { startSpeedTest() },
-                    onShowDetails: { showDetails = true }
+                    onShowDetails: { showDetails = true },
+                    onCloseSheet: { showAssistResult = false }
                 )
             }
             .sheet(isPresented: $showNetscopeAnalysis) {
@@ -964,6 +928,8 @@ struct MainView: View {
                         .stroke(Color.borderDefault.opacity(0.3), lineWidth: 0.5)
                 )
 
+                assistResultButton
+
                 resultRetestButton
 
                 // O card fica integralmente na área de conteúdo, antes dos
@@ -971,11 +937,7 @@ struct MainView: View {
                 // evita que o native ad encoste na tab bar flutuante.
                 BannerView(placement: .result)
 
-                ResultUsageCasesView(
-                    videoCall: videoCallVerdict,
-                    gaming: gamingVerdict,
-                    streaming: streamingVerdict
-                )
+                ResultUsageCasesView(report: usageSuitabilityReport)
 
                 Button {
                     showDetails = true
@@ -989,6 +951,15 @@ struct MainView: View {
             // escura atrás do CTA e sem sobrepor o native ad.
             .padding(.bottom, 112)
         }
+    }
+
+    private var assistResultButton: some View {
+        Button(action: requestAssistFromResult) {
+            Label(LinkaCopy.value("home.assist.cta"), systemImage: "bubble.left.and.bubble.right")
+        }
+        .buttonStyle(.linkaSecondary)
+        .frame(maxWidth: .infinity)
+        .accessibilityIdentifier("result.assistCTA")
     }
 
     private var resultRetestButton: some View {
@@ -1387,57 +1358,110 @@ struct MainView: View {
 }
 
 private struct ResultUsageCasesView: View {
-    let videoCall: (label: String, color: Color)
-    let gaming: (label: String, color: Color)
-    let streaming: (label: String, color: Color)
+    let report: UsageSuitabilityReport?
 
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    private var isPad: Bool { horizontalSizeClass == .regular }
-
-    var body: some View {
-        HStack(spacing: 12) {
-            usageNode(
-                title: LinkaCopy.value("home.usage.videoCalls"),
-                icon: "video",
-                result: videoCall.label,
-                color: videoCall.color
-            )
-            usageNode(
-                title: LinkaCopy.value("home.usage.onlineGaming"),
-                icon: "gamecontroller",
-                result: gaming.label,
-                color: gaming.color
-            )
-            usageNode(
-                title: LinkaCopy.value("home.usage.streaming"),
-                icon: "play.tv",
-                result: streaming.label,
-                color: streaming.color
-            )
+    private var streamingVerdict: UsageCaseVerdict? {
+        guard let report else { return nil }
+        if let ultraHD = report.verdict(for: .streaming4K), ultraHD.level == .adequate {
+            return ultraHD
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 16)
-        .linkaCard(cornerRadius: LinkaRadius.lg)
+        return report.verdict(for: .streamingHD)
     }
 
-    private func usageNode(title: String, icon: String, result: String, color: Color) -> some View {
-        VStack(spacing: 8) {
+    /// Esses casos só ajudam quando a pessoa consegue comparar os três usos.
+    /// Se faltar evidência para um deles, esconder o bloco inteiro é mais
+    /// honesto do que misturar um veredito com dois estados inconclusivos.
+    private var hasCompleteVerdicts: Bool {
+        [
+            report?.verdict(for: .videoCall),
+            report?.verdict(for: .onlineGaming),
+            streamingVerdict
+        ].allSatisfy { verdict in
+            guard let verdict else { return false }
+            return verdict.level != .notAssessed
+        }
+    }
+
+    var body: some View {
+        if hasCompleteVerdicts {
+            VStack(spacing: 0) {
+                usageNode(
+                    title: LinkaCopy.value("home.usage.videoCalls"),
+                    icon: "video",
+                    verdict: report?.verdict(for: .videoCall)
+                )
+                Divider().overlay(Color.borderDefault.opacity(0.55))
+                usageNode(
+                    title: LinkaCopy.value("home.usage.onlineGaming"),
+                    icon: "gamecontroller",
+                    verdict: report?.verdict(for: .onlineGaming)
+                )
+                Divider().overlay(Color.borderDefault.opacity(0.55))
+                usageNode(
+                    title: LinkaCopy.value("home.usage.streaming"),
+                    icon: "play.tv",
+                    verdict: streamingVerdict
+                )
+            }
+            .linkaCard(cornerRadius: LinkaRadius.lg)
+        }
+    }
+
+    private func usageNode(title: String, icon: String, verdict: UsageCaseVerdict?) -> some View {
+        let presentation = ResultUsageCasePresentation(verdict: verdict)
+        return HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: isPad ? 26 : 20, weight: .medium))
+                .font(.system(size: 20, weight: .medium))
                 .foregroundColor(.textPrimary)
-                .frame(width: isPad ? 60 : 44, height: isPad ? 60 : 44)
+                .frame(width: 44, height: 44)
                 .background(Color.surfacePage, in: Circle())
 
-            Text(title)
-                .font(.system(size: isPad ? 15 : 12, weight: .medium))
-                .foregroundColor(.textSecondary)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(minHeight: 28)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(title)
+                        .font(.bodyRegularStrong)
+                        .foregroundColor(.textPrimary)
+                    Spacer(minLength: 8)
+                    LinkaStatusBadge(presentation.label, color: presentation.color)
+                }
 
-            LinkaStatusBadge(result, color: color)
+                Text(presentation.detail)
+                    .font(.bodySmall)
+                    .foregroundColor(.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
-        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title): \(presentation.label). \(presentation.detail)")
+    }
+}
+
+private struct ResultUsageCasePresentation {
+    let label: String
+    let color: Color
+    let detail: String
+
+    init(verdict: UsageCaseVerdict?) {
+        guard let verdict else {
+            label = LinkaCopy.value("usage.status.notAssessed")
+            color = .textSecondary
+            detail = LinkaCopy.value("usage.insufficient.case")
+            return
+        }
+
+        detail = UsageSuitabilityCopy.detail(for: verdict)
+        switch verdict.level {
+        case .adequate:
+            label = LinkaCopy.value("usage.status.adequate")
+            color = .statusGood
+        case .limited:
+            label = LinkaCopy.value("usage.status.limited")
+            color = .statusAttention
+        case .notAssessed:
+            label = LinkaCopy.value("usage.status.notAssessed")
+            color = .textSecondary
+        }
     }
 }

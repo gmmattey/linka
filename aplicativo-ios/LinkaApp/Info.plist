@@ -49,6 +49,10 @@
 	<string>NO</string>
 	<key>LinkaAssistConsultationEndpoint</key>
 	<string>https://linka-assist-relay.buildealabs.workers.dev/v1/assist/consultations</string>
+	<key>LinkaAssistDirectEnabled</key>
+	<string>YES</string>
+	<key>LinkaAssistDirectEndpoint</key>
+	<string>https://netscope-api.gmmattey.workers.dev/v1/linka/assist</string>
 	<key>LinkaServiceStatusEndpoint</key>
 	<string>https://linka-assist-relay.buildealabs.workers.dev/v1/service-status</string>
 	<key>NDAssistRelayEndpoint</key>

@@ -76,6 +76,10 @@ targets:
         # físico estarem completos.
         LinkaAssistConsultationEndpoint: "https://linka-assist-relay.buildealabs.workers.dev/v1/assist/consultations"
         LinkaAssistConsultationEnabled: "NO"
+        # Conversa simples: o app nunca contém chave de provider. O Worker
+        # Netscope escolhe o provider server-side e falha fechado sem ele.
+        LinkaAssistDirectEndpoint: "https://netscope-api.gmmattey.workers.dev/v1/linka/assist"
+        LinkaAssistDirectEnabled: "YES"
         LinkaServiceStatusEndpoint: "https://linka-assist-relay.buildealabs.workers.dev/v1/service-status"
         GADApplicationIdentifier: "ca-app-pub-5542349230926522~6717355071"
         LinkaAdsEnabled: "$(LINKA_ADS_ENABLED)"
@@ -177,6 +181,8 @@ targets:
         LSApplicationQueriesSchemes:
           - shortcuts
         NDAssistRelayEndpoint: "https://linka-assist-relay.buildealabs.workers.dev/v2/assist"
+        LinkaAssistDirectEndpoint: "https://netscope-api.gmmattey.workers.dev/v1/linka/assist"
+        LinkaAssistDirectEnabled: "YES"
         LinkaServiceStatusEndpoint: "https://linka-assist-relay.buildealabs.workers.dev/v1/service-status"
         NSLocalNetworkUsageDescription: "O Linka consulta o roteador da rede local para identificar o equipamento e diagnosticar a qualidade da conexão Wi-Fi."
         NSAppTransportSecurity:

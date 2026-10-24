@@ -123,6 +123,10 @@ NPA, personalização e publisher first-party ID desabilitados precedem iniciali
 
 ## 6. Assist atualmente composto
 
+[AssistConversationClient](../aplicativo-ios/LinkaApp/Sources/Adapters/AssistConversationClient.swift) é o caminho ativo do Assist Direto. Ele fala somente com `POST /v1/linka/assist` e não contém chave, endpoint de provider nem fallback direto. O contrato fechado aceita pergunta, até quatro mensagens anteriores da tela e métricas permitidas; rejeita identificadores da rede e da pessoa. Não há conta, D1, transcrição, memória remota ou tools.
+
+No Worker Netscope, a composição é explícita: com `NETSCOPE_OPENAI_API_KEY`, usa OpenAI; sem ela, usa somente a binding nativa `AI` do Cloudflare Workers. Falha de provider não troca de fornecedor no meio da solicitação e retorna indisponibilidade. `LINKA_ASSIST_ENABLED=true` é necessário para expor o caminho; fora disso, o Worker falha fechado. O fluxo V4 descrito mais abaixo é histórico e não deve ser ligado por esta implementação.
+
 [AssistContainer](../aplicativo-ios/LinkaApp/Sources/Adapters/AssistContainer.swift) compõe `NetworkAssistService<BuildeaDiagnosticTransport>` sobre [BuildeaDiagnosticAPI](../aplicativo-ios/NetworkDiagnostics/Sources/BuildeaDiagnosticAPI.swift). Relay `/v2/assist`, timeout 55 s e `transportAuth: .relay` dispensam bearer do cliente; configuração admite overrides. Nenhum endpoint foi consultado nesta revisão.
 [AssistViewModel.makeContext](../aplicativo-ios/LinkaApp/Sources/Adapters/AssistViewModel.swift) usa a medição atual e contexto declarado, com recentes vazios nesse caminho. Capacidade contratual de receber histórico não significa envio no app.
 [NetworkAssistService](../aplicativo-ios/NetworkAssist/Sources/NetworkAssist.swift) valida fatos/IDs/números e exige evidência para `answered`; estrutura válida não garante veracidade de cada frase. [NDSRequestBuilder](../aplicativo-ios/NetworkDiagnostics/Sources/NDSRequestBuilder.swift) projeta o contrato remoto; envelopes locais novos não são enviados automaticamente.

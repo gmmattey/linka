@@ -52,13 +52,11 @@ Ambientes e associações são locais, sem sincronização CloudKit. A migraçã
 
 ## Assist e interpretação
 
-[AssistViewModel](../aplicativo-ios/LinkaApp/Sources/Adapters/AssistViewModel.swift) combina medição e contexto declarado. Assist é secundário, condicionado ao acesso e à configuração do serviço; não substitui nem atrasa a medição.
-Entrada pela Home pode selecionar um objetivo e coletar nova medição. Existe entrada por resultado existente; portanto, não afirmar que toda análise exige novo teste. O contexto atual não envia lista de medições recentes nesse caminho.
-Carregamento, resposta, erro, falta de configuração, falta de acesso e evidência insuficiente são estados diferentes. Timeout e falha remota permitem recuperação, sem resposta fictícia.
-Relato da pessoa não se torna fato medido. Validação de IDs e estrutura da resposta não garante a verdade de cada frase. Investigação local de falha é distinta da interpretação remota.
-“Sem causa identificada” não significa “conexão saudável”. Não atribuir modelo/provedor de IA por um fallback de texto; não afirmar que toda evidência local chega ao backend.
+Assist é uma conversa aberta acionada da tela de resultado. A tela mostra a medição atual e pode enviar somente download, upload, latência, jitter, perda, latência sob carga e tipo de conexão junto com a pergunta. Nome do Wi-Fi, IP, gateway, inventário, senha, localização e histórico persistente não seguem nesse envio. O resultado acabado não transforma a aba Medir em arquivo: ao voltar para ela, a pessoa encontra a tela pronta para uma nova medição; resultados anteriores ficam no Histórico.
 
-**Pendente:** Giam/Priscila/Camillo, antes da próxima mudança de Assist, definem validade e reuso da medição em cada entrada. Priscila/Giam e responsável pelo serviço reconciliam a copy positiva de ausência de causa; Camillo revisa atribuição de procedência. Renan fecha timeout, offline, idioma e falta de evidência na candidata. Segurança e ativação de novos transportes são tratadas em Arquitetura/Operação; proposta Netscope não comprova substituição do caminho atual.
+A resposta é texto simples, inclusive quando sugerir um próximo passo. Assist não substitui nem atrasa a medição, não executa ações no roteador e não transforma relato em fato medido. Indisponibilidade é mostrada como indisponibilidade, nunca como diagnóstico. A conversa existe só enquanto a tela está aberta.
+
+O desenho V4 abaixo é histórico e está substituído por este Assist Direto; não é escopo ativo.
 
 ## Otimização e DNS
 
@@ -112,7 +110,7 @@ Essa proteção do cartão não comprova anonimização de todo o produto. Conte
 
 A voz é curta, calma e concreta: “Download”, “Upload”, “Detalhes”, “Testar novamente”. Erro explica o ocorrido e oferece recuperação. Evitar entusiasmo artificial, slogans na interface e promessas como “ideal para qualquer uso”. A marca usa a mesma paleta do LagCheck: Roxo Gamer (`#7C3AED`) para ação, seleção, foco e progresso; Coral Solar (`#FF5A36`) apenas para falha/destrutivo; verde (`#22C55E`) e âmbar (`#F59E0B`) para estados positivos e atenção. Superfícies continuam semânticas e nativas da Apple.
 Números, unidades e datas seguem o idioma efetivo. Há preferências de aparência/idioma; presença de tradução não prova qualidade integral em pt-BR, inglês e espanhol.
-No iPhone/iPad, a navegação principal usa a tab bar nativa da Apple, embaixo: **Medir**, **Histórico**, **Minha Rede** (quando disponível) e **Ajustes**. O sistema define vidro, tamanho, área segura e adaptação de acessibilidade; as quatro áreas mantêm sua navegação própria. No iPhone, cada área-raiz usa título grande para orientar a navegação; detalhes, formulários e sheets usam título inline. No iPad regular, a tab bar superior já identifica a área e o título raiz não é repetido. Na Home, o CTA vem antes do anúncio. Histórico concentra os resultados anteriores; Assist e Otimização continuam contextuais, não abas. Caminhos secundários usam toolbar e sheets; iPad adapta largura/orientação, sem herdar automaticamente o redesign Mac.
+No iPhone/iPad, a navegação principal usa a tab bar nativa da Apple, embaixo: **Medir**, **Histórico**, **Minha Rede** (quando disponível) e **Ajustes**. O sistema define vidro, tamanho, área segura e adaptação de acessibilidade; as quatro áreas mantêm sua navegação própria. No iPhone, cada área-raiz usa título grande para orientar a navegação; detalhes, formulários e sheets usam título inline. No iPad regular, a tab bar superior já identifica a área e o título raiz não é repetido. Na Home, o CTA vem antes do anúncio. Histórico concentra os resultados anteriores; Assist e Otimização continuam contextuais, não abas. Os casos de uso do resultado só aparecem quando há uma conclusão para todos os usos exibidos; evidência incompleta não gera uma mistura de estados avaliados e não avaliados. Caminhos secundários usam toolbar e sheets; iPad adapta largura/orientação, sem herdar automaticamente o redesign Mac.
 
 Direção macOS vigente:
 

@@ -45,6 +45,10 @@
 	</array>
 	<key>LinkaServiceStatusEndpoint</key>
 	<string>https://linka-assist-relay.buildealabs.workers.dev/v1/service-status</string>
+	<key>LinkaAssistDirectEnabled</key>
+	<string>YES</string>
+	<key>LinkaAssistDirectEndpoint</key>
+	<string>https://netscope-api.gmmattey.workers.dev/v1/linka/assist</string>
 	<key>NDAssistRelayEndpoint</key>
 	<string>https://linka-assist-relay.buildealabs.workers.dev/v2/assist</string>
 	<key>NSAppTransportSecurity</key>

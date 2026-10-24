@@ -134,9 +134,16 @@
 "usage.cases" = "Use cases";
 "usage.noMeasurement.title" = "No measurement";
 "usage.noMeasurement.message" = "Run a measurement to assess use cases.";
-"usage.status.adequate" = "Suitable";
-"usage.status.limited" = "Limited";
-"usage.status.notAssessed" = "Not assessed";
+"usage.status.adequate" = "Good";
+"usage.status.limited" = "Needs attention";
+"usage.status.notAssessed" = "Could not assess";
+"assist.direct.title" = "Assist";
+"assist.direct.intro" = "Talk about your network. I can use this measurement result to help.";
+"assist.direct.privacy" = "Do not include a Wi-Fi name, IP, MAC, or password. They do not help the diagnosis, and Assist blocks recognized formats.";
+"assist.direct.placeholder" = "Ask about your connection";
+"assist.direct.send" = "Send";
+"assist.direct.unavailable" = "Assist is unavailable right now. Your question was not sent.";
+"assist.direct.sensitiveInput" = "For safety, remove the Wi-Fi name, IP, MAC, or password before sending.";
 "usage.live.title" = "Real-time suitability";
 "usage.live.stable" = "Stable";
 "usage.live.ready" = "Ready";
@@ -1072,7 +1079,6 @@
 "inventory.evaluation.upload" = "Upload";
 "inventory.evaluation.delivered" = "%@ of %@ contracted (%@)";
 
-/* Linka Genius (Gemini 3.8 Flash) */
 "genius.title" = "Linka Genius";
 "genius.subtitle" = "Apple Network Specialist";
 "genius.badge" = "Genius";
@@ -1094,7 +1100,6 @@
 "genius.result.script.copied" = "Copied!";
 "genius.result.retest" = "Test again";
 "genius.result.newQuestion" = "Ask another question";
-"genius.footer.attribution" = "Powered by Gemini 3.8 Flash";
 "genius.error.title" = "Could not complete diagnostic";
 "genius.error.retry" = "Try again";
 

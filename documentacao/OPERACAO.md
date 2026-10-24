@@ -155,6 +155,8 @@ Aceite físico segue pendente: o iPhone inicialmente bloqueado ficou indisponív
 <a id="assist-contextual-v4"></a>
 ## Assist Contextual V4 — avaliação, integração e ativação do agente especialista
 
+O Assist Direto substitui esta proposta como caminho ativo. O Worker Netscope usa a binding `AI` ou, quando existir, o segredo server-side de OpenAI; `LINKA_ASSIST_ENABLED=true` é necessário. A URL atual é `https://netscope-api.gmmattey.workers.dev/v1/linka/assist`. A publicação e a consulta HTTP foram verificadas em 24/10/2026; ainda falta validar uma conversa no iPhone físico. Não registrar pergunta, resposta, métricas ou segredo durante a validação.
+
 **Integração documental:** 09/10/2026, versão 1.0. Procedimentos propostos para a Fase 4; nenhuma execução, custo, deploy, build, teste físico ou publicação é comprovada por esta seção. Reorganiza os capítulos de testes, rollout e checklist da documentação técnica elaborada na conversa.
 
 Fontes: [funcional em Produto](PRODUTO.md#assist-contextual-v4), [contratos em Arquitetura](ARQUITETURA.md#assist-contextual-v4), [épico #301](https://github.com/gmmattey/linka/issues/301), auditoria #310 e homologação #318. Não criar manual paralelo, workflow hospedado ou script novo apenas para esta documentação.

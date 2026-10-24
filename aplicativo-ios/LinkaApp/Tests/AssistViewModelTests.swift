@@ -5,6 +5,24 @@ import NetworkCore
 
 @MainActor
 final class AssistViewModelTests: XCTestCase {
+    func test_directConversationReleasesComposerAfterResponse() async {
+        let viewModel = AssistConversationViewModel(service: FinishedConversationService())
+        viewModel.draft = "Minha conexão está lenta."
+
+        viewModel.send(measurement: nil)
+        for _ in 0..<20 where viewModel.isSending { await Task.yield() }
+
+        XCTAssertFalse(viewModel.isSending)
+        XCTAssertEqual(viewModel.messages.map(\.role), [.user, .assistant])
+        XCTAssertEqual(viewModel.messages.last?.content, "Vamos continuar.")
+
+        viewModel.draft = "E agora?"
+        viewModel.send(measurement: nil)
+        for _ in 0..<20 where viewModel.isSending { await Task.yield() }
+        XCTAssertFalse(viewModel.isSending)
+        XCTAssertEqual(viewModel.messages.filter { $0.role == .user }.count, 2)
+    }
+
     func test_makeContext_usesOnlyTheCurrentMeasurementAsEvidence() {
         let current = measurement(id: UUID())
         let recent = [measurement(id: UUID()), measurement(id: UUID())]
@@ -201,5 +219,17 @@ private struct StubAssistProvider: NetworkAssistProviding {
             continuation.yield(.completed(response))
             continuation.finish()
         }
+    }
+}
+
+private struct FinishedConversationService: AssistConversationServing {
+    func stream(
+        message: String,
+        history: [AssistConversationMessage],
+        measurement: NetworkMeasurement?,
+        locale: String,
+        onDelta: @escaping @MainActor @Sendable (String) -> Void
+    ) async throws {
+        await onDelta("Vamos continuar.")
     }
 }

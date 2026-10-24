@@ -197,7 +197,8 @@ struct MacMainView: View {
                 onRetest: {
                     pendingAssistMeasurement = true
                     viewModel.startTest()
-                }
+                },
+                onCloseSheet: { showAssistResult = false }
             )
             .frame(minWidth: 680, minHeight: 620)
         }

@@ -134,9 +134,16 @@
 "usage.cases" = "Casos de uso";
 "usage.noMeasurement.title" = "Sin medición";
 "usage.noMeasurement.message" = "Haz una medición para evaluar los casos de uso.";
-"usage.status.adequate" = "Adecuada";
-"usage.status.limited" = "Limitada";
-"usage.status.notAssessed" = "No evaluada";
+"usage.status.adequate" = "Buena";
+"usage.status.limited" = "Atención";
+"usage.status.notAssessed" = "No se pudo evaluar";
+"assist.direct.title" = "Assist";
+"assist.direct.intro" = "Habla sobre tu red. Puedo usar el resultado de esta medición para ayudarte.";
+"assist.direct.privacy" = "No incluyas el nombre de Wi-Fi, IP, MAC ni contraseña. No ayudan al diagnóstico y Assist bloquea los formatos reconocidos.";
+"assist.direct.placeholder" = "Pregunta sobre tu conexión";
+"assist.direct.send" = "Enviar";
+"assist.direct.unavailable" = "El Assist no está disponible ahora. Tu pregunta no fue enviada.";
+"assist.direct.sensitiveInput" = "Por seguridad, elimina el nombre de Wi-Fi, IP, MAC o contraseña antes de enviar.";
 "usage.live.title" = "Aptitud en tiempo real";
 "usage.live.stable" = "Estable";
 "usage.live.ready" = "Listo";
@@ -1072,7 +1079,6 @@
 "inventory.evaluation.upload" = "Subida";
 "inventory.evaluation.delivered" = "%@ de %@ contratados (%@)";
 
-/* Linka Genius (Gemini 3.8 Flash) */
 "genius.title" = "Linka Genius";
 "genius.subtitle" = "Especialista Apple en Redes";
 "genius.badge" = "Genius";
@@ -1094,7 +1100,6 @@
 "genius.result.script.copied" = "¡Copiado!";
 "genius.result.retest" = "Probar nuevamente";
 "genius.result.newQuestion" = "Hacer otra pregunta";
-"genius.footer.attribution" = "Desarrollado con Gemini 3.8 Flash";
 "genius.error.title" = "No se pudo completar el diagnóstico";
 "genius.error.retry" = "Reintentar";
 
