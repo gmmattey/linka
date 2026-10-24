@@ -15,6 +15,33 @@ enum AppRoute: Hashable {
     case measurementDetail(NetworkMeasurement)
 }
 
+private enum LinkaPrimaryNavigationDestination: CaseIterable, Hashable, Identifiable {
+    case speedTest
+    case history
+    case myNetwork
+    case settings
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .speedTest: return "Medir"
+        case .history: return LinkaCopy.value("Histórico")
+        case .myNetwork: return LinkaCopy.value("inventory.title")
+        case .settings: return LinkaCopy.value("Configurações")
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .speedTest: return "speedometer"
+        case .history: return "clock"
+        case .myNetwork: return "wifi.router"
+        case .settings: return "slider.horizontal.3"
+        }
+    }
+}
+
 private struct LiveUsageDetailSheet: View {
     @ObservedObject var viewModel: SpeedTestViewModel
     @Environment(\.dismiss) private var dismiss
@@ -126,6 +153,8 @@ struct MainView: View {
     @ObservedObject private var intentCoordinator = AppIntentCoordinator.shared
 
     @State private var navPath = NavigationPath()
+    @State private var historyPath = NavigationPath()
+    @State private var selectedTab: LinkaPrimaryNavigationDestination = .speedTest
     @State private var showMoreMetrics: Bool = false
     @State private var showPurchase: Bool = false
     @State private var showOptimization: Bool = false
@@ -278,9 +307,54 @@ struct MainView: View {
     }
 
     var body: some View {
+        #if os(iOS)
+        TabView(selection: $selectedTab) {
+            NavigationStack(path: $navPath) {
+                navigationContent
+            }
+            .tabItem {
+                Label(LinkaPrimaryNavigationDestination.speedTest.title, systemImage: LinkaPrimaryNavigationDestination.speedTest.systemImage)
+            }
+            .tag(LinkaPrimaryNavigationDestination.speedTest)
+
+            NavigationStack(path: $historyPath) {
+                HistoryView(onSelectMeasurement: selectHistoricalMeasurement)
+                    .environmentObject(entitlements)
+                    .navigationDestination(for: AppRoute.self) { route in
+                        destinationView(for: route)
+                    }
+            }
+            .tabItem {
+                Label(LinkaPrimaryNavigationDestination.history.title, systemImage: LinkaPrimaryNavigationDestination.history.systemImage)
+            }
+            .tag(LinkaPrimaryNavigationDestination.history)
+
+            if MinhaRedeAvailability.isEnabled {
+                NavigationStack {
+                    MyNetworkView()
+                        .environmentObject(entitlements)
+                }
+                .tabItem {
+                    Label(LinkaPrimaryNavigationDestination.myNetwork.title, systemImage: LinkaPrimaryNavigationDestination.myNetwork.systemImage)
+                }
+                .tag(LinkaPrimaryNavigationDestination.myNetwork)
+            }
+
+            NavigationStack {
+                SettingsView()
+                    .environmentObject(entitlements)
+            }
+            .tabItem {
+                Label(LinkaPrimaryNavigationDestination.settings.title, systemImage: LinkaPrimaryNavigationDestination.settings.systemImage)
+            }
+            .tag(LinkaPrimaryNavigationDestination.settings)
+        }
+        .tint(.brandAccentWarm)
+        #else
         NavigationStack(path: $navPath) {
             navigationContent
         }
+        #endif
     }
 
     /// Dividido em funções `attach*` porque uma única cadeia com todos os
@@ -312,10 +386,7 @@ struct MainView: View {
                 toolbarBackButton
             }
             ToolbarItemGroup(placement: .navigationBarTrailing) {
-                toolbarHistoryButton
-                toolbarInventoryButton
                 toolbarShareButton
-                toolbarSettingsButton
             }
         }
 
@@ -416,7 +487,7 @@ struct MainView: View {
                             showPurchase = true
                         },
                         onRetest: { optimizationBaseline = measurement; startSpeedTest() },
-                        onManageIdentification: { showOptimization = false; navPath.append(AppRoute.settings) }
+                        onManageIdentification: { showOptimization = false; selectedTab = .settings }
                     )
                 }
             }
@@ -501,7 +572,7 @@ struct MainView: View {
                 switch newPhase {
                 case .active:
                     recoverAdvancedWiFiMeasurementIfNeeded()
-                    if viewModel.uiPhase == .idle, navPath.isEmpty {
+                    if viewModel.uiPhase == .idle, selectedTab == .speedTest, navPath.isEmpty {
                         prepareHomeAdIfEligible()
                     }
                 case .background, .inactive:
@@ -539,32 +610,6 @@ struct MainView: View {
     }
 
     @ViewBuilder
-    private var toolbarHistoryButton: some View {
-        if viewModel.uiPhase == .idle || viewModel.uiPhase == .error || viewModel.uiPhase == .connectionChanged {
-            Button { navPath.append(AppRoute.history) } label: {
-                Image(systemName: "clock")
-                    .font(.body.weight(.medium))
-                    .foregroundColor(.textPrimary)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-            .accessibilityLabel(LinkaCopy.value("home.accessibility.history"))
-        }
-    }
-
-    @ViewBuilder
-    private var toolbarInventoryButton: some View {
-        if MinhaRedeAvailability.isEnabled && (viewModel.uiPhase == .idle || viewModel.uiPhase == .error || viewModel.uiPhase == .connectionChanged) {
-            Button { navPath.append(AppRoute.myNetwork) } label: {
-                Label(LinkaCopy.value("inventory.title"), systemImage: "wifi.router")
-                    .frame(minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-            .accessibilityIdentifier("inventory.open")
-        }
-    }
-
-    @ViewBuilder
     private var toolbarShareButton: some View {
         if viewModel.uiPhase == .done, currentMeasurement?.outcome == .complete {
             Button {
@@ -577,20 +622,6 @@ struct MainView: View {
                     .contentShape(Rectangle())
             }
             .accessibilityLabel(LinkaCopy.value("home.accessibility.share"))
-        }
-    }
-
-    @ViewBuilder
-    private var toolbarSettingsButton: some View {
-        if viewModel.uiPhase == .idle || viewModel.uiPhase == .done || viewModel.uiPhase == .error || viewModel.uiPhase == .connectionChanged {
-            Button { navPath.append(AppRoute.settings) } label: {
-                Image(systemName: "slider.horizontal.3")
-                    .font(.body.weight(.medium))
-                    .foregroundColor(.textPrimary)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-            .accessibilityLabel(LinkaCopy.value("home.accessibility.settings"))
         }
     }
 
@@ -677,7 +708,7 @@ struct MainView: View {
     private var isReviewPromptSafeToPresent: Bool {
         AppStoreReviewPromptPresentationPolicy.isSafe(
             sceneIsActive: scenePhase == .active,
-            resultIsVisible: navPath.isEmpty && viewModel.uiPhase == .done,
+            resultIsVisible: selectedTab == .speedTest && navPath.isEmpty && viewModel.uiPhase == .done,
             hasBlockingPresentation: showAssistResult
                 || showPurchase
                 || showShareSheet
@@ -882,7 +913,7 @@ struct MainView: View {
 
             if let latest = viewModel.latestFinishedMeasurement {
                 Button {
-                    navPath.append(AppRoute.history)
+                    selectedTab = .history
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "clock.arrow.circlepath")
@@ -1456,17 +1487,20 @@ struct MainView: View {
     }
 
     private func selectHistoricalMeasurement(_ measurement: NetworkMeasurement) {
-        navPath.append(AppRoute.measurementDetail(measurement))
+        historyPath.append(AppRoute.measurementDetail(measurement))
     }
 
     private func startNewMeasurementFromHistory() {
         navPath = NavigationPath()
+        historyPath = NavigationPath()
+        selectedTab = .speedTest
         startSpeedTest()
     }
 
     private func handleOpenHistoryRequest(_ pending: Bool) {
         guard pending else { return }
-        navPath.append(AppRoute.history)
+        historyPath = NavigationPath()
+        selectedTab = .history
         intentCoordinator.consumeOpenHistory()
     }
 
@@ -1476,13 +1510,14 @@ struct MainView: View {
         guard !isMeasuring else { return }
 
         navPath = NavigationPath()
+        historyPath = NavigationPath()
         switch route {
         case .home:
-            break
+            selectedTab = .speedTest
         case .history:
-            navPath.append(AppRoute.history)
+            selectedTab = .history
         case .myNetwork:
-            navPath.append(AppRoute.myNetwork)
+            selectedTab = MinhaRedeAvailability.isEnabled ? .myNetwork : .speedTest
         }
     }
 
@@ -1525,7 +1560,9 @@ struct MainView: View {
     private func handleOpenLatestMeasurementRequest(_ pending: Bool) {
         guard pending else { return }
         if isPlusActive, let latest = latestMeasurementForIntent {
-            navPath.append(AppRoute.measurementDetail(latest))
+            historyPath = NavigationPath()
+            selectedTab = .history
+            historyPath.append(AppRoute.measurementDetail(latest))
         } else if !isPlusActive {
             purchaseEntryPoint = .shortcut
             showPurchase = true

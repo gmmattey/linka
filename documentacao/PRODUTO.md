@@ -111,7 +111,7 @@ Essa proteção do cartão não comprova anonimização de todo o produto. Conte
 
 A voz é curta, calma e concreta: “Download”, “Upload”, “Detalhes”, “Testar novamente”. Erro explica o ocorrido e oferece recuperação. Evitar entusiasmo artificial, slogans na interface e promessas como “ideal para qualquer uso”.
 Números, unidades e datas seguem o idioma efetivo. Há preferências de aparência/idioma; presença de tradução não prova qualidade integral em pt-BR, inglês e espanhol.
-No iPhone/iPad, navegação secundária usa caminhos contextuais, toolbar e sheets; não há requisito de adicionar tab bar. iPad adapta largura/orientação, sem herdar automaticamente o redesign Mac.
+No iPhone/iPad, a navegação principal usa a tab bar nativa da Apple, embaixo: **Medir**, **Histórico**, **Minha Rede** (quando disponível) e **Ajustes**. O sistema define vidro, tamanho, área segura e adaptação de acessibilidade; as quatro áreas mantêm sua navegação própria. Assist e Otimização continuam contextuais, não abas. Caminhos secundários usam toolbar e sheets; iPad adapta largura/orientação, sem herdar automaticamente o redesign Mac.
 
 Direção macOS vigente:
 
