@@ -134,7 +134,7 @@ public enum PDFReportGenerator {
 
         // Barra decorativa da marca WiFi Casa
         let brandBar = CGRect(x: marginHorizontal, y: toCGY(cursorY + 4), width: 4.0, height: 28.0)
-        drawFilledRect(brandBar, color: CGColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 1.0), in: context)
+        drawFilledRect(brandBar, color: CGColor(red: 124 / 255, green: 58 / 255, blue: 237 / 255, alpha: 1.0), in: context)
 
         drawText(
             "WiFi Casa — Relatório Técnico de Qualidade Wi-Fi",
@@ -317,7 +317,7 @@ public enum PDFReportGenerator {
                 cellX += colWidths[3]
 
                 // 5. Perda LAN
-                let lanLossColor = m.metrics.gatewayPacketLossPercent > 0 ? CGColor(red: 1.0, green: 0.23, blue: 0.19, alpha: 1.0) : CGColor(gray: 0.20, alpha: 1.0)
+                let lanLossColor = m.metrics.gatewayPacketLossPercent > 0 ? CGColor(red: 1.0, green: 90 / 255, blue: 54 / 255, alpha: 1.0) : CGColor(gray: 0.20, alpha: 1.0)
                 drawText("\(String(format: "%.1f", m.metrics.gatewayPacketLossPercent))%", x: cellX, topY: rowY + 5, font: CTFontCreateWithName("Helvetica" as CFString, 7.0, nil), color: lanLossColor, in: context)
                 cellX += colWidths[4]
 
@@ -326,7 +326,7 @@ public enum PDFReportGenerator {
                 cellX += colWidths[5]
 
                 // 7. Perda WAN
-                let wanLossColor = m.metrics.wanPacketLossPercent > 0 ? CGColor(red: 1.0, green: 0.23, blue: 0.19, alpha: 1.0) : CGColor(gray: 0.20, alpha: 1.0)
+                let wanLossColor = m.metrics.wanPacketLossPercent > 0 ? CGColor(red: 1.0, green: 90 / 255, blue: 54 / 255, alpha: 1.0) : CGColor(gray: 0.20, alpha: 1.0)
                 drawText("\(String(format: "%.1f", m.metrics.wanPacketLossPercent))%", x: cellX, topY: rowY + 5, font: CTFontCreateWithName("Helvetica" as CFString, 7.0, nil), color: wanLossColor, in: context)
                 cellX += colWidths[6]
 
@@ -352,11 +352,11 @@ public enum PDFReportGenerator {
     // MARK: - Cartão de Parecer Técnico para Operadora
 
     private static func drawNoticeCard(_ text: String, in rect: CGRect, context: CGContext) {
-        // Fundo com borda lateral azul destacada
-        drawCard(rect: rect, fillColor: CGColor(red: 0.94, green: 0.96, blue: 0.99, alpha: 1.0), strokeColor: CGColor(red: 0.82, green: 0.88, blue: 0.95, alpha: 1.0), cornerRadius: 6, in: context)
+        // Fundo com borda lateral Roxo Gamer.
+        drawCard(rect: rect, fillColor: CGColor(red: 0.96, green: 0.94, blue: 1.0, alpha: 1.0), strokeColor: CGColor(red: 167 / 255, green: 139 / 255, blue: 250 / 255, alpha: 1.0), cornerRadius: 6, in: context)
 
         let highlightBar = CGRect(x: rect.minX, y: rect.minY, width: 4.0, height: rect.height)
-        drawFilledRect(highlightBar, color: CGColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 1.0), in: context)
+        drawFilledRect(highlightBar, color: CGColor(red: 124 / 255, green: 58 / 255, blue: 237 / 255, alpha: 1.0), in: context)
 
         let textRect = CGRect(x: rect.minX + 12, y: rect.minY + 6, width: rect.width - 20, height: rect.height - 12)
         drawParagraph(text, in: textRect, fontSize: 8.0, color: CGColor(gray: 0.18, alpha: 1.0), in: context)
@@ -404,7 +404,7 @@ public enum PDFReportGenerator {
             x: marginHorizontal,
             topY: topY,
             font: CTFontCreateWithName("Helvetica-Bold" as CFString, 9.5, nil),
-            color: CGColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 1.0),
+            color: CGColor(red: 124 / 255, green: 58 / 255, blue: 237 / 255, alpha: 1.0),
             in: context
         )
     }
@@ -523,13 +523,13 @@ public enum PDFReportGenerator {
     private static func colorForRating(_ rating: QualityRating) -> CGColor {
         switch rating {
         case .excellent:
-            return CGColor(red: 0.15, green: 0.65, blue: 0.28, alpha: 1.0)
+            return CGColor(red: 34 / 255, green: 197 / 255, blue: 94 / 255, alpha: 1.0)
         case .good:
-            return CGColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 1.0)
+            return CGColor(red: 124 / 255, green: 58 / 255, blue: 237 / 255, alpha: 1.0)
         case .fair:
-            return CGColor(red: 0.85, green: 0.50, blue: 0.0, alpha: 1.0)
+            return CGColor(red: 245 / 255, green: 158 / 255, blue: 11 / 255, alpha: 1.0)
         case .poor:
-            return CGColor(red: 0.85, green: 0.18, blue: 0.15, alpha: 1.0)
+            return CGColor(red: 1.0, green: 90 / 255, blue: 54 / 255, alpha: 1.0)
         case .unmeasured:
             return CGColor(gray: 0.50, alpha: 1.0)
         }
@@ -537,13 +537,13 @@ public enum PDFReportGenerator {
 
     private static func coverageColor(_ percent: Int) -> CGColor {
         if percent >= 85 {
-            return CGColor(red: 0.15, green: 0.65, blue: 0.28, alpha: 1.0)
+            return CGColor(red: 34 / 255, green: 197 / 255, blue: 94 / 255, alpha: 1.0)
         } else if percent >= 70 {
-            return CGColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 1.0)
+            return CGColor(red: 124 / 255, green: 58 / 255, blue: 237 / 255, alpha: 1.0)
         } else if percent >= 50 {
-            return CGColor(red: 0.85, green: 0.50, blue: 0.0, alpha: 1.0)
+            return CGColor(red: 245 / 255, green: 158 / 255, blue: 11 / 255, alpha: 1.0)
         } else {
-            return CGColor(red: 0.85, green: 0.18, blue: 0.15, alpha: 1.0)
+            return CGColor(red: 1.0, green: 90 / 255, blue: 54 / 255, alpha: 1.0)
         }
     }
 }

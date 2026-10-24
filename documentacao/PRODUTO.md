@@ -28,7 +28,7 @@ Falha durante uma fase deve preservar fatos já obtidos. Cancelamento, backgroun
 O caminho concluído tenta salvar no histórico; falha de gravação não desfaz o resultado. Preservar resultado parcial em memória não comprova gravação automática de parcial no histórico.
 “Perda” derivada das sondas HTTP não é medição isolada de perda IP/ICMP. Indisponibilidade de referência regional ou responsividade não invalida automaticamente a banda medida.
 
-A Home usa observação HTTP efêmera e aquecimento antes de interpretar. Ping não estima velocidade: eventual referência de banda vem de teste completo recente da mesma rede Wi-Fi identificada. Celular ou identidade ausente não recebem banda inventada.
+A Home abre como convite honesto: “Pronto para medir.” e uma ação explícita de teste. O contexto da conexão fica visível, mas leitura HTTP efêmera e aquecimento não viram veredito geral de saúde antes da medição formal. Ping não estima velocidade: eventual referência de banda vem de teste completo recente da mesma rede Wi-Fi identificada. Celular ou identidade ausente não recebem banda inventada.
 A leitura viva deve ser invalidada na troca de rede, pausada durante o teste e separada do resultado salvo. Ela não alimenta o histórico como se fosse nova medição formal.
 A [triagem de conectividade](../aplicativo-ios/LinkaApp/Sources/UI/ConnectivityTriageView.swift) oferece recuperação após falha: falta de caminho, acesso a endpoint, falha de resolução, suspeita de portal ou resultado inconclusivo. Um endpoint acessível não prova saúde de toda a Internet; suspeita de portal não é confirmação.
 
@@ -109,9 +109,9 @@ Essa proteção do cartão não comprova anonimização de todo o produto. Conte
 
 ## Experiência, acessibilidade e identidade
 
-A voz é curta, calma e concreta: “Download”, “Upload”, “Detalhes”, “Testar novamente”. Erro explica o ocorrido e oferece recuperação. Evitar entusiasmo artificial, slogans na interface e promessas como “ideal para qualquer uso”.
+A voz é curta, calma e concreta: “Download”, “Upload”, “Detalhes”, “Testar novamente”. Erro explica o ocorrido e oferece recuperação. Evitar entusiasmo artificial, slogans na interface e promessas como “ideal para qualquer uso”. A marca usa a mesma paleta do LagCheck: Roxo Gamer (`#7C3AED`) para ação, seleção, foco e progresso; Coral Solar (`#FF5A36`) apenas para falha/destrutivo; verde (`#22C55E`) e âmbar (`#F59E0B`) para estados positivos e atenção. Superfícies continuam semânticas e nativas da Apple.
 Números, unidades e datas seguem o idioma efetivo. Há preferências de aparência/idioma; presença de tradução não prova qualidade integral em pt-BR, inglês e espanhol.
-No iPhone/iPad, a navegação principal usa a tab bar nativa da Apple, embaixo: **Medir**, **Histórico**, **Minha Rede** (quando disponível) e **Ajustes**. O sistema define vidro, tamanho, área segura e adaptação de acessibilidade; as quatro áreas mantêm sua navegação própria. Assist e Otimização continuam contextuais, não abas. Caminhos secundários usam toolbar e sheets; iPad adapta largura/orientação, sem herdar automaticamente o redesign Mac.
+No iPhone/iPad, a navegação principal usa a tab bar nativa da Apple, embaixo: **Medir**, **Histórico**, **Minha Rede** (quando disponível) e **Ajustes**. O sistema define vidro, tamanho, área segura e adaptação de acessibilidade; as quatro áreas mantêm sua navegação própria. No iPhone, cada área-raiz usa título grande para orientar a navegação; detalhes, formulários e sheets usam título inline. No iPad regular, a tab bar superior já identifica a área e o título raiz não é repetido. Na Home, o CTA vem antes de anúncio, histórico e ajuda; resultado anterior aparece como linha com data, nunca como estado atual. Assist e Otimização continuam contextuais, não abas. Caminhos secundários usam toolbar e sheets; iPad adapta largura/orientação, sem herdar automaticamente o redesign Mac.
 
 Direção macOS vigente:
 

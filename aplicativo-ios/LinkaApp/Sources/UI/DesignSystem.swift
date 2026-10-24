@@ -43,17 +43,16 @@ public extension Color {
         return PlatformColor(red: CGFloat(r) / 255, green: CGFloat(g) / 255, blue: CGFloat(b) / 255, alpha: CGFloat(a) / 255)
     }
 
-    private static let lightInk = hex("#102245")
-    private static let lightAccentWarm = hex("#C15300") // Darkened to meet 4.5:1 contrast in Light Mode
-    private static let lightAccentWarmInk = hex("#A34A00") // Canonical text/icon warm accent (WCAG AA >= 4.5:1)
-    private static let lightBorderStrong = hex("#7C859B")
-    private static let lightChartDownload = hex("#0066CC") // Download series contrast >= 4.5:1 on light
-
-    private static let darkInk = hex("#F6F6F9")
-    private static let darkAccentWarm = hex("#FF9552")
-    private static let darkAccentWarmInk = hex("#FF9552")
-    private static let darkBorderStrong = hex("#5C6577")
-    private static let darkChartDownload = hex("#409CFF")
+    // Paleta compartilhada com o LagCheck. Superfícies e tipografia seguem
+    // semântica nativa Apple; ação, seleção, gráficos e estados usam estes
+    // mesmos tokens para os dois produtos falarem a mesma língua.
+    private static let gamerPurpleDeep = hex("#5B21B6")
+    private static let gamerPurple = hex("#7C3AED")
+    private static let gamerPurpleLight = hex("#A78BFA")
+    private static let coralSolar = hex("#FF5A36")
+    private static let semanticGood = hex("#22C55E")
+    private static let semanticWarning = hex("#F59E0B")
+    private static let semanticNeutral = hex("#8A93A0")
 
     // UI Polish v2 (2026-08-29): surfacePage/surfaceCard/textPrimary/
     // textSecondary/borderDefault deixaram de ser hex custom e passaram a
@@ -61,39 +60,37 @@ public extension Color {
     // contraste correto em Light/Dark/Aumentar Contraste e de "parecer
     // nativo" sem redesenhar o UIKit/AppKit inteiro (decisão de produto,
     // análise de UI Polish v2). A identidade Linka permanece só em
-    // brandSurface/brandOnSurface/brandAccentWarm/borderStrong.
+    // brandSurface/brandOnSurface/brandAccentWarm/borderStrong. Esses tokens
+    // agora espelham a paleta oficial do LagCheck.
     #if canImport(UIKit)
     static let surfacePage = Color(UIColor.systemGroupedBackground)
     static let surfaceCard = Color(UIColor.secondarySystemGroupedBackground)
     static let textPrimary = Color(UIColor.label)
     static let textSecondary = Color(UIColor.secondaryLabel)
     static let borderDefault = Color(UIColor.separator)
-    static let statusGood = Color(UIColor.systemGreen)
-    static let statusAttention = Color(UIColor.systemOrange)
-    static let statusCritical = Color(UIColor.systemRed)
     #elseif canImport(AppKit)
     static let surfacePage = Color(NSColor.windowBackgroundColor)
     static let surfaceCard = Color(NSColor.controlBackgroundColor)
     static let textPrimary = Color(NSColor.labelColor)
     static let textSecondary = Color(NSColor.secondaryLabelColor)
     static let borderDefault = Color(NSColor.separatorColor)
-    static let statusGood = Color(NSColor.systemGreen)
-    static let statusAttention = Color(NSColor.systemOrange)
-    static let statusCritical = Color(NSColor.systemRed)
     #endif
 
-    static let borderStrong = dynamicColor(light: lightBorderStrong, dark: darkBorderStrong)
-    static let brandSurface = dynamicColor(light: lightInk, dark: darkInk)
-    static let brandOnSurface = dynamicColor(light: hex("#FFFFFF"), dark: hex("#000000"))
-    static let brandAccentWarm = dynamicColor(light: lightAccentWarm, dark: darkAccentWarm)
-    /// Variante canônica para texto e ícones sobre superfícies claras/tintadas (tokens/colors.css).
-    static let brandAccentWarmInk = dynamicColor(light: lightAccentWarmInk, dark: darkAccentWarmInk)
-    /// Séries de medição do histórico com contraste certificado WCAG AA.
-    static let chartDownloadSeries = dynamicColor(light: lightChartDownload, dark: darkChartDownload)
-    static let chartUploadSeries = brandAccentWarm
-    /// Cor de ação primária semântica (issue UI Polish v2) — substitui usos
-    /// soltos de `Color.accentColor`/`.blue` em `AssistView`. Reaproveita a
-    /// cor de marca em vez de introduzir um quarto tom de laranja/azul.
+    static let borderStrong = dynamicColor(light: gamerPurpleDeep, dark: gamerPurpleLight)
+    static let brandSurface = Color(gamerPurple)
+    static let brandOnSurface = Color.white
+    /// Alias histórico: agora é o Roxo Gamer oficial, não um tom quente.
+    static let brandAccentWarm = Color(gamerPurple)
+    /// Variante de contraste para texto e ícones sobre superfícies claras/escuras.
+    static let brandAccentWarmInk = dynamicColor(light: gamerPurpleDeep, dark: gamerPurpleLight)
+    /// Séries de medição do histórico, ambas da família Roxo Gamer.
+    static let chartDownloadSeries = dynamicColor(light: gamerPurpleDeep, dark: gamerPurpleLight)
+    static let chartUploadSeries = Color(gamerPurple)
+    static let statusGood = Color(semanticGood)
+    static let statusAttention = Color(semanticWarning)
+    static let statusCritical = Color(coralSolar)
+    static let statusNeutral = Color(semanticNeutral)
+    /// Cor de ação primária semântica, compartilhada com o LagCheck.
     static let actionPrimary = brandAccentWarm
 }
 

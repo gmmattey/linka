@@ -19,6 +19,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @Environment(\.requestReview) private var requestReview
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var purchaseEntryPoint: PurchaseEntryPoint = .settings
     @State private var showPurchase = false
     @State private var showSubscriptionManagement = false
@@ -190,7 +191,7 @@ struct SettingsView: View {
         }
         .navigationTitle(LinkaCopy.value("settings.title"))
         #if os(iOS)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(horizontalSizeClass == .regular ? .inline : .large)
         #endif
         #if os(macOS)
         .toolbar {

@@ -25,7 +25,7 @@ private enum LinkaPrimaryNavigationDestination: CaseIterable, Hashable, Identifi
 
     var title: String {
         switch self {
-        case .speedTest: return "Medir"
+        case .speedTest: return LinkaCopy.value("home.measure")
         case .history: return LinkaCopy.value("Histórico")
         case .myNetwork: return LinkaCopy.value("inventory.title")
         case .settings: return LinkaCopy.value("Configurações")
@@ -137,14 +137,7 @@ private enum AssistEntryPoint {
 
 struct MainView: View {
     private var mainTitle: String {
-        switch viewModel.uiPhase {
-        case .idle, .connectionChanged, .error:
-            return LinkaCopy.value("home.title")
-        case .connecting, .downloading, .uploading:
-            return LinkaCopy.value("home.testing")
-        case .done:
-            return ""
-        }
+        LinkaCopy.value("home.measure")
     }
 
     @StateObject private var viewModel = SpeedTestViewModel()
@@ -163,7 +156,6 @@ struct MainView: View {
     @State private var showOptimizationRetestResult = false
     @State private var purchaseEntryPoint: PurchaseEntryPoint = .settings
     @State private var showAssistResult: Bool = false
-    @State private var showAssistV4Local: Bool = false
     @State private var showNetscopeAnalysis: Bool = false
     @State private var assistEntryPoint: AssistEntryPoint = .fresh
     @State private var pendingAssistMeasurement = false
@@ -187,6 +179,7 @@ struct MainView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.requestReview) private var requestReview
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     /// Em .regular (iPad, agora sem limite de largura) os ícones e o anel
@@ -376,7 +369,7 @@ struct MainView: View {
         }
         .navigationTitle(mainTitle)
         #if os(iOS)
-        .navigationBarTitleDisplayMode(viewModel.uiPhase == .idle || viewModel.uiPhase == .done ? .large : .inline)
+        .navigationBarTitleDisplayMode(isPad ? .inline : .large)
         #endif
         .navigationDestination(for: AppRoute.self) { route in
             destinationView(for: route)
@@ -412,11 +405,6 @@ struct MainView: View {
                     onShowDetails: { showDetails = true }
                 )
             }
-            #if os(iOS)
-            .sheet(isPresented: $showAssistV4Local) {
-                AssistV4Screen()
-            }
-            #endif
             .sheet(isPresented: $showNetscopeAnalysis) {
                 if let currentMeasurement {
                     NetscopeAnalysisView(
@@ -765,9 +753,9 @@ struct MainView: View {
                         // devolver uma área de hit-testing maior que o card.
                         .zIndex(1)
 
-                    BannerView(placement: .home)
-
                     homeSecondaryActionsGroup
+
+                    BannerView(placement: .home)
 
                     Spacer(minLength: 8)
                 }
@@ -794,17 +782,17 @@ struct MainView: View {
 
     private var idleHeroStatus: some View {
         VStack(spacing: 10) {
-            Image(systemName: heroStateIcon)
+            Image(systemName: "speedometer")
                 .font(.system(size: isPad ? 56 : 40, weight: .medium))
-                .foregroundColor(heroStateIconColor)
+                .foregroundColor(.brandAccentWarm)
                 .symbolRenderingMode(.hierarchical)
 
-            Text(heroStateTitle)
+            Text(LinkaCopy.value("home.hero.ready.title"))
                 .font(.displayMedium)
                 .foregroundColor(.textPrimary)
                 .multilineTextAlignment(.center)
 
-            Text(heroStateSubtitle)
+            Text(LinkaCopy.value("home.hero.ready.subtitle"))
                 .font(.bodyRegular)
                 .foregroundColor(.textSecondary)
                 .multilineTextAlignment(.center)
@@ -857,18 +845,22 @@ struct MainView: View {
         Button {
             startSpeedTest()
         } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "speedometer")
-                    .font(isPad ? .title3.weight(.semibold) : .headline.weight(.semibold))
-                Text(LinkaCopy.value("home.live.speedTest"))
-            }
+            Label(LinkaCopy.value("home.testSpeed"), systemImage: "speedometer")
+                .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.linkaPrimary)
+        .buttonStyle(.borderedProminent)
+        .tint(.brandAccentWarm)
+        .controlSize(.large)
+        .frame(maxWidth: isPad ? 420 : 300)
         .accessibilityIdentifier("home.speedTestCTA")
     }
 
     private var homeSecondaryActionsGroup: some View {
-        VStack(spacing: 18) {
+        VStack(spacing: 10) {
+            if let latest = viewModel.latestFinishedMeasurement {
+                lastMeasurementRow(latest)
+            }
+
             Button {
                 requestAssist(from: .fresh)
             } label: {
@@ -876,59 +868,60 @@ struct MainView: View {
                     Image(systemName: "sparkles")
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(.brandAccentWarm)
-                    Text(LinkaCopy.value("home.assist.cta"))
+                    Text(LinkaCopy.value("home.assist.home.cta"))
                         .font(.bodyRegular)
                         .foregroundColor(.textSecondary)
-                        .lineLimit(1)
-                }
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-
-            #if os(iOS)
-            Button {
-                showAssistV4Local = true
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "sparkles")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(.brandAccentWarm)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Consultoria local")
-                            .font(.bodyRegular)
-                            .foregroundColor(.textSecondary)
-                        Text("Sem enviar dados nesta versão")
-                            .font(.captionSmall)
-                            .foregroundColor(.textSecondary)
-                    }
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                     Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(.textSecondary)
                 }
                 .frame(minHeight: 44)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityIdentifier("home.assist-v4-local")
-            #endif
-
-            if let latest = viewModel.latestFinishedMeasurement {
-                Button {
-                    selectedTab = .history
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "clock.arrow.circlepath")
-                            .font(.subheadline.weight(.medium))
-                        Text(LinkaCopy.format("home.lastTest.value", formatted(latest.downloadMbps ?? 0), formatRelativeTime(latest.measuredAt)))
-                            .font(.bodyRegular)
-                            .lineLimit(1)
-                    }
-                    .foregroundColor(.textSecondary)
-                    .frame(minHeight: 44)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-            }
         }
+    }
+
+    private func lastMeasurementRow(_ measurement: NetworkMeasurement) -> some View {
+        Button {
+            selectedTab = .history
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(.textSecondary)
+                    .frame(width: 24)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(LinkaCopy.value("home.lastTest"))
+                        .font(.captionSmall)
+                        .foregroundColor(.textSecondary)
+                    Text(lastMeasurementSummary(measurement))
+                        .font(.bodyRegularStrong)
+                        .foregroundColor(.textPrimary)
+                        .monospacedDigit()
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(.textSecondary)
+            }
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(LinkaCopy.value("home.lastTest"))
+    }
+
+    private func lastMeasurementSummary(_ measurement: NetworkMeasurement) -> String {
+        let date = formatRelativeTime(measurement.measuredAt)
+        guard let download = measurement.downloadMbps else { return date }
+        return LinkaCopy.format("home.lastTest.value", formatted(download), date)
     }
 
     // 2. Medindo (Connecting / Downloading / Uploading)
@@ -1227,109 +1220,6 @@ struct MainView: View {
             .buttonStyle(.linkaPrimary)
             .padding(.horizontal, 24)
             Spacer()
-        }
-    }
-
-    // MARK: - Idle hero state
-
-    /// Qualidade da Home derivada da mesma janela que alimenta os casos de
-    /// uso. Não consulta `LinkaHealthCheck`, para não criar uma segunda
-    /// leitura concorrente para a pessoa.
-    private enum IdleConnectionQuality {
-        case warming       // janela ainda sem evidência suficiente
-        case offline       // sem internet
-        case good
-        case fair
-        case poor
-    }
-
-    private var idleConnectionQuality: IdleConnectionQuality {
-        guard viewModel.liveConnectionKind != nil else { return .offline }
-        guard let report = viewModel.liveUsageReport,
-              report.telemetry.sampleCount >= 3 else { return .warming }
-
-        guard let gaming = report.verdict(for: .onlineGaming) else { return .warming }
-        switch gaming.level {
-        case .adequate: return .good
-        case .limited:
-            return gaming.reason == .packetLossExceeded ? .poor : .fair
-        case .notAssessed: return .warming
-        }
-    }
-
-    private var heroStateIcon: String {
-        switch idleConnectionQuality {
-        case .warming:  return "ellipsis.circle"
-        case .offline:  return "wifi.exclamationmark"
-        case .good:     return "checkmark.circle.fill"
-        case .fair:     return "exclamationmark.circle.fill"
-        case .poor:     return "exclamationmark.triangle.fill"
-        }
-    }
-
-    private var heroStateIconColor: Color {
-        switch idleConnectionQuality {
-        case .warming:  return .textSecondary
-        case .offline:  return .statusCritical
-        case .good:     return .statusGood
-        case .fair:     return .statusAttention
-        case .poor:     return .statusCritical
-        }
-    }
-
-    private var heroStateTitle: String {
-        switch idleConnectionQuality {
-        case .warming:  return LinkaCopy.value("home.hero.warming.title")
-        case .offline:  return LinkaCopy.value("home.offline")
-        case .good:     return LinkaCopy.value("home.hero.good.title")
-        case .fair:     return LinkaCopy.value("home.hero.fair.title")
-        case .poor:     return LinkaCopy.value("home.hero.poor.title")
-        }
-    }
-
-    private var heroStateSubtitle: String {
-        switch idleConnectionQuality {
-        case .warming:  return LinkaCopy.value("home.hero.warming.subtitle")
-        case .offline:  return LinkaCopy.value("home.hero.connectToAnalyze")
-        case .good:     return LinkaCopy.value("home.hero.good.subtitle")
-        case .fair:     return LinkaCopy.value("home.hero.fair.subtitle")
-        case .poor:     return LinkaCopy.value("home.hero.poor.subtitle")
-        }
-    }
-
-    private var simpleNetworkContext: String? {
-        if viewModel.connectionKind == .wifi {
-            if let ssid = viewModel.wifiContext?.ssid {
-                if let band = viewModel.wifiBandGHz {
-                    let fractionLength = band.truncatingRemainder(dividingBy: 1) == 0 ? 0 : 1
-                    let bandStr = band.formatted(
-                        .number
-                            .precision(.fractionLength(fractionLength))
-                            .locale(LinkaLanguagePreference.currentLocale)
-                    )
-                    return "\(ssid) · \(bandStr) GHz"
-                }
-                return ssid
-            }
-            return LinkaCopy.value("network.wifi")
-        } else if viewModel.connectionKind == .cellular {
-            if !viewModel.liveNetworkLabel.isEmpty {
-                return viewModel.liveNetworkLabel
-            }
-            return LinkaCopy.value("network.cellular")
-        } else if viewModel.connectionKind == .ethernet {
-            return LinkaCopy.value("network.ethernet")
-        }
-        return nil
-    }
-
-    private var liveConnectionType: String {
-        switch viewModel.liveConnectionKind {
-        case .wifi: return LinkaCopy.value("network.wifi")
-        case .cellular: return LinkaCopy.value("network.cellular")
-        case .ethernet: return LinkaCopy.value("network.ethernet")
-        case .other: return LinkaCopy.value("network.other")
-        case nil: return LinkaCopy.value("home.offline")
         }
     }
 

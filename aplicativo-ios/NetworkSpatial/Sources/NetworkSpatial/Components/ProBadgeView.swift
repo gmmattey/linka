@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Badge discreta indicadora de funcionalidade Pro no WiFi Casa.
-/// Construída em Camada 2 (#2C2C2E) com acento Coral Solar, sem bordas ou contornos.
+/// Construída em Camada 2 (#2C2C2E) com acento Roxo Gamer, sem bordas ou contornos.
 public struct ProBadgeView: View {
     public var isCompact: Bool
 

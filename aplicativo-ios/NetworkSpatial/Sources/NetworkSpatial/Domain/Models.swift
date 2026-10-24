@@ -165,9 +165,9 @@ public enum AccessPointType: String, Codable, CaseIterable, Sendable {
         case .mainRouter:
             return WiFiCasaTheme.brandAccent
         case .meshSatellite:
-            return Color(red: 0 / 255, green: 199 / 255, blue: 190 / 255) // #00C7BE Ciano Menta
+            return WiFiCasaTheme.brandAccentWarm
         case .repeater:
-            return WiFiCasaTheme.scoreFair // #FFD60A Âmbar HIG
+            return WiFiCasaTheme.scoreFair
         case .none:
             return WiFiCasaTheme.textSecondary
         }

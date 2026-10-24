@@ -47,6 +47,7 @@ enum HistoryVisualizationState: Equatable {
 
 struct HistoryView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @EnvironmentObject private var entitlements: StoreKitEntitlementProvider
     @EnvironmentObject private var ads: LinkaAdsCoordinator
     var onSelectMeasurement: ((NetworkMeasurement) -> Void)? = nil
@@ -222,7 +223,7 @@ struct HistoryView: View {
         }
         .navigationTitle(LinkaCopy.value("history.title"))
         #if os(iOS)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(horizontalSizeClass == .regular ? .inline : .large)
         .toolbarBackground(.hidden, for: .navigationBar)
         #endif
         .toolbar {

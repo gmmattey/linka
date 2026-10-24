@@ -57,6 +57,7 @@ targets:
     info:
       path: LinkaApp/Info.plist
       properties:
+        CFBundleDisplayName: Speedtest by Linka
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleLocalizations:
@@ -161,6 +162,7 @@ targets:
     info:
       path: LinkaApp/Info-macOS.plist
       properties:
+        CFBundleDisplayName: Speedtest by Linka
         CFBundleLocalizations:
           - pt-BR
           - en
@@ -257,7 +259,7 @@ targets:
     info:
       path: LinkaWidget/Info.plist
       properties:
-        CFBundleDisplayName: Linka SpeedTest
+        CFBundleDisplayName: Speedtest by Linka
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         NSExtension:

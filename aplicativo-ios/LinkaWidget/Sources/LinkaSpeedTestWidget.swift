@@ -460,7 +460,7 @@ struct LinkaSpeedTestWidget: Widget {
         ) { entry in
             LinkaSpeedTestWidgetView(entry: entry)
         }
-        .configurationDisplayName("Linka")
+        .configurationDisplayName("Speedtest by Linka")
         .description("Testar velocidade e ver o último resultado.")
         .supportedFamilies([
             .systemSmall,

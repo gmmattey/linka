@@ -78,19 +78,19 @@ public enum WiFiCasaTheme {
         #endif
     }
 
-    // MARK: - Identidade da Marca (Tom Coral Solar de Linka & Lagcheck)
+    // MARK: - Identidade compartilhada com LagCheck
 
-    /// Coral Solar / Laranja de Conectividade Linka (#FF6B35 / #FF7A3D)
-    public static let brandAccent = Color(red: 255 / 255, green: 107 / 255, blue: 53 / 255) // #FF6B35 (Coral Solar)
-    public static let brandAccentWarm = Color(red: 255 / 255, green: 122 / 255, blue: 61 / 255) // #FF7A3D (Linka)
+    /// Roxo Gamer oficial: ação, seleção, foco e progresso.
+    public static let brandAccent = Color(red: 124 / 255, green: 58 / 255, blue: 237 / 255) // #7C3AED
+    public static let brandAccentWarm = Color(red: 167 / 255, green: 139 / 255, blue: 250 / 255) // #A78BFA
     public static let brandAccentSubtle = brandAccent.opacity(0.15)
 
-    /// Gradiente Coral Solar oficial (Lagcheck & Linka: #FF3823 -> #FF6B35 -> #FFAB2E)
-    public static let coralSolarGradient = LinearGradient(
+    /// Variação da marca para elementos que já pedem um gradiente local.
+    public static let gamerPurpleGradient = LinearGradient(
         colors: [
-            Color(red: 255 / 255, green: 56 / 255, blue: 35 / 255),  // #FF3823
-            Color(red: 255 / 255, green: 107 / 255, blue: 53 / 255), // #FF6B35
-            Color(red: 255 / 255, green: 171 / 255, blue: 46 / 255)  // #FFAB2E
+            Color(red: 91 / 255, green: 33 / 255, blue: 182 / 255),  // #5B21B6
+            brandAccent,                                               // #7C3AED
+            brandAccentWarm                                            // #A78BFA
         ],
         startPoint: .bottomLeading,
         endPoint: .topTrailing
@@ -98,10 +98,10 @@ public enum WiFiCasaTheme {
 
     // MARK: - Escala Semântica de Qualidade (Mesmo Tom do Lagcheck, Alta Luminância Dark Mode)
 
-    public static let scoreExcellent = Color(red: 48 / 255, green: 209 / 255, blue: 88 / 255)       // #30D158 (Verde Apple HIG Vibrante)
-    public static let scoreGood = Color(red: 100 / 255, green: 210 / 255, blue: 255 / 255)         // #64D2FF (Ciano Apple HIG Vibrante)
-    public static let scoreFair = Color(red: 255 / 255, green: 214 / 255, blue: 10 / 255)          // #FFD60A (Amarelo Apple HIG)
-    public static let scorePoor = Color(red: 255 / 255, green: 95 / 255, blue: 85 / 255)           // #FF5F55 (Coral/Vermelho Vibrante Apple)
+    public static let scoreExcellent = Color(red: 34 / 255, green: 197 / 255, blue: 94 / 255)       // #22C55E
+    public static let scoreGood = scoreExcellent
+    public static let scoreFair = Color(red: 245 / 255, green: 158 / 255, blue: 11 / 255)           // #F59E0B
+    public static let scorePoor = Color(red: 255 / 255, green: 90 / 255, blue: 54 / 255)            // #FF5A36
     public static let scoreNeutral = textSecondary
 
     public static let scoreExcellentSubtle = scoreExcellent.opacity(0.14)

@@ -11,6 +11,7 @@ import AVFoundation
 
 struct MyNetworkView: View {
     @StateObject private var store = LinkaInventoryStore()
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @EnvironmentObject private var entitlements: StoreKitEntitlementProvider
     @State private var editing: RegisteredNetworkDevice?
     @State private var editingPlan = false
@@ -69,6 +70,9 @@ struct MyNetworkView: View {
             }
         }
         .navigationTitle(LinkaCopy.value("inventory.title"))
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(horizontalSizeClass == .regular ? .inline : .large)
+        #endif
         .toolbar {
             ToolbarItem {
                 Button(action: add) { Label(LinkaCopy.value("inventory.devices.add"), systemImage: "plus") }

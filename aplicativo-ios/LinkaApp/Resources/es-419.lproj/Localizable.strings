@@ -148,8 +148,6 @@
 "usage.live.measuring" = "Evaluando…";
 "usage.live.historicalBaseline" = "Estado actual + última prueba de esta red";
 "home.testSpeed.videoCall" = "Medir para videollamada";
-"home.hero.warming.title" = "Evaluando tu conexión";
-"home.hero.warming.subtitle" = "Reuniendo datos de la red ahora";
 "common.close" = "Cerrar";
 "common.loading" = "Cargando…";
 "common.tryAgain" = "Intentar de nuevo";
@@ -406,6 +404,7 @@
 "settings.subscription.noPurchase" = "No se encontró ninguna compra activa.";
 "settings.subscription.restoreError" = "No pudimos restaurar tu compra ahora.";
 "home.title" = "Inicio";
+"home.measure" = "Medir";
 "home.now" = "Ahora";
 "home.testing" = "Probando...";
 "home.speed" = "Velocidad";
@@ -417,6 +416,7 @@
 "home.lastTest.value" = "%@ Mbps · %@";
 "home.downloadUnit" = "Mbps de descarga";
 "home.assist.cta" = "Analizar mi conexión";
+"home.assist.home.cta" = "¿Necesitas ayuda con tu red?";
 "home.assist.resultMessage" = "Analicemos los datos de esta medición.";
 "home.accessibility.back" = "Volver al inicio";
 "home.accessibility.history" = "Historial";
@@ -436,14 +436,8 @@
 "home.verdict.4k" = "4K";
 "home.verdict.hd" = "HD";
 "home.verdict.sd" = "SD";
-"home.hero.good.title" = "Todo parece normal";
-"home.hero.fair.title" = "La conexión necesita atención";
-"home.hero.poor.title" = "Conexión inestable";
-"home.hero.connectToAnalyze" = "Conéctate a una red para analizar";
-"home.hero.measuringQuality" = "Midiendo la calidad de la conexión...";
-"home.hero.good.subtitle" = "No detectamos problemas";
-"home.hero.fair.subtitle" = "La latencia está un poco alta";
-"home.hero.poor.subtitle" = "Detectamos una latencia muy alta";
+"home.hero.ready.title" = "Listo para medir.";
+"home.hero.ready.subtitle" = "Mediremos la velocidad, respuesta y estabilidad de esta conexión.";
 "home.health.ping" = "Ping de %d ms";
 "home.health.jitter" = "variación de %d ms";
 "home.health.dns" = "DNS en %d ms";

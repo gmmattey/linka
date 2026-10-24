@@ -153,8 +153,8 @@ public struct RoomCardView: View {
                     .fixedSize(horizontal: true, vertical: false)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 5)
-                    .background(Color(red: 1.0, green: 0.42, blue: 0.21).opacity(0.20))
-                    .foregroundStyle(Color(red: 1.0, green: 0.65, blue: 0.45))
+                    .background(WiFiCasaTheme.brandAccent.opacity(0.20))
+                    .foregroundStyle(WiFiCasaTheme.brandAccentWarm)
                     .clipShape(Capsule())
                     .frame(minWidth: 44, minHeight: 44)
                 }

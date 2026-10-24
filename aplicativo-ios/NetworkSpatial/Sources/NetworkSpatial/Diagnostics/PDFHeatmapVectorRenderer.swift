@@ -161,7 +161,7 @@ public enum PDFHeatmapVectorRenderer {
                     string: apLabel,
                     attributes: [
                         NSAttributedString.Key(kCTFontAttributeName as String): apFont,
-                        NSAttributedString.Key(kCTForegroundColorAttributeName as String): CGColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 1.0)
+                        NSAttributedString.Key(kCTForegroundColorAttributeName as String): CGColor(red: 124 / 255, green: 58 / 255, blue: 237 / 255, alpha: 1.0)
                     ]
                 )
                 let apLine = CTLineCreateWithAttributedString(apString)
@@ -175,27 +175,27 @@ public enum PDFHeatmapVectorRenderer {
         switch rating {
         case .excellent:
             return (
-                CGColor(red: 0.20, green: 0.78, blue: 0.35, alpha: 0.12),
-                CGColor(red: 0.20, green: 0.78, blue: 0.35, alpha: 0.8),
-                CGColor(red: 0.12, green: 0.55, blue: 0.24, alpha: 1.0)
+                CGColor(red: 34 / 255, green: 197 / 255, blue: 94 / 255, alpha: 0.12),
+                CGColor(red: 34 / 255, green: 197 / 255, blue: 94 / 255, alpha: 0.8),
+                CGColor(red: 34 / 255, green: 197 / 255, blue: 94 / 255, alpha: 1.0)
             )
         case .good:
             return (
-                CGColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 0.10),
-                CGColor(red: 0.04, green: 0.52, blue: 1.0, alpha: 0.7),
-                CGColor(red: 0.02, green: 0.38, blue: 0.78, alpha: 1.0)
+                CGColor(red: 124 / 255, green: 58 / 255, blue: 237 / 255, alpha: 0.10),
+                CGColor(red: 124 / 255, green: 58 / 255, blue: 237 / 255, alpha: 0.7),
+                CGColor(red: 91 / 255, green: 33 / 255, blue: 182 / 255, alpha: 1.0)
             )
         case .fair:
             return (
-                CGColor(red: 1.0, green: 0.58, blue: 0.0, alpha: 0.12),
-                CGColor(red: 1.0, green: 0.58, blue: 0.0, alpha: 0.8),
-                CGColor(red: 0.75, green: 0.42, blue: 0.0, alpha: 1.0)
+                CGColor(red: 245 / 255, green: 158 / 255, blue: 11 / 255, alpha: 0.12),
+                CGColor(red: 245 / 255, green: 158 / 255, blue: 11 / 255, alpha: 0.8),
+                CGColor(red: 245 / 255, green: 158 / 255, blue: 11 / 255, alpha: 1.0)
             )
         case .poor:
             return (
-                CGColor(red: 1.0, green: 0.23, blue: 0.19, alpha: 0.12),
-                CGColor(red: 1.0, green: 0.23, blue: 0.19, alpha: 0.8),
-                CGColor(red: 0.80, green: 0.15, blue: 0.12, alpha: 1.0)
+                CGColor(red: 1.0, green: 90 / 255, blue: 54 / 255, alpha: 0.12),
+                CGColor(red: 1.0, green: 90 / 255, blue: 54 / 255, alpha: 0.8),
+                CGColor(red: 1.0, green: 90 / 255, blue: 54 / 255, alpha: 1.0)
             )
         case .unmeasured:
             return (

@@ -10,8 +10,8 @@
     <path d="M211.5 75v32.5"/>
   </g>
   <path d="M72.5 86.75v30.25" fill="none" stroke="#FFFFFF" stroke-width="11.4" stroke-linecap="round"/>
-  <circle cx="72.5" cy="67.5" r="10" fill="#FF9552"/>
-  <g fill="none" stroke="#FF9552" stroke-width="9.6" stroke-linecap="round">
+  <circle cx="72.5" cy="67.5" r="10" fill="#7C3AED"/>
+  <g fill="none" stroke="#7C3AED" stroke-width="9.6" stroke-linecap="round">
     <path d="M230 91.5H254"/>
     <path d="M242 79.5V103.5"/>
   </g>

@@ -47,7 +47,6 @@ struct LinkaServiceIncident: Codable, Identifiable, Hashable {
 
 private struct CatalogResponse: Decodable { let services: [LinkaService] }
 private struct IncidentsResponse: Decodable { let incidents: [LinkaServiceIncident] }
-private struct IncidentResponse: Decodable { let incident: LinkaServiceIncident }
 
 private enum ServiceStatusDeviceIdentity {
     private static let service = "com.linka.assist.service-status"
@@ -81,14 +80,12 @@ final class ServiceStatusStore: ObservableObject {
     @Published private(set) var incidents: [LinkaServiceIncident] = []
     @Published private(set) var isLoading = false
     @Published private(set) var lastError: String?
-    @Published var popupIncident: LinkaServiceIncident?
 
     private let defaults: UserDefaults
     private let session: URLSession
     private let endpoint: URL?
     private let installationID: String
     private var pushToken: String?
-    private var focusedIncidentID: String?
     private static let subscriptionsKey = "linka.serviceStatus.subscriptions"
     private static let pushTokenKey = "linka.serviceStatus.pushToken"
 
@@ -100,7 +97,6 @@ final class ServiceStatusStore: ObservableObject {
             .flatMap(URL.init(string:))
         self.installationID = ServiceStatusDeviceIdentity.installationID()
         self.pushToken = defaults.string(forKey: Self.pushTokenKey)
-        self.focusedIncidentID = defaults.string(forKey: LinkaStatusPushInbox.incidentIDKey)
         NotificationCenter.default.addObserver(forName: .linkaDidRegisterPushToken, object: nil, queue: .main) { [weak self] notification in
             guard let token = notification.object as? Data else { return }
             Task { @MainActor [weak self] in await self?.didRegisterPushToken(token) }
@@ -108,13 +104,6 @@ final class ServiceStatusStore: ObservableObject {
         NotificationCenter.default.addObserver(forName: .linkaDidFailPushRegistration, object: nil, queue: .main) { [weak self] notification in
             guard let error = notification.object as? Error else { return }
             Task { @MainActor [weak self] in self?.didFailToRegisterPush(error) }
-        }
-        NotificationCenter.default.addObserver(forName: .linkaDidReceiveStatusIncident, object: nil, queue: .main) { [weak self] notification in
-            guard let id = notification.object as? String else { return }
-            Task { @MainActor [weak self] in
-                self?.focusedIncidentID = id
-                await self?.refresh()
-            }
         }
     }
 
@@ -156,16 +145,6 @@ final class ServiceStatusStore: ObservableObject {
             incidents = try await active.incidents
             lastError = nil
             await synchronizeInstallation()
-            if let focusedIncidentID {
-                let incident = try? await fetch("incidents/\(focusedIncidentID)", from: endpoint) as IncidentResponse
-                if let incident {
-                    popupIncident = incident.incident
-                    self.focusedIncidentID = nil
-                    defaults.removeObject(forKey: LinkaStatusPushInbox.incidentIDKey)
-                }
-            } else if (defaults.stringArray(forKey: Self.subscriptionsKey) ?? []).isEmpty {
-                popupIncident = incidents.first
-            }
         } catch {
             lastError = LinkaCopy.value("Não foi possível atualizar o status agora.")
         }

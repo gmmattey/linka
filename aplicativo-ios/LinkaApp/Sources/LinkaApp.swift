@@ -127,14 +127,6 @@ struct LinkaApp: App {
                 .environmentObject(ads)
                 .preferredColorScheme(preferredColorScheme)
                 .environment(\.locale, effectiveLocale)
-            .alert("Instabilidade em serviço", isPresented: Binding(
-                get: { serviceStatus.popupIncident != nil },
-                set: { if !$0 { serviceStatus.popupIncident = nil } }
-            ), presenting: serviceStatus.popupIncident) { _ in
-                Button("Entendi", role: .cancel) {}
-            } message: { incident in
-                Text(incident.title)
-            }
             .onOpenURL { url in
                 guard url.scheme?.lowercased() == "linka",
                       url.host == "wifi-advanced",

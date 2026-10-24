@@ -148,8 +148,6 @@
 "usage.live.measuring" = "Evaluating…";
 "usage.live.historicalBaseline" = "Live status + latest test on this network";
 "home.testSpeed.videoCall" = "Test for video calls";
-"home.hero.warming.title" = "Checking your connection";
-"home.hero.warming.subtitle" = "Gathering live network data";
 "common.close" = "Close";
 "common.loading" = "Loading…";
 "common.tryAgain" = "Try again";
@@ -406,6 +404,7 @@
 "settings.subscription.noPurchase" = "No active purchase was found.";
 "settings.subscription.restoreError" = "We couldn't restore your purchase right now.";
 "home.title" = "Home";
+"home.measure" = "Test";
 "home.now" = "Now";
 "home.testing" = "Testing...";
 "home.speed" = "Speed";
@@ -417,6 +416,7 @@
 "home.lastTest.value" = "%@ Mbps · %@";
 "home.downloadUnit" = "Mbps download";
 "home.assist.cta" = "Analyze my connection";
+"home.assist.home.cta" = "Need help with your network?";
 "home.assist.resultMessage" = "Let's analyze this measurement's data.";
 "home.accessibility.back" = "Back to Home";
 "home.accessibility.history" = "History";
@@ -436,14 +436,8 @@
 "home.verdict.4k" = "4K";
 "home.verdict.hd" = "HD";
 "home.verdict.sd" = "SD";
-"home.hero.good.title" = "Everything looks normal";
-"home.hero.fair.title" = "Connection needs attention";
-"home.hero.poor.title" = "Unstable connection";
-"home.hero.connectToAnalyze" = "Connect to a network to analyze";
-"home.hero.measuringQuality" = "Measuring connection quality...";
-"home.hero.good.subtitle" = "No issues detected";
-"home.hero.fair.subtitle" = "Latency is a little high";
-"home.hero.poor.subtitle" = "Very high latency detected";
+"home.hero.ready.title" = "Ready to test.";
+"home.hero.ready.subtitle" = "We'll measure this connection's speed, response, and stability.";
 "home.health.ping" = "Ping %d ms";
 "home.health.jitter" = "variation %d ms";
 "home.health.dns" = "DNS %d ms";
