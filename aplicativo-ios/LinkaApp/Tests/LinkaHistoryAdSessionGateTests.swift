@@ -12,8 +12,8 @@ final class LinkaAdSessionGateTests: XCTestCase {
     func testPaidPlusNeverStartsAnAdRequest() {
         var gate = LinkaAdSessionGate()
 
-        XCTAssertFalse(gate.beginIfEligible(placement: .history, isEnabled: true, isEligibleForAds: false))
-        XCTAssertFalse(gate.didAttempt)
+        XCTAssertFalse(gate.beginIfEligible(placement: .history(0), isEnabled: true, isEligibleForAds: false))
+        XCTAssertTrue(gate.attemptedPlacements.isEmpty)
     }
 
     func testEligibleFreeHomeStartsAnAdRequestWithoutPriorMeasurement() {
@@ -35,21 +35,21 @@ final class LinkaAdSessionGateTests: XCTestCase {
 
         XCTAssertTrue(
             gate.beginIfEligible(
-                placement: .result,
+                placement: .result(0),
                 isEnabled: true,
                 isEligibleForAds: true
             )
         )
-        XCTAssertEqual(gate.placement, .result)
+        XCTAssertEqual(gate.attemptedPlacements, [.result(0)])
     }
 
-    func testEligibleFreeStartsOnlyOnceAcrossPlacementsPerSession() {
+    func testEligibleFreeStartsEachNativeSlotOncePerSession() {
         var gate = LinkaAdSessionGate()
 
         XCTAssertTrue(gate.beginIfEligible(placement: .home, isEnabled: true, isEligibleForAds: true))
-        XCTAssertTrue(gate.didAttempt)
-        XCTAssertEqual(gate.placement, .home)
-        XCTAssertFalse(gate.beginIfEligible(placement: .history, isEnabled: true, isEligibleForAds: true))
+        XCTAssertEqual(gate.attemptedPlacements, [.home])
+        XCTAssertTrue(gate.beginIfEligible(placement: .history(0), isEnabled: true, isEligibleForAds: true))
+        XCTAssertFalse(gate.beginIfEligible(placement: .history(0), isEnabled: true, isEligibleForAds: true))
     }
 
     func testMeasurementInvalidatesPendingConsentOrAdRequest() {
@@ -147,6 +147,30 @@ final class LinkaAdsCoordinatorMeasurementSuppressionTests: XCTestCase {
         XCTAssertEqual(recorder.presentedSurfaces, [.privacyOptions])
     }
 
+    func testPrivacyChangeRefreshesConsentBeforePreparingAnotherSlot() async {
+        let pause = ConsentPresentationPause()
+        let recorder = AdFlowRecorder()
+        await pause.releasePresentation()
+        let refreshedAgain = expectation(description: "consent refreshed after privacy change")
+        var refreshCount = 0
+        var configuration = dependencies(pause: pause, recorder: recorder)
+        configuration.updateConsentInformation = {
+            refreshCount += 1
+            if refreshCount == 2 { refreshedAgain.fulfill() }
+            return true
+        }
+        // O teste cobre o consentimento; não inicializa o SDK nem faz request real.
+        configuration.canRequestAds = { false }
+        let coordinator = LinkaAdsCoordinator(dependencies: configuration)
+
+        await coordinator.refreshConsentInformation()
+        await coordinator.presentPrivacyOptions()
+        coordinator.prepareHomeAd(isEligibleForAds: true, isEntitlementResolved: true)
+
+        await fulfillment(of: [refreshedAgain], timeout: 1)
+        XCTAssertEqual(refreshCount, 2)
+    }
+
     func testCancelledPreparationDoesNotConsumeAdAttempt() async {
         let pause = ConsentPresentationPause()
         let recorder = AdFlowRecorder()
@@ -170,7 +194,7 @@ final class LinkaAdsCoordinatorMeasurementSuppressionTests: XCTestCase {
         coordinator.measurementDidEnd()
         // The second flow must reach consent, proving cancellation did not
         // spend the request budget. Release remains open for this invocation.
-        coordinator.prepareHistoryAd(isEligibleForAds: true, isEntitlementResolved: true, hasHistory: true)
+        coordinator.prepareHistoryAds(slotCount: 1, isEligibleForAds: true, isEntitlementResolved: true)
         await fulfillment(of: [secondFinished], timeout: 1)
         XCTAssertEqual(recorder.presentedSurfaces, [.initialConsent])
         XCTAssertEqual(recorder.nativeAdLoadStarts, 0)

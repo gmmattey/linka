@@ -12,7 +12,7 @@ enum HistoryDisplayMode {
     case map
 }
 
-private enum HistoryFilter: CaseIterable {
+private enum HistoryFilter: CaseIterable, Hashable {
     case all, wifi, mobile
     var label: String { switch self { case .all: return LinkaCopy.value("history.filter.all"); case .wifi: return LinkaCopy.value("network.wifi"); case .mobile: return LinkaCopy.value("history.filter.mobile") } }
 }
@@ -75,6 +75,7 @@ struct HistoryView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
+                    #if os(macOS)
                     Section {
                         HStack {
                             Menu {
@@ -107,6 +108,7 @@ struct HistoryView: View {
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets(top: 2, leading: 4, bottom: 2, trailing: 4))
                     }
+                    #endif
 
                     if hasPlus {
                         if let insightText = insightText {
@@ -166,13 +168,6 @@ struct HistoryView: View {
                             .frame(maxWidth: .infinity)
                         }
                     } else {
-                        // O anúncio fica no começo do conteúdo rolável, antes
-                        // das medições. Só existe depois de o SDK entregar um
-                        // native ad, portanto nunca cria um buraco na lista.
-                        if showsHistoryAd {
-                            historyAdRow
-                        }
-
                         if historyVisualizationState == .singleMeasurement,
                            let measurement = filteredMeasurements.first {
                             Section {
@@ -192,7 +187,7 @@ struct HistoryView: View {
                         }
                         if historyVisualizationState != .singleMeasurement {
                             Section("\(LinkaCopy.value("history.measurements")) (\(filteredMeasurements.count))") {
-                                ForEach(filteredMeasurements, id: \.id) { measurement in
+                                ForEach(Array(filteredMeasurements.enumerated()), id: \.element.id) { index, measurement in
                                     Button {
                                         onSelectMeasurement?(measurement)
                                     } label: {
@@ -213,6 +208,11 @@ struct HistoryView: View {
                                             Label(LinkaCopy.value("common.delete"), systemImage: "trash")
                                         }
                                     }
+                                    if (index + 1).isMultiple(of: 4), showsHistoryAd(at: index / 4) {
+                                        BannerView(placement: .history(index / 4))
+                                            .listRowInsets(EdgeInsets(top: 10, leading: 4, bottom: 10, trailing: 4))
+                                            .listRowBackground(Color.clear)
+                                    }
                                 }
                             }
                         }
@@ -227,15 +227,53 @@ struct HistoryView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         #endif
         .toolbar {
+            #if os(iOS)
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                Menu {
+                    Section("Filtrar") {
+                        ForEach(availableFilters, id: \.self) { option in
+                            Button {
+                                filter = option
+                            } label: {
+                                historyMenuOption(option.label, isSelected: filter == option)
+                            }
+                        }
+                    }
+
+                    Section("Ordenar") {
+                        ForEach(HistorySort.allCases, id: \.self) { option in
+                            Button {
+                                sort = option
+                            } label: {
+                                historyMenuOption(option.label, isSelected: sort == option)
+                            }
+                        }
+                    }
+                } label: {
+                    Label("Filtrar e ordenar histórico", systemImage: "line.3.horizontal.decrease.circle")
+                }
+                .accessibilityLabel("Filtrar e ordenar histórico")
+                .accessibilityValue("\(filter.label), \(sort.label)")
+
+                Button {
+                    exportCSV()
+                } label: {
+                    Label("Exportar CSV", systemImage: "square.and.arrow.up")
+                }
+                .disabled(filteredMeasurements.isEmpty)
+                .accessibilityHint(filteredMeasurements.isEmpty ? "Não há medições neste filtro para exportar" : "Exporta as medições mostradas em CSV")
+            }
+            #else
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     exportCSV()
                 } label: {
                     Label("Exportar CSV", systemImage: "square.and.arrow.up")
                 }
-                .disabled(measurements.isEmpty)
+                .disabled(filteredMeasurements.isEmpty)
                 .help("Exportar histórico de medições em CSV")
             }
+            #endif
         }
         .sheet(isPresented: $showPurchase) {
             PurchaseSheet(entryPoint: purchaseEntryPoint) {
@@ -253,6 +291,12 @@ struct HistoryView: View {
             guard resolved else { return }
             prepareHistoryAdIfEligible()
         }
+        .onChange(of: filter) { _ in
+            prepareHistoryAdIfEligible()
+        }
+        .onChange(of: sort) { _ in
+            prepareHistoryAdIfEligible()
+        }
     }
 
     private func deleteMeasurement(_ measurement: NetworkMeasurement) {
@@ -262,9 +306,19 @@ struct HistoryView: View {
         }
     }
 
+    @ViewBuilder
+    private func historyMenuOption(_ title: String, isSelected: Bool) -> some View {
+        HStack {
+            Text(title)
+            if isSelected {
+                Image(systemName: "checkmark")
+            }
+        }
+    }
+
     private func exportCSV() {
-        guard !measurements.isEmpty else { return }
-        let targetList = filteredMeasurements.isEmpty ? measurements : filteredMeasurements
+        guard !filteredMeasurements.isEmpty else { return }
+        let targetList = filteredMeasurements
         #if os(macOS)
         let data = MeasurementCSVExporter.generateCSVData(from: targetList)
         let panel = NSSavePanel()
@@ -327,25 +381,17 @@ struct HistoryView: View {
         LinkaEntitlementPolicy.shouldShowAds(for: entitlements.snapshot, at: Date())
     }
 
-    private var showsHistoryAd: Bool {
+    private func showsHistoryAd(at slot: Int) -> Bool {
         // Em `List`, um `EmptyView` ainda pode manter a linha/separador do
         // lugar onde ele foi declarado. Só inserimos a linha depois que o
         // native ad existe de fato; carregamento e no-fill não viram buraco.
         #if os(iOS)
         return entitlements.isEntitlementResolved && isEligibleForAds
-            && !filteredMeasurements.isEmpty
-            && ads.nativeAd(for: .history) != nil
+            && filteredMeasurements.count >= (slot + 1) * 4
+            && ads.nativeAd(for: .history(slot)) != nil
         #else
         return false
         #endif
-    }
-
-    private var historyAdRow: some View {
-        Section {
-            BannerView(placement: .history)
-        }
-        .listRowInsets(EdgeInsets(top: 10, leading: 4, bottom: 10, trailing: 4))
-        .listRowBackground(Color.clear)
     }
 
     private func loadData() {
@@ -372,10 +418,10 @@ struct HistoryView: View {
     }
 
     private func prepareHistoryAdIfEligible() {
-        ads.prepareHistoryAd(
+        ads.prepareHistoryAds(
+            slotCount: filteredMeasurements.count / 4,
             isEligibleForAds: isEligibleForAds,
-            isEntitlementResolved: entitlements.isEntitlementResolved,
-            hasHistory: !measurements.isEmpty
+            isEntitlementResolved: entitlements.isEntitlementResolved
         )
     }
 
@@ -531,7 +577,7 @@ struct HistoryWaveChartView: View {
         }
         .padding(18)
         .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: LinkaRadius.lg, style: .continuous).stroke(Color.borderStrong.opacity(0.4), lineWidth: 0.6))
+        .shadow(color: Color.textPrimary.opacity(0.08), radius: 4, x: 0, y: 2)
     }
 
     @ViewBuilder
@@ -559,13 +605,21 @@ struct HistoryWaveChartView: View {
 
     private var chartLegend: some View {
         HStack(spacing: 14) {
-            legend(color: downloadColor, title: "Download", value: activeMeasurement?.downloadMbps)
-            legend(color: uploadColor, title: "Upload", value: activeMeasurement?.uploadMbps)
+            legend(color: downloadColor, symbol: "arrow.down", title: "Download", value: activeMeasurement?.downloadMbps)
+            legend(color: uploadColor, symbol: "arrow.up", title: "Upload", value: activeMeasurement?.uploadMbps)
         }
     }
 
-    private func legend(color: Color, title: String, value: Double?) -> some View {
-        HStack(spacing: 5) { Circle().fill(color).frame(width: 7, height: 7); Text("\(title) \(formatValue(value)) Mbps").font(.caption2.weight(.medium).monospacedDigit()).foregroundColor(.textSecondary) }
+    private func legend(color: Color, symbol: String, title: String, value: Double?) -> some View {
+        HStack(spacing: 4) {
+            Circle().fill(color).frame(width: 7, height: 7)
+            Image(systemName: symbol)
+                .font(.caption2.weight(.semibold))
+                .foregroundColor(color)
+            Text("\(title) \(formatValue(value)) Mbps")
+                .font(.caption2.weight(.semibold).monospacedDigit())
+                .foregroundColor(.textSecondary)
+        }
     }
 
     /// Duas bandas verticais compartilhadas pela grade e pelas ondas: a banda

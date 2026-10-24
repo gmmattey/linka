@@ -40,6 +40,7 @@ final class LinkaNativeAdView: NativeAdView {
     private let bodyLabel = UILabel()
     private let actionButton = UIButton(type: .system)
     private let adIconView = UIImageView()
+    private let contentRow = UIStackView()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -98,12 +99,14 @@ final class LinkaNativeAdView: NativeAdView {
         textStack.axis = .vertical
         textStack.spacing = 4
 
-        let row = UIStackView(arrangedSubviews: [adIconView, textStack, actionButton])
-        row.axis = .horizontal
-        row.alignment = .center
-        row.spacing = 12
+        contentRow.addArrangedSubview(adIconView)
+        contentRow.addArrangedSubview(textStack)
+        contentRow.addArrangedSubview(actionButton)
+        contentRow.axis = .horizontal
+        contentRow.alignment = .center
+        contentRow.spacing = 12
 
-        let contentStack = UIStackView(arrangedSubviews: [attributionLabel, row])
+        let contentStack = UIStackView(arrangedSubviews: [attributionLabel, contentRow])
         contentStack.axis = .vertical
         contentStack.alignment = .fill
         contentStack.spacing = 10
@@ -127,6 +130,14 @@ final class LinkaNativeAdView: NativeAdView {
     }
 
     required init?(coder: NSCoder) { nil }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        let usesAccessibilitySize = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
+        contentRow.axis = usesAccessibilitySize ? .vertical : .horizontal
+        contentRow.alignment = usesAccessibilitySize ? .leading : .center
+        actionButton.contentHorizontalAlignment = usesAccessibilitySize ? .leading : .center
+    }
 
     func populate(with ad: NativeAd) {
         headlineLabel.text = ad.headline

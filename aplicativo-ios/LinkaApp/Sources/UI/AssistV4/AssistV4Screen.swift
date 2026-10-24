@@ -117,6 +117,7 @@ struct AssistV4Screen: View {
                 Button("Continuar") { model.continueGuided() }
                     .buttonStyle(.linkaPrimary)
                     .disabled(model.selectedOptionID == nil)
+                    .accessibilityIdentifier("assist-v4.guided.continue")
                 Button("Voltar") { model.goBackFromGuidedQuestion() }
                     .buttonStyle(.linkaSecondary)
                     .accessibilityIdentifier("assist-v4.guided.back")

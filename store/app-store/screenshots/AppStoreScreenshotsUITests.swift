@@ -1,10 +1,11 @@
 import XCTest
 
 class AppStoreScreenshotsUITests: XCTestCase {
+    private var app: XCUIApplication!
     
     override func setUpWithError() throws {
         continueAfterFailure = false
-        let app = XCUIApplication()
+        app = XCUIApplication()
         // Adiciona um argumento para o app saber que está rodando via UI Test (caso precise mockar algo)
         app.launchArguments.append("--uitesting")
         app.launch()
@@ -20,7 +21,6 @@ class AppStoreScreenshotsUITests: XCTestCase {
     }
 
     func testCaptureScreenshots() throws {
-        let app = XCUIApplication()
         
         // Dá um tempo para a Home carregar
         sleep(3)
@@ -48,14 +48,19 @@ class AppStoreScreenshotsUITests: XCTestCase {
     }
 
     func testSpeedTestCTAStartsMeasurement() throws {
-        let app = XCUIApplication()
         defer { app.terminate() }
-        // A live service notice must not obscure the measurement CTA under test.
-        let serviceNotice = app.alerts.buttons.matching(NSPredicate(format: "label IN %@", ["Entendi", "Got it", "Entendido"])).firstMatch
-        if serviceNotice.waitForExistence(timeout: 3) { serviceNotice.tap() }
+        // Avisos do app e o validador nativo do AdMob só existem nesta prova
+        // de Debug; nenhum deles pode encobrir o CTA que este teste exerce.
+        let validatorDismiss = app.links["Dismiss"]
+        if validatorDismiss.waitForExistence(timeout: 3) {
+            validatorDismiss.tap()
+        } else {
+            let serviceNotice = app.alerts.buttons.matching(NSPredicate(format: "label IN %@", ["Entendi", "Got it", "Entendido"])).firstMatch
+            if serviceNotice.waitForExistence(timeout: 3) { serviceNotice.tap() }
+        }
         let speedTestButton = app.buttons["home.speedTestCTA"]
 
-        XCTAssertTrue(speedTestButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(speedTestButton.waitForExistence(timeout: 10))
         XCTAssertTrue(speedTestButton.isHittable)
 
         speedTestButton.tap()

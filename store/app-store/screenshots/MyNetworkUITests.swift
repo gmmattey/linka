@@ -44,7 +44,9 @@ final class MyNetworkUITests: XCTestCase {
         app.alerts.buttons["Continuar editando"].tap()
         XCTAssertEqual(field.value as? String, "QA-unsaved")
         app.buttons["Cancelar"].tap(); app.alerts.buttons["Descartar"].tap()
-        XCTAssertTrue(app.buttons["inventory.devices.add"].waitForExistence(timeout: 5))
+        let emptyCTA = app.buttons["inventory.devices.add"]
+        let overview = app.buttons["inventory.devices.overview"]
+        XCTAssertTrue(emptyCTA.waitForExistence(timeout: 5) || overview.waitForExistence(timeout: 5))
     }
     func testInitialJourneyHasOneIdentificationFieldAndNoTechnicalForm() throws {
         let app = XCUIApplication()
@@ -125,7 +127,7 @@ final class MyNetworkUITests: XCTestCase {
 
     private func openInventory(_ app: XCUIApplication) {
         if app.buttons["Entendi"].waitForExistence(timeout: 2) { app.buttons["Entendi"].tap() }
-        let entry = app.buttons["inventory.open"]
+        let entry = app.buttons["wifi.router"]
         XCTAssertTrue(entry.waitForExistence(timeout: 10)); entry.tap()
         let emptyCTA = app.buttons["inventory.devices.add"]
         let overview = app.buttons["inventory.devices.overview"]

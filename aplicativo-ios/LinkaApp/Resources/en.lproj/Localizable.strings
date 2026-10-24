@@ -400,7 +400,9 @@
 "settings.advancedWiFi.message.active" = "Shortcuts provides extra data when you run the integration.";
 "settings.advancedWiFi.message.disabled" = "The integration is set up, but doesn't run before measurements.";
 "settings.subscription.checking" = "Checking";
-"settings.subscription.temporaryFree" = "Free until October 31";
+"settings.subscription.temporaryFree" = "Free until %@";
+"settings.subscription.promotion.title" = "Everything is unlocked";
+"settings.subscription.promotion.message" = "All Linka Plus features are available until %@. During the promotion, Linka shows ads.";
 "settings.subscription.learnPlus" = "Explore Linka Plus";
 "settings.subscription.active" = "Active";
 "settings.subscription.inactive" = "Inactive subscription";
