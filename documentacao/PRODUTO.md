@@ -1,7 +1,7 @@
 # Produto Linka
 
 Responsável: Giam (Produto & Escopo) e Priscila (Experiência & UX/UI).
-Revisão: 2026-10-15. Fonte de verdade canônica de produto e jornada do Linka.
+Revisão: 2026-10-24. Fonte de verdade canônica de produto e jornada do Linka.
 Alcance: síntese das capacidades e limites documentados, com conferência estática das regras críticas; não certifica a build distribuída.
 Fontes pares: [Arquitetura](ARQUITETURA.md) para contratos e mapa técnico; [Operação](OPERACAO.md) para configuração, validação e publicação; [Governança](GOVERNANCA.md) para trabalho e autoridade.
 
@@ -129,8 +129,8 @@ Usar wordmarks e ícones oficiais, sem redesenho ou substituição por texto. O 
 
 ## Site e comunicação pública
 
-[App.tsx](../aplicacao-web/src/App.tsx) e [LandingScreen](../aplicacao-web/src/screens/LandingScreen.tsx) apresentam o produto e páginas informativas, sem executar o motor. CTA depende de URL configurada; sem ela, não simular download disponível.
-As três imagens da landing foram preservadas como ilustração antiga: Home/medição anteriores e resultado individual associado à ideia de evolução. Mudança de pasta não atualizou a aparência. Nenhuma captura sem build identificada é prova da candidata.
+O site institucional e a landing vivem no monorepo `~/Projetos/web/landings` (`sites/linka/`), fora deste repositório. Eles apresentam o produto e páginas informativas, sem executar o motor; CTA depende de URL configurada, sem simular download disponível quando ela faltar.
+Capturas do site não são prova da candidata nem material de loja por si só. Toda imagem precisa ser confrontada com uma build identificada antes de reutilização.
 Copy pública deve descrever medição e acompanhamento, com limites de plataforma/permissão/configuração; não prometer descobrir a causa da rede travar. Texto comercial completo, URLs de suporte/privacidade/termos e preparação da loja pertencem a Operação.
 
 **Pendente:** Priscila/Bia, antes da próxima publicação, alinham imagens e títulos ao estado visível, removem promessa de servidor “ideal” sem base e reconciliam páginas Sobre/Privacidade com as capacidades reais. Giam/Marco verificam preço, CTA, URLs e versão distribuída; Renan confere navegação, acessibilidade e comportamento no host. Políticas de outros produtos presentes no site não são apagadas por inferência.

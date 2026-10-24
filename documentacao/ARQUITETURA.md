@@ -1,6 +1,6 @@
 # Arquitetura do Linka
 
-Responsável: Camillo (Arquitetura, Motor & Contratos) e Marco (Integração). Revisão: 2026-10-16. Fonte de verdade canônica de arquitetura do Linka.
+Responsável: Camillo (Arquitetura, Motor & Contratos) e Marco (Integração). Revisão: 2026-10-24. Fonte de verdade canônica de arquitetura do Linka.
 Este documento distingue implementação local, decisões preservadas e dependências ainda abertas. Não comprova operação externa, distribuição ou aceite em aparelho.
 Os pares são [Produto](PRODUTO.md), [Operação](OPERACAO.md) e [Governança](GOVERNANCA.md): intenção, procedimentos e autoridade não são duplicados aqui.
 
@@ -177,7 +177,7 @@ Histórico completo da proposta, exemplos e sequência de PRs fica no [Git em 39
 
 SwiftUI compartilha modelos/coordenadores, não exige interfaces idênticas. [DesignSystem.swift](../aplicativo-ios/LinkaApp/Sources/UI/DesignSystem.swift) implementa tokens semânticos e adaptação Apple; [tokens CSS](design/design_system/tokens/), [componentes](design/design_system/components/) e [protótipo](design/prototipo/) são recursos, não implementação do motor nem prova de conformidade.
 Não há geração automática garantindo equivalência CSS↔Swift. Preservar marca oficial, controles nativos, texto ampliado, teclado, VoiceOver e Reduzir Movimento; conformidade exige comparar todos os destinos/estados da build pretendida. Direção de produto Mac não autoriza redesign iOS por analogia.
-[aplicacao-web](../aplicacao-web/package.json) é React/TypeScript/Vite institucional, sem speed test/PWA do produto. [App.tsx](../aplicacao-web/src/App.tsx) seleciona páginas por pathname; [LandingScreen](../aplicacao-web/src/screens/LandingScreen.tsx) depende de configuração para CTA/preço. Conteúdo, screenshots e rotas estáticas não comprovam comportamento ou publicação do app/host.
+O site institucional está no monorepo `~/Projetos/web/landings` (`sites/linka/`), separado do aplicativo nativo. Conteúdo, screenshots e rotas estáticas dele não comprovam comportamento nem publicação do app; mudanças web não pertencem a este repositório.
 
 ## 9. Pendências que esta consolidação não encerra
 

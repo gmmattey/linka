@@ -1,6 +1,6 @@
 # Operação
 
-Responsável: Marco (Orquestração), Bia (Preparação Local) e Renan (Validação & QA Físico). Revisão: 2026-10-15. Fonte de verdade canônica de operação e release do Linka.
+Responsável: Marco (Orquestração), Bia (Preparação Local) e Renan (Validação & QA Físico). Revisão: 2026-10-24. Fonte de verdade canônica de operação e release do Linka.
 
 ## Ambiente e validação
 
@@ -18,7 +18,7 @@ bundle exec fastlane ios validate
 
 `validate` executa os onze pacotes listados em `LinkaLocalRelease::PACKAGES`, testes iOS em série e build Release de simulador, sem upload. Usa o projeto existente: não regenera PBX/schemes/Info.plist sobre WIP. Recusa `project.yml` alterado contra HEAD e confere identidade efetiva de app/widget; revisar e registrar mudanças do projeto antes da validação completa. WIP de código pode ser testado, mas não enviado por beta.
 
-Para alteração isolada: `swift test --package-path aplicativo-ios/<pacote>`. Não executar `swift test` na raiz nem supor cobertura de outros pacotes, Mac, dispositivo físico ou jornada visual. Para o site, em `aplicacao-web/`: `npm run lint` e `npm run build`; não há `npm test` canônico. Logs de validação ficam em `build/validation/`.
+Para alteração isolada: `swift test --package-path aplicativo-ios/<pacote>`. Não executar `swift test` na raiz nem supor cobertura de outros pacotes, Mac, dispositivo físico ou jornada visual. O site está no monorepo `~/Projetos/web/landings` (`sites/linka/`); não há validação web neste repositório. Logs de validação ficam em `build/validation/`.
 
 ## Simuladores e cache
 
@@ -39,9 +39,9 @@ Não apagar caches como primeira reação, criar pastas com timestamp a cada tes
 1. Delimitar a mudança, testar e atualizar as seções afetadas e [RELEASE_NOTES](../RELEASE_NOTES.md).
 2. Preparar nova candidata com `.agents/scripts/release.sh patch`, `minor`, `major` ou `X.Y.Z`. Ele incrementa iOS, preserva Mac, gera em cópia isolada e aplica só versão/build, sem substituir customizações de projeto. Não repetir bump para promover a mesma build.
 3. Conferir diff, commit/PR e merge dentro da autorização recebida. Beta exige `main` limpa e igual a `origin/main`; não ocultar WIP com limpeza.
-4. Depois de autorização para TestFlight daquela candidata, executar `bundle exec fastlane ios beta authorized:true`, mantendo UDID e variáveis do Bundler da mesma sessão.
+4. Depois de autorização para TestFlight daquela candidata, usar `bundle exec fastlane ios beta authorized:true` quando a chave da App Store Connect estiver configurada. Para envio direto pelo Xcode em linha de comando, arquivar a candidata interna e exportar com `destination=upload`, `testFlightInternalTestingOnly=true` e `-allowProvisioningUpdates`, usando a conta já adicionada em Xcode.
 
-A candidata para a beta interna é iOS/widget 1.1.7 (61); Mac permanece em 1.1.5 (54). A build 1.1.6 (57) foi distribuída em 08/10/2026. A build 1.1.6 (59) foi distribuída em 09/10/2026. A build 1.1.6 (60), incorporando o Linka Genius com IA Gemini 3.8 Flash, redesign completo do Widget com suporte a Lock Screen, correções de cor e contraste WCAG AA nas ferramentas e suporte a Universal Links, foi arquivada via xcodebuild com scheme LinkaApp-InternalBeta e enviada via exportArchive diretamente para o TestFlight em modo Internal Only em 16/10/2026 às 02h20 (Brasília). O upload foi concluído com sucesso e o pacote entrou em processamento no App Store Connect.
+A candidata para a beta interna é iOS/widget 1.1.7 (61); Mac permanece em 1.1.5 (54). Ela integra a promoção do Plus até 01/01/2027 no iPhone/iPad e os anúncios Native nas áreas elegíveis; as PRs [#342](https://github.com/gmmattey/linka/pull/342) e [#343](https://github.com/gmmattey/linka/pull/343) estão em `main` no SHA `209fae60204b156572b0192ef2c59c6304393e9d`. Em 24/10/2026, a validação canônica passou nos pacotes Swift, nos testes iOS em simulador e no build Release de simulador. O archive `LinkaApp-InternalBeta` conferiu app/widget 1.1.7 (61); o `xcodebuild -exportArchive` enviou a candidata em modo Internal Only às 14h45 (Brasília). A App Store Connect aceitou o upload e iniciou o processamento. Os avisos de dSYM ausente para `GoogleMobileAds.framework` e `UserMessagingPlatform.framework` não bloquearam o envio. Isto ainda não prova disponibilidade para o grupo, instalação em aparelho físico, App Review ou publicação.
 
 ### Minha Rede — beta interna pelo Xcode
 
@@ -49,13 +49,13 @@ Usar o scheme compartilhado `LinkaApp-InternalBeta` para iPhone/iPad ou `LinkaAp
 
 A composição central `InventoryBuildConfiguration` ativa a área local na beta interna. O endpoint distribuído deve ser uma constante HTTPS do Worker verificado, com host e caminho permitidos explicitamente; não lê variável de ambiente nem preferências na beta. A correção seguinte usa `https://linka-device-spec-lookup.buildealabs.workers.dev/v2/device-specs/lookup` (a build 57 usa v1, mantida compatível), provisionado e ativado para o piloto interno. O Worker dedicado usa uma integração privada com o `netscope-api`, que mantém a chave existente e executa OpenAI Responses com pesquisa web; a credencial não é extraída nem copiada para o cliente. Debug mantém endpoint por variável de processo apenas para desenvolvimento. Nenhuma chave de provedor vai no aplicativo.
 
-Após revisão e autorização da candidata, no Xcode selecionar o scheme interno, destino genérico iOS e **Product → Archive**. Conferir versão/build do app e widget, configuração `InternalBeta`, assinatura e endpoint antes de distribuir. No Organizer escolher **TestFlight Internal Only**; export equivalente exige `testFlightInternalTestingOnly=true` com `method=app-store-connect`. Essa restrição impede distribuição externa/App Store; o nome do scheme sozinho não oferece essa proteção. Não usar o fluxo público/automático de upload para essa candidata. Preparar a versão Mac não autoriza seu envio.
+Após revisão e autorização da candidata, no Xcode selecionar o scheme interno, destino genérico iOS e **Product → Archive**. Conferir versão/build do app e widget, configuração `InternalBeta`, assinatura e endpoint antes de distribuir. No Organizer escolher **TestFlight Internal Only**; na linha de comando, usar `testFlightInternalTestingOnly=true`, `method=app-store-connect` e `destination=upload`. Essa restrição impede distribuição externa/App Store; o nome do scheme sozinho não oferece essa proteção. O `xcodebuild` pode usar a conta já logada em Xcode com `-allowProvisioningUpdates`; o `altool` exige JWT ou Apple ID com senha específica e não reaproveita essa sessão. Preparar a versão Mac não autoriza seu envio.
 
 O usuário autorizou IA na beta sem teto monetário global nesta etapa; permanecem limites técnicos por consulta no backend. Ativação do Worker e endpoint verificado, consultas reais, archive, upload e distribuição continuam evidências distintas. Não afirmar pesquisa funcionando antes de verificar o serviço e o cliente. Esta configuração não publica nem ativa Minha Rede no Release público. O piloto de 08/10/2026 obteve uma ficha parcial real para ASUS RT-AC59U V2 BR, com dez atributos propostos e uma fonte oficial. A build Mac InternalBeta recebeu a ficha pelo cache, exibiu revisão/fontes e permitiu aplicar, salvar e reabrir. Tito aprovou a beta interna com ressalva: alguns subcampos de rádio são normalizações tecnicamente coerentes, mas não aparecem explicitamente por banda na fonte. Um caso positivo não prova cobertura da V1; os casos anteriores sem resultado e a validação física seguem pendentes. A revisão final do bridge usou Tito com autorização explícita do usuário após Claude Code atingir seu limite de sessão.
 
-Configurar localmente `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_CONTENT` (p8 Base64) e `APPLE_TEAM_ID`. Não colocar valores na linha de comando compartilhada, logs ou Git. A chave temporária usa permissões restritas e limpeza ao terminar. Beta valida obrigatoriamente, consulta build usada, confere app/widget no archive e IPA e só então envia. Não cria tag nem faz push automático.
+O fluxo Fastlane requer `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_CONTENT` (p8 Base64) e `APPLE_TEAM_ID`; não colocar valores na linha de comando compartilhada, logs ou Git. No fluxo direto, confirmar que a conta correta está em Xcode antes de usar `-allowProvisioningUpdates`. Ambos conferem app/widget e a identidade da candidata antes do envio; não criam tag nem fazem push automático.
 
-Cada envio preserva `build/releases/attempt-NNNN/testflight-evidence.json`, archive/export, SHA e hash da IPA. O cache é reutilizado; artefatos diferentes não se sobrescrevem. Se interromper depois do início do upload, o estado permanece incerto: consultar Apple antes de repetir, sem bump automático para esconder falha.
+O Fastlane preserva `build/releases/attempt-NNNN/testflight-evidence.json`, archive/export, SHA e hash da IPA. No fluxo direto, guardar archive, opções de exportação e IPA em diretório identificado por versão/build. O cache é reutilizado; artefatos diferentes não se sobrescrevem. Se interromper depois do início do upload, o estado permanece incerto: consultar Apple antes de repetir, sem bump automático para esconder falha.
 
 O script e Fastlane compartilham `build/.release.lock`; preparação usa substituição atômica e rollback condicionado à própria escrita. Isso coordena ferramentas aderentes, não garante transação contra qualquer editor, SIGKILL ou queda. Inspecionar diff/evidência antes de retomar após interrupção.
 
@@ -65,9 +65,9 @@ Beta cobre iOS/TestFlight. App Review, publicação e release Mac são operaçõ
 
 [brand/manifest.json](../brand/manifest.json) mapeia nove exportações e seus SHA256 para [Assets.xcassets](../aplicativo-ios/LinkaApp/Sources/Assets.xcassets/). Atualizar a fonte e renovar as exportações/manifesto juntos. Usar Linka claro/escuro em `brand/linka/`, Plus em `brand/linka-plus/`, Assist em `brand/assist/` e ícones em `brand/icons/`. Não redesenhar a marca, trocar por texto ou adicionar efeitos. O Plus preserva `+`, proporção e transparência; cores claro azul #102245/laranja #E0701F, escuro branco/laranja #FF9552.
 
-O site tem wordmark inline e ícones próprios; não presumir equivalência de SVGs. Seu gerador de ícones também sobrescreve assets do app: não executá-lo para “organizar”.
+O site tem wordmark inline e ícones próprios no monorepo `web/landings`; não presumir equivalência de SVGs. Seu gerador de ícones também sobrescreve assets do app: não executá-lo para “organizar”.
 
-Não há conjunto de capturas atual aprovado para loja. As antigas foram retiradas. Três imagens em [assets do site](../aplicacao-web/src/assets/screenshots/) continuam usadas: Home com CTA antigo, medição/fases antigas e resultado individual apresentado como evolução. Não reutilizar para loja; substituir em revisão visual do site por capturas identificadas.
+Não há conjunto de capturas atual aprovado para loja. As capturas do site ficam no monorepo `web/landings` e não devem ser reutilizadas por inferência: toda imagem enviada à loja precisa vir da candidata identificada e da revisão visual correspondente.
 
 O [teste de captura](../store/app-store/screenshots/AppStoreScreenshotsUITests.swift) usa screenshots reais, mas esperas e botão antigo opcional podem omitir telas sem falhar. Antes de enviar, exigir os estados necessários e conferir candidata, dispositivo/sistema, idioma, origem dos resultados e privacidade. Não fabricar números ou editar preço antigo para simular captura atual. Fonte, projeto e UI test não são prova de execução.
 
@@ -83,7 +83,7 @@ O [teste de captura](../store/app-store/screenshots/AppStoreScreenshotsUITests.s
 
 **Palavras-chave:** velocidade,conexao,internet,wifi,ping,jitter,latencia,historico,roteador,download,upload
 
-URLs declaradas: [marketing](https://linka-speedtest.web.app), [privacidade](https://linka-speedtest.web.app/privacidade), [suporte](https://linka-speedtest.web.app/suporte), [termos/EULA](https://linka-speedtest.web.app/termos). Contato: suporte@linka.app. Conferir disponibilidade HTTP, limites de campos e conteúdo real no portal antes de submissão; não foram verificados nesta reorganização.
+As URLs de marketing, privacidade, suporte e termos são mantidas no monorepo `web/landings` e devem ser conferidas contra o portal antes de cada submissão. Contato: suporte@linka.app. Confirmar disponibilidade HTTP, limites de campos e conteúdo real; não copiar URL antiga deste repositório para uma candidata nova.
 
 Notas de review: medição por ação da pessoa, sem conta Linka obrigatória; acesso adicional depende de entitlement. iOS/iPad usa Atalhos configurado para Wi-Fi avançado; Mac depende de APIs/permissões. Informar versão/build, destinos, compra/restauração, configuração reproduzível e campanha aplicável. Não declarar preço fixo, causa raiz ou resposta infalível. Promoção é elegível a anúncios; compra paga válida não. O rascunho específico da build 53 permanece no [histórico Git](https://github.com/gmmattey/linka/blob/39269c7a9d2ed461fb944de09d5b27c34d3d1d4d/store/app-store/review-notes-1.1.5-build53.md), não é nota pronta para qualquer candidata.
 

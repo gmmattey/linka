@@ -1,5 +1,6 @@
 # Linka 1.1.7 (61) — candidata TestFlight interno
 
+- Enviada em 24/10/2026 pelo Xcode para o TestFlight interno; a App Store Connect aceitou o pacote e iniciou o processamento.
 - Estende a promoção que libera os recursos do Linka Plus no iPhone e iPad até 1º de janeiro de 2027, sem incluir o Mac.
 - Distribui anúncios nativos apenas nas áreas elegíveis do app gratuito: Home, Resultado, Minha Rede, Roteador, Status de serviços e Histórico a cada quatro resultados.
 - Mantém a medição em primeiro plano: iniciar um teste remove anúncios carregados e não inicia novos slots durante a coleta.
