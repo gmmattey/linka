@@ -30,6 +30,19 @@ final class LinkaAdSessionGateTests: XCTestCase {
         XCTAssertEqual(gate.placement, .home)
     }
 
+    func testEligibleFreeResultStartsAnAdRequestAfterMeasurement() {
+        var gate = LinkaAdSessionGate()
+
+        XCTAssertTrue(
+            gate.beginIfEligible(
+                placement: .result,
+                isEnabled: true,
+                isEligibleForAds: true
+            )
+        )
+        XCTAssertEqual(gate.placement, .result)
+    }
+
     func testEligibleFreeStartsOnlyOnceAcrossPlacementsPerSession() {
         var gate = LinkaAdSessionGate()
 

@@ -313,6 +313,7 @@
 "settings.section.privacy" = "Privacidad";
 "settings.adPrivacyOptions" = "Opciones de privacidad de anuncios";
 "ads.native.attribution" = "PUBLICIDAD";
+"ads.native.accessibility.hint" = "Toca dos veces para abrir el contenido patrocinado.";
 "settings.terms" = "Términos de uso";
 "settings.support" = "Soporte";
 "settings.rate" = "Calificar Linka";
@@ -412,14 +413,13 @@
 "home.checking" = "Verificando...";
 "home.preparing" = "Preparando";
 "home.testSpeed" = "Probar velocidad";
-"home.lastTest" = "Última prueba";
-"home.lastTest.value" = "%@ Mbps · %@";
 "home.downloadUnit" = "Mbps de descarga";
 "home.assist.cta" = "Analizar mi conexión";
-"home.assist.home.cta" = "¿Necesitas ayuda con tu red?";
 "home.assist.resultMessage" = "Analicemos los datos de esta medición.";
 "home.accessibility.back" = "Volver al inicio";
 "home.accessibility.history" = "Historial";
+"home.latestResult" = "Ver último resultado";
+"home.latestResult.hint" = "Abre los detalles de tu medición más reciente";
 "home.accessibility.share" = "Compartir resultado";
 "home.accessibility.settings" = "Configuración";
 "home.advancedWiFiRecovery.title" = "No recibimos los datos de Wi-Fi";
@@ -504,6 +504,7 @@
 "assist.subcategory.mobileWorse" = "Los datos móviles son peores que Wi-Fi";
 "assist.subcategory.bothBad" = "Ambos parecen malos";
 "history.title" = "Historial";
+"result.title" = "Resultado";
 "history.filter.title" = "Filtro";
 "history.filter.all" = "Todos";
 "history.filter.mobile" = "Móvil";
@@ -1016,6 +1017,22 @@
 "inventory.section.devices" = "Equipos";
 "inventory.section.connections" = "Cómo están conectados";
 "inventory.section.environments" = "Ambientes";
+"inventory.overview.empty.title" = "Empieza por los equipos de tu red";
+"inventory.overview.empty.message" = "Agrega el router, módem o equipo de fibra para organizar tu red.";
+"inventory.overview.network" = "Tu red";
+"inventory.overview.internet" = "Internet de casa";
+"inventory.overview.home" = "Casa";
+"inventory.overview.equipment" = "Equipos";
+"inventory.overview.equipmentCount.single" = "%d equipo registrado";
+"inventory.overview.equipmentCount.multiple" = "%d equipos registrados";
+"inventory.overview.connections" = "Cómo están conectados";
+"inventory.overview.connections.none" = "Sin informar";
+"inventory.overview.connections.count.single" = "%d conexión declarada";
+"inventory.overview.connections.count.multiple" = "%d conexiones declaradas";
+"inventory.overview.context" = "Ambientes y cobertura";
+"inventory.overview.context.none" = "Sin configurar";
+"inventory.overview.context.count.single" = "%d ambiente";
+"inventory.overview.context.count.multiple" = "%d ambientes";
 
 "inventory.plan.cta.add" = "Registrar plan";
 

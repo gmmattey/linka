@@ -44,10 +44,10 @@ targets:
         Debug:
           APS_ENVIRONMENT: development
           APP_ATTEST_ENVIRONMENT: development
-          # O Debug não solicita inventário do AdMob. Os IDs de teste ficam
-          # no código apenas para um smoke explícito, quando esta flag for
-          # habilitada localmente num esquema que não é distribuído.
-          LINKA_ADS_ENABLED: NO
+          # Debug usa exclusivamente a unidade Native de teste do Google,
+          # definida no adapter. Assim o simulador permite revisar o card
+          # sem requisitar inventário de produção.
+          LINKA_ADS_ENABLED: YES
         Release:
           APS_ENVIRONMENT: production
           LINKA_ADS_ENABLED: YES

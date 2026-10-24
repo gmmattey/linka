@@ -16,14 +16,12 @@ struct PhaseDots: View {
                 let isActive = phase.key == activeKey
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(isActive ? Color.brandSurface : Color.borderStrong)
-                        .frame(width: 6, height: 6)
-                        .animation(reduceMotion ? nil : LinkaMotion.fade, value: activeKey)
+                        .fill(isActive ? Color.brandSurface : Color.borderDefault)
+                        .frame(width: 7, height: 7)
                     
                     Text(phase.label)
                         .font(.caption2.weight(isActive ? .semibold : .medium))
                         .foregroundColor(isActive ? .textPrimary : .textSecondary)
-                        .animation(reduceMotion ? nil : LinkaMotion.fade, value: activeKey)
                 }
             }
         }

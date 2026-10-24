@@ -7,16 +7,17 @@ final class MyNetworkUITests: XCTestCase {
         app.launchArguments += ["--uitesting", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
         app.launch()
         openInventory(app)
-        app.buttons["inventory.toolbar.add"].tap()
+        addEquipment(app)
         let model = "QA-local-" + UUID().uuidString.prefix(8)
         let field = app.textFields["inventory.model"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap(); field.typeText(model)
         app.buttons["inventory.saveWithoutResearch"].tap()
+        openEquipmentList(app)
         XCTAssertTrue(app.staticTexts[model].waitForExistence(timeout: 5))
         attachment("inventory-created")
         app.terminate(); app.launch()
-        openInventory(app)
+        openInventory(app); openEquipmentList(app)
         XCTAssertTrue(app.staticTexts[model].waitForExistence(timeout: 5))
         app.staticTexts[model].tap()
         for _ in 0..<4 where !app.buttons["Excluir equipamento"].isHittable { app.swipeUp() }
@@ -34,7 +35,7 @@ final class MyNetworkUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["--uitesting", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
         app.launch(); openInventory(app)
-        app.buttons["inventory.toolbar.add"].tap()
+        addEquipment(app)
         let field = app.textFields["inventory.model"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap(); field.typeText("QA-unsaved")
@@ -43,13 +44,13 @@ final class MyNetworkUITests: XCTestCase {
         app.alerts.buttons["Continuar editando"].tap()
         XCTAssertEqual(field.value as? String, "QA-unsaved")
         app.buttons["Cancelar"].tap(); app.alerts.buttons["Descartar"].tap()
-        XCTAssertTrue(app.buttons["inventory.toolbar.add"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["inventory.devices.add"].waitForExistence(timeout: 5))
     }
     func testInitialJourneyHasOneIdentificationFieldAndNoTechnicalForm() throws {
         let app = XCUIApplication()
         app.launchArguments += ["--uitesting", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
         app.launch(); openInventory(app)
-        app.buttons["inventory.toolbar.add"].tap()
+        addEquipment(app)
         XCTAssertTrue(app.textFields["inventory.model"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.textFields.count, 1)
         XCTAssertTrue(app.buttons["inventory.research"].exists)
@@ -66,7 +67,7 @@ final class MyNetworkUITests: XCTestCase {
         app.launchArguments += ["--uitesting", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR",
                                 "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
         app.launch(); openInventory(app)
-        app.buttons["inventory.toolbar.add"].tap()
+        addEquipment(app)
         let field = app.textFields["inventory.model"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         if !field.isHittable { app.swipeUp() }
@@ -91,7 +92,7 @@ final class MyNetworkUITests: XCTestCase {
         app.launchArguments += ["--uitesting", "-AppleLanguages", "(pt-BR)", "-AppleLocale", "pt_BR"]
         app.launchEnvironment["LINKA_DEVICE_SPEC_ENDPOINT"] = "https://linka-device-spec-lookup.buildealabs.workers.dev/v2/device-specs/lookup"
         app.launch(); openInventory(app)
-        app.buttons["inventory.toolbar.add"].tap()
+        addEquipment(app)
         let field = app.textFields["inventory.model"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap(); field.typeText(query)
@@ -112,8 +113,9 @@ final class MyNetworkUITests: XCTestCase {
             let save = app.buttons["inventory.save"]
             if !save.isHittable { app.swipeUp() }
             XCTAssertTrue(save.isHittable); save.tap()
+            openEquipmentList(app)
             XCTAssertTrue(app.staticTexts[query].waitForExistence(timeout: 5))
-            app.terminate(); app.launch(); openInventory(app)
+            app.terminate(); app.launch(); openInventory(app); openEquipmentList(app)
             XCTAssertTrue(app.staticTexts[query].waitForExistence(timeout: 5))
             app.staticTexts[query].firstMatch.tap()
             XCTAssertTrue(app.buttons["inventory.completeDetails"].waitForExistence(timeout: 5))
@@ -125,7 +127,22 @@ final class MyNetworkUITests: XCTestCase {
         if app.buttons["Entendi"].waitForExistence(timeout: 2) { app.buttons["Entendi"].tap() }
         let entry = app.buttons["inventory.open"]
         XCTAssertTrue(entry.waitForExistence(timeout: 10)); entry.tap()
-        XCTAssertTrue(app.buttons["inventory.toolbar.add"].waitForExistence(timeout: 5))
+        let emptyCTA = app.buttons["inventory.devices.add"]
+        let overview = app.buttons["inventory.devices.overview"]
+        XCTAssertTrue(emptyCTA.waitForExistence(timeout: 5) || overview.waitForExistence(timeout: 5))
+    }
+    private func addEquipment(_ app: XCUIApplication) {
+        let emptyCTA = app.buttons["inventory.devices.add"]
+        if emptyCTA.waitForExistence(timeout: 2) {
+            emptyCTA.tap()
+        } else {
+            let toolbar = app.buttons["inventory.toolbar.add"]
+            XCTAssertTrue(toolbar.waitForExistence(timeout: 5)); toolbar.tap()
+        }
+    }
+    private func openEquipmentList(_ app: XCUIApplication) {
+        let overview = app.buttons["inventory.devices.overview"]
+        XCTAssertTrue(overview.waitForExistence(timeout: 5)); overview.tap()
     }
     private func attachment(_ name: String) {
         let item = XCTAttachment(screenshot: XCUIScreen.main.screenshot())

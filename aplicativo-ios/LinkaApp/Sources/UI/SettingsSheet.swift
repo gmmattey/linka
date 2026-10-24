@@ -1,12 +1,8 @@
 import SwiftUI
 import StoreKit
-import AppIntents
 import LinkaEntitlements
 import LinkaModules
 import NetworkDiagnostics
-#if canImport(CoreLocation) && os(iOS)
-import CoreLocation
-#endif
 #if canImport(UIKit)
 import UIKit
 #elseif canImport(AppKit)
@@ -17,20 +13,13 @@ struct SettingsView: View {
     @EnvironmentObject private var entitlements: StoreKitEntitlementProvider
     @EnvironmentObject private var ads: LinkaAdsCoordinator
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.openURL) private var openURL
     @Environment(\.requestReview) private var requestReview
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var purchaseEntryPoint: PurchaseEntryPoint = .settings
     @State private var showPurchase = false
     @State private var showSubscriptionManagement = false
-    @State private var showWiFiExplanation = false
-    @State private var showAdvancedActions = false
-    @State private var showNetworkProfiles = false
     @AppStorage("appAppearance") private var appAppearance = "system"
     @AppStorage(LinkaLanguagePreference.storageKey) private var languagePreference = LinkaLanguagePreference.system.rawValue
-    @AppStorage(LinkaWiFiPreferences.identificationEnabledKey) private var networkIdentificationEnabled = true
-    @AppStorage(LinkaWiFiPreferences.advancedConfiguredKey) private var advancedWiFiConfigured = false
-    @AppStorage(LinkaWiFiPreferences.advancedDiagnosticsEnabledKey) private var advancedWiFiEnabled = true
     private let onPurchaseRequest: ((PurchaseEntryPoint) -> Void)?
     private let onSubscriptionManagementRequest: (() -> Void)?
 
@@ -63,34 +52,6 @@ struct SettingsView: View {
                     }
                 }
             }
-
-            #if os(iOS)
-            Section(LinkaCopy.value("settings.section.network")) {
-                Button(action: openNetworkIdentification) {
-                    settingsRow(title: LinkaCopy.value("settings.wifiIdentification.title"), value: networkIdentificationStatusText, systemImage: "wifi")
-                }
-                Button(action: openAdvancedWiFi) {
-                    settingsRow(title: LinkaCopy.value("settings.advancedWiFi.title"), value: advancedWiFiStatusText, systemImage: "waveform.path.ecg")
-                }
-                Button { showNetworkProfiles = true } label: {
-                    settingsRow(title: LinkaCopy.value("environments.saved.title"), value: "", systemImage: "mappin.and.ellipse")
-                }
-                .accessibilityLabel(LinkaCopy.value("environments.saved.title"))
-                .accessibilityHint(LinkaCopy.value("environments.settings.accessibilityHint"))
-            }
-
-            Section(LinkaCopy.value("settings.section.tools")) {
-                NavigationLink(destination: RouterDiscoveryView()) {
-                    Label {
-                        Text(LinkaCopy.value("settings.routerAccess"))
-                            .foregroundColor(.textPrimary)
-                    } icon: {
-                        Image(systemName: "router")
-                            .foregroundColor(.brandAccentWarmInk)
-                    }
-                }
-            }
-            #endif
 
             Section(LinkaCopy.value("settings.section.preferences")) {
                 Picker(LinkaCopy.value("settings.appearance.title"), selection: $appAppearance) {
@@ -204,77 +165,15 @@ struct SettingsView: View {
         #endif
         .sheet(isPresented: $showPurchase) { 
             PurchaseSheet(entryPoint: purchaseEntryPoint) {
-                if purchaseEntryPoint == .advancedWiFi {
-                    openAdvancedWiFi()
-                } else if purchaseEntryPoint == .settings {
+                if purchaseEntryPoint == .settings {
                     showSubscriptionManagement = true
                 }
             }
         }
         .sheet(isPresented: $showSubscriptionManagement) { SubscriptionManagementSheet() }
-        .sheet(isPresented: $showNetworkProfiles) {
-            NetworkProfilesManagementView(isPlusActive: LinkaEntitlementPolicy.decision(for: .optimization, snapshot: entitlements.snapshot).isGranted) {
-                purchaseEntryPoint = .optimization; showPurchase = true
-            }
-            #if os(iOS)
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-            #endif
-        }
         .task {
             await entitlements.refreshSnapshot()
             await entitlements.loadProduct()
-        }
-        .confirmationDialog(LinkaCopy.value("settings.wifiIdentification.title"), isPresented: $showWiFiExplanation, titleVisibility: .visible) {
-            switch WiFiNetworkPermission.state(enabled: networkIdentificationEnabled) {
-            case .permissionDenied:
-                Button(LinkaCopy.value("settings.wifiIdentification.openSystemSettings")) {
-                    networkIdentificationEnabled = true
-                    WiFiNetworkPermission.openSystemSettings()
-                }
-            case .active:
-                Button(LinkaCopy.value("settings.wifiIdentification.disable"), role: .destructive) {
-                    networkIdentificationEnabled = false
-                }
-            case .disabledByUser, .permissionRequired:
-                Button(LinkaCopy.value("settings.wifiIdentification.enable")) {
-                    networkIdentificationEnabled = true
-                    WiFiNetworkPermission.requestIdentification()
-                }
-            case .unavailable:
-                EmptyView()
-            }
-            Button(LinkaCopy.value("common.cancel"), role: .cancel) {}
-        } message: {
-            Text(networkIdentificationMessage)
-        }
-        .confirmationDialog(LinkaCopy.value("settings.advancedWiFi.title"), isPresented: $showAdvancedActions, titleVisibility: .visible) {
-            switch advancedWiFiState {
-            case .requiresPlus:
-                Button(LinkaCopy.value("settings.advancedWiFi.learnPlus")) {
-                    purchaseEntryPoint = .advancedWiFi
-                    showPurchase = true
-                }
-            case .needsConfiguration:
-                Button(LinkaCopy.value("settings.advancedWiFi.addShortcut")) {
-                    importAdvancedWiFiShortcut()
-                    advancedWiFiEnabled = true
-                }
-            case .active:
-                Button(LinkaCopy.value("settings.advancedWiFi.run")) { runAdvancedWiFiShortcut() }
-                Button(LinkaCopy.value("settings.advancedWiFi.updateShortcut")) {
-                    importAdvancedWiFiShortcut()
-                }
-                Button(LinkaCopy.value("settings.advancedWiFi.disable"), role: .destructive) { advancedWiFiEnabled = false }
-            case .disabled:
-                Button(LinkaCopy.value("settings.advancedWiFi.enable")) { advancedWiFiEnabled = true }
-                Button(LinkaCopy.value("settings.advancedWiFi.updateShortcut")) {
-                    importAdvancedWiFiShortcut()
-                }
-            }
-            Button(LinkaCopy.value("common.cancel"), role: .cancel) {}
-        } message: {
-            Text(advancedWiFiMessage)
         }
     }
 
@@ -342,49 +241,6 @@ struct SettingsView: View {
                 macSection(title: LinkaCopy.value("Status de serviços")) {
                     NavigationLink(destination: ServiceStatusView()) {
                         macRow(LinkaCopy.value("Acompanhar serviços"), systemImage: "dot.radiowaves.left.and.right", showsChevron: true)
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                macSection(title: LinkaCopy.value("Rede e diagnóstico")) {
-                    Toggle(isOn: Binding(
-                        get: { advancedWiFiEnabled },
-                        set: { enabled in
-                            guard macAdvancedWiFiAllowed else {
-                                purchaseEntryPoint = .advancedWiFi
-                                showPurchase = true
-                                return
-                            }
-                            advancedWiFiEnabled = enabled
-                        }
-                    )) {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("Wi-Fi avançado")
-                                .foregroundColor(.textPrimary)
-                            Text(macAdvancedWiFiAllowed ? "Coleta detalhes nativos somente quando você iniciar uma medição com detalhes." : "Disponível no Linka Plus.")
-                                .font(.bodySmall)
-                                .foregroundColor(.textSecondary)
-                        }
-                    }
-                    .tint(.brandAccentWarm)
-
-                    NavigationLink(destination: NetworkProfilesManagementView(
-                        isPlusActive: LinkaEntitlementPolicy.decision(for: .optimization, snapshot: entitlements.snapshot).isGranted,
-                        onRequestPurchase: {
-                            purchaseEntryPoint = .optimization
-                            showPurchase = true
-                        }
-                    )) {
-                        macRow(LinkaCopy.value("environments.saved.title"), systemImage: "mappin.and.ellipse", showsChevron: true)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(LinkaCopy.value("environments.saved.title"))
-                    .accessibilityHint(LinkaCopy.value("environments.settings.accessibilityHint"))
-                }
-
-                macSection(title: LinkaCopy.value("Ferramentas")) {
-                    NavigationLink(destination: MacRouterPanelView()) {
-                        macRow(LinkaCopy.value("Painel do roteador"), systemImage: "router", showsChevron: true)
                     }
                     .buttonStyle(.plain)
                 }
@@ -466,32 +322,7 @@ struct SettingsView: View {
         .contentShape(Rectangle())
     }
 
-    private var macAdvancedWiFiAllowed: Bool {
-        LinkaEntitlementPolicy.decision(
-            for: .advancedWiFiDiagnostics,
-            snapshot: entitlements.snapshot
-        ).isGranted
-    }
     #endif
-
-    private func settingsRow(title: String, value: String, systemImage: String) -> some View {
-        HStack {
-            Image(systemName: systemImage)
-                .font(.body)
-                .foregroundColor(.brandAccentWarmInk)
-                .frame(width: 24, alignment: .center)
-            Text(title)
-                .foregroundColor(.textPrimary)
-            Spacer()
-            Text(value)
-                .foregroundColor(.textSecondary)
-                .multilineTextAlignment(.trailing)
-                .lineLimit(2)
-            Image(systemName: "chevron.right")
-                .font(.caption.weight(.semibold))
-                .foregroundColor(.textSecondary.opacity(0.6))
-        }
-    }
 
     private func settingsAboutRow(title: String, systemImage: String) -> some View {
         HStack {
@@ -525,59 +356,6 @@ struct SettingsView: View {
         }
     }
 
-    private var advancedWiFiState: LinkaAdvancedWiFiSettingsState {
-        let decision = LinkaEntitlementPolicy.decision(for: .advancedWiFiDiagnostics, snapshot: entitlements.snapshot)
-        return .state(
-            hasEntitlement: decision.isGranted,
-            configured: advancedWiFiConfigured,
-            enabled: advancedWiFiEnabled
-        )
-    }
-
-    private var advancedWiFiStatusText: String {
-        switch advancedWiFiState {
-        case .requiresPlus: return LinkaCopy.value("settings.advancedWiFi.status.requiresPlus")
-        case .needsConfiguration: return LinkaCopy.value("settings.advancedWiFi.status.needsConfiguration")
-        case .active: return LinkaCopy.value("settings.advancedWiFi.status.active")
-        case .disabled: return LinkaCopy.value("settings.advancedWiFi.status.disabled")
-        }
-    }
-
-    private var networkIdentificationStatusText: String {
-        switch WiFiNetworkPermission.state(enabled: networkIdentificationEnabled) {
-        case .active: return LinkaCopy.value("wifi.identification.active")
-        case .disabledByUser: return LinkaCopy.value("wifi.identification.disabled")
-        case .permissionRequired: return LinkaCopy.value("wifi.identification.permissionRequired")
-        case .permissionDenied: return LinkaCopy.value("wifi.identification.permissionDenied")
-        case .unavailable: return LinkaCopy.value("common.unavailable")
-        }
-    }
-
-    private var networkIdentificationMessage: String {
-        switch WiFiNetworkPermission.state(enabled: networkIdentificationEnabled) {
-        case .active:
-            return LinkaCopy.value("settings.wifiIdentification.message.active")
-        case .disabledByUser, .permissionRequired:
-            return LinkaCopy.value("settings.wifiIdentification.message.permissionRequired")
-        case .permissionDenied:
-            return LinkaCopy.value("settings.wifiIdentification.message.permissionDenied")
-        case .unavailable:
-            return LinkaCopy.value("settings.wifiIdentification.message.unavailable")
-        }
-    }
-
-    private var advancedWiFiMessage: String {
-        switch advancedWiFiState {
-        case .requiresPlus:
-            return LinkaCopy.value("settings.advancedWiFi.message.requiresPlus")
-        case .needsConfiguration:
-            return LinkaCopy.value("settings.advancedWiFi.message.needsConfiguration")
-        case .active:
-            return LinkaCopy.value("settings.advancedWiFi.message.active")
-        case .disabled:
-            return LinkaCopy.value("settings.advancedWiFi.message.disabled")
-        }
-    }
 
     private func openSubscription() {
         guard !LinkaTemporaryFreeOffer.isActive() else { return }
@@ -595,45 +373,6 @@ struct SettingsView: View {
         }
     }
 
-    private func openNetworkIdentification() {
-        switch WiFiNetworkPermission.state(enabled: networkIdentificationEnabled) {
-        case .active, .disabledByUser, .permissionRequired, .permissionDenied:
-            showWiFiExplanation = true
-        case .unavailable:
-            break
-        }
-    }
-
-    private func openAdvancedWiFi() {
-        let decision = LinkaEntitlementPolicy.decision(for: .advancedWiFiDiagnostics, snapshot: entitlements.snapshot)
-        guard decision.isGranted else {
-            purchaseEntryPoint = .advancedWiFi; showPurchase = true; return
-        }
-        if advancedWiFiConfigured && advancedWiFiEnabled {
-            showAdvancedActions = true
-        } else if advancedWiFiConfigured {
-            showAdvancedActions = true
-        } else {
-            advancedWiFiEnabled = true
-            showAdvancedActions = true
-        }
-    }
-
-    private func runAdvancedWiFiShortcut() {
-        openURL(LinkaAdvancedWiFiIntegration.runShortcutURL)
-    }
-
-    private func importAdvancedWiFiShortcut() {
-        #if canImport(UIKit)
-        // O botão vive em um confirmationDialog. Espera o fechamento da
-        // folha antes de pedir a troca para o app Atalhos.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            UIApplication.shared.open(LinkaAdvancedWiFiIntegration.importShortcutURL)
-        }
-        #else
-        openURL(LinkaAdvancedWiFiIntegration.importShortcutURL)
-        #endif
-    }
 }
 
 typealias SettingsSheet = SettingsView
@@ -655,7 +394,7 @@ private enum MacRouterPanelState: Equatable {
 /// Localiza somente o gateway da rota ativa. A descoberta canônica vive em
 /// `NetworkDiagnostics`: não faz inventário Bonjour, não deduz fabricante e
 /// não guarda credenciais.
-private struct MacRouterPanelView: View {
+struct MacRouterPanelView: View {
     @Environment(\.openURL) private var openURL
     @State private var state: MacRouterPanelState = .idle
     @State private var showOpenConfirmation = false

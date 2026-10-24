@@ -329,7 +329,7 @@ struct MacMainView: View {
             sidebarNavItem(LinkaCopy.value("optimization.title"), systemImage: "slider.horizontal.3", dest: .optimization, disabled: isMeasuring || currentMeasurement == nil)
 
             sidebarGroupLabel("App").padding(.top, 8)
-            sidebarNavItem(LinkaCopy.value("Configurações"), systemImage: "gearshape", dest: .settings, disabled: isMeasuring)
+            sidebarNavItem(LinkaCopy.value("settings.title"), systemImage: "gearshape", dest: .settings, disabled: isMeasuring)
 
             Spacer()
         }

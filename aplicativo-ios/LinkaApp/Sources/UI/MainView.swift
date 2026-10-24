@@ -28,7 +28,7 @@ private enum LinkaPrimaryNavigationDestination: CaseIterable, Hashable, Identifi
         case .speedTest: return LinkaCopy.value("home.measure")
         case .history: return LinkaCopy.value("Histórico")
         case .myNetwork: return LinkaCopy.value("inventory.title")
-        case .settings: return LinkaCopy.value("Configurações")
+        case .settings: return LinkaCopy.value("settings.title")
         }
     }
 
@@ -137,7 +137,9 @@ private enum AssistEntryPoint {
 
 struct MainView: View {
     private var mainTitle: String {
-        LinkaCopy.value("home.measure")
+        viewModel.uiPhase == .done
+            ? LinkaCopy.value("result.title")
+            : LinkaCopy.value("home.measure")
     }
 
     @StateObject private var viewModel = SpeedTestViewModel()
@@ -148,7 +150,6 @@ struct MainView: View {
     @State private var navPath = NavigationPath()
     @State private var historyPath = NavigationPath()
     @State private var selectedTab: LinkaPrimaryNavigationDestination = .speedTest
-    @State private var showMoreMetrics: Bool = false
     @State private var showPurchase: Bool = false
     @State private var showOptimization: Bool = false
     @State private var optimizationBaseline: NetworkMeasurement?
@@ -170,7 +171,6 @@ struct MainView: View {
     @State private var showConnectionPath: Bool = false
     @State private var showConnectivityTriage: Bool = false
     @State private var showExpertModeMigrationBanner: Bool = false
-    @State private var ringScale: CGFloat = 1.0
     @State private var selectedLiveUsageCase: UsageCase?
     @State private var showLiveUsageDetail = false
     @Namespace private var animation
@@ -268,10 +268,10 @@ struct MainView: View {
             switch v.level {
             case .adequate: return (LinkaCopy.value("home.verdict.good"), .statusGood)
             case .limited: return (LinkaCopy.value("home.verdict.fair"), .statusAttention)
-            case .notAssessed: return ("--", .textSecondary)
+            case .notAssessed: return unavailableUsageVerdict
             }
         }
-        return ("--", .textSecondary)
+        return unavailableUsageVerdict
     }
 
     private var gamingVerdict: (label: String, color: Color) {
@@ -279,24 +279,28 @@ struct MainView: View {
             switch v.level {
             case .adequate: return (LinkaCopy.value("home.verdict.good"), .statusGood)
             case .limited: return (LinkaCopy.value("home.verdict.fair"), .statusAttention)
-            case .notAssessed: return ("--", .textSecondary)
+            case .notAssessed: return unavailableUsageVerdict
             }
         }
-        return ("--", .textSecondary)
+        return unavailableUsageVerdict
     }
 
     private var streamingVerdict: (label: String, color: Color) {
-        guard let report = usageSuitabilityReport else { return ("--", .textSecondary) }
+        guard let report = usageSuitabilityReport else { return unavailableUsageVerdict }
         if let v4k = report.verdict(for: .streaming4K), v4k.level == .adequate {
             return (LinkaCopy.value("home.verdict.4k"), .statusGood)
         } else if let vHD = report.verdict(for: .streamingHD) {
             switch vHD.level {
             case .adequate: return (LinkaCopy.value("home.verdict.hd"), .statusGood)
             case .limited: return (LinkaCopy.value("home.verdict.sd"), .statusAttention)
-            case .notAssessed: return ("--", .textSecondary)
+            case .notAssessed: return unavailableUsageVerdict
             }
         }
-        return ("--", .textSecondary)
+        return unavailableUsageVerdict
+    }
+
+    private var unavailableUsageVerdict: (label: String, color: Color) {
+        (LinkaCopy.value("common.unavailable"), .textSecondary)
     }
 
     var body: some View {
@@ -375,9 +379,6 @@ struct MainView: View {
             destinationView(for: route)
         }
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                toolbarBackButton
-            }
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 toolbarShareButton
             }
@@ -569,8 +570,15 @@ struct MainView: View {
             }
             .onChange(of: viewModel.uiPhase) { handleUIPhaseChange($0) }
             .onChange(of: entitlements.isEntitlementResolved) { resolved in
-                guard resolved, viewModel.uiPhase == .idle else { return }
-                prepareHomeAdIfEligible()
+                guard resolved else { return }
+                switch viewModel.uiPhase {
+                case .idle:
+                    prepareHomeAdIfEligible()
+                case .done:
+                    prepareResultAdIfEligible()
+                case .connecting, .downloading, .uploading, .error, .connectionChanged:
+                    break
+                }
             }
     }
 
@@ -579,24 +587,6 @@ struct MainView: View {
     /// Extraídos do closure `.toolbar` para o type-checker não precisar
     /// inferir vários `if` de botão dentro da mesma expressão — sem isso o
     /// build estourava o limite de tempo de type-check em CI.
-    @ViewBuilder
-    private var toolbarBackButton: some View {
-        if viewModel.uiPhase == .done {
-            Button {
-                withAnimation {
-                    viewModel.resetToIdle()
-                }
-            } label: {
-                Image(systemName: "house")
-                    .font(.body.weight(.medium))
-                    .foregroundColor(.textPrimary)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
-            }
-            .accessibilityLabel(LinkaCopy.value("home.accessibility.back"))
-        }
-    }
-
     @ViewBuilder
     private var toolbarShareButton: some View {
         if viewModel.uiPhase == .done, currentMeasurement?.outcome == .complete {
@@ -670,11 +660,6 @@ struct MainView: View {
             #if canImport(UIKit)
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             #endif
-            guard !reduceMotion else { return }
-            withAnimation(LinkaMotion.pulse) { ringScale = 1.05 }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                withAnimation(LinkaMotion.pulse) { ringScale = 1.0 }
-            }
         case .downloading, .done:
             #if canImport(UIKit)
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -683,6 +668,7 @@ struct MainView: View {
             break
         }
         guard newPhase == .done else { return }
+        prepareResultAdIfEligible()
         if !isPlusActive, !ExpertModeMigrationBannerState.hasBeenSeen() {
             showExpertModeMigrationBanner = true
         }
@@ -738,34 +724,49 @@ struct MainView: View {
 
     // 1. Início (Idle)
     private var idleView: some View {
-        GeometryReader { proxy in
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: LinkaSpacing.xl) {
-                    Spacer(minLength: 8)
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: LinkaSpacing.lg) {
+                idleHeroStatus
+                    .padding(.top, 40)
 
-                    idleHeroStatus
+                connectionContextLine
 
-                    connectionContextLine
+                primarySpeedTestButton
+                    // O anúncio native é uma ponte UIKit. Mantemos o CTA
+                    // acima dela na hierarquia de toque mesmo se o SDK
+                    // devolver uma área de hit-testing maior que o card.
+                    .zIndex(1)
 
-                    primarySpeedTestButton
-                        // O anúncio native é uma ponte UIKit. Mantemos o CTA
-                        // acima dela na hierarquia de toque mesmo se o SDK
-                        // devolver uma área de hit-testing maior que o card.
-                        .zIndex(1)
+                latestResultLink
 
-                    homeSecondaryActionsGroup
-
-                    BannerView(placement: .home)
-
-                    Spacer(minLength: 8)
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 32)
-                .frame(minHeight: proxy.size.height, alignment: .center)
+                // O anúncio entra abaixo do conteúdo essencial. Assim, a
+                // chegada assíncrona dele não reposiciona título, contexto ou
+                // CTA — só ocupa espaço depois do link discreto.
+                BannerView(placement: .home)
+                    .padding(.top, LinkaSpacing.sm)
             }
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 48)
         }
         .onAppear {
             prepareHomeAdIfEligible()
+        }
+    }
+
+    @ViewBuilder
+    private var latestResultLink: some View {
+        if let measurement = latestMeasurementForIntent {
+            Button {
+                navPath.append(AppRoute.measurementDetail(measurement))
+            } label: {
+                Label(LinkaCopy.value("home.latestResult"), systemImage: "clock.arrow.circlepath")
+                    .font(.bodySmall)
+                    .foregroundColor(.textSecondary)
+                    .frame(minHeight: 44)
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint(LinkaCopy.value("home.latestResult.hint"))
         }
     }
 
@@ -775,6 +776,13 @@ struct MainView: View {
 
     private func prepareHomeAdIfEligible() {
         ads.prepareHomeAd(
+            isEligibleForAds: isEligibleForAds,
+            isEntitlementResolved: entitlements.isEntitlementResolved
+        )
+    }
+
+    private func prepareResultAdIfEligible() {
+        ads.prepareResultAd(
             isEligibleForAds: isEligibleForAds,
             isEntitlementResolved: entitlements.isEntitlementResolved
         )
@@ -855,91 +863,31 @@ struct MainView: View {
         .accessibilityIdentifier("home.speedTestCTA")
     }
 
-    private var homeSecondaryActionsGroup: some View {
-        VStack(spacing: 10) {
-            if let latest = viewModel.latestFinishedMeasurement {
-                lastMeasurementRow(latest)
-            }
-
-            Button {
-                requestAssist(from: .fresh)
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "sparkles")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(.brandAccentWarm)
-                    Text(LinkaCopy.value("home.assist.home.cta"))
-                        .font(.bodyRegular)
-                        .foregroundColor(.textSecondary)
-                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundColor(.textSecondary)
-                }
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    private func lastMeasurementRow(_ measurement: NetworkMeasurement) -> some View {
-        Button {
-            selectedTab = .history
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "clock.arrow.circlepath")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundColor(.textSecondary)
-                    .frame(width: 24)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(LinkaCopy.value("home.lastTest"))
-                        .font(.captionSmall)
-                        .foregroundColor(.textSecondary)
-                    Text(lastMeasurementSummary(measurement))
-                        .font(.bodyRegularStrong)
-                        .foregroundColor(.textPrimary)
-                        .monospacedDigit()
-                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
-                }
-
-                Spacer(minLength: 8)
-
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundColor(.textSecondary)
-            }
-            .frame(minHeight: 44)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(LinkaCopy.value("home.lastTest"))
-    }
-
-    private func lastMeasurementSummary(_ measurement: NetworkMeasurement) -> String {
-        let date = formatRelativeTime(measurement.measuredAt)
-        guard let download = measurement.downloadMbps else { return date }
-        return LinkaCopy.format("home.lastTest.value", formatted(download), date)
-    }
-
     // 2. Medindo (Connecting / Downloading / Uploading)
     private var measuringView: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            MetricRing(
-                connecting: viewModel.uiPhase == .connecting,
-                progress: viewModel.progress,
-                value: ringValue,
-                unit: viewModel.uiPhase == .connecting ? nil : "Mbps",
-                size: isPad ? 220 : 160,
-                animation: animation,
-                matchedId: "downloadValue"
+            MeasurementNetworkFlowView(
+                phase: measurementFlowPhase,
+                pingMilliseconds: viewModel.hasMeasuredPing ? viewModel.ping : nil,
+                width: isPad ? 300 : 240
             )
-            .scaleEffect(ringScale)
-            .padding(.bottom, 28)
+            .padding(.bottom, viewModel.uiPhase == .connecting ? 24 : 16)
+
+            if viewModel.uiPhase != .connecting {
+                MetricRing(
+                    connecting: false,
+                    progress: viewModel.progress,
+                    value: ringValue,
+                    unit: "Mbps",
+                    size: isPad ? 220 : 160,
+                    animation: animation,
+                    matchedId: "downloadValue"
+                )
+                .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                .padding(.bottom, 24)
+            }
 
             Text(phaseLabel)
                 .font(.bodyRegular)
@@ -974,11 +922,15 @@ struct MainView: View {
     // 3. Resultado (Done)
     private var resultView: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                
+            VStack(spacing: 24) {
+                // Download é a resposta imediata da medição. O restante fica
+                // compacto para que a pessoa compreenda o resultado sem
+                // precisar atravessar uma vitrine de módulos.
+                VStack(spacing: 4) {
+                    Text(LinkaCopy.value("detail.download"))
+                        .font(.bodyRegular)
+                        .foregroundColor(.textSecondary)
 
-                // 1. Download Hero em número inteiro ocupando toda a largura
-                VStack(spacing: 2) {
                     Text("\(Int(round(viewModel.downloadSpeed)))")
                         .font(.heroValueHuge)
                         .foregroundColor(.textPrimary)
@@ -986,154 +938,70 @@ struct MainView: View {
                         .lineLimit(1)
                         .frame(maxWidth: .infinity)
 
-                    Text(LinkaCopy.value("home.downloadUnit"))
+                    Text("Mbps")
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(.textSecondary)
                 }
-                .padding(.top, 16)
-                .padding(.bottom, 16)
+                .padding(.top, 24)
 
-                // 2. Botão "Mais" com seta para baixo
-                Button {
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                        showMoreMetrics.toggle()
-                    }
-                    if showMoreMetrics { requestAppStoreReviewAfterResultInteraction() }
-                } label: {
-                    HStack(spacing: 5) {
-                        Text(LinkaCopy.value("common.more"))
-                            .font(.bodySmallStrong)
-                        Image(systemName: showMoreMetrics ? "chevron.up" : "chevron.down")
-                            .font(.system(size: 12, weight: .semibold))
-                    }
-                    .foregroundColor(.textSecondary)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 6)
-                    .background(.ultraThinMaterial, in: Capsule())
-                }
-                .buttonStyle(.plain)
-                .padding(.bottom, showMoreMetrics ? 14 : 22)
-
-                // Demais métricas reveladas: Upload, Ping e Perdas organizadas por tema
-                if showMoreMetrics {
-                    HStack(spacing: 8) {
-                        metricColumn(title: LinkaCopy.value("metric.upload"), value: metricValue(viewModel.uploadSpeed, isMeasured: viewModel.hasMeasuredUpload), unit: viewModel.hasMeasuredUpload ? "Mbps" : nil)
-                            .frame(maxWidth: .infinity)
-                        metricColumn(title: LinkaCopy.value("metric.ping"), value: metricValue(Double(viewModel.ping), isMeasured: viewModel.hasMeasuredPing), unit: viewModel.hasMeasuredPing ? "ms" : nil)
-                            .frame(maxWidth: .infinity)
-                        metricColumn(title: LinkaCopy.value("metric.loss"), value: viewModel.packetLossPercent.map { loss in loss == 0 ? "0" : String(format: "%.1f", loss) } ?? LinkaCopy.value("metric.notMeasured"), unit: viewModel.packetLossPercent == nil ? nil : "%")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
-                    .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
-                            .stroke(Color.borderDefault.opacity(0.3), lineWidth: 0.5)
+                HStack(spacing: 0) {
+                    metricColumn(
+                        title: LinkaCopy.value("metric.upload"),
+                        value: metricValue(viewModel.uploadSpeed, isMeasured: viewModel.hasMeasuredUpload),
+                        unit: viewModel.hasMeasuredUpload ? "Mbps" : nil
                     )
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 22)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    Divider().frame(height: 42)
+                    metricColumn(
+                        title: LinkaCopy.value("metric.ping"),
+                        value: metricValue(Double(viewModel.ping), isMeasured: viewModel.hasMeasuredPing),
+                        unit: viewModel.hasMeasuredPing ? "ms" : nil
+                    )
                 }
+                .padding(.vertical, 14)
+                .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: LinkaRadius.md, style: .continuous)
+                        .stroke(Color.borderDefault.opacity(0.3), lineWidth: 0.5)
+                )
 
-                // 3. Casos de Uso (Vídeo, Jogos, Streaming) estilo caminho de rede
+                resultRetestButton
+
+                // O card fica integralmente na área de conteúdo, antes dos
+                // casos de uso. Isso preserva o resultado como protagonista e
+                // evita que o native ad encoste na tab bar flutuante.
+                BannerView(placement: .result)
+
                 ResultUsageCasesView(
                     videoCall: videoCallVerdict,
                     gaming: gamingVerdict,
                     streaming: streamingVerdict
                 )
-                .padding(.horizontal, 24)
-                .padding(.bottom, 14)
-
-                // Destinos do Resultado: Detalhes, Diagnóstico de Uso e Rota
-                HStack(spacing: 8) {
-                    Button {
-                        showDetails = true
-                    } label: {
-                        Label(LinkaCopy.value("detail.title"), systemImage: "doc.text.magnifyingglass")
-                            .font(.captionSmallStrong)
-                            .lineLimit(1)
-                    }
-                    .buttonStyle(.linkaSecondary)
-
-                    Button {
-                        showUsage = true
-                    } label: {
-                        Label(LinkaCopy.value("usage.title"), systemImage: "chart.bar.doc.horizontal")
-                            .font(.captionSmallStrong)
-                            .lineLimit(1)
-                    }
-                    .buttonStyle(.linkaSecondary)
-
-                    if connectionPathReport != nil {
-                        Button {
-                            showConnectionPath = true
-                        } label: {
-                            Label(LinkaCopy.value("connectionPath.title"), systemImage: "point.filled.topleft.down.curvedto.point.bottomright.up")
-                                .font(.captionSmallStrong)
-                                .lineLimit(1)
-                        }
-                        .buttonStyle(.linkaSecondary)
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
-
-                NetscopeResultEntryCard {
-                    showNetscopeAnalysis = true
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
-
-                // 4. CTA para o Assist: "Problemas com sua conexão?"
-                Button {
-                    requestAssistFromResult()
-                } label: {
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(LinkaCopy.value("home.assist.cta"))
-                                .font(.bodyRegularStrong)
-                                .foregroundColor(.textPrimary)
-                            Text(LinkaCopy.value("home.assist.resultMessage"))
-                                .font(.captionSmall)
-                                .foregroundColor(.textSecondary)
-                        }
-                        Spacer()
-                        Image(systemName: "sparkles")
-                            .font(.system(size: isPad ? 19 : 15, weight: .semibold))
-                            .foregroundColor(.brandAccentWarm)
-                            .frame(width: isPad ? 46 : 36, height: isPad ? 46 : 36)
-                            .background(Color.brandAccentWarm.opacity(0.12), in: Circle())
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
-                    .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 16))
-                }
-                .buttonStyle(.plain)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
 
                 Button {
-                    showOptimization = true
+                    showDetails = true
                 } label: {
-                    Label(LinkaCopy.value("optimization.open"), systemImage: "slider.horizontal.3")
-                        .font(.body.weight(.semibold))
+                    Label(LinkaCopy.value("detail.title"), systemImage: "doc.text.magnifyingglass")
                 }
                 .buttonStyle(.linkaSecondary)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
-
-                // 5. Botão Testar Novamente
-                Button(action: {
-                    startSpeedTest()
-                }) {
-                    Text(LinkaCopy.value("common.testAgain"))
-                }
-                .buttonStyle(.linkaPrimary)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 32)
             }
+            .padding(.horizontal, 24)
+            // Reserva o fim da rolagem acima da tab bar, sem criar uma faixa
+            // escura atrás do CTA e sem sobrepor o native ad.
+            .padding(.bottom, 112)
         }
+    }
+
+    private var resultRetestButton: some View {
+        Button(action: startSpeedTest) {
+            Text(LinkaCopy.value("common.testAgain"))
+        }
+        // O controle regular do sistema tem a altura de 44 pt recomendada
+        // pela Apple, preservando um alvo confortável sem virar um hero.
+        .buttonStyle(.borderedProminent)
+        .controlSize(.regular)
+        .tint(.brandAccentWarm)
+        .frame(maxWidth: .infinity)
+        .padding(.top, LinkaSpacing.xs)
     }
 
     private func metricColumn(title: String, value: String, unit: String?) -> some View {
@@ -1257,7 +1125,7 @@ struct MainView: View {
     private var phaseLabel: String {
         switch viewModel.uiPhase {
         case .idle, .connecting:
-            return LinkaCopy.value("home.phase.connecting")
+            return LinkaCopy.value("measurement.phase.ping")
         case .downloading:
             return LinkaCopy.value("home.phase.downloading")
         case .uploading, .done:
@@ -1279,6 +1147,17 @@ struct MainView: View {
             return "uploading"
         case .error, .connectionChanged:
             return ""
+        }
+    }
+
+    private var measurementFlowPhase: MeasurementNetworkFlowPhase {
+        switch viewModel.uiPhase {
+        case .connecting:
+            return .ping
+        case .downloading:
+            return .download
+        case .uploading, .done, .idle, .error, .connectionChanged:
+            return .upload
         }
     }
 

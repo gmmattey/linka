@@ -292,7 +292,14 @@ public actor SpeedTestCore {
                     // Measure Ping and Packet Loss
                     let pingOutcome = try await SpeedTestCore.performDetailedPingTest(
                         environment: environment,
-                        transport: transport
+                        transport: transport,
+                        onSample: { latency in
+                            // A amostra é real, mas ainda provisória: o
+                            // resultado formal continua usando a agregação
+                            // calculada no fim de todas as sondagens.
+                            state.ping = latency
+                            continuation.yield(state)
+                        }
                     )
 
                     // `performPingTest()` roda até 10 sondagens sequenciais
@@ -1162,7 +1169,8 @@ public actor SpeedTestCore {
 
     private static func performDetailedPingTest(
         environment: SpeedTestEnvironment,
-        transport: any SpeedTestTransport
+        transport: any SpeedTestTransport,
+        onSample: ((Double) -> Void)? = nil
     ) async throws -> DetailedPingOutcome {
         var latencies: [Double] = []
         var failures = 0
@@ -1183,6 +1191,7 @@ public actor SpeedTestCore {
                 if response.statusCode == 200 {
                     let latency = Date().timeIntervalSince(start) * 1000.0
                     latencies.append(latency)
+                    onSample?(latency)
                     failureStreak = 0
                     // Sondagem bem-sucedida prova que o transporte não está
                     // de fato perdido — zera a sequência de falhas fatais

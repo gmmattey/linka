@@ -313,6 +313,7 @@
 "settings.section.privacy" = "Privacy";
 "settings.adPrivacyOptions" = "Ad privacy options";
 "ads.native.attribution" = "ADVERTISEMENT";
+"ads.native.accessibility.hint" = "Double-tap to open sponsored content.";
 "settings.terms" = "Terms of Use";
 "settings.support" = "Support";
 "settings.rate" = "Rate Linka";
@@ -412,14 +413,13 @@
 "home.checking" = "Checking...";
 "home.preparing" = "Preparing";
 "home.testSpeed" = "Test speed";
-"home.lastTest" = "Last test";
-"home.lastTest.value" = "%@ Mbps · %@";
 "home.downloadUnit" = "Mbps download";
 "home.assist.cta" = "Analyze my connection";
-"home.assist.home.cta" = "Need help with your network?";
 "home.assist.resultMessage" = "Let's analyze this measurement's data.";
 "home.accessibility.back" = "Back to Home";
 "home.accessibility.history" = "History";
+"home.latestResult" = "View latest result";
+"home.latestResult.hint" = "Opens the details of your most recent measurement";
 "home.accessibility.share" = "Share result";
 "home.accessibility.settings" = "Settings";
 "home.advancedWiFiRecovery.title" = "We didn't receive the Wi-Fi data";
@@ -504,6 +504,7 @@
 "assist.subcategory.mobileWorse" = "Mobile data is worse than Wi-Fi";
 "assist.subcategory.bothBad" = "Both seem bad";
 "history.title" = "History";
+"result.title" = "Result";
 "history.filter.title" = "Filter";
 "history.filter.all" = "All";
 "history.filter.mobile" = "Mobile";
@@ -1016,6 +1017,22 @@
 "inventory.section.devices" = "Equipment";
 "inventory.section.connections" = "How they are connected";
 "inventory.section.environments" = "Environments";
+"inventory.overview.empty.title" = "Start with your network equipment";
+"inventory.overview.empty.message" = "Add your router, modem, or fiber equipment to organize your network.";
+"inventory.overview.network" = "Your network";
+"inventory.overview.internet" = "Home internet";
+"inventory.overview.home" = "Home";
+"inventory.overview.equipment" = "Equipment";
+"inventory.overview.equipmentCount.single" = "%d equipment item";
+"inventory.overview.equipmentCount.multiple" = "%d equipment items";
+"inventory.overview.connections" = "How they connect";
+"inventory.overview.connections.none" = "Not provided";
+"inventory.overview.connections.count.single" = "%d declared connection";
+"inventory.overview.connections.count.multiple" = "%d declared connections";
+"inventory.overview.context" = "Rooms and coverage";
+"inventory.overview.context.none" = "Not configured";
+"inventory.overview.context.count.single" = "%d room";
+"inventory.overview.context.count.multiple" = "%d rooms";
 
 "inventory.plan.cta.add" = "Register plan";
 

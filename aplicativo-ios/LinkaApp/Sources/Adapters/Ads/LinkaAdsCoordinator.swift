@@ -8,11 +8,12 @@ import UserMessagingPlatform
 enum LinkaAdPlacement: Equatable {
     case home
     case history
+    case result
 }
 
-/// Uma única tentativa nativa por sessão, escolhida pelo primeiro placement
-/// elegível. Isso impede request duplicado e que o mesmo anúncio apareça em
-/// duas telas quando a pessoa navega durante a sessão.
+/// Uma única tentativa nativa por contexto de navegação, escolhida pelo
+/// primeiro placement elegível. Uma nova medição invalida o contexto anterior
+/// para que a conclusão possa receber seu próprio anúncio.
 struct LinkaAdSessionGate {
     private(set) var didAttempt = false
     private(set) var placement: LinkaAdPlacement?
@@ -196,6 +197,17 @@ final class LinkaAdsCoordinator: NSObject, ObservableObject {
         )
     }
 
+    func prepareResultAd(
+        isEligibleForAds: Bool,
+        isEntitlementResolved: Bool
+    ) {
+        prepareNativeAd(
+            for: .result,
+            isEligibleForAds: isEligibleForAds,
+            isEntitlementResolved: isEntitlementResolved
+        )
+    }
+
     private func prepareNativeAd(
         for placement: LinkaAdPlacement,
         isEligibleForAds: Bool,
@@ -215,6 +227,9 @@ final class LinkaAdsCoordinator: NSObject, ObservableObject {
     func measurementDidStart() {
         adsSuppressedForMeasurement = true
         invalidatePendingAds()
+        // A coleta descarta qualquer anúncio anterior; a tela concludente
+        // escolhe seu próprio placement depois que a medição termina.
+        sessionGate = LinkaAdSessionGate()
     }
 
     /// Libera superfícies elegíveis e opções de privacidade; não inicia anúncio.
@@ -321,6 +336,7 @@ final class LinkaAdsCoordinator: NSObject, ObservableObject {
     func refreshConsentInformation() async {}
     func prepareHomeAd(isEligibleForAds: Bool, isEntitlementResolved: Bool) {}
     func prepareHistoryAd(isEligibleForAds: Bool, isEntitlementResolved: Bool, hasHistory: Bool) {}
+    func prepareResultAd(isEligibleForAds: Bool, isEntitlementResolved: Bool) {}
     func measurementDidStart() {}
     func measurementDidEnd() {}
     func updateEligibility(isEligibleForAds: Bool, isEntitlementResolved: Bool) {}

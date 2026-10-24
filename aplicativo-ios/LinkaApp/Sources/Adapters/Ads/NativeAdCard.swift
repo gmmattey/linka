@@ -35,10 +35,10 @@ struct NativeAdCard: UIViewRepresentable {
 }
 
 final class LinkaNativeAdView: NativeAdView {
-    private let attributionLabel = UILabel()
+    private let attributionLabel = PaddedLabel()
     private let headlineLabel = UILabel()
     private let bodyLabel = UILabel()
-    private let actionLabel = UILabel()
+    private let actionButton = UIButton(type: .system)
     private let adIconView = UIImageView()
 
     override init(frame: CGRect) {
@@ -48,11 +48,19 @@ final class LinkaNativeAdView: NativeAdView {
         layer.cornerCurve = .continuous
         layer.borderWidth = 0.5
         layer.borderColor = UIColor.separator.withAlphaComponent(0.45).cgColor
+        layoutMargins = .init(top: 14, left: 16, bottom: 14, right: 16)
 
         attributionLabel.text = LinkaCopy.value("ads.native.attribution")
         attributionLabel.font = .preferredFont(forTextStyle: .caption2)
-        attributionLabel.textColor = .secondaryLabel
+        attributionLabel.textColor = .tertiaryLabel
+        attributionLabel.backgroundColor = .tertiarySystemFill
+        attributionLabel.layer.cornerRadius = 5
+        attributionLabel.layer.cornerCurve = .continuous
+        attributionLabel.clipsToBounds = true
+        attributionLabel.textAlignment = .center
+        attributionLabel.textInsets = .init(top: 3, left: 6, bottom: 3, right: 6)
         attributionLabel.adjustsFontForContentSizeCategory = true
+        attributionLabel.setContentHuggingPriority(.required, for: .horizontal)
 
         headlineLabel.font = .preferredFont(forTextStyle: .headline)
         headlineLabel.textColor = .label
@@ -64,42 +72,58 @@ final class LinkaNativeAdView: NativeAdView {
         bodyLabel.numberOfLines = 2
         bodyLabel.adjustsFontForContentSizeCategory = true
 
-        actionLabel.font = .preferredFont(forTextStyle: .subheadline)
-        actionLabel.textColor = tintColor
-        actionLabel.textAlignment = .right
-        actionLabel.adjustsFontForContentSizeCategory = true
-        actionLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        actionLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        var actionConfiguration = UIButton.Configuration.tinted()
+        actionConfiguration.baseForegroundColor = .white
+        actionConfiguration.baseBackgroundColor = UIColor(Color.brandSurface)
+        actionConfiguration.cornerStyle = .medium
+        actionConfiguration.contentInsets = .init(top: 8, leading: 14, bottom: 8, trailing: 14)
+        actionButton.configuration = actionConfiguration
+        actionButton.titleLabel?.font = .preferredFont(forTextStyle: .subheadline)
+        actionButton.titleLabel?.adjustsFontForContentSizeCategory = true
+        // O SDK recebe o botão como asset, mas controla o toque pelo
+        // NativeAdView; não transformamos o CTA em uma ação própria do app.
+        actionButton.isUserInteractionEnabled = false
+        actionButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        actionButton.setContentHuggingPriority(.required, for: .horizontal)
+        actionButton.setContentCompressionResistancePriority(.required, for: .horizontal)
 
         adIconView.layer.cornerRadius = 8
+        adIconView.layer.cornerCurve = .continuous
         adIconView.clipsToBounds = true
         adIconView.contentMode = .scaleAspectFill
+        adIconView.widthAnchor.constraint(equalToConstant: 48).isActive = true
+        adIconView.heightAnchor.constraint(equalToConstant: 48).isActive = true
 
-        let textStack = UIStackView(arrangedSubviews: [attributionLabel, headlineLabel, bodyLabel])
+        let textStack = UIStackView(arrangedSubviews: [headlineLabel, bodyLabel])
         textStack.axis = .vertical
         textStack.spacing = 4
 
-        let row = UIStackView(arrangedSubviews: [adIconView, textStack, actionLabel])
+        let row = UIStackView(arrangedSubviews: [adIconView, textStack, actionButton])
         row.axis = .horizontal
         row.alignment = .center
         row.spacing = 12
-        row.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(row)
+
+        let contentStack = UIStackView(arrangedSubviews: [attributionLabel, row])
+        contentStack.axis = .vertical
+        contentStack.alignment = .fill
+        contentStack.spacing = 10
+        contentStack.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(contentStack)
 
         NSLayoutConstraint.activate([
-            adIconView.widthAnchor.constraint(equalToConstant: 40),
-            adIconView.heightAnchor.constraint(equalToConstant: 40),
-            row.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            row.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            row.topAnchor.constraint(equalTo: topAnchor, constant: 14),
-            row.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -14)
+            contentStack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
+            contentStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
+            contentStack.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor),
+            contentStack.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor)
         ])
 
         headlineView = headlineLabel
         bodyView = bodyLabel
-        callToActionView = actionLabel
+        callToActionView = actionButton
         iconView = adIconView
-        accessibilityLabel = LinkaCopy.value("ads.native.attribution")
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+        accessibilityHint = LinkaCopy.value("ads.native.accessibility.hint")
     }
 
     required init?(coder: NSCoder) { nil }
@@ -108,13 +132,40 @@ final class LinkaNativeAdView: NativeAdView {
         headlineLabel.text = ad.headline
         bodyLabel.text = ad.body
         bodyLabel.isHidden = ad.body == nil
-        actionLabel.text = ad.callToAction
-        actionLabel.isHidden = ad.callToAction == nil
+        actionButton.setTitle(ad.callToAction, for: .normal)
+        actionButton.isHidden = ad.callToAction == nil
         adIconView.image = ad.icon?.image
         adIconView.isHidden = ad.icon == nil
+        accessibilityLabel = [
+            LinkaCopy.value("ads.native.attribution"),
+            ad.headline,
+            ad.body,
+            ad.callToAction
+        ]
+        .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+        .filter { !$0.isEmpty }
+        .joined(separator: ". ")
         nativeAd = ad
         invalidateIntrinsicContentSize()
         setNeedsLayout()
+    }
+}
+
+private final class PaddedLabel: UILabel {
+    var textInsets = UIEdgeInsets.zero {
+        didSet { invalidateIntrinsicContentSize() }
+    }
+
+    override func drawText(in rect: CGRect) {
+        super.drawText(in: rect.inset(by: textInsets))
+    }
+
+    override var intrinsicContentSize: CGSize {
+        let size = super.intrinsicContentSize
+        return .init(
+            width: size.width + textInsets.left + textInsets.right,
+            height: size.height + textInsets.top + textInsets.bottom
+        )
     }
 }
 #endif
