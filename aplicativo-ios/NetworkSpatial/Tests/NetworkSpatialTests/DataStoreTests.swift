@@ -66,4 +66,9 @@ final class DataStoreTests: XCTestCase {
         XCTAssertEqual(savedList.first?.deltaCoveragePercent, 42)
         XCTAssertEqual(savedList.first?.roomComparisons.first?.roomName, "Escritório")
     }
+
+    func testDefaultInit() {
+        let store = DataStore(inMemory: false)
+        XCTAssertNotNil(store.modelContainer)
+    }
 }

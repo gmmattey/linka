@@ -20,12 +20,12 @@ public final class DataStore: ObservableObject {
             MeasurementEntity.self,
             ComparisonSessionEntity.self
         ])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory, cloudKitDatabase: .none)
         if let container = try? ModelContainer(for: schema, configurations: [config]) {
             self.modelContainer = container
         } else {
             logger.error("Falha ao inicializar ModelContainer em disco; utilizando fallback em memória.")
-            let fallbackConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            let fallbackConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
             do {
                 self.modelContainer = try ModelContainer(for: schema, configurations: [fallbackConfig])
             } catch {
