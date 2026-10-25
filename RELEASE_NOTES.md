@@ -1,3 +1,15 @@
+# Linka 1.1.8 (62) — candidata TestFlight interno
+
+- **Integração Firebase Analytics (iOS):**
+  - Instrumentação de telemetria de produto estritamente no target iOS, sem impactar macOS ou widgets.
+  - Acompanhamento de funis de uso: testes de velocidade iniciados/concluídos/falhos, diagnósticos e visualizações de ofertas Plus.
+  - Modo interno de exclusão do proprietário e conformidade estrita de privacidade (sem coleta de IP, SSID ou dados pessoais).
+- **Internacionalização Completa do Módulo Residência:**
+  - Tradução integral do módulo de Cobertura Residencial (Wi-Fi Casa) para Português (pt-BR), Inglês (en) e Espanhol (es-419).
+  - Suporte completo em modelos, jornadas guiadas, comparativos Antes × Depois, relatórios técnicos e editor de cômodos.
+- **Reatividade e Tradução de Datas:**
+  - Correção na formatação e atualização imediata de datas nas células do histórico, detalhes da medição e cartão de compartilhamento ao alternar o idioma nos Ajustes.
+
 # Linka 1.1.7 (61) — candidata TestFlight interno
 
 - Enviada em 24/10/2026 pelo Xcode para o TestFlight interno; a App Store Connect aceitou o pacote e iniciou o processamento.
