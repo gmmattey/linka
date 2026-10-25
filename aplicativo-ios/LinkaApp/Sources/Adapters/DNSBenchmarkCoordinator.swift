@@ -34,6 +34,7 @@ final class DNSBenchmarkCoordinator: ObservableObject {
         sessionID = id
         systemHealth = DNSSystemHealth(milliseconds: nil)
         state = .running
+        LinkaAnalytics.shared.track(.diagnosticStarted(diagnosticType: "dns_benchmark"))
         observePathForSession()
         let healthTask = DNSSystemResolverProbe.start()
         Task { @MainActor [weak self] in
@@ -50,12 +51,21 @@ final class DNSBenchmarkCoordinator: ObservableObject {
                 self.state = .cancelled
                 self.task = nil
                 self.sessionID = nil
+                LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "dns_benchmark", outcome: "cancelled"))
                 return
             }
-            self.state = DNSBenchmarkCoordinator.state(for: result)
+            let newState = DNSBenchmarkCoordinator.state(for: result)
+            self.state = newState
             self.task = nil
             self.sessionID = nil
             self.stopPathObservation()
+            let outcome: String
+            switch newState {
+            case .completed: outcome = "success"
+            case .failed: outcome = "failed"
+            default: outcome = "other"
+            }
+            LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "dns_benchmark", outcome: outcome))
         }
     }
 
@@ -65,6 +75,7 @@ final class DNSBenchmarkCoordinator: ObservableObject {
         sessionID = nil
         state = .cancelled
         stopPathObservation()
+        LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "dns_benchmark", outcome: "cancelled"))
     }
 
     /// Uma troca de conexão invalida a sessão efêmera em vez de misturar

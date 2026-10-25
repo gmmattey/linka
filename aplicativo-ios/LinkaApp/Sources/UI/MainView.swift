@@ -303,6 +303,9 @@ struct MainView: View {
         }
         .tint(.brandAccentWarm)
         .onChange(of: selectedTab) { destination in
+            if destination == .myNetwork {
+                LinkaAnalytics.shared.track(.myNetworkViewed)
+            }
             // Resultado é um estado temporário da medição recém-concluída.
             // Ao voltar para a aba Medir, a pessoa deve reencontrar a tela
             // inicial, não uma cópia persistente do último teste. A medição
@@ -555,6 +558,7 @@ struct MainView: View {
     private var toolbarShareButton: some View {
         if viewModel.uiPhase == .done, currentMeasurement?.outcome == .complete {
             Button {
+                LinkaAnalytics.shared.track(.resultShared)
                 showShareSheet = true
             } label: {
                 Image(systemName: "square.and.arrow.up")
@@ -632,6 +636,7 @@ struct MainView: View {
             break
         }
         guard newPhase == .done else { return }
+        LinkaAnalytics.shared.track(.resultViewed(source: "fresh_test"))
         prepareResultAdIfEligible()
         if !isPlusActive, !ExpertModeMigrationBannerState.hasBeenSeen() {
             showExpertModeMigrationBanner = true

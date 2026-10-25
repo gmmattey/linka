@@ -63,12 +63,15 @@ struct ConnectivityTriageView: View {
             .linkaStaticScreenBackground()
             .linkaSheetToolbar(title: LinkaCopy.value("triage.title")) { dismiss() }
             .task {
+                LinkaAnalytics.shared.track(.diagnosticStarted(diagnosticType: "connectivity_triage"))
                 do {
                     let result = try await service.run()
                     guard !Task.isCancelled else { return }
                     report = result
                     isLoading = false
+                    LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "connectivity_triage", outcome: "success"))
                 } catch is CancellationError {
+                    LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "connectivity_triage", outcome: "cancelled"))
                     return
                 } catch {
                     guard !Task.isCancelled else { return }
@@ -77,6 +80,7 @@ struct ConnectivityTriageView: View {
                         path: ConnectivityPathSnapshot(status: .requiresConnection)
                     )
                     isLoading = false
+                    LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "connectivity_triage", outcome: "inconclusive"))
                 }
             }
         }

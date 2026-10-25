@@ -83,6 +83,8 @@ targets:
         LinkaServiceStatusEndpoint: "https://linka-assist-relay.buildealabs.workers.dev/v1/service-status"
         GADApplicationIdentifier: "ca-app-pub-5542349230926522~6717355071"
         LinkaAdsEnabled: "$(LINKA_ADS_ENABLED)"
+        FIREBASE_ANALYTICS_COLLECTION_ENABLED: false
+        GOOGLE_ANALYTICS_IDFV_COLLECTION_ENABLED: false
         NSCameraUsageDescription: "Fotografe a etiqueta para preencher marca e modelo. A imagem é lida neste aparelho e não é enviada nem salva pelo Linka."
         NSLocationWhenInUseUsageDescription: "O Linka usa a localização apenas porque o iPhone exige essa autorização para informar o nome da rede Wi-Fi atual. Sua localização não é salva para identificar a rede."
         NSLocationTemporaryUsageDescriptionDictionary:
@@ -134,6 +136,10 @@ targets:
         product: GoogleMobileAds
       - package: UserMessagingPlatform
         product: GoogleUserMessagingPlatform
+      - package: Firebase
+        product: FirebaseCore
+      - package: Firebase
+        product: FirebaseAnalytics
       - target: LinkaWidgetExtension
         embed: true
         codeSign: true
@@ -193,6 +199,8 @@ targets:
           - UI/MainView.swift
       - path: LinkaApp/Resources
         buildPhase: resources
+        excludes:
+          - GoogleService-Info.plist
     dependencies:
       - package: LinkaEngine
       - package: LinkaModules
@@ -374,3 +382,6 @@ packages:
   UserMessagingPlatform:
     url: https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git
     from: 3.0.0
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk.git
+    exactVersion: 12.19.3

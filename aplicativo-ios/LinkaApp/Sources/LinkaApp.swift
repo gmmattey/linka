@@ -30,6 +30,7 @@ struct LinkaApp: App {
     @AppStorage(LinkaLanguagePreference.storageKey) private var languagePreference = LinkaLanguagePreference.system.rawValue
 
     init() {
+        LinkaAnalytics.shared.configure()
         let entitlementProvider = StoreKitEntitlementProvider()
         _entitlements = StateObject(wrappedValue: entitlementProvider)
 
@@ -128,12 +129,30 @@ struct LinkaApp: App {
                 .preferredColorScheme(preferredColorScheme)
                 .environment(\.locale, effectiveLocale)
             .onOpenURL { url in
-                guard url.scheme?.lowercased() == "linka",
-                      url.host == "wifi-advanced",
-                      let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-                      let payload = components.queryItems?.first(where: { $0.name == "payload" })?.value else { return }
-                if (try? AdvancedWiFiDiagnosticsInbox.importPayload(payload, entitlement: entitlements.snapshot)) != nil {
-                    AppIntentCoordinator.shared.requestAdvancedWiFiDiagnosticsImport()
+                guard let scheme = url.scheme?.lowercased(), scheme == "linka" else { return }
+
+                if url.host == "internal", url.path == "/analytics",
+                   let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                   let collection = components.queryItems?.first(where: { $0.name == "collection" })?.value {
+                    switch collection.lowercased() {
+                    case "off":
+                        LinkaAnalytics.shared.preference.setOwnerExcluded(true)
+                        LinkaAnalytics.shared.setCollectionEnabled(false)
+                    case "on":
+                        LinkaAnalytics.shared.preference.setOwnerExcluded(false)
+                        LinkaAnalytics.shared.setCollectionEnabled(LinkaAnalytics.shared.preference.isCollectionEnabled)
+                    default:
+                        break
+                    }
+                    return
+                }
+
+                if url.host == "wifi-advanced",
+                   let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                   let payload = components.queryItems?.first(where: { $0.name == "payload" })?.value {
+                    if (try? AdvancedWiFiDiagnosticsInbox.importPayload(payload, entitlement: entitlements.snapshot)) != nil {
+                        AppIntentCoordinator.shared.requestAdvancedWiFiDiagnosticsImport()
+                    }
                 }
             }
             .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in

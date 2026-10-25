@@ -27,5 +27,8 @@ struct HistoricalMeasurementDetailView: View {
             onStartNewMeasurementWithAdvancedWiFi: onStartNewMeasurementWithAdvancedWiFi
         )
             .environmentObject(entitlements)
+            .onAppear {
+                LinkaAnalytics.shared.track(.resultViewed(source: "history"))
+            }
     }
 }

@@ -45,6 +45,10 @@
 	</array>
 	<key>LinkaAdsEnabled</key>
 	<string>$(LINKA_ADS_ENABLED)</string>
+	<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
+	<false/>
+	<key>GOOGLE_ANALYTICS_IDFV_COLLECTION_ENABLED</key>
+	<false/>
 	<key>LinkaAssistConsultationEnabled</key>
 	<string>NO</string>
 	<key>LinkaAssistConsultationEndpoint</key>

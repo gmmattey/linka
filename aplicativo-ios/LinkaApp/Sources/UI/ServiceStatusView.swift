@@ -36,6 +36,9 @@ struct ServiceStatusView: View {
         macOSContent
         #else
         iOSContent
+            .onAppear {
+                LinkaAnalytics.shared.track(.serviceStatusViewed)
+            }
         #endif
     }
 

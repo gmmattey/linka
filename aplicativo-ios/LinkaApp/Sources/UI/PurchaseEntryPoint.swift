@@ -36,4 +36,16 @@ enum PurchaseEntryPoint: Equatable {
             LinkaCopy.value("purchase.entry.shortcuts.subtitle", defaultValue: "Automatize testes e acompanhe resultados usando a Siri e os Atalhos.")
         }
     }
+
+    var analyticsIdentifier: String {
+        switch self {
+        case .settings: return "settings"
+        case .assist: return "assist"
+        case .historyInsights: return "history_insights"
+        case .advancedWiFi: return "advanced_wifi"
+        case .optimization: return "optimization"
+        case .shortcut: return "shortcut"
+        case .appIntent: return "app_intent"
+        }
+    }
 }
