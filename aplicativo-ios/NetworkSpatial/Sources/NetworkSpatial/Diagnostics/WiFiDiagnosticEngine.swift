@@ -10,6 +10,20 @@ public enum DiagnosticStep: String, Sendable {
     case probingWAN = "Verificando rota para a internet (WAN)..."
     case measuringThroughput = "Validando taxa de vazão..."
     case completing = "Concluindo diagnóstico..."
+
+    public var label: String {
+        switch self {
+        case .verifyingWiFi: return SpatialCopy.value("spatial.step.verifying", defaultValue: rawValue)
+        case .discoveringGateway: return SpatialCopy.value("spatial.step.gateway", defaultValue: rawValue)
+        case .checkingLocalNetwork: return SpatialCopy.value("spatial.step.permission", defaultValue: rawValue)
+        case .waitingForPermission: return SpatialCopy.value("spatial.step.waiting", defaultValue: rawValue)
+        case .probingLAN: return SpatialCopy.value("spatial.step.probingLAN", defaultValue: rawValue)
+        case .confirmingStability: return SpatialCopy.value("spatial.step.stability", defaultValue: rawValue)
+        case .probingWAN: return SpatialCopy.value("spatial.step.probingWAN", defaultValue: rawValue)
+        case .measuringThroughput: return SpatialCopy.value("spatial.step.throughput", defaultValue: rawValue)
+        case .completing: return SpatialCopy.value("spatial.step.completing", defaultValue: rawValue)
+        }
+    }
 }
 
 public enum DiagnosticError: LocalizedError, Sendable {
@@ -22,15 +36,15 @@ public enum DiagnosticError: LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .notConnectedToWiFi:
-            return "O dispositivo não está conectado ao Wi-Fi. Conecte-se à rede Wi-Fi residencial antes de medir."
+            return SpatialCopy.value("spatial.error.notConnected", defaultValue: "O dispositivo não está conectado ao Wi-Fi. Conecte-se à rede Wi-Fi residencial antes de medir.")
         case .measurementAborted:
-            return "A medição foi interrompida porque a conexão Wi-Fi foi perdida."
+            return SpatialCopy.value("spatial.error.aborted", defaultValue: "A medição foi interrompida porque a conexão Wi-Fi foi perdida.")
         case .gatewayUnreachable:
-            return "Não foi possível comunicar com o roteador local."
+            return SpatialCopy.value("spatial.error.gatewayUnreachable", defaultValue: "Não foi possível comunicar com o roteador local.")
         case .localNetworkPermissionDenied:
-            return "O WiFi Casa precisa de autorização de Rede Local para diagnosticar a conexão com seu roteador. Ative em Ajustes > WiFi Casa > Rede Local."
+            return SpatialCopy.value("spatial.error.permissionDenied", defaultValue: "O WiFi Casa precisa de autorização de Rede Local para diagnosticar a conexão com seu roteador. Ative em Ajustes > WiFi Casa > Rede Local.")
         case .measurementInterruptedByBackground:
-            return "A medição foi pausada porque o app perdeu o foco. Retorne ao WiFi Casa para concluir o teste."
+            return SpatialCopy.value("spatial.error.interrupted", defaultValue: "A medição foi pausada porque o app perdeu o foco. Retorne ao WiFi Casa para concluir o teste.")
         }
     }
 }

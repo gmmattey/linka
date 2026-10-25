@@ -19,19 +19,20 @@ public struct DetectedAccessPointsSheet: View {
                             Image(systemName: "antenna.radiowaves.left.and.right")
                                 .font(.title3)
                                 .foregroundStyle(WiFiCasaTheme.brandAccent)
-                            Text("Topologia de Rádios")
+                            Text(SpatialCopy.value("spatial.aps.title", defaultValue: "Topologia de Rádios"))
                                 .font(.headline)
                                 .foregroundStyle(WiFiCasaTheme.textPrimary)
                         }
 
-                        Text("Identificamos \(accessPoints.count) ponto\(accessPoints.count > 1 ? "s" : "") de acesso diferente\(accessPoints.count > 1 ? "s" : "") aos quais seu iPhone se associou durante as medições na residência.")
+                        let apNoun = accessPoints.count == 1 ? (SpatialCopy.currentLanguageTag == "en" ? "access point" : (SpatialCopy.currentLanguageTag == "es-419" ? "punto de acceso" : "ponto de acesso")) : (SpatialCopy.currentLanguageTag == "en" ? "access points" : (SpatialCopy.currentLanguageTag == "es-419" ? "puntos de acceso" : "pontos de acesso"))
+                        Text(SpatialCopy.format("spatial.aps.count", accessPoints.count, apNoun))
                             .font(.subheadline)
                             .foregroundStyle(WiFiCasaTheme.textSecondary)
                     }
                     .padding(.vertical, 4)
                 }
 
-                Section(header: Text("PONTOS DE ACESSO OBSERVADOS")) {
+                Section(header: Text(SpatialCopy.value("spatial.aps.observed", defaultValue: "PONTOS DE ACESSO OBSERVADOS"))) {
                     ForEach(accessPoints) { ap in
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
@@ -46,7 +47,8 @@ public struct DetectedAccessPointsSheet: View {
 
                                 Spacer()
 
-                                Text("\(ap.observedCount) mediç\(ap.observedCount > 1 ? "ões" : "ão")")
+                                let mNoun = ap.observedCount == 1 ? (SpatialCopy.currentLanguageTag == "en" ? "measurement" : (SpatialCopy.currentLanguageTag == "es-419" ? "medición" : "medição")) : (SpatialCopy.currentLanguageTag == "en" ? "measurements" : (SpatialCopy.currentLanguageTag == "es-419" ? "mediciones" : "medições"))
+                                Text(SpatialCopy.format("spatial.aps.measurements", ap.observedCount, mNoun))
                                     .font(.caption2.weight(.medium))
                                     .foregroundStyle(WiFiCasaTheme.textSecondary)
                                     .padding(.horizontal, 8)
@@ -80,7 +82,7 @@ public struct DetectedAccessPointsSheet: View {
                                         .accessibilityLabel("Endereço físico BSSID \(ap.bssid)")
                                 }
                             } label: {
-                                Text("Detalhes Técnicos")
+                                Text(SpatialCopy.value("spatial.aps.techDetails", defaultValue: "Detalhes Técnicos"))
                                     .font(.caption)
                                     .foregroundStyle(WiFiCasaTheme.textSecondary)
                             }
@@ -95,7 +97,7 @@ public struct DetectedAccessPointsSheet: View {
                             .font(.subheadline)
                             .foregroundStyle(WiFiCasaTheme.brandAccent)
 
-                        Text("Múltiplos pontos de acesso sob o mesmo nome de rede geralmente indicam nós Mesh, repetidores ou roteadores adicionais. O mesmo equipamento também pode emitir BSSIDs distintos para as frequências de 2.4 GHz e 5 GHz.")
+                        Text(SpatialCopy.value("spatial.aps.explanation", defaultValue: "Múltiplos pontos de acesso sob o mesmo nome de rede geralmente indicam nós Mesh, repetidores ou roteadores adicionais. O mesmo equipamento também pode emitir BSSIDs distintos para as frequências de 2.4 GHz e 5 GHz."))
                             .font(.footnote)
                             .foregroundStyle(WiFiCasaTheme.textSecondary)
                     }
@@ -103,11 +105,11 @@ public struct DetectedAccessPointsSheet: View {
                 }
             }
             .appListStyle()
-            .navigationTitle("Pontos de Acesso")
+            .navigationTitle(SpatialCopy.value("spatial.ap.multiple.title", defaultValue: "Pontos de Acesso"))
             .inlineTitleDisplayMode()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("OK") {
+                    Button(SpatialCopy.value("spatial.common.ok", defaultValue: "OK")) {
                         dismiss()
                     }
                     .font(.body.weight(.semibold))

@@ -11,7 +11,13 @@ public enum QualityRating: String, Codable, CaseIterable, Sendable {
     case unmeasured = "Não Medido"
 
     public var label: String {
-        rawValue
+        switch self {
+        case .excellent: return SpatialCopy.value("spatial.rating.excellent", defaultValue: rawValue)
+        case .good: return SpatialCopy.value("spatial.rating.good", defaultValue: rawValue)
+        case .fair: return SpatialCopy.value("spatial.rating.fair", defaultValue: rawValue)
+        case .poor: return SpatialCopy.value("spatial.rating.poor", defaultValue: rawValue)
+        case .unmeasured: return SpatialCopy.value("spatial.rating.unmeasured", defaultValue: rawValue)
+        }
     }
 
     public var systemImage: String {
@@ -43,15 +49,15 @@ public enum QualityRating: String, Codable, CaseIterable, Sendable {
     public var accessibilityDescription: String {
         switch self {
         case .excellent:
-            return "Qualidade Ótima. Conexão excelente neste cômodo."
+            return SpatialCopy.value("spatial.rating.excellent.a11y", defaultValue: "Qualidade Ótima. Conexão excelente neste cômodo.")
         case .good:
-            return "Qualidade Boa. Conexão estável para chamadas e streaming."
+            return SpatialCopy.value("spatial.rating.good.a11y", defaultValue: "Qualidade Boa. Conexão estável para chamadas e streaming.")
         case .fair:
-            return "Qualidade Regular. Sinal degradado por obstáculos ou distância do roteador."
+            return SpatialCopy.value("spatial.rating.fair.a11y", defaultValue: "Qualidade Regular. Sinal degradado por obstáculos ou distância do roteador.")
         case .poor:
-            return "Qualidade Ruim. Ponto crítico com alto risco de quedas e lentidão."
+            return SpatialCopy.value("spatial.rating.poor.a11y", defaultValue: "Qualidade Ruim. Ponto crítico com alto risco de quedas e lentidão.")
         case .unmeasured:
-            return "Cômodo ainda não medido."
+            return SpatialCopy.value("spatial.rating.unmeasured.a11y", defaultValue: "Cômodo ainda não medido.")
         }
     }
 }
@@ -68,15 +74,15 @@ public enum DiagnosisCause: String, Codable, Sendable {
     public var userFriendlyMessage: String {
         switch self {
         case .allGood:
-            return "Seu Wi-Fi e sua internet estão funcionando com alta estabilidade neste ponto."
+            return SpatialCopy.value("spatial.cause.allGood.msg", defaultValue: "Seu Wi-Fi e sua internet estão funcionando com alta estabilidade neste ponto.")
         case .localWiFiDegraded:
-            return "O sinal até o roteador apresentou resposta lenta ou oscilação neste cômodo. Causa provável: distância, obstáculos físicos ou interferência local."
+            return SpatialCopy.value("spatial.cause.localWiFiDegraded.msg", defaultValue: "O sinal até o roteador apresentou resposta lenta ou oscilação neste cômodo. Causa provável: distância, obstáculos físicos ou interferência local.")
         case .ispDegraded:
-            return "O roteador respondeu com rapidez, mas a rota externa para a internet apresentou lentidão. Causa provável: instabilidade externa da operadora ou na rota."
+            return SpatialCopy.value("spatial.cause.ispDegraded.msg", defaultValue: "O roteador respondeu com rapidez, mas a rota externa para a internet apresentou lentidão. Causa provável: instabilidade externa da operadora ou na rota.")
         case .bothDegraded:
-            return "Identificamos resposta lenta no roteador local combinada com instabilidade externa na internet."
+            return SpatialCopy.value("spatial.cause.bothDegraded.msg", defaultValue: "Identificamos resposta lenta no roteador local combinada com instabilidade externa na internet.")
         case .offline:
-            return "O dispositivo não está conectado a uma rede Wi-Fi."
+            return SpatialCopy.value("spatial.cause.offline.msg", defaultValue: "O dispositivo não está conectado a uma rede Wi-Fi.")
         }
     }
 
@@ -103,6 +109,15 @@ public enum DiagnosisTag: String, Codable, Sendable, Equatable {
     case weakWiFi = "Wi-Fi Fraco"
     case slowProvider = "Operadora Lenta"
     case unmeasured = "Não Medido"
+
+    public var label: String {
+        switch self {
+        case .healthy: return SpatialCopy.value("spatial.tag.healthy", defaultValue: rawValue)
+        case .weakWiFi: return SpatialCopy.value("spatial.tag.weakWiFi", defaultValue: rawValue)
+        case .slowProvider: return SpatialCopy.value("spatial.tag.slowProvider", defaultValue: rawValue)
+        case .unmeasured: return SpatialCopy.value("spatial.tag.unmeasured", defaultValue: rawValue)
+        }
+    }
 
     public var systemImage: String {
         switch self {
@@ -131,15 +146,20 @@ public enum AccessPointType: String, Codable, CaseIterable, Sendable {
     case repeater = "Repetidor Wi-Fi"
 
     public var label: String {
-        rawValue
+        switch self {
+        case .none: return SpatialCopy.value("spatial.ap.none", defaultValue: rawValue)
+        case .mainRouter: return SpatialCopy.value("spatial.ap.mainRouter", defaultValue: rawValue)
+        case .meshSatellite: return SpatialCopy.value("spatial.ap.meshSatellite", defaultValue: rawValue)
+        case .repeater: return SpatialCopy.value("spatial.ap.repeater", defaultValue: rawValue)
+        }
     }
 
     public var shortLabel: String {
         switch self {
-        case .none: return "Nenhum"
-        case .mainRouter: return "Roteador"
-        case .meshSatellite: return "Nó Mesh"
-        case .repeater: return "Repetidor"
+        case .none: return SpatialCopy.value("spatial.ap.none", defaultValue: "Nenhum")
+        case .mainRouter: return SpatialCopy.value("spatial.ap.short.router", defaultValue: "Roteador")
+        case .meshSatellite: return SpatialCopy.value("spatial.ap.meshSatellite", defaultValue: "Nó Mesh")
+        case .repeater: return SpatialCopy.value("spatial.ap.short.repeater", defaultValue: "Repetidor")
         }
     }
 
@@ -193,7 +213,11 @@ public enum BackhaulType: String, Codable, CaseIterable, Sendable {
     case unknown = "Desconhecido"
 
     public var label: String {
-        rawValue
+        switch self {
+        case .wifi: return SpatialCopy.value("spatial.backhaul.wifi", defaultValue: rawValue)
+        case .ethernet: return SpatialCopy.value("spatial.backhaul.ethernet", defaultValue: rawValue)
+        case .unknown: return SpatialCopy.value("spatial.backhaul.unknown", defaultValue: rawValue)
+        }
     }
 
     public var systemImage: String {
@@ -254,15 +278,15 @@ public enum LossInterpretation: String, Codable, Sendable {
     public var badgeText: String {
         switch self {
         case .stable:
-            return "Estável"
+            return SpatialCopy.value("spatial.loss.stable", defaultValue: "Estável")
         case .isolatedEvent:
-            return "Oscilação Isolada"
+            return SpatialCopy.value("spatial.loss.isolated", defaultValue: "Oscilação Isolada")
         case .confirmedLoss:
-            return "Perda Confirmada"
+            return SpatialCopy.value("spatial.loss.confirmed", defaultValue: "Perda Confirmada")
         case .consecutiveLoss:
-            return "Perdas Consecutivas"
+            return SpatialCopy.value("spatial.loss.consecutive", defaultValue: "Perdas Consecutivas")
         case .severeLoss:
-            return "Timeout Crítico"
+            return SpatialCopy.value("spatial.loss.severe", defaultValue: "Timeout Crítico")
         }
     }
 }

@@ -167,21 +167,19 @@ public enum PDFReportGenerator {
         let col2X = marginHorizontal + 185.0
         let col3X = marginHorizontal + 360.0
 
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd/MM/yyyy HH:mm"
-        let dateStr = dateFormatter.string(from: data.generatedDate)
+        let dateStr = SpatialCopy.formatDateMedium(data.generatedDate)
 
-        drawKeyValue(key: "Residência:", value: data.houseName, x: col1X, topY: cursorY + 12, in: context)
-        drawKeyValue(key: "Rede (SSID):", value: data.ssid, x: col1X, topY: cursorY + 30, in: context)
+        drawKeyValue(key: SpatialCopy.value("spatial.pdf.house", defaultValue: "Residência:"), value: data.houseName, x: col1X, topY: cursorY + 12, in: context)
+        drawKeyValue(key: SpatialCopy.value("spatial.pdf.ssid", defaultValue: "Rede (SSID):"), value: data.ssid, x: col1X, topY: cursorY + 30, in: context)
 
-        drawKeyValue(key: "Gateway Local:", value: data.gatewayIP, x: col2X, topY: cursorY + 12, in: context)
-        drawKeyValue(key: "Data da Emissão:", value: dateStr, x: col2X, topY: cursorY + 30, in: context)
+        drawKeyValue(key: SpatialCopy.value("spatial.pdf.gateway", defaultValue: "Gateway Local:"), value: data.gatewayIP, x: col2X, topY: cursorY + 12, in: context)
+        drawKeyValue(key: SpatialCopy.value("spatial.pdf.date", defaultValue: "Data da Emissão:"), value: dateStr, x: col2X, topY: cursorY + 30, in: context)
 
         let covStr = "\(data.totalCoveragePercent)%"
-        drawKeyValue(key: "Qualidade Média:", value: covStr, x: col3X, topY: cursorY + 12, valueColor: coverageColor(data.totalCoveragePercent), in: context)
+        drawKeyValue(key: SpatialCopy.value("spatial.pdf.average", defaultValue: "Qualidade Média:"), value: covStr, x: col3X, topY: cursorY + 12, valueColor: coverageColor(data.totalCoveragePercent), in: context)
         let apsCount = data.accessPoints.count
         let apsStr = apsCount > 0 ? "\(apsCount) \(apsCount == 1 ? "nó ativo" : "nós ativos")" : "1 roteador principal"
-        drawKeyValue(key: "Topologia:", value: apsStr, x: col3X, topY: cursorY + 30, in: context)
+        drawKeyValue(key: SpatialCopy.value("spatial.pdf.topology", defaultValue: "Topologia:"), value: apsStr, x: col3X, topY: cursorY + 30, in: context)
 
         cursorY += metaBoxHeight + 14.0
 
@@ -279,7 +277,15 @@ public enum PDFReportGenerator {
 
         // Larguras das Colunas
         let colWidths: [CGFloat] = [105, 75, 48, 48, 52, 48, 52, 87]
-        let headers = ["Cômodo", "Nó Conect.", "Ping LAN", "Jitter", "Perda LAN", "Ping WAN", "Perda WAN", "Classificação"]
+        let headers: [String]
+        switch SpatialCopy.currentLanguageTag {
+        case "en":
+            headers = ["Room", "Node", "LAN Ping", "Jitter", "LAN Loss", "WAN Ping", "WAN Loss", "Rating"]
+        case "es-419":
+            headers = ["Habitación", "Nodo Conect.", "Ping LAN", "Jitter", "Pérdida LAN", "Ping WAN", "Pérdida WAN", "Calificación"]
+        default:
+            headers = ["Cômodo", "Nó Conect.", "Ping LAN", "Jitter", "Perda LAN", "Ping WAN", "Perda WAN", "Classificação"]
+        }
 
         var colX = marginHorizontal + 6.0
         for (i, h) in headers.enumerated() {
@@ -338,7 +344,7 @@ public enum PDFReportGenerator {
                     drawText("—", x: cellX, topY: rowY + 5, font: CTFontCreateWithName("Helvetica" as CFString, 7.0, nil), color: CGColor(gray: 0.50, alpha: 1.0), in: context)
                     cellX += colWidths[i]
                 }
-                drawText("Não Medido", x: cellX, topY: rowY + 5, font: CTFontCreateWithName("Helvetica" as CFString, 7.0, nil), color: CGColor(gray: 0.50, alpha: 1.0), in: context)
+                drawText(QualityRating.unmeasured.label, x: cellX, topY: rowY + 5, font: CTFontCreateWithName("Helvetica" as CFString, 7.0, nil), color: CGColor(gray: 0.50, alpha: 1.0), in: context)
             }
 
             cursorY += rowHeight

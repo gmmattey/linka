@@ -22,6 +22,7 @@ struct MeasurementDetailView: View {
     @State private var showPurchase = false
     @State private var showShareSheet = false
     @State private var purchaseEntryPoint: PurchaseEntryPoint = .settings
+    @AppStorage(LinkaLanguagePreference.storageKey) private var languagePreference = LinkaLanguagePreference.system.rawValue
 
     init(
         measurement: NetworkMeasurement?,
@@ -330,19 +331,20 @@ struct MeasurementDetailView: View {
 
     private func formattedDateTime(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateStyle = .short
+        formatter.dateStyle = .medium
         formatter.timeStyle = .short
-        formatter.locale = LinkaLanguagePreference.currentLocale
+        formatter.locale = LinkaLanguagePreference.fromStoredValue(languagePreference).locale
         return formatter.string(from: date)
     }
 
-    private func speed(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(1)).locale(LinkaLanguagePreference.currentLocale)) + " Mbps" }
-    private func milliseconds(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(0)).locale(LinkaLanguagePreference.currentLocale)) + " ms" }
-    private func seconds(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(1)).locale(LinkaLanguagePreference.currentLocale)) + " s" }
-    private func decibels(_ value: Double, unit: String) -> String { value.formatted(.number.precision(.fractionLength(0)).locale(LinkaLanguagePreference.currentLocale)) + " \(unit)" }
+    private func speed(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(1)).locale(LinkaLanguagePreference.fromStoredValue(languagePreference).locale)) + " Mbps" }
+    private func milliseconds(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(0)).locale(LinkaLanguagePreference.fromStoredValue(languagePreference).locale)) + " ms" }
+    private func seconds(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(1)).locale(LinkaLanguagePreference.fromStoredValue(languagePreference).locale)) + " s" }
+    private func decibels(_ value: Double, unit: String) -> String { value.formatted(.number.precision(.fractionLength(0)).locale(LinkaLanguagePreference.fromStoredValue(languagePreference).locale)) + " \(unit)" }
     private func deltaMilliseconds(_ value: Double) -> String { "+" + milliseconds(value) }
     private func wifiRate(_ key: String, _ value: Double) -> String {
-        String(format: LinkaCopy.value(key), locale: LinkaLanguagePreference.currentLocale, value.formatted(.number.precision(.fractionLength(0)).locale(LinkaLanguagePreference.currentLocale)))
+        let locale = LinkaLanguagePreference.fromStoredValue(languagePreference).locale
+        return String(format: LinkaCopy.value(key), locale: locale, value.formatted(.number.precision(.fractionLength(0)).locale(locale)))
     }
 
     private func networkKindLabel(_ m: NetworkMeasurement) -> String {

@@ -10,6 +10,7 @@ struct PurchaseSheet: View {
     @State private var isPurchasing = false
     @State private var isRestoring = false
     @State private var errorMessage: String?
+    @State private var hasTrackedOffer = false
 
     init(entryPoint: PurchaseEntryPoint = .settings, onPurchaseCompleted: (() -> Void)? = nil) {
         self.entryPoint = entryPoint
@@ -164,6 +165,11 @@ struct PurchaseSheet: View {
                     .padding(.bottom, 16)
                 }
             }
+        }
+        .onAppear {
+            guard !hasTrackedOffer else { return }
+            hasTrackedOffer = true
+            LinkaAnalytics.shared.track(.plusOfferViewed(entryPoint: entryPoint.analyticsIdentifier))
         }
     }
 

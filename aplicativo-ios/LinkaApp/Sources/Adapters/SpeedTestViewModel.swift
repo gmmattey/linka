@@ -402,6 +402,8 @@ public class SpeedTestViewModel: ObservableObject {
         measurementStartedAt = Date()
         measurementConnectionKind = liveConnectionKind
         uiPhase = .connecting
+        let startingConnectionType = liveConnectionKind?.rawValue ?? "unknown"
+        LinkaAnalytics.shared.track(.speedtestStarted(connectionType: startingConnectionType))
 
         testTask?.cancel()
         testGeneration += 1
@@ -527,6 +529,14 @@ public class SpeedTestViewModel: ObservableObject {
                         )
                         self.latestFinishedMeasurement = m
                     }
+                    let durationSeconds = self.rawTestDuration.map { Int($0.rounded()) } ?? 0
+                    let connectionType = self.connectionKind?.rawValue ?? self.liveConnectionKind?.rawValue ?? "unknown"
+                    LinkaAnalytics.shared.track(.speedtestCompleted(
+                        connectionType: connectionType,
+                        durationSeconds: durationSeconds,
+                        hasUpload: self.hasMeasuredUpload,
+                        hasPing: self.hasMeasuredPing
+                    ))
                     self.publishThroughputBaselineIfEligible(from: m)
                     await self.refreshLiveUsageSuitability()
                     let repo = LinkaMeasurementHistory.makeRepository(entitlements: historySyncEntitlements)
@@ -630,6 +640,7 @@ public class SpeedTestViewModel: ObservableObject {
         wifiContext = nil
         advancedWiFiDiagnostics = nil
         uiPhase = .connectionChanged
+        LinkaAnalytics.shared.track(.speedtestFailed(reason: "connection_changed", connectionType: "unknown"))
     }
 
     /// Reage à mudança de `ScenePhase` da cena (issue #65) — único ponto de
@@ -952,7 +963,21 @@ public class SpeedTestViewModel: ObservableObject {
         case .download: self.uiPhase = .downloading
         case .upload: self.uiPhase = .uploading
         case .result: self.uiPhase = .done
-        case .error: self.uiPhase = .error
+        case .error:
+            self.uiPhase = .error
+            let reasonStr: String
+            if let reason = self.failureReason {
+                switch reason {
+                case .offline:
+                    reasonStr = "offline"
+                case .connectionLost(let phase):
+                    reasonStr = "connection_lost_\(phase)"
+                }
+            } else {
+                reasonStr = "engine_error"
+            }
+            let failureConnectionType = self.connectionKind?.rawValue ?? self.liveConnectionKind?.rawValue ?? "unknown"
+            LinkaAnalytics.shared.track(.speedtestFailed(reason: reasonStr, connectionType: failureConnectionType))
         }
     }
 

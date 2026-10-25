@@ -51,6 +51,7 @@ final class AssistViewModel: ObservableObject {
         }
 
         state = .loading
+        LinkaAnalytics.shared.track(.diagnosticStarted(diagnosticType: "assist"))
 
         let context = Self.makeContext(
             currentMeasurement: current,
@@ -74,6 +75,7 @@ final class AssistViewModel: ObservableObject {
             if let response = finalResponse {
                 guard response.disposition == .answered else {
                     state = .error(Self.message(for: response.disposition))
+                    LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "assist", outcome: "error"))
                     return
                 }
 
@@ -88,6 +90,7 @@ final class AssistViewModel: ObservableObject {
                         aiAttribution: response.aiAttribution
                     )
                     state = .success(data)
+                    LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "assist", outcome: "success"))
                 } else {
                     let data = DiagnosticData(
                         headerStatus: "Assist",
@@ -99,9 +102,11 @@ final class AssistViewModel: ObservableObject {
                         aiAttribution: response.aiAttribution
                     )
                     state = .success(data)
+                    LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "assist", outcome: "success"))
                 }
             } else {
                 state = .error(LinkaCopy.value("assist.empty"))
+                LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "assist", outcome: "error"))
             }
         } catch {
             let errorText: String
@@ -118,6 +123,7 @@ final class AssistViewModel: ObservableObject {
                 #endif
             }
             state = .error(errorText)
+            LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "assist", outcome: "error"))
         }
     }
 

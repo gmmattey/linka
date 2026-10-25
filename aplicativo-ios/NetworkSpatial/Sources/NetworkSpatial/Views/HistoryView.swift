@@ -15,14 +15,14 @@ public struct HistoryView: View {
             Group {
                 if comparisons.isEmpty {
                     ContentUnavailableView(
-                        "Nenhuma Comparação Salva",
+                        SpatialCopy.value("spatial.common.emptyHistory", defaultValue: "Nenhuma Comparação Salva"),
                         systemImage: "clock.arrow.circlepath",
-                        description: Text("Realize medições e gere comparativos Antes × Depois para registrar a evolução da sua rede Wi-Fi.")
+                        description: Text(SpatialCopy.value("spatial.common.emptyHistoryDesc", defaultValue: "Realize medições e gere comparativos Antes × Depois para registrar a evolução da sua rede Wi-Fi."))
                     )
                 } else {
                     List {
                         ForEach(comparisons) { comp in
-                            Section(header: Text(comp.date.formatted(date: .abbreviated, time: .shortened))) {
+                            Section(header: Text(SpatialCopy.formatDate(comp.date))) {
                                 VStack(alignment: .leading, spacing: 8) {
                                     HStack {
                                         Text(comp.title)
@@ -40,10 +40,10 @@ public struct HistoryView: View {
                                     }
 
                                     HStack(spacing: 12) {
-                                        Label("\(comp.baselineCoveragePercent)% antes", systemImage: "circle")
+                                        Label("\(comp.baselineCoveragePercent)% \(SpatialCopy.value("spatial.comparison.before", defaultValue: "antes").lowercased())", systemImage: "circle")
                                             .font(.caption)
                                             .foregroundStyle(WiFiCasaTheme.textSecondary)
-                                        Label("\(comp.afterCoveragePercent)% depois", systemImage: "checkmark.circle")
+                                        Label("\(comp.afterCoveragePercent)% \(SpatialCopy.value("spatial.comparison.after", defaultValue: "depois").lowercased())", systemImage: "checkmark.circle")
                                             .font(.caption)
                                             .foregroundStyle(WiFiCasaTheme.textSecondary)
                                     }
@@ -71,11 +71,11 @@ public struct HistoryView: View {
                     .appListStyle()
                 }
             }
-            .navigationTitle("Histórico de Otimizações")
+            .navigationTitle(SpatialCopy.value("spatial.common.historyTitle", defaultValue: "Histórico de Otimizações"))
             .inlineTitleDisplayMode()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Fechar") {
+                    Button(SpatialCopy.value("spatial.common.close", defaultValue: "Fechar")) {
                         dismiss()
                     }
                 }

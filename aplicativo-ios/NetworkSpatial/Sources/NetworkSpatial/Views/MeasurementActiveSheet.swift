@@ -35,7 +35,7 @@ public struct MeasurementActiveSheet: View {
                             .foregroundStyle(WiFiCasaTheme.textPrimary)
                     }
 
-                    Text(viewModel.currentStep.rawValue)
+                    Text(viewModel.currentStep.label)
                         .font(.subheadline)
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
                         .multilineTextAlignment(.center)
@@ -67,7 +67,7 @@ public struct MeasurementActiveSheet: View {
                             } label: {
                                 HStack(spacing: 6) {
                                     Image(systemName: "gear")
-                                    Text("Abrir Ajustes")
+                                    Text(SpatialCopy.value("spatial.common.settings", defaultValue: "Abrir Ajustes"))
                                 }
                                 .font(.caption.weight(.semibold))
                             }
@@ -85,7 +85,7 @@ public struct MeasurementActiveSheet: View {
                     viewModel.cancelMeasurement()
                     dismiss()
                 } label: {
-                    Text("Cancelar Teste")
+                    Text(SpatialCopy.value("spatial.measuring.cancel", defaultValue: "Cancelar Teste"))
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -94,11 +94,11 @@ public struct MeasurementActiveSheet: View {
                 .padding(.bottom, 16)
             }
             .background(WiFiCasaTheme.backgroundBase.ignoresSafeArea())
-            .navigationTitle("Medição Ativa")
+            .navigationTitle(SpatialCopy.value("spatial.measuring.title", defaultValue: "Medição Ativa"))
             .inlineTitleDisplayMode()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Fechar") {
+                    Button(SpatialCopy.value("spatial.common.close", defaultValue: "Fechar")) {
                         viewModel.cancelMeasurement()
                         dismiss()
                     }

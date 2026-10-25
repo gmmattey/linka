@@ -134,6 +134,19 @@ struct SettingsView: View {
                     Label(LinkaCopy.value("settings.debug.plus"), systemImage: "flask")
                 }
                 .tint(.brandAccentWarm)
+
+                #if os(iOS)
+                Toggle(isOn: Binding(
+                    get: { LinkaAnalytics.shared.preference.isOwnerExcluded },
+                    set: { excluded in
+                        LinkaAnalytics.shared.preference.setOwnerExcluded(excluded)
+                        LinkaAnalytics.shared.setCollectionEnabled(LinkaAnalytics.shared.preference.isCollectionEnabled)
+                    }
+                )) {
+                    Label("Excluir telemetria nesta instalação", systemImage: "eye.slash")
+                }
+                .tint(.brandAccentWarm)
+                #endif
             } header: {
                 Text(LinkaCopy.value("settings.debug.title")).foregroundColor(.brandAccentWarmInk)
             } footer: {
@@ -415,7 +428,9 @@ private struct LinkaPlusPromotionStatusSheet: View {
             .padding(24)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .navigationTitle("Linka Plus")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(LinkaCopy.value("common.close")) {

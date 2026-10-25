@@ -1105,3 +1105,18 @@
 "genius.error.title" = "Could not complete diagnostic";
 "genius.error.retry" = "Try again";
 
+// Home Coverage & My Network
+"inventory.spatial.title" = "Home Coverage";
+"inventory.spatial.measuredCount" = "%d of %d rooms measured";
+"inventory.spatial.unmeasured" = "No rooms measured yet";
+
+// History - Filter, Sort and Export
+"history.filter.section" = "Filter";
+"history.sort.section" = "Sort";
+"history.filterAndSort" = "Filter and sort history";
+"history.exportCSV" = "Export CSV";
+"history.exportCSV.emptyHint" = "Take measurements to export history as CSV.";
+"history.exportCSV.hint" = "Double tap to export your full history in CSV format.";
+"history.exportCSV.help" = "Generates a CSV spreadsheet containing the date, speeds, latency, and network kind of all saved measurements.";
+
+

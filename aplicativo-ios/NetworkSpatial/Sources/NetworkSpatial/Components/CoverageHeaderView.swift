@@ -59,13 +59,13 @@ public struct CoverageHeaderView: View {
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
                 }
                 .frame(width: 44, height: 44) // A11y Touch Target
-                .accessibilityLabel("Ajuda e dicas de posicionamento do roteador")
+                .accessibilityLabel(SpatialCopy.value("spatial.header.helpA11y", defaultValue: "Ajuda e dicas de posicionamento do roteador"))
             }
 
             // Cartão de Resumo de Qualidade Média — Profundidade pura em superfície elevada sem bordas
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("QUALIDADE NOS PONTOS MEDIDOS")
+                    Text(SpatialCopy.value("spatial.header.qualityPoints", defaultValue: "QUALIDADE NOS PONTOS MEDIDOS"))
                         .font(.caption2)
                         .fontWeight(.semibold)
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
@@ -86,7 +86,7 @@ public struct CoverageHeaderView: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 6) {
-                    Text("\(measuredCount) de \(totalRooms) cômodos")
+                    Text(SpatialCopy.format("spatial.header.roomsCount", measuredCount, totalRooms))
                         .font(.subheadline)
                         .fontWeight(.medium)
                         .foregroundStyle(WiFiCasaTheme.textPrimary)

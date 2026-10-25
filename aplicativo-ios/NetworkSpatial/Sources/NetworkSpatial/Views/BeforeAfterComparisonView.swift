@@ -26,12 +26,12 @@ public struct BeforeAfterComparisonView: View {
                                 Image(systemName: "arrow.triangle.swap")
                                     .font(.title2)
                                     .foregroundStyle(WiFiCasaTheme.brandAccent)
-                                Text("Comparativo Antes × Depois")
+                                Text(SpatialCopy.value("spatial.comparison.title", defaultValue: "Comparativo Antes × Depois"))
                                     .font(.headline)
                                     .foregroundStyle(WiFiCasaTheme.textPrimary)
                             }
 
-                            Text("Fixe o estado atual da sua casa como ponto de partida (Antes). Em seguida, mude o roteador de lugar ou instale nós mesh para comprovar o ganho real de sinal.")
+                            Text(SpatialCopy.value("spatial.comparison.desc", defaultValue: "Fixe o estado atual da sua casa como ponto de partida (Antes). Em seguida, mude o roteador de lugar ou instale nós mesh para comprovar o ganho real de sinal."))
                                 .font(.subheadline)
                                 .foregroundStyle(WiFiCasaTheme.textSecondary)
 
@@ -40,7 +40,7 @@ public struct BeforeAfterComparisonView: View {
                             } label: {
                                 HStack {
                                     Spacer()
-                                    Text("Definir Leituras Atuais como Baseline (Antes)")
+                                    Text(SpatialCopy.value("spatial.comparison.setBaseline", defaultValue: "Definir Leituras Atuais como Baseline (Antes)"))
                                         .fontWeight(.semibold)
                                     Spacer()
                                 }
@@ -56,11 +56,11 @@ public struct BeforeAfterComparisonView: View {
                 case .repositionPrompt:
                     Section {
                         VStack(alignment: .leading, spacing: 14) {
-                            Label("Passo 2: Reposicionar e Re-medir", systemImage: "arrow.left.and.right.circle.fill")
+                            Label(SpatialCopy.value("spatial.comparison.step2Header", defaultValue: "Passo 2: Reposicionar e Re-medir"), systemImage: "arrow.left.and.right.circle.fill")
                                 .font(.headline)
                                 .foregroundStyle(WiFiCasaTheme.brandAccent)
 
-                            Text("1. Mova fisicamente o roteador (ex: aproxime do corredor ou eleve a altura) ou ligue o repetidor/mesh.\n2. Aguarde 1 minuto para o sinal se estabilizar.\n3. Vá ao mapa para realizar a nova rodada de testes nos cômodos.")
+                            Text(SpatialCopy.value("spatial.comparison.step2Desc", defaultValue: "1. Mova fisicamente o roteador (ex: aproxime do corredor ou eleve a altura) ou ligue o repetidor/mesh.\n2. Aguarde 1 minuto para o sinal se estabilizar.\n3. Vá ao mapa para realizar a nova rodada de testes nos cômodos."))
                                 .font(.subheadline)
                                 .foregroundStyle(WiFiCasaTheme.textPrimary)
 
@@ -70,7 +70,7 @@ public struct BeforeAfterComparisonView: View {
                                 } label: {
                                     HStack {
                                         Spacer()
-                                        Label("Ir ao Mapa para Medir", systemImage: "map.fill")
+                                        Label(SpatialCopy.value("spatial.comparison.goToMap", defaultValue: "Ir ao Mapa para Medir"), systemImage: "map.fill")
                                             .fontWeight(.semibold)
                                         Spacer()
                                     }
@@ -78,13 +78,13 @@ public struct BeforeAfterComparisonView: View {
                                 .buttonStyle(.borderedProminent)
                                 .tint(WiFiCasaTheme.brandAccent)
 
-                                Button("Já Realizei as Medições — Comparar") {
+                                Button(SpatialCopy.value("spatial.comparison.alreadyMeasured", defaultValue: "Já Realizei as Medições — Comparar")) {
                                     viewModel.finalizeComparison(with: currentHouse.rooms)
                                 }
                                 .buttonStyle(.bordered)
                                 .tint(WiFiCasaTheme.brandAccent)
 
-                                Button("Descartar Baseline", role: .destructive) {
+                                Button(SpatialCopy.value("spatial.comparison.discardBaseline", defaultValue: "Descartar Baseline"), role: .destructive) {
                                     viewModel.cancelOrResetBaseline()
                                 }
                                 .buttonStyle(.plain)
@@ -105,16 +105,16 @@ public struct BeforeAfterComparisonView: View {
                                     .font(.title2)
                                     .foregroundStyle(WiFiCasaTheme.brandAccent)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Baseline 'Antes' Ativo")
+                                    Text(SpatialCopy.value("spatial.comparison.baselineActive", defaultValue: "Baseline 'Antes' Ativo"))
                                         .font(.headline)
                                         .foregroundStyle(WiFiCasaTheme.textPrimary)
-                                    Text("\(viewModel.baselineRooms.count) cômodos registrados no ponto de partida.")
+                                    Text(SpatialCopy.format("spatial.comparison.roomsRegistered", viewModel.baselineRooms.count))
                                         .font(.caption)
                                         .foregroundStyle(WiFiCasaTheme.textSecondary)
                                 }
                             }
 
-                            Text("Com o roteador no novo local, caminhe pelos cômodos e realize novas medições na tela inicial. Quando terminar, gere o comparativo.")
+                            Text(SpatialCopy.value("spatial.comparison.continueMeasuring", defaultValue: "Com o roteador no novo local, caminhe pelos cômodos e realize novas medições na tela inicial. Quando terminar, gere o comparativo."))
                                 .font(.subheadline)
                                 .foregroundStyle(WiFiCasaTheme.textPrimary)
 
@@ -124,7 +124,7 @@ public struct BeforeAfterComparisonView: View {
                                 } label: {
                                     HStack {
                                         Spacer()
-                                        Label("Gerar Comparativo com Leituras Atuais", systemImage: "sparkles")
+                                        Label(SpatialCopy.value("spatial.comparison.generateWithCurrent", defaultValue: "Gerar Comparativo com Leituras Atuais"), systemImage: "sparkles")
                                             .fontWeight(.semibold)
                                         Spacer()
                                     }
@@ -138,14 +138,14 @@ public struct BeforeAfterComparisonView: View {
                                 } label: {
                                     HStack {
                                         Spacer()
-                                        Text("Continuar Medindo no Mapa")
+                                        Text(SpatialCopy.value("spatial.comparison.resumeMap", defaultValue: "Continuar Medindo no Mapa"))
                                         Spacer()
                                     }
                                 }
                                 .buttonStyle(.bordered)
                                 .tint(WiFiCasaTheme.brandAccent)
 
-                                Button("Descartar e Iniciar Novo Baseline", role: .destructive) {
+                                Button(SpatialCopy.value("spatial.comparison.discardAndNew", defaultValue: "Descartar e Iniciar Novo Baseline"), role: .destructive) {
                                     viewModel.cancelOrResetBaseline()
                                 }
                                 .buttonStyle(.plain)
@@ -163,14 +163,14 @@ public struct BeforeAfterComparisonView: View {
                         // Resumo do Ganho Consolidado
                         Section {
                             VStack(spacing: 16) {
-                                Text("EVOLUÇÃO DA QUALIDADE MÉDIA")
+                                Text(SpatialCopy.value("spatial.comparison.evolution", defaultValue: "EVOLUÇÃO DA QUALIDADE MÉDIA"))
                                     .font(.caption)
                                     .fontWeight(.bold)
                                     .foregroundStyle(WiFiCasaTheme.textSecondary)
 
                                 HStack(spacing: 20) {
                                     VStack {
-                                        Text("Antes")
+                                        Text(SpatialCopy.value("spatial.comparison.before", defaultValue: "Antes"))
                                             .font(.caption)
                                             .foregroundStyle(WiFiCasaTheme.textSecondary)
                                         Text("\(result.baselineCoveragePercent)%")
@@ -185,7 +185,7 @@ public struct BeforeAfterComparisonView: View {
                                         .foregroundStyle(WiFiCasaTheme.textSecondary)
 
                                     VStack {
-                                        Text("Depois")
+                                        Text(SpatialCopy.value("spatial.comparison.after", defaultValue: "Depois"))
                                             .font(.caption)
                                             .foregroundStyle(WiFiCasaTheme.textSecondary)
                                         Text("\(result.afterCoveragePercent)%")
@@ -198,7 +198,8 @@ public struct BeforeAfterComparisonView: View {
 
                                 HStack(spacing: 6) {
                                     Image(systemName: result.deltaCoveragePercent >= 0 ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
-                                    Text("\(result.deltaCoveragePercent >= 0 ? "+" : "")\(result.deltaCoveragePercent)% na Qualidade Média Medida")
+                                    let deltaPrefix = result.deltaCoveragePercent >= 0 ? "+\(result.deltaCoveragePercent)" : "\(result.deltaCoveragePercent)"
+                                    Text(SpatialCopy.format("spatial.comparison.deltaQuality", deltaPrefix))
                                         .fontWeight(.semibold)
                                 }
                                 .font(.subheadline)
@@ -213,7 +214,7 @@ public struct BeforeAfterComparisonView: View {
                         }
 
                         // Comparativo Cômodo por Cômodo
-                        Section(header: Text("COMPARAÇÃO POR CÔMODO")) {
+                        Section(header: Text(SpatialCopy.value("spatial.comparison.byRoom", defaultValue: "COMPARAÇÃO POR CÔMODO"))) {
                             ForEach(result.roomComparisons) { item in
                                 HStack {
                                     Image(systemName: item.roomIcon)
@@ -269,7 +270,7 @@ public struct BeforeAfterComparisonView: View {
                             } label: {
                                 HStack {
                                     Spacer()
-                                    Label(viewModel.isSaved ? "Salvo no Histórico" : "Salvar no Histórico", systemImage: viewModel.isSaved ? "checkmark" : "square.and.arrow.down")
+                                    Label(viewModel.isSaved ? SpatialCopy.value("spatial.comparison.saved", defaultValue: "Salvo no Histórico") : SpatialCopy.value("spatial.comparison.save", defaultValue: "Salvar no Histórico"), systemImage: viewModel.isSaved ? "checkmark" : "square.and.arrow.down")
                                         .fontWeight(.semibold)
                                     Spacer()
                                 }
@@ -281,11 +282,11 @@ public struct BeforeAfterComparisonView: View {
                 }
             }
             .appListStyle()
-            .navigationTitle("Antes × Depois")
+            .navigationTitle(SpatialCopy.value("spatial.comparison.title", defaultValue: "Antes × Depois"))
             .inlineTitleDisplayMode()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Fechar") {
+                    Button(SpatialCopy.value("spatial.common.close", defaultValue: "Fechar")) {
                         dismiss()
                     }
                 }

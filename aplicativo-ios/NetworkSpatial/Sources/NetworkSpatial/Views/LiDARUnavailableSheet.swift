@@ -17,9 +17,9 @@ public struct LiDARUnavailableSheet: View {
                 Spacer()
 
                 ContentUnavailableView(
-                    "Sensor LiDAR Não Disponível",
+                    SpatialCopy.value("spatial.lidar.unavailableTitle", defaultValue: "Sensor LiDAR Não Disponível"),
                     systemImage: "viewfinder.trianglebadge.exclamationmark",
-                    description: Text("Este dispositivo não possui o sensor de escaneamento 3D exclusivo dos modelos iPhone e iPad Pro.\n\nVocê pode criar, organizar e dimensionar todos os cômodos da sua residência com nosso Editor 2D manual!")
+                    description: Text(SpatialCopy.value("spatial.lidar.unavailableDesc", defaultValue: "Este dispositivo não possui o sensor de escaneamento 3D exclusivo dos modelos iPhone e iPad Pro.\n\nVocê pode criar, organizar e dimensionar todos os cômodos da sua residência com nosso Editor 2D manual!"))
                 )
                 .foregroundStyle(WiFiCasaTheme.textPrimary)
 
@@ -32,7 +32,7 @@ public struct LiDARUnavailableSheet: View {
                     } label: {
                         HStack {
                             Spacer()
-                            Label("Usar Editor 2D Manual", systemImage: "pencil.and.ruler.fill")
+                            Label(SpatialCopy.value("spatial.scan.manualEditor", defaultValue: "Usar Editor 2D Manual"), systemImage: "pencil.and.ruler.fill")
                                 .font(.headline)
                                 .fontWeight(.bold)
                             Spacer()
@@ -43,7 +43,7 @@ public struct LiDARUnavailableSheet: View {
                     .controlSize(.large)
                     .tint(WiFiCasaTheme.brandAccent)
 
-                    Button("Fechar") {
+                    Button(SpatialCopy.value("spatial.common.close", defaultValue: "Fechar")) {
                         dismiss()
                     }
                     .font(.subheadline)
@@ -54,11 +54,11 @@ public struct LiDARUnavailableSheet: View {
                 .padding(.bottom, 20)
             }
             .background(WiFiCasaTheme.backgroundBase.ignoresSafeArea())
-            .navigationTitle("Escaneamento Espacial")
+            .navigationTitle(SpatialCopy.value("spatial.lidar.navTitle", defaultValue: "Escaneamento Espacial"))
             .inlineTitleDisplayMode()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Fechar") {
+                    Button(SpatialCopy.value("spatial.common.close", defaultValue: "Fechar")) {
                         dismiss()
                     }
                 }

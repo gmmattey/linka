@@ -23,6 +23,7 @@
 		0F4DB2B24BB8E41F01C5DB90 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5322DEAA6F1693B771FF7DB2 /* InfoPlist.strings */; };
 		105821D3C05128AFEF44110F /* NetworkDiagnostics in Frameworks */ = {isa = PBXBuildFile; productRef = 8D030535C110C19E720EA384 /* NetworkDiagnostics */; };
 		10A56B40B0BCA9FE704AB194 /* LinkaAdsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FE9A266394C32859811ABA /* LinkaAdsCoordinator.swift */; };
+		11520F51B1719FD6C6C42B82 /* LinkaAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 574B1DFC8FD097A6E08DDD34 /* LinkaAnalytics.swift */; };
 		11E319E837EF1D52829FAA75 /* DNSBenchmarkCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E7BAC51017CB7F936040092 /* DNSBenchmarkCoordinator.swift */; };
 		12E02BB6A2E493EAC2C1D151 /* LinkaAppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8ADAB36D0CC32BA436AFE3 /* LinkaAppShortcuts.swift */; };
 		150054BB7218EF39FF3A2EF5 /* NetscopeEvidence in Frameworks */ = {isa = PBXBuildFile; productRef = 927C3E5CC67655EEB215DB10 /* NetscopeEvidence */; };
@@ -84,6 +85,7 @@
 		49438996C96BFB28DED35509 /* AssistProblemSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA202D7A1FB600A3F43CD0ED /* AssistProblemSelectionView.swift */; };
 		4A4DBE378115E20790D0DE74 /* AssistV4LocalContextAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E9ED762F1CA0A4337857D7 /* AssistV4LocalContextAdapterTests.swift */; };
 		4A6A54FB3C491F48F8CA9627 /* AppIntentCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7921F180B5C7EC49B0B1D48 /* AppIntentCoordinator.swift */; };
+		4CAA6BFF44943278FEF6699B /* AnalyticsCollectionPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = F50AADF3AC5FF512C88C3519 /* AnalyticsCollectionPreference.swift */; };
 		4DB6D1F24A36048C31C7F8AE /* AppStoreScreenshotsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6935758C28176CC335C491C7 /* AppStoreScreenshotsUITests.swift */; };
 		4E6EC88260AE1FC21D60434C /* LinkaInventoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B466168E5335F4FDD7C68E3 /* LinkaInventoryStore.swift */; };
 		500669AA32A018827363D56A /* NetworkSpatial in Frameworks */ = {isa = PBXBuildFile; productRef = 848D1264F11D2222CBEE33E8 /* NetworkSpatial */; };
@@ -118,6 +120,7 @@
 		75CAFB052D7EA607263DED4A /* DeviceConnectionEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7A476675088C109C3FC7540 /* DeviceConnectionEditorView.swift */; };
 		77AA437F88B4E181F75F6B6E /* AssistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 407C59990EED2DC1040BF42E /* AssistView.swift */; };
 		77B9D8D29C7DF8B583994B6E /* LinkaWidgetShared in Frameworks */ = {isa = PBXBuildFile; productRef = 6C16385D59C93FAD8555D2E3 /* LinkaWidgetShared */; };
+		7A3B38C38F6E949D0DB9D022 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5FC8CACB8465171982F3F745 /* FirebaseCore */; };
 		7B3C6E7F7B33417E8A723F32 /* ConnectivityTriageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE87CDDD63F493ADD2C14B84 /* ConnectivityTriageView.swift */; };
 		7C1E0A53B7850ADDAE15A682 /* AssistV4PresentationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28283696C9F6FEBF0674EE17 /* AssistV4PresentationModel.swift */; };
 		7C80510290141EF10AA29DC8 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C60A040FE4E49231CD858102 /* MainView.swift */; };
@@ -172,6 +175,7 @@
 		B237F502D997C636A3DB7D99 /* MeasurementNetworkFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A6486EF1A67C9B3072BB6D /* MeasurementNetworkFlowView.swift */; };
 		B2E5B64C9E8A11A69A4E3835 /* AssistV4LocalContextAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D2091C55A18806EFF42BEE /* AssistV4LocalContextAdapter.swift */; };
 		B49CE021825E80DC95B954AA /* AssistContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DD4A980DC574793818E97A1 /* AssistContainer.swift */; };
+		B5AC1C6C8DEF8C705E5CA8D9 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8CCCC92689E2EF1FC05A5CDE /* GoogleService-Info.plist */; };
 		B65E669B4458B31C9E1607E0 /* InventoryBuildConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9396CB175CFD73A1F7F5C6D0 /* InventoryBuildConfiguration.swift */; };
 		B6FAE46457F43B5A2910225F /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E86E6389194D1938B09BEE51 /* HistoryView.swift */; };
 		BA26DE554BED919571A110BA /* NetworkInventory in Frameworks */ = {isa = PBXBuildFile; productRef = 6DB80E40BE9256CFE8D1674C /* NetworkInventory */; };
@@ -184,6 +188,7 @@
 		C8BB7A2DCCEFA786F622965D /* LinkaAppIntents in Frameworks */ = {isa = PBXBuildFile; productRef = 39577AC3D53FC846E0A71FB2 /* LinkaAppIntents */; };
 		C8E3CD3DD3341FC5279B4193 /* AssistV4PresentationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28283696C9F6FEBF0674EE17 /* AssistV4PresentationModel.swift */; };
 		C8F643F448E2AF51EE008D60 /* NetworkSpatial in Frameworks */ = {isa = PBXBuildFile; productRef = EA6D178C955775725133B2E1 /* NetworkSpatial */; };
+		C9B1E111292DBF9100F507C1 /* LinkaAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 574B1DFC8FD097A6E08DDD34 /* LinkaAnalytics.swift */; };
 		CA6E277ED5CF8F30524C4974 /* WiFiNetworkPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55521AF45A9C7EF8F0709A96 /* WiFiNetworkPermission.swift */; };
 		CA9681EC9AC366A5AF3E5A71 /* ConnectionPathView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BF377B5E1688176727142AF /* ConnectionPathView.swift */; };
 		CB50E23F99EDB34DF4F722E1 /* PublicUniversalLinkParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65DFDE73E9C9AFD5A8D1EEF3 /* PublicUniversalLinkParserTests.swift */; };
@@ -200,6 +205,7 @@
 		D7BE5A2EE2B1E0BF691CEE43 /* ConnectionPathDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4781F293BF600F767AD519F6 /* ConnectionPathDetailView.swift */; };
 		D95BCEE23981021426781274 /* InventoryBuildConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658D29F5072B4A681D37E136 /* InventoryBuildConfigurationTests.swift */; };
 		DB7044C5AD57168F84BF2874 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3234D1B179CE201E17961385 /* SplashView.swift */; };
+		DD29860E053A80D1FBFF6D71 /* AnalyticsCollectionPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = F50AADF3AC5FF512C88C3519 /* AnalyticsCollectionPreference.swift */; };
 		DE2555408D65DFC440130AFC /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6D72124FDD0CB4E07F4E7B5 /* ShareSheet.swift */; };
 		DEC4463032CC6437D3FD3FEE /* AssistV4LocalContextAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D2091C55A18806EFF42BEE /* AssistV4LocalContextAdapter.swift */; };
 		DFBAE558A49CA5513D880717 /* ApplePlatformSignalProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F59DF4C04B975718AB2E308A /* ApplePlatformSignalProvider.swift */; };
@@ -214,6 +220,7 @@
 		EEB81B80D906ADD9CA3B81AF /* SpecificationDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 395F4CCCFF125A14164AFD19 /* SpecificationDisplay.swift */; };
 		EF442CB97BE1BF88FF42EF35 /* DNSBenchmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED819BC26A779177B1831C40 /* DNSBenchmarkView.swift */; };
 		F31AAD2D3D434C012CB03764 /* ServiceStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B426DC0C514BF31BA1FC78E0 /* ServiceStatusView.swift */; };
+		F488F269AB22BB6F8840B4DE /* LinkaAnalyticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87932246DD490EF7AF8E7621 /* LinkaAnalyticsTests.swift */; };
 		F492A685388DF380C07F0B86 /* AssistViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD77BB89224BDA9466A65983 /* AssistViewModel.swift */; };
 		F6C6C9D28B6364A06D6FC900 /* MyNetworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD55656FCAFAB8C1CAEE2E7E /* MyNetworkView.swift */; };
 		F71D86CB28FD00BFB80BCEDE /* PurchaseSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1056216026BABB240C8AC371 /* PurchaseSheet.swift */; };
@@ -221,6 +228,7 @@
 		F971E3D97EE91F83DB3C7D81 /* LinkaInventoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B466168E5335F4FDD7C68E3 /* LinkaInventoryStore.swift */; };
 		F9A869F17C5067690BB2A093 /* NativeAdCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08071384CA1E544927DDC928 /* NativeAdCard.swift */; };
 		F9DF49AFCE33AB3A323B0EC2 /* AssistV4FixtureUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26D797AD3D66CF3D26B77DF /* AssistV4FixtureUITests.swift */; };
+		FA0DFE03933722C042C49952 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D7D628B8C7ED1E713111F1FA /* FirebaseAnalytics */; };
 		FB04D476B3C59CD38514B55C /* NetworkStabilityPatternsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 641020ADE92F07BF8F597BD6 /* NetworkStabilityPatternsViewModel.swift */; };
 		FB2E235653F8530D066FD804 /* WiFiNetworkPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55521AF45A9C7EF8F0709A96 /* WiFiNetworkPermission.swift */; };
 		FB7407CEB412703490AA5E10 /* LinkaModules in Frameworks */ = {isa = PBXBuildFile; productRef = E832F69684B9093AE00D0994 /* LinkaModules */; };
@@ -324,6 +332,7 @@
 		507667BB6A4302947545C8D2 /* NetscopeAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetscopeAnalysisView.swift; sourceTree = "<group>"; };
 		5306A9B9735CAA5118F099E0 /* LinkaAppTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LinkaAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		55521AF45A9C7EF8F0709A96 /* WiFiNetworkPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiNetworkPermission.swift; sourceTree = "<group>"; };
+		574B1DFC8FD097A6E08DDD34 /* LinkaAnalytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaAnalytics.swift; sourceTree = "<group>"; };
 		5A46A7355BDA5038DF7EF738 /* NetworkOptimization */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NetworkOptimization; path = NetworkOptimization; sourceTree = SOURCE_ROOT; };
 		5A6971747152D0754E5176E4 /* UsageDiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageDiagnosticsView.swift; sourceTree = "<group>"; };
 		5CA2630F94D8B48154FD8F54 /* AppStoreReviewPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreReviewPolicy.swift; sourceTree = "<group>"; };
@@ -350,8 +359,10 @@
 		8307F86A4A74F9FB8F6BF796 /* NetworkCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NetworkCore; path = NetworkCore; sourceTree = SOURCE_ROOT; };
 		8345F2C6AED5E260752371DA /* LinkaApp_macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LinkaApp_macOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		87445EA22AF7C3E9B58DDAB2 /* AssistConsultation */ = {isa = PBXFileReference; lastKnownFileType = folder; name = AssistConsultation; path = AssistConsultation; sourceTree = SOURCE_ROOT; };
+		87932246DD490EF7AF8E7621 /* LinkaAnalyticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaAnalyticsTests.swift; sourceTree = "<group>"; };
 		8B466168E5335F4FDD7C68E3 /* LinkaInventoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaInventoryStore.swift; sourceTree = "<group>"; };
 		8BB509E33711C1EAAB7390AA /* AssistV4PresentationModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistV4PresentationModelTests.swift; sourceTree = "<group>"; };
+		8CCCC92689E2EF1FC05A5CDE /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		8DD4A980DC574793818E97A1 /* AssistContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistContainer.swift; sourceTree = "<group>"; };
 		90D79DD30F467F20E3424599 /* AssistOpportunityHandoffFactoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistOpportunityHandoffFactoryTests.swift; sourceTree = "<group>"; };
 		935BAC9694139394F0625999 /* DNSConfigurationCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNSConfigurationCoordinatorTests.swift; sourceTree = "<group>"; };
@@ -404,6 +415,7 @@
 		ED819BC26A779177B1831C40 /* DNSBenchmarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNSBenchmarkView.swift; sourceTree = "<group>"; };
 		F15D9DA4CAEB49F16D77132D /* DeviceEditorSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceEditorSessionTests.swift; sourceTree = "<group>"; };
 		F3E5050B3CBDDCC2A9F2BA57 /* PhaseDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseDots.swift; sourceTree = "<group>"; };
+		F50AADF3AC5FF512C88C3519 /* AnalyticsCollectionPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsCollectionPreference.swift; sourceTree = "<group>"; };
 		F59DF4C04B975718AB2E308A /* ApplePlatformSignalProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplePlatformSignalProvider.swift; sourceTree = "<group>"; };
 		F6D72124FDD0CB4E07F4E7B5 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		F8549C59760252CA889B5156 /* MeasurementDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasurementDetailView.swift; sourceTree = "<group>"; };
@@ -443,6 +455,8 @@
 				0892EB921BE9D4A82EC6B0D5 /* AssistConsultationTransport in Frameworks */,
 				88F9F1B61878EDF079606D60 /* GoogleMobileAds in Frameworks */,
 				31151635ECCD32806E335BEB /* GoogleUserMessagingPlatform in Frameworks */,
+				7A3B38C38F6E949D0DB9D022 /* FirebaseCore in Frameworks */,
+				FA0DFE03933722C042C49952 /* FirebaseAnalytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -565,6 +579,7 @@
 				F15D9DA4CAEB49F16D77132D /* DeviceEditorSessionTests.swift */,
 				935BAC9694139394F0625999 /* DNSConfigurationCoordinatorTests.swift */,
 				658D29F5072B4A681D37E136 /* InventoryBuildConfigurationTests.swift */,
+				87932246DD490EF7AF8E7621 /* LinkaAnalyticsTests.swift */,
 				352DD4E485299EF5A4AD38B5 /* LinkaHealthCheckTests.swift */,
 				AEFE04BB75BFA7E561692BEE /* LinkaHistoryAdSessionGateTests.swift */,
 				0EB59580B288EB3C0A12925E /* LinkaInventoryStoreV2Tests.swift */,
@@ -596,6 +611,15 @@
 			);
 			name = Tests;
 			path = AssistConsultationTransport/Tests;
+			sourceTree = "<group>";
+		};
+		3537C370338292395F359543 /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				F50AADF3AC5FF512C88C3519 /* AnalyticsCollectionPreference.swift */,
+				574B1DFC8FD097A6E08DDD34 /* LinkaAnalytics.swift */,
+			);
+			path = Analytics;
 			sourceTree = "<group>";
 		};
 		36680D653943FD0B9D2C99D5 /* AssistV4 */ = {
@@ -690,6 +714,7 @@
 		A5CEA60FFC5F577867D45339 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				8CCCC92689E2EF1FC05A5CDE /* GoogleService-Info.plist */,
 				E928A5CC293B2782EED9CB90 /* PrivacyInfo.xcprivacy */,
 				A7441EDE760EBFBE2B29269F /* AppShortcuts.strings */,
 				5322DEAA6F1693B771FF7DB2 /* InfoPlist.strings */,
@@ -771,6 +796,7 @@
 				05F6216E8865C9903F201628 /* ServiceStatusStore.swift */,
 				E816515881C246C6E28B0653 /* SpeedTestViewModel.swift */,
 				EFFAACB033EE8052B01B3BD1 /* Ads */,
+				3537C370338292395F359543 /* Analytics */,
 				E258E6AD29D0B08FAB67578D /* Assist */,
 				EDA26F97C872CE391068D169 /* Inventory */,
 			);
@@ -852,6 +878,8 @@
 				105F9B3D31F676E3420C1B93 /* AssistConsultationTransport */,
 				DAF4C758A27DB86B27A8A164 /* GoogleMobileAds */,
 				F04CDCD9285ED19C8D0E6E15 /* GoogleUserMessagingPlatform */,
+				5FC8CACB8465171982F3F745 /* FirebaseCore */,
+				D7D628B8C7ED1E713111F1FA /* FirebaseAnalytics */,
 			);
 			productName = LinkaApp;
 			productReference = 0E607975E4B121542E79DD68 /* LinkaApp.app */;
@@ -978,6 +1006,7 @@
 			mainGroup = 46CB6B0A1845242346BCC90C;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				CB625A3158D800276148AB86 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				E3FA5A1F81215844743FCBDF /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				5D8D28E68D81E8AF11290A7D /* XCRemoteSwiftPackageReference "swift-package-manager-google-user-messaging-platform" */,
 				F18C22B7ED39F41B6F09D0C8 /* XCLocalSwiftPackageReference "AssistConsultation" */,
@@ -1039,6 +1068,7 @@
 			files = (
 				E3BA6001B4C3443808634056 /* AppShortcuts.strings in Resources */,
 				2574CF886BC5569C37E8269F /* Assets.xcassets in Resources */,
+				B5AC1C6C8DEF8C705E5CA8D9 /* GoogleService-Info.plist in Resources */,
 				0F4DB2B24BB8E41F01C5DB90 /* InfoPlist.strings in Resources */,
 				8983E8407EAE840970242C1B /* Localizable.strings in Resources */,
 				2B3DCD7E78AA6F0075FD3899 /* PrivacyInfo.xcprivacy in Resources */,
@@ -1081,6 +1111,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4CAA6BFF44943278FEF6699B /* AnalyticsCollectionPreference.swift in Sources */,
 				4A6A54FB3C491F48F8CA9627 /* AppIntentCoordinator.swift in Sources */,
 				6DD2EB67BAC9473622C7C743 /* AppStoreReviewPolicy.swift in Sources */,
 				DFBAE558A49CA5513D880717 /* ApplePlatformSignalProvider.swift in Sources */,
@@ -1112,6 +1143,7 @@
 				037E6DFA21B22DF88AD7F57F /* InventoryBuildConfiguration.swift in Sources */,
 				2C787028BC6163D47B91B0CD /* KeychainHelper.swift in Sources */,
 				10A56B40B0BCA9FE704AB194 /* LinkaAdsCoordinator.swift in Sources */,
+				11520F51B1719FD6C6C42B82 /* LinkaAnalytics.swift in Sources */,
 				604BB99D0B8DFA3EEF29145B /* LinkaApp.swift in Sources */,
 				B01AE20DD3C8DF252D285332 /* LinkaAppShortcuts.swift in Sources */,
 				C04339ACBC19EB3551BED7BA /* LinkaExternalLinks.swift in Sources */,
@@ -1170,6 +1202,7 @@
 				C87881AA8AE5BD789147C9C6 /* DNSConfigurationCoordinatorTests.swift in Sources */,
 				53670905412ED56AAB25F879 /* DeviceEditorSessionTests.swift in Sources */,
 				D95BCEE23981021426781274 /* InventoryBuildConfigurationTests.swift in Sources */,
+				F488F269AB22BB6F8840B4DE /* LinkaAnalyticsTests.swift in Sources */,
 				1D8B410D80FB10FB140914B6 /* LinkaHealthCheckTests.swift in Sources */,
 				38D0EA65ECE11E0AA69DD308 /* LinkaHistoryAdSessionGateTests.swift in Sources */,
 				5788D2935FAB36DDED7F0FBA /* LinkaInventoryStoreV2Tests.swift in Sources */,
@@ -1187,6 +1220,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DD29860E053A80D1FBFF6D71 /* AnalyticsCollectionPreference.swift in Sources */,
 				44C648122F593A279BF4190E /* AppIntentCoordinator.swift in Sources */,
 				9C4645788362507D8437E6F8 /* AppStoreReviewPolicy.swift in Sources */,
 				E8738446F6E9EC9EAF2DFDE5 /* ApplePlatformSignalProvider.swift in Sources */,
@@ -1218,6 +1252,7 @@
 				B65E669B4458B31C9E1607E0 /* InventoryBuildConfiguration.swift in Sources */,
 				362C5016416F51F09525DB39 /* KeychainHelper.swift in Sources */,
 				5868E2B059BF07538C443E2E /* LinkaAdsCoordinator.swift in Sources */,
+				C9B1E111292DBF9100F507C1 /* LinkaAnalytics.swift in Sources */,
 				D023E595162ADE7D1452F5EC /* LinkaApp.swift in Sources */,
 				12E02BB6A2E493EAC2C1D151 /* LinkaAppShortcuts.swift in Sources */,
 				EDEF20B20E5B665AE314BE04 /* LinkaExternalLinks.swift in Sources */,
@@ -2034,6 +2069,14 @@
 				minimumVersion = 3.0.0;
 			};
 		};
+		CB625A3158D800276148AB86 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = exactVersion;
+				version = 12.19.3;
+			};
+		};
 		E3FA5A1F81215844743FCBDF /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
@@ -2109,6 +2152,11 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = LinkaWidgetShared;
 		};
+		5FC8CACB8465171982F3F745 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CB625A3158D800276148AB86 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
 		6C16385D59C93FAD8555D2E3 /* LinkaWidgetShared */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LinkaWidgetShared;
@@ -2176,6 +2224,11 @@
 		D7AA3746412A7D173AA75974 /* AssistConsultation */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AssistConsultation;
+		};
+		D7D628B8C7ED1E713111F1FA /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CB625A3158D800276148AB86 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
 		};
 		D8ED2025AEFBC989B7F73FA1 /* NetworkInventory */ = {
 			isa = XCSwiftPackageProductDependency;
