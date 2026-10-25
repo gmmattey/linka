@@ -1,6 +1,6 @@
 # Operação
 
-Responsável: Marco (Orquestração), Bia (Preparação Local) e Renan (Validação & QA Físico). Revisão: 2026-10-24. Fonte de verdade canônica de operação e release do Linka.
+Responsável: Marco (Orquestração), Bia (Preparação Local) e Renan (Validação & QA Físico). Revisão: 2026-10-25. Fonte de verdade canônica de operação e release do Linka.
 
 ## Ambiente e validação
 
@@ -41,7 +41,7 @@ Não apagar caches como primeira reação, criar pastas com timestamp a cada tes
 3. Conferir diff, commit/PR e merge dentro da autorização recebida. Beta exige `main` limpa e igual a `origin/main`; não ocultar WIP com limpeza.
 4. Depois de autorização para TestFlight daquela candidata, usar `bundle exec fastlane ios beta authorized:true` quando a chave da App Store Connect estiver configurada. Para envio direto pelo Xcode em linha de comando, arquivar a candidata interna e exportar com `destination=upload`, `testFlightInternalTestingOnly=true` e `-allowProvisioningUpdates`, usando a conta já adicionada em Xcode.
 
-A candidata para a beta interna é iOS/widget 1.1.7 (61); Mac permanece em 1.1.5 (54). Ela integra a promoção do Plus até 01/01/2027 no iPhone/iPad e os anúncios Native nas áreas elegíveis; as PRs [#342](https://github.com/gmmattey/linka/pull/342) e [#343](https://github.com/gmmattey/linka/pull/343) estão em `main` no SHA `209fae60204b156572b0192ef2c59c6304393e9d`. Em 24/10/2026, a validação canônica passou nos pacotes Swift, nos testes iOS em simulador e no build Release de simulador. O archive `LinkaApp-InternalBeta` conferiu app/widget 1.1.7 (61); o `xcodebuild -exportArchive` enviou a candidata em modo Internal Only às 14h45 (Brasília). A App Store Connect aceitou o upload e iniciou o processamento. Os avisos de dSYM ausente para `GoogleMobileAds.framework` e `UserMessagingPlatform.framework` não bloquearam o envio. Isto ainda não prova disponibilidade para o grupo, instalação em aparelho físico, App Review ou publicação.
+A candidata para a beta interna é iOS/widget 1.1.8 (62); Mac permanece em 1.1.5 (54). Ela integra a instrumentação comercial exclusiva de Firebase Analytics para iOS com chave de exclusão para o proprietário, localização completa do módulo de Cobertura Residencial (Wi-Fi Casa) em pt-BR, en e es-419, reatividade de formatação de datas em todo o app e os anúncios e promoções do Plus; a PR [#344](https://github.com/gmmattey/linka/pull/344) foi mesclada em `main` no SHA `5ecd44eb`. Em 25/10/2026, a validação passou nos 167 testes unitários de `NetworkSpatial`, na compilação do `LinkaApp` iOS e no target macOS. O archive `LinkaApp-InternalBeta` conferiu app/widget 1.1.8 (62); o `xcodebuild -exportArchive` enviou a candidata em modo Internal Only às 17h57 (Brasília). A App Store Connect aceitou o upload e iniciou o processamento. Isto ainda não prova disponibilidade para o grupo, instalação em aparelho físico, App Review ou publicação.
 
 ### Minha Rede — beta interna pelo Xcode
 
