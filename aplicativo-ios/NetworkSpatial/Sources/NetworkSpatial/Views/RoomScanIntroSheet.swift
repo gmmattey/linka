@@ -35,12 +35,12 @@ public struct RoomScanIntroSheet: View {
                         }
                         .padding(.top, 8)
 
-                        Text("Como escanear sua casa")
+                        Text(SpatialCopy.value("spatial.scan.introTitle", defaultValue: "Como escanear sua casa"))
                             .font(.title2)
                             .fontWeight(.bold)
                             .foregroundStyle(WiFiCasaTheme.textPrimary)
 
-                        Text("Gere uma planta tridimensional precisa em menos de 2 minutos utilizando os sensores do iPhone Pro.")
+                        Text(SpatialCopy.value("spatial.scan.introSubtitle", defaultValue: "Gere uma planta tridimensional precisa em menos de 2 minutos utilizando os sensores do iPhone Pro."))
                             .font(.subheadline)
                             .foregroundStyle(WiFiCasaTheme.textSecondary)
                             .multilineTextAlignment(.center)
@@ -52,22 +52,22 @@ public struct RoomScanIntroSheet: View {
                         instructionRow(
                             number: "1",
                             icon: "lightbulb.fill",
-                            title: "Boa Iluminação",
-                            description: "Acenda as luzes dos cômodos para ajudar os sensores ópticos e de profundidade a mapear os cantos."
+                            title: SpatialCopy.value("spatial.scan.tip1Title", defaultValue: "Boa Iluminação"),
+                            description: SpatialCopy.value("spatial.scan.tip1Desc", defaultValue: "Acenda as luzes dos cômodos para ajudar os sensores ópticos e de profundidade a mapear os cantos.")
                         )
 
                         instructionRow(
                             number: "2",
                             icon: "door.left.hand.open",
-                            title: "Abra as Portas",
-                            description: "Mantenha as portas internas abertas para que o sistema identifique a transição e limites entre os cômodos."
+                            title: SpatialCopy.value("spatial.scan.tip2Title", defaultValue: "Abra as Portas"),
+                            description: SpatialCopy.value("spatial.scan.tip2Desc", defaultValue: "Mantenha as portas internas abertas para que o sistema identifique a transição e limites entre os cômodos.")
                         )
 
                         instructionRow(
                             number: "3",
                             icon: "figure.walk",
-                            title: "Caminhada Calma",
-                            description: "Caminhe suavemente pelo perímetro de cada cômodo, apontando a câmera para paredes, quinas e chão."
+                            title: SpatialCopy.value("spatial.scan.tip3Title", defaultValue: "Caminhada Calma"),
+                            description: SpatialCopy.value("spatial.scan.tip3Desc", defaultValue: "Caminhe suavemente pelo perímetro de cada cômodo, apontando a câmera para paredes, quinas e chão.")
                         )
                     }
                     .padding(18)
@@ -86,7 +86,7 @@ public struct RoomScanIntroSheet: View {
                                 Spacer()
                                 Image(systemName: "camera.viewfinder")
                                     .font(.headline)
-                                Text("Iniciar Escaneamento")
+                                Text(SpatialCopy.value("spatial.scan.start", defaultValue: "Iniciar Escaneamento"))
                                     .font(.headline)
                                     .fontWeight(.bold)
                                 Spacer()
@@ -97,7 +97,7 @@ public struct RoomScanIntroSheet: View {
                         .controlSize(.large)
                         .tint(WiFiCasaTheme.brandAccent)
 
-                        Button("Usar Editor 2D Manual") {
+                        Button(SpatialCopy.value("spatial.scan.manualEditor", defaultValue: "Usar Editor 2D Manual")) {
                             dismiss()
                             onOpenManualEditor()
                         }
@@ -110,11 +110,11 @@ public struct RoomScanIntroSheet: View {
                 }
             }
             .background(WiFiCasaTheme.backgroundBase.ignoresSafeArea())
-            .navigationTitle("Preparar Escaneamento")
+            .navigationTitle(SpatialCopy.value("spatial.scan.prepareTitle", defaultValue: "Preparar Escaneamento"))
             .inlineTitleDisplayMode()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancelar") {
+                    Button(SpatialCopy.value("spatial.common.cancel", defaultValue: "Cancelar")) {
                         dismiss()
                     }
                 }

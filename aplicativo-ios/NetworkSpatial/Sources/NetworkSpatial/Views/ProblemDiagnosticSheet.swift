@@ -44,6 +44,15 @@ public struct ProblemDiagnosticSheet: View {
         case guidedTwoPoint = "Investigação Completa"
         case quickSingle = "Teste Rápido"
         public var id: String { rawValue }
+
+        public var label: String {
+            switch self {
+            case .guidedTwoPoint:
+                return SpatialCopy.value("spatial.mode.guidedTwoPoint", defaultValue: "Investigação Completa")
+            case .quickSingle:
+                return SpatialCopy.value("spatial.mode.quickSingle", defaultValue: "Teste Rápido")
+            }
+        }
     }
 
     private enum FlowStep {
@@ -101,7 +110,7 @@ public struct ProblemDiagnosticSheet: View {
                 // Fluxo Rápido
                 case .measuring(let isSecondRound):
                     measuringView(
-                        title: isSecondRound ? "Medindo Novamente..." : "Avaliando \(selectedRoom.name)...",
+                        title: isSecondRound ? SpatialCopy.value("spatial.problem.measuringAgain", defaultValue: "Medindo Novamente...") : SpatialCopy.format("spatial.problem.measuringTarget", selectedRoom.name),
                         icon: problem.icon,
                         onRetry: { startTargetedMeasurement(isSecondRound: isSecondRound) },
                         onBack: { errorMessage = nil; step = .selectRoom }
@@ -114,34 +123,34 @@ public struct ProblemDiagnosticSheet: View {
                 // Fluxo Guiado Completo (Fase 3)
                 case .guideToBase(let baseRoom):
                     guideStepView(
-                        stepBadge: "Passo 1 de 3 • Ponto de Origem",
-                        title: "Vá até o \(baseRoom.name)",
-                        description: "Para descobrir com precisão se a lentidão decorre de paredes ou da sua operadora, primeiro medimos a conexão ao lado do roteador.",
+                        stepBadge: SpatialCopy.value("spatial.problem.step1Badge", defaultValue: "Passo 1 de 3 • Ponto de Origem"),
+                        title: SpatialCopy.format("spatial.problem.step1Title", baseRoom.name),
+                        description: SpatialCopy.value("spatial.problem.step1Desc", defaultValue: "Para descobrir com precisão se a lentidão decorre de paredes ou da sua operadora, primeiro medimos a conexão ao lado do roteador."),
                         icon: "router.fill",
-                        buttonText: "Estou ao Lado do Roteador — Medir Base",
+                        buttonText: SpatialCopy.value("spatial.problem.step1Button", defaultValue: "Estou ao Lado do Roteador — Medir Base"),
                         onContinue: { startMeasuringBase(baseRoom: baseRoom) },
                         onBack: { step = .selectRoom }
                     )
                 case .measuringBase(let baseRoom):
                     measuringView(
-                        title: "Medindo Base em \(baseRoom.name)...",
+                        title: SpatialCopy.format("spatial.problem.measuringBase", baseRoom.name),
                         icon: "router.fill",
                         onRetry: { startMeasuringBase(baseRoom: baseRoom) },
                         onBack: { errorMessage = nil; step = .selectRoom }
                     )
                 case .guideToTarget(let baseResult):
                     guideStepView(
-                        stepBadge: "Passo 2 de 3 • Ponto Problemático",
-                        title: "Caminhe até o \(selectedRoom.name)",
-                        description: "Base registrada (\(baseResult.score)/100). Agora vá até o \(selectedRoom.name) para medir a perda de sinal no trajeto e o impacto das paredes.",
+                        stepBadge: SpatialCopy.value("spatial.problem.step2Badge", defaultValue: "Passo 2 de 3 • Ponto Problemático"),
+                        title: SpatialCopy.format("spatial.problem.step2Title", selectedRoom.name),
+                        description: SpatialCopy.format("spatial.problem.step2Desc", baseResult.score, selectedRoom.name),
                         icon: selectedRoom.icon,
-                        buttonText: "Estou no \(selectedRoom.name) — Medir Sinal",
+                        buttonText: SpatialCopy.format("spatial.problem.step2Button", selectedRoom.name),
                         onContinue: { startMeasuringTarget(baseResult: baseResult) },
                         onBack: { step = .selectRoom }
                     )
                 case .measuringTarget(let baseResult):
                     measuringView(
-                        title: "Avaliando \(selectedRoom.name)...",
+                        title: SpatialCopy.format("spatial.problem.measuringTarget", selectedRoom.name),
                         icon: selectedRoom.icon,
                         onRetry: { startMeasuringTarget(baseResult: baseResult) },
                         onBack: { errorMessage = nil; step = .guideToTarget(baseResult: baseResult) }
@@ -150,7 +159,7 @@ public struct ProblemDiagnosticSheet: View {
                     guidedAnalysisView(analysis: analysis, plan: plan)
                 case .measuringAfterGuided(let analysis):
                     measuringView(
-                        title: "Validando Ganho no \(selectedRoom.name)...",
+                        title: SpatialCopy.format("spatial.problem.validatingGain", selectedRoom.name),
                         icon: "arrow.triangle.swap",
                         onRetry: { startMeasuringAfterGuided(analysis: analysis) },
                         onBack: { errorMessage = nil; step = .guidedAnalysisReady(analysis: analysis, plan: GuidedSolutionEngine.generateActionPlan(for: analysis, problem: problem)) }
@@ -163,7 +172,7 @@ public struct ProblemDiagnosticSheet: View {
             .inlineTitleDisplayMode()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Fechar") {
+                    Button(SpatialCopy.value("spatial.common.close", defaultValue: "Fechar")) {
                         dismiss()
                     }
                 }
@@ -205,7 +214,7 @@ public struct ProblemDiagnosticSheet: View {
             if canRunGuidedMode {
                 Picker("Modo de Diagnóstico", selection: $diagnosticMode) {
                     ForEach(DiagnosticMode.allCases) { mode in
-                        Text(mode.rawValue).tag(mode)
+                        Text(mode.label).tag(mode)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -214,7 +223,7 @@ public struct ProblemDiagnosticSheet: View {
                 HStack(spacing: 8) {
                     Image(systemName: "info.circle")
                         .foregroundStyle(WiFiCasaTheme.scoreFair)
-                    Text("Marque o cômodo com roteador na planta para habilitar a Investigação Completa de 2 pontos.")
+                    Text(SpatialCopy.value("spatial.problem.markRouterNote", defaultValue: "Marque o cômodo com roteador na planta para habilitar a Investigação Completa de 2 pontos."))
                         .font(.caption)
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
                 }
@@ -249,7 +258,7 @@ public struct ProblemDiagnosticSheet: View {
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: isGuided ? "arrow.triangle.branch" : "play.fill")
-                        Text(isGuided ? "Iniciar Investigação Completa" : "Iniciar Teste no \(selectedRoom.name)")
+                        Text(isGuided ? SpatialCopy.value("spatial.problem.startGuided", defaultValue: "Iniciar Investigação Completa") : SpatialCopy.format("spatial.problem.startRoom", selectedRoom.name))
                             .fontWeight(.bold)
                     }
                     .frame(maxWidth: .infinity)
@@ -267,9 +276,9 @@ public struct ProblemDiagnosticSheet: View {
         let isSelected = selectedRoom.id == room.id
         let lastScoreText: String
         if let last = room.lastMeasurement {
-            lastScoreText = "Última nota: \(last.score)/100 (\(last.rating.label))"
+            lastScoreText = SpatialCopy.format("spatial.problem.lastScore", last.score, last.rating.label)
         } else {
-            lastScoreText = "Ainda não medido"
+            lastScoreText = SpatialCopy.value("spatial.room.unmeasured", defaultValue: "Ainda não medido")
         }
 
         return HStack(spacing: 14) {
@@ -285,7 +294,7 @@ public struct ProblemDiagnosticSheet: View {
                         .foregroundStyle(WiFiCasaTheme.textPrimary)
 
                     if room.hasRouter {
-                        Text("Roteador")
+                        Text(SpatialCopy.value("spatial.room.router", defaultValue: "Roteador"))
                             .font(.caption2.weight(.bold))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
@@ -296,7 +305,7 @@ public struct ProblemDiagnosticSheet: View {
                 }
 
                 if room.hasRouter {
-                    Text("Ponto base do sinal. Use para checar a emissão original.")
+                    Text(SpatialCopy.value("spatial.problem.routerNote", defaultValue: "Ponto base do sinal. Use para checar a emissão original."))
                         .font(.caption2)
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
                 } else if let last = room.lastMeasurement {
@@ -386,7 +395,7 @@ public struct ProblemDiagnosticSheet: View {
                 .tint(WiFiCasaTheme.brandAccent)
 
                 if let onBack {
-                    Button("Voltar para Escolha de Cômodo") {
+                    Button(SpatialCopy.value("spatial.problem.backToRooms", defaultValue: "Voltar para Escolha de Cômodo")) {
                         onBack()
                     }
                     .font(.subheadline.weight(.medium))
@@ -416,7 +425,7 @@ public struct ProblemDiagnosticSheet: View {
                         .font(.system(size: iconSize))
                         .foregroundStyle(WiFiCasaTheme.scoreFair)
 
-                    Text("Não foi possível concluir o teste")
+                    Text(SpatialCopy.value("spatial.problem.errorTitle", defaultValue: "Não foi possível concluir o teste"))
                         .font(.title3.weight(.bold))
                         .foregroundStyle(WiFiCasaTheme.textPrimary)
 
@@ -436,7 +445,7 @@ public struct ProblemDiagnosticSheet: View {
                             } label: {
                                 HStack(spacing: 8) {
                                     Image(systemName: "gear")
-                                    Text("Abrir Ajustes do iOS")
+                                    Text(SpatialCopy.value("spatial.common.settings", defaultValue: "Abrir Ajustes do iOS"))
                                         .fontWeight(.semibold)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -449,7 +458,7 @@ public struct ProblemDiagnosticSheet: View {
                         Button(action: onRetry) {
                             HStack(spacing: 8) {
                                 Image(systemName: "arrow.clockwise")
-                                Text("Tentar Novamente")
+                                Text(SpatialCopy.value("spatial.common.tryAgain", defaultValue: "Tentar Novamente"))
                                     .fontWeight(.bold)
                             }
                             .frame(maxWidth: .infinity)
@@ -487,7 +496,7 @@ public struct ProblemDiagnosticSheet: View {
                         .font(.title2.weight(.bold))
                         .foregroundStyle(WiFiCasaTheme.textPrimary)
 
-                    Text(currentDiagnosticStep.rawValue)
+                    Text(currentDiagnosticStep.label)
                         .font(.subheadline)
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
                         .multilineTextAlignment(.center)
@@ -526,7 +535,7 @@ public struct ProblemDiagnosticSheet: View {
                         .monospacedDigit()
                         .foregroundStyle(WiFiCasaTheme.textPrimary)
 
-                    Text("Pontuação no \(selectedRoom.name)")
+                    Text(SpatialCopy.format("spatial.problem.scoreInRoom", selectedRoom.name))
                         .font(.caption)
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
                 }
@@ -540,25 +549,25 @@ public struct ProblemDiagnosticSheet: View {
                     let lanVal = result.metrics.gatewayMedianMs ?? result.metrics.gatewayLatencyMs
                     let lanLoss = result.metrics.gatewayPacketLossPercent
                     let isLanAlert = lanVal > 35.0 || lanLoss > 2.0
-                    let lanLossText = lanLoss > 0.0 ? " (\(String(format: "%.1f", lanLoss))% perda)" : ""
+                    let lanLossText = lanLoss > 0.0 ? SpatialCopy.format("spatial.problem.lossSuffix", String(format: "%.1f%%", lanLoss)) : ""
 
                     metricPill(
-                        title: "Roteador (LAN)",
+                        title: SpatialCopy.value("spatial.problem.routerLAN", defaultValue: "Roteador (LAN)"),
                         value: "\(Int(round(lanVal))) ms\(lanLossText)",
-                        statusText: isLanAlert ? "Atenção" : "Normal",
+                        statusText: isLanAlert ? SpatialCopy.value("spatial.problem.attention", defaultValue: "Atenção") : SpatialCopy.value("spatial.problem.normal", defaultValue: "Normal"),
                         statusIcon: isLanAlert ? "exclamationmark.triangle.fill" : "checkmark.circle.fill",
                         isAlert: isLanAlert
                     )
 
                     let wanVal = result.metrics.wanMedianMs ?? result.metrics.wanLatencyMs
-                    let wanLoss = result.metrics.wanPacketLossPercent ?? 0.0
+                    let wanLoss = result.metrics.wanPacketLossPercent
                     let isWanAlert = wanVal > 100.0 || wanLoss > 2.0
-                    let wanLossText = wanLoss > 0.0 ? " (\(String(format: "%.1f", wanLoss))% perda)" : ""
+                    let wanLossText = wanLoss > 0.0 ? SpatialCopy.format("spatial.problem.lossSuffix", String(format: "%.1f%%", wanLoss)) : ""
 
                     metricPill(
-                        title: "Internet (WAN)",
+                        title: SpatialCopy.value("spatial.problem.internetWAN", defaultValue: "Internet (WAN)"),
                         value: "\(Int(round(wanVal))) ms\(wanLossText)",
-                        statusText: isWanAlert ? "Atenção" : "Normal",
+                        statusText: isWanAlert ? SpatialCopy.value("spatial.problem.attention", defaultValue: "Atenção") : SpatialCopy.value("spatial.problem.normal", defaultValue: "Normal"),
                         statusIcon: isWanAlert ? "exclamationmark.triangle.fill" : "checkmark.circle.fill",
                         isAlert: isWanAlert
                     )
@@ -566,7 +575,7 @@ public struct ProblemDiagnosticSheet: View {
 
                 // Hipótese Técnica
                 VStack(alignment: .leading, spacing: 8) {
-                    Label("HIPÓTESE OBSERVADA", systemImage: "sparkles")
+                    Label(SpatialCopy.value("spatial.problem.observedHypothesis", defaultValue: "HIPÓTESE OBSERVADA"), systemImage: "sparkles")
                         .font(.caption.weight(.bold))
                         .foregroundStyle(WiFiCasaTheme.brandAccent)
 
@@ -581,7 +590,7 @@ public struct ProblemDiagnosticSheet: View {
 
                 // Ação Recomendada
                 VStack(alignment: .leading, spacing: 8) {
-                    Label("AÇÃO PRÁTICA SUGERIDA", systemImage: "hand.tap.fill")
+                    Label(SpatialCopy.value("spatial.problem.suggestedAction", defaultValue: "AÇÃO PRÁTICA SUGERIDA"), systemImage: "hand.tap.fill")
                         .font(.caption.weight(.bold))
                         .foregroundStyle(WiFiCasaTheme.scoreFair)
 
@@ -601,7 +610,7 @@ public struct ProblemDiagnosticSheet: View {
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "arrow.triangle.swap")
-                            Text("Fiz a Mudança — Medir Novamente")
+                            Text(SpatialCopy.value("spatial.problem.didChangeRemeasure", defaultValue: "Fiz a Mudança — Medir Novamente"))
                                 .fontWeight(.bold)
                         }
                         .frame(maxWidth: .infinity)
@@ -610,7 +619,7 @@ public struct ProblemDiagnosticSheet: View {
                     .controlSize(.large)
                     .tint(WiFiCasaTheme.brandAccent)
 
-                    Button("Concluir Diagnóstico") {
+                    Button(SpatialCopy.value("spatial.problem.finishDiagnostic", defaultValue: "Concluir Diagnóstico")) {
                         dismiss()
                     }
                     .font(.subheadline.weight(.semibold))
@@ -637,11 +646,11 @@ public struct ProblemDiagnosticSheet: View {
                         .font(.system(size: iconSize))
                         .foregroundStyle(WiFiCasaTheme.scoreExcellent)
 
-                    Text("Evolução Confirmada!")
+                    Text(SpatialCopy.value("spatial.problem.evolutionConfirmed", defaultValue: "Evolução Confirmada!"))
                         .font(.title2.weight(.bold))
                         .foregroundStyle(WiFiCasaTheme.textPrimary)
 
-                    Text("A mudança física gerou ganho real de estabilidade na conexão neste cômodo (+\(delta) pontos).")
+                    Text(SpatialCopy.format("spatial.problem.evolutionDesc", delta))
                         .font(.subheadline)
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
                         .multilineTextAlignment(.center)
@@ -651,11 +660,11 @@ public struct ProblemDiagnosticSheet: View {
                         .font(.system(size: iconSize))
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
 
-                    Text("Mesmo Desempenho")
+                    Text(SpatialCopy.value("spatial.problem.samePerformance", defaultValue: "Mesmo Desempenho"))
                         .font(.title2.weight(.bold))
                         .foregroundStyle(WiFiCasaTheme.textPrimary)
 
-                    Text("A pontuação permaneceu estável (\(before.score) → \(after.score) pontos). A alteração ficou dentro da margem normal de oscilação da rede.")
+                    Text(SpatialCopy.format("spatial.problem.sameDesc", before.score, after.score))
                         .font(.subheadline)
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
                         .multilineTextAlignment(.center)
@@ -665,11 +674,11 @@ public struct ProblemDiagnosticSheet: View {
                         .font(.system(size: iconSize))
                         .foregroundStyle(WiFiCasaTheme.scoreFair)
 
-                    Text("Queda de Desempenho")
+                    Text(SpatialCopy.value("spatial.problem.dropPerformance", defaultValue: "Queda de Desempenho"))
                         .font(.title2.weight(.bold))
                         .foregroundStyle(WiFiCasaTheme.textPrimary)
 
-                    Text("A nova posição testada reduziu a qualidade da conexão (\(delta) pontos). Retorne à posição anterior ou tente outro local.")
+                    Text(SpatialCopy.format("spatial.problem.dropDesc", delta))
                         .font(.subheadline)
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
                         .multilineTextAlignment(.center)
@@ -679,8 +688,8 @@ public struct ProblemDiagnosticSheet: View {
 
             // Cards lado a lado
             HStack(spacing: 16) {
-                comparisonCard(title: "Antes", result: before)
-                comparisonCard(title: "Depois", result: after)
+                comparisonCard(title: SpatialCopy.value("spatial.comparison.before", defaultValue: "Antes"), result: before)
+                comparisonCard(title: SpatialCopy.value("spatial.comparison.after", defaultValue: "Depois"), result: after)
             }
             .padding(.horizontal, 20)
 
@@ -689,7 +698,7 @@ public struct ProblemDiagnosticSheet: View {
             Button {
                 dismiss()
             } label: {
-                Text("Salvar e Fechar")
+                Text(SpatialCopy.value("spatial.problem.saveAndClose", defaultValue: "Salvar e Fechar"))
                     .fontWeight(.bold)
                     .frame(maxWidth: .infinity)
             }
@@ -718,12 +727,12 @@ public struct ProblemDiagnosticSheet: View {
                     HStack(spacing: 6) {
                         Image(systemName: analysis.confidence.systemImage)
                             .foregroundStyle(analysis.confidence == .high ? WiFiCasaTheme.scoreExcellent : WiFiCasaTheme.scoreFair)
-                        Text(analysis.confidence.rawValue)
+                        Text(analysis.confidence.label)
                             .font(.caption.weight(.bold))
                             .foregroundStyle(WiFiCasaTheme.textSecondary)
                     }
 
-                    Text(analysis.bottleneck.rawValue)
+                    Text(analysis.bottleneck.label)
                         .font(.title3.weight(.bold))
                         .foregroundStyle(WiFiCasaTheme.textPrimary)
                         .multilineTextAlignment(.center)
@@ -739,12 +748,12 @@ public struct ProblemDiagnosticSheet: View {
                 .background(WiFiCasaTheme.backgroundRaised)
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel("Diagnóstico: \(analysis.bottleneck.rawValue). Nível de confiança: \(analysis.confidence.rawValue). \(analysis.explanation)")
+                .accessibilityLabel("Diagnóstico: \(analysis.bottleneck.label). Nível de confiança: \(analysis.confidence.label). \(analysis.explanation)")
 
                 // Placar Base vs Ponto Crítico
                 HStack(spacing: 12) {
                     VStack(spacing: 4) {
-                        Text("Base (Roteador)")
+                        Text(SpatialCopy.value("spatial.problem.baseRouter", defaultValue: "Base (Roteador)"))
                             .font(.caption2.weight(.bold))
                             .foregroundStyle(WiFiCasaTheme.textSecondary)
                         Text("\(analysis.baseResult.score)")
@@ -831,7 +840,7 @@ public struct ProblemDiagnosticSheet: View {
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "arrow.triangle.swap")
-                            Text("Fiz a Mudança — Re-testar \(selectedRoom.name)")
+                            Text(SpatialCopy.format("spatial.problem.retestTarget", selectedRoom.name))
                                 .fontWeight(.bold)
                         }
                         .frame(maxWidth: .infinity)
@@ -840,7 +849,7 @@ public struct ProblemDiagnosticSheet: View {
                     .controlSize(.large)
                     .tint(WiFiCasaTheme.brandAccent)
 
-                    Button("Concluir sem Re-teste") {
+                    Button(SpatialCopy.value("spatial.problem.finishWithoutRetest", defaultValue: "Concluir sem Re-teste")) {
                         dismiss()
                     }
                     .font(.subheadline.weight(.semibold))
@@ -884,13 +893,13 @@ public struct ProblemDiagnosticSheet: View {
 
                 // Antes x Depois Comparativo
                 HStack(spacing: 16) {
-                    comparisonCard(title: "Antes da Mudança", result: before)
-                    comparisonCard(title: "Depois da Mudança", result: after)
+                    comparisonCard(title: SpatialCopy.value("spatial.problem.beforeChange", defaultValue: "Antes da Mudança"), result: before)
+                    comparisonCard(title: SpatialCopy.value("spatial.problem.afterChange", defaultValue: "Depois da Mudança"), result: after)
                 }
 
                 // Evidências Técnicas
                 VStack(alignment: .leading, spacing: 10) {
-                    Label("EVIDÊNCIAS OBSERVADAS", systemImage: "doc.text.magnifyingglass")
+                    Label(SpatialCopy.value("spatial.problem.observedEvidence", defaultValue: "EVIDÊNCIAS OBSERVADAS"), systemImage: "doc.text.magnifyingglass")
                         .font(.caption.weight(.bold))
                         .foregroundStyle(WiFiCasaTheme.brandAccent)
 
@@ -915,7 +924,7 @@ public struct ProblemDiagnosticSheet: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("Salvar Relatório da Solução e Fechar")
+                    Text(SpatialCopy.value("spatial.problem.saveVerdictReport", defaultValue: "Salvar Relatório da Solução e Fechar"))
                         .fontWeight(.bold)
                         .frame(maxWidth: .infinity)
                 }

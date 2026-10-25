@@ -22,6 +22,7 @@ import AppKit
 /// aqui, nem existe toggle de opt-in nesta entrega.
 struct ShareCardView: View {
     let measurement: NetworkMeasurement
+    @AppStorage(LinkaLanguagePreference.storageKey) private var languagePreference = LinkaLanguagePreference.system.rawValue
 
     /// Tamanho fixo em pontos do cartão exportado. Proporção vertical
     /// (retrato) funciona bem tanto anexado a uma mensagem quanto como
@@ -152,23 +153,21 @@ struct ShareCardView: View {
         let band = wifiBandGHz.formatted(
             .number
                 .precision(.fractionLength(fractionLength))
-                .locale(LinkaLanguagePreference.currentLocale)
+                .locale(LinkaLanguagePreference.fromStoredValue(languagePreference).locale)
         )
         return "\(kindLabel) · \(band)GHz"
     }
 
     private var formattedDate: String {
         let formatter = DateFormatter()
-        formatter.dateStyle = .short
+        formatter.dateStyle = .medium
         formatter.timeStyle = .short
-        formatter.locale = LinkaLanguagePreference.currentLocale
+        formatter.locale = LinkaLanguagePreference.fromStoredValue(languagePreference).locale
         return formatter.string(from: measurement.measuredAt)
     }
 
     private func copy(_ key: String, _ fallback: String) -> String {
-        let locale = LinkaLanguagePreference.currentLocale
-        let bundle = Bundle(path: Bundle.main.path(forResource: locale.identifier, ofType: "lproj") ?? "") ?? .main
-        return bundle.localizedString(forKey: key, value: fallback, table: nil)
+        LinkaCopy.value(key, defaultValue: fallback)
     }
 }
 

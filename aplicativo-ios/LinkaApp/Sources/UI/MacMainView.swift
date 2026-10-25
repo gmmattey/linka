@@ -40,6 +40,7 @@ private enum DotPhase { case pending, active, done }
 // MARK: - MacMainView
 
 struct MacMainView: View {
+    @AppStorage(LinkaLanguagePreference.storageKey) private var languagePreference = LinkaLanguagePreference.system.rawValue
     @StateObject private var viewModel = SpeedTestViewModel()
     @EnvironmentObject private var entitlements: StoreKitEntitlementProvider
     @ObservedObject private var intentCoordinator = AppIntentCoordinator.shared

@@ -1105,3 +1105,18 @@
 "genius.error.title" = "No se pudo completar el diagnóstico";
 "genius.error.retry" = "Reintentar";
 
+// Cobertura Residencial & Mi Red
+"inventory.spatial.title" = "Cobertura Residencial";
+"inventory.spatial.measuredCount" = "%d de %d habitaciones medidas";
+"inventory.spatial.unmeasured" = "Ninguna habitación medida aún";
+
+// Historial - Filtrar, Ordenar y Exportar
+"history.filter.section" = "Filtrar";
+"history.sort.section" = "Ordenar";
+"history.filterAndSort" = "Filtrar y ordenar historial";
+"history.exportCSV" = "Exportar CSV";
+"history.exportCSV.emptyHint" = "Realice mediciones para poder exportar el historial en CSV.";
+"history.exportCSV.hint" = "Doble toque para exportar su historial completo en formato CSV.";
+"history.exportCSV.help" = "Genera un archivo CSV que contiene la fecha, velocidades, latencia y tipo de red de todas las mediciones guardadas.";
+
+

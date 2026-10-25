@@ -57,7 +57,7 @@ public struct RoomCardView: View {
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
 
-                    Text("Não Medido")
+                    Text(SpatialCopy.value("spatial.room.unmeasured", defaultValue: "Não Medido"))
                         .font(.subheadline)
                         .fontWeight(.medium)
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
@@ -91,7 +91,7 @@ public struct RoomCardView: View {
                             .font(.caption2.weight(.bold))
                             .foregroundStyle(room.diagnosisTag.isIssue ? Color.ratingColor(for: rating) : WiFiCasaTheme.scoreGood)
 
-                        Text(room.diagnosisTag.rawValue)
+                        Text(room.diagnosisTag.label)
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(Color.white)
                     }
@@ -146,7 +146,7 @@ public struct RoomCardView: View {
                     HStack(spacing: 4) {
                         Image(systemName: room.lastMeasurement != nil ? "arrow.clockwise" : "play.fill")
                             .font(.caption2.weight(.bold))
-                        Text(room.lastMeasurement != nil ? "Re-medir" : "Medir")
+                        Text(room.lastMeasurement != nil ? SpatialCopy.value("spatial.room.remeasure", defaultValue: "Re-medir") : SpatialCopy.value("spatial.room.measure", defaultValue: "Medir"))
                             .font(.caption.weight(.bold))
                     }
                     .lineLimit(1)

@@ -476,11 +476,11 @@ struct MyNetworkView: View {
                         }
 
                         if summary.measuredCount > 0 {
-                            Text("\(summary.measuredCount) de \(summary.totalRoomsCount) cômodos medidos")
+                            Text(String(format: LinkaCopy.value("inventory.spatial.measuredCount", defaultValue: "%d de %d cômodos medidos"), summary.measuredCount, summary.totalRoomsCount))
                                 .font(.caption)
                                 .foregroundStyle(Color.textSecondary)
                         } else {
-                            Text(LinkaCopy.value("inventory.spatial.unmeasured", defaultValue: "\(summary.totalRoomsCount) cômodos cadastrados · Toque para mapear"))
+                            Text(String(format: LinkaCopy.value("inventory.spatial.unmeasured", defaultValue: "%d cômodos cadastrados · Toque para mapear"), summary.totalRoomsCount))
                                 .font(.caption)
                                 .foregroundStyle(Color.textSecondary)
                         }

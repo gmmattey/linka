@@ -43,9 +43,9 @@ public struct HomeView: View {
                     // Estado quando o Wi-Fi está desconectado
                     if !networkMonitor.isWiFiConnected {
                         ContentUnavailableView(
-                            "Wi-Fi Desconectado",
+                            SpatialCopy.value("spatial.wifi.disconnected", defaultValue: "Wi-Fi Desconectado"),
                             systemImage: "wifi.slash",
-                            description: Text("Conecte seu dispositivo à rede Wi-Fi da sua residência para realizar o mapeamento e testes de qualidade.")
+                            description: Text(SpatialCopy.value("spatial.wifi.disconnected.desc", defaultValue: "Conecte seu dispositivo à rede Wi-Fi da sua residência para realizar o mapeamento e testes de qualidade."))
                         )
                         .padding(.vertical, 16)
                     }
@@ -61,12 +61,12 @@ public struct HomeView: View {
                                     .foregroundStyle(WiFiCasaTheme.brandAccent)
 
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Modo Comparativo Ativo")
+                                    Text(SpatialCopy.value("spatial.comparative.active.title", defaultValue: "Modo Comparativo Ativo"))
                                         .font(.subheadline)
                                         .fontWeight(.bold)
                                         .foregroundStyle(WiFiCasaTheme.textPrimary)
 
-                                    Text("Baseline 'Antes' fixado. Realize medições com o roteador na nova posição e toque aqui para ver o ganho.")
+                                    Text(SpatialCopy.value("spatial.comparative.active.desc", defaultValue: "Baseline 'Antes' fixado. Realize medições com o roteador na nova posição e toque aqui para ver o ganho."))
                                         .font(.caption)
                                         .foregroundStyle(WiFiCasaTheme.textSecondary)
                                 }
@@ -92,7 +92,7 @@ public struct HomeView: View {
 
                             VStack(alignment: .leading, spacing: 4) {
                                 HStack {
-                                    Text("Mapeamento em 3 Passos")
+                                    Text(SpatialCopy.value("spatial.ftue.title", defaultValue: "Mapeamento em 3 Passos"))
                                         .font(.subheadline)
                                         .fontWeight(.bold)
                                         .foregroundStyle(WiFiCasaTheme.textPrimary)
@@ -106,10 +106,10 @@ public struct HomeView: View {
                                             .padding(6)
                                     }
                                     .frame(width: 44, height: 44) // A11y Touch Target
-                                    .accessibilityLabel("Dispensar guia inicial")
+                                    .accessibilityLabel(SpatialCopy.value("spatial.ftue.dismiss", defaultValue: "Dispensar guia inicial"))
                                 }
 
-                                Text("1. Verifique seus cômodos abaixo.\n2. Caminhe até cada cômodo e meça a conexão.\n3. Identifique pontos fracos e otimize sua rede.")
+                                Text(SpatialCopy.value("spatial.ftue.desc", defaultValue: "1. Verifique seus cômodos abaixo.\n2. Caminhe até cada cômodo e meça a conexão.\n3. Identifique pontos fracos e otimize sua rede."))
                                     .font(.caption)
                                     .foregroundStyle(WiFiCasaTheme.textSecondary)
                             }
@@ -122,12 +122,12 @@ public struct HomeView: View {
                     // Nova Seção B2C: Diagnóstico Orientado a Problemas
                     VStack(alignment: .leading, spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Como podemos melhorar sua internet?")
+                            Text(SpatialCopy.value("spatial.problems.header", defaultValue: "Como podemos melhorar sua internet?"))
                                 .font(.title3)
                                 .fontWeight(.bold)
                                 .foregroundStyle(WiFiCasaTheme.textPrimary)
 
-                            Text("Escolha o problema e descubra o que fazer.")
+                            Text(SpatialCopy.value("spatial.problems.subtitle", defaultValue: "Escolha o problema e descubra o que fazer."))
                                 .font(.subheadline)
                                 .foregroundStyle(WiFiCasaTheme.textSecondary)
                         }
@@ -155,7 +155,7 @@ public struct HomeView: View {
 
                     // Título da Seção do Mapa de Cômodos
                     HStack {
-                        Text("CÔMODOS DA CASA")
+                        Text(SpatialCopy.value("spatial.header.sectionRooms", defaultValue: "CÔMODOS DA CASA"))
                             .font(.caption)
                             .fontWeight(.bold)
                             .foregroundStyle(WiFiCasaTheme.textSecondary)
@@ -165,7 +165,7 @@ public struct HomeView: View {
                         Button {
                             viewModel.showRoomEditorSheet = true
                         } label: {
-                            Label("Editar", systemImage: "pencil")
+                            Label(SpatialCopy.value("spatial.header.edit", defaultValue: "Editar"), systemImage: "pencil")
                                 .font(.caption)
                                 .fontWeight(.medium)
                         }
@@ -202,19 +202,19 @@ public struct HomeView: View {
                                 .foregroundStyle(WiFiCasaTheme.brandAccent)
 
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Múltiplos Pontos de Acesso")
+                                Text(SpatialCopy.value("spatial.ap.multiple.title", defaultValue: "Múltiplos Pontos de Acesso"))
                                     .font(.subheadline)
                                     .fontWeight(.bold)
                                     .foregroundStyle(WiFiCasaTheme.textPrimary)
 
-                                Text("Detectamos \(viewModel.detectedAccessPoints.count) pontos de acesso diferentes na residência.")
+                                Text(SpatialCopy.format("spatial.ap.multiple.desc", viewModel.detectedAccessPoints.count))
                                     .font(.caption)
                                     .foregroundStyle(WiFiCasaTheme.textSecondary)
                             }
 
                             Spacer()
 
-                            Button("Ver") {
+                            Button(SpatialCopy.value("spatial.ap.multiple.view", defaultValue: "Ver")) {
                                 viewModel.showAccessPointsSheet = true
                             }
                             .font(.caption.weight(.bold))
@@ -223,7 +223,7 @@ public struct HomeView: View {
                             .background(WiFiCasaTheme.backgroundOverlay)
                             .foregroundStyle(WiFiCasaTheme.brandAccent)
                             .clipShape(Capsule())
-                            .accessibilityLabel("Ver \(viewModel.detectedAccessPoints.count) pontos de acesso detectados")
+                            .accessibilityLabel(SpatialCopy.format("spatial.ap.multiple.desc", viewModel.detectedAccessPoints.count))
                         }
                         .padding(12)
                         .background(WiFiCasaTheme.backgroundRaised)
@@ -384,10 +384,10 @@ public struct HomeView: View {
                         .font(.title3)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Iniciar Caminhada pela Casa")
+                        Text(SpatialCopy.value("spatial.journey.startWalk", defaultValue: "Iniciar Caminhada pela Casa"))
                             .font(.headline)
                             .fontWeight(.bold)
-                        Text("Ponto 1 de \(viewModel.house.rooms.count): \(firstRoom.name)")
+                        Text(SpatialCopy.format("spatial.journey.startWalk.step", viewModel.house.rooms.count, firstRoom.name))
                             .font(.caption)
                             .opacity(0.85)
                     }
@@ -413,10 +413,10 @@ public struct HomeView: View {
                         .font(.title3)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Continuar Caminhada: \(nextRoom.name)")
+                        Text(SpatialCopy.format("spatial.journey.continueWalk", nextRoom.name))
                             .font(.headline)
                             .fontWeight(.bold)
-                        Text("Passo \(measuredCount + 1) de \(totalRooms)")
+                        Text(SpatialCopy.format("spatial.journey.continueWalk.step", measuredCount + 1, totalRooms))
                             .font(.caption)
                             .opacity(0.85)
                     }
@@ -443,7 +443,7 @@ public struct HomeView: View {
                             .padding(.top, 2)
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Recomendação de Posicionamento")
+                            Text(SpatialCopy.value("spatial.journey.recommendation", defaultValue: "Recomendação de Posicionamento"))
                                 .font(.caption)
                                 .fontWeight(.bold)
                                 .foregroundStyle(WiFiCasaTheme.textSecondary)
@@ -464,7 +464,8 @@ public struct HomeView: View {
                 } label: {
                     HStack {
                         Image(systemName: "arrow.triangle.swap")
-                        Text("Nova Caminhada de Comparação (\(roomsNeedingFix.count) \(roomsNeedingFix.count == 1 ? "ponto fraco" : "pontos fracos"))")
+                        let weakDesc = roomsNeedingFix.count == 1 ? SpatialCopy.value("spatial.journey.weakPoint.single", defaultValue: "ponto fraco") : SpatialCopy.value("spatial.journey.weakPoint.multiple", defaultValue: "pontos fracos")
+                        Text(SpatialCopy.format("spatial.journey.newComparison", roomsNeedingFix.count, weakDesc))
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
@@ -482,7 +483,7 @@ public struct HomeView: View {
                 HStack {
                     Image(systemName: "checkmark.seal.fill")
                         .foregroundStyle(WiFiCasaTheme.scoreExcellent)
-                    Text("Rede Estável — Ver Comparativo")
+                    Text(SpatialCopy.value("spatial.journey.stable", defaultValue: "Rede Estável — Ver Comparativo"))
                         .fontWeight(.semibold)
                 }
                 .frame(maxWidth: .infinity)

@@ -86,13 +86,13 @@ public struct ReportPreviewSheet: View {
                             .tint(WiFiCasaTheme.brandAccent)
                             .scaleEffect(1.3)
 
-                        Text("Renderizando Relatório Técnico Vetorial...")
+                        Text(SpatialCopy.value("spatial.pdf.rendering", defaultValue: "Renderizando Relatório Técnico Vetorial..."))
                             .font(.subheadline)
                             .foregroundStyle(WiFiCasaTheme.textSecondary)
                     }
                 } else if let error = errorMessage {
                     ContentUnavailableView(
-                        "Falha na Geração do Relatório",
+                        SpatialCopy.value("spatial.pdf.errorTitle", defaultValue: "Falha na Geração do Relatório"),
                         systemImage: "exclamationmark.triangle",
                         description: Text(error)
                     )
@@ -101,11 +101,11 @@ public struct ReportPreviewSheet: View {
                         .ignoresSafeArea(edges: .bottom)
                 }
             }
-            .navigationTitle("Relatório Técnico de Qualidade")
+            .navigationTitle(SpatialCopy.value("spatial.pdf.title", defaultValue: "Relatório Técnico Vetorial"))
             .inlineTitleDisplayMode()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Fechar") {
+                    Button(SpatialCopy.value("spatial.common.close", defaultValue: "Fechar")) {
                         dismiss()
                     }
                 }

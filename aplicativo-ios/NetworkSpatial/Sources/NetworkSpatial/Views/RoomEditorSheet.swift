@@ -69,7 +69,7 @@ public struct RoomEditorSheet: View {
                                 .accessibilityLabel("Ícone do cômodo: \(room.icon)")
                                 .accessibilityHint("Toque duas vezes para escolher outro ícone para este cômodo.")
 
-                                TextField("Nome do Cômodo", text: $room.name)
+                                TextField(SpatialCopy.value("spatial.editor.roomName", defaultValue: "Nome do Cômodo"), text: $room.name)
                                     .font(.headline)
                                     .foregroundStyle(WiFiCasaTheme.textPrimary)
                                     .accessibilityLabel("Nome do cômodo: \(room.name)")
@@ -78,28 +78,28 @@ public struct RoomEditorSheet: View {
                             // Linha 2: Configuração do Ponto de Acesso
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack {
-                                    Text("Ponto de Acesso Wi-Fi")
+                                    Text(SpatialCopy.value("spatial.editor.apHeader", defaultValue: "Ponto de Acesso Wi-Fi"))
                                         .font(.caption)
                                         .fontWeight(.semibold)
                                         .foregroundStyle(WiFiCasaTheme.textSecondary)
 
                                     Spacer()
 
-                                    Picker("Tipo de Ponto", selection: Binding(
+                                    Picker(SpatialCopy.value("spatial.editor.apType", defaultValue: "Tipo de Ponto"), selection: Binding(
                                         get: { currentAccessPointType(for: room) },
                                         set: { newType in
                                             handleAccessPointTypeChange(newType, for: room.id)
                                         }
                                     )) {
-                                        Text("Nenhum").tag(AccessPointType.none)
-                                        Text("Roteador").tag(AccessPointType.mainRouter)
-                                        Text("Nó Mesh").tag(AccessPointType.meshSatellite)
-                                        Text("Repetidor").tag(AccessPointType.repeater)
+                                        Text(AccessPointType.none.label).tag(AccessPointType.none)
+                                        Text(AccessPointType.mainRouter.label).tag(AccessPointType.mainRouter)
+                                        Text(AccessPointType.meshSatellite.label).tag(AccessPointType.meshSatellite)
+                                        Text(AccessPointType.repeater.label).tag(AccessPointType.repeater)
                                     }
                                     .pickerStyle(.menu)
                                     .tint(WiFiCasaTheme.brandAccent)
                                     .accessibilityLabel("Ponto de acesso Wi-Fi configurado em \(room.name)")
-                                    .accessibilityValue(currentAccessPointType(for: room).rawValue)
+                                    .accessibilityValue(currentAccessPointType(for: room).label)
                                     .accessibilityHint("Toque duas vezes para alterar entre Nenhum, Roteador Principal, Nó Mesh ou Repetidor.")
                                 }
 
@@ -107,20 +107,20 @@ public struct RoomEditorSheet: View {
                                 let apType = currentAccessPointType(for: room)
                                 if apType == .meshSatellite || apType == .repeater {
                                     HStack {
-                                        Text("Conexão (Backhaul)")
+                                        Text(SpatialCopy.value("spatial.editor.backhaul", defaultValue: "Conexão (Backhaul)"))
                                             .font(.caption2)
                                             .foregroundStyle(WiFiCasaTheme.textSecondary)
 
                                         Spacer()
 
-                                        Picker("Backhaul", selection: Binding(
+                                        Picker(SpatialCopy.value("spatial.editor.backhaul", defaultValue: "Backhaul"), selection: Binding(
                                             get: { room.accessPoint?.backhaulType ?? .wifi },
                                             set: { newBackhaul in
                                                 updateBackhaul(newBackhaul, for: room.id)
                                             }
                                         )) {
-                                            Text("Sem Fio (Wi-Fi)").tag(BackhaulType.wifi)
-                                            Text("Cabo (Ethernet)").tag(BackhaulType.ethernet)
+                                            Text(BackhaulType.wifi.label).tag(BackhaulType.wifi)
+                                            Text(BackhaulType.ethernet.label).tag(BackhaulType.ethernet)
                                         }
                                         .pickerStyle(.segmented)
                                         .frame(maxWidth: 220)
@@ -137,16 +137,16 @@ public struct RoomEditorSheet: View {
                     .onDelete(perform: deleteRoom)
                     .onMove(perform: moveRoom)
                 } header: {
-                    Text("CÔMODOS DA RESIDÊNCIA")
+                    Text(SpatialCopy.value("spatial.editor.sectionRooms", defaultValue: "CÔMODOS DA RESIDÊNCIA"))
                 } footer: {
-                    Text("Aponte o Roteador Principal e configure seus Nós Mesh ou Repetidores para diagnósticos acionáveis de cobertura e backhaul.")
+                    Text(SpatialCopy.value("spatial.editor.footerAP", defaultValue: "Aponte o Roteador Principal e configure seus Nós Mesh ou Repetidores para diagnósticos acionáveis de cobertura e backhaul."))
                 }
 
                 Section {
                     Button {
                         showingAddRoomAlert = true
                     } label: {
-                        Label("Adicionar Novo Cômodo", systemImage: "plus.circle.fill")
+                        Label(SpatialCopy.value("spatial.editor.addRoom", defaultValue: "Adicionar Novo Cômodo"), systemImage: "plus.circle.fill")
                             .font(.headline)
                             .foregroundStyle(WiFiCasaTheme.brandAccent)
                     }
@@ -157,17 +157,17 @@ public struct RoomEditorSheet: View {
             }
             .appListStyle()
             .tint(WiFiCasaTheme.brandAccent)
-            .navigationTitle("Gerenciar Cômodos")
+            .navigationTitle(SpatialCopy.value("spatial.editor.title", defaultValue: "Gerenciar Cômodos"))
             .inlineTitleDisplayMode()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancelar") {
+                    Button(SpatialCopy.value("spatial.common.cancel", defaultValue: "Cancelar")) {
                         dismiss()
                     }
                     .accessibilityLabel("Cancelar alterações e fechar")
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Salvar") {
+                    Button(SpatialCopy.value("spatial.common.save", defaultValue: "Salvar")) {
                         onSave(editingRooms)
                         dismiss()
                     }
@@ -180,9 +180,9 @@ public struct RoomEditorSheet: View {
                 }
                 #endif
             }
-            .alert("Novo Cômodo", isPresented: $showingAddRoomAlert) {
-                TextField("Ex: Varanda, Corredor", text: $newRoomName)
-                Button("Adicionar") {
+            .alert(SpatialCopy.value("spatial.editor.newRoom", defaultValue: "Novo Cômodo"), isPresented: $showingAddRoomAlert) {
+                TextField(SpatialCopy.value("spatial.editor.newRoomPlaceholder", defaultValue: "Ex: Varanda, Corredor"), text: $newRoomName)
+                Button(SpatialCopy.value("spatial.editor.add", defaultValue: "Adicionar")) {
                     let trimmed = newRoomName.trimmingCharacters(in: .whitespaces)
                     if !trimmed.isEmpty {
                         let newRoom = Room(
@@ -196,7 +196,7 @@ public struct RoomEditorSheet: View {
                         newRoomName = ""
                     }
                 }
-                Button("Cancelar", role: .cancel) {
+                Button(SpatialCopy.value("spatial.common.cancel", defaultValue: "Cancelar"), role: .cancel) {
                     newRoomName = ""
                 }
             }

@@ -46,6 +46,7 @@ enum HistoryVisualizationState: Equatable {
 }
 
 struct HistoryView: View {
+    @AppStorage(LinkaLanguagePreference.storageKey) private var languagePreference = LinkaLanguagePreference.system.rawValue
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @EnvironmentObject private var entitlements: StoreKitEntitlementProvider
@@ -230,7 +231,7 @@ struct HistoryView: View {
             #if os(iOS)
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 Menu {
-                    Section("Filtrar") {
+                    Section(LinkaCopy.value("history.filter.section", defaultValue: "Filtrar")) {
                         ForEach(availableFilters, id: \.self) { option in
                             Button {
                                 filter = option
@@ -240,7 +241,7 @@ struct HistoryView: View {
                         }
                     }
 
-                    Section("Ordenar") {
+                    Section(LinkaCopy.value("history.sort.section", defaultValue: "Ordenar")) {
                         ForEach(HistorySort.allCases, id: \.self) { option in
                             Button {
                                 sort = option
@@ -250,28 +251,28 @@ struct HistoryView: View {
                         }
                     }
                 } label: {
-                    Label("Filtrar e ordenar histórico", systemImage: "line.3.horizontal.decrease.circle")
+                    Label(LinkaCopy.value("history.filterAndSort", defaultValue: "Filtrar e ordenar histórico"), systemImage: "line.3.horizontal.decrease.circle")
                 }
-                .accessibilityLabel("Filtrar e ordenar histórico")
+                .accessibilityLabel(LinkaCopy.value("history.filterAndSort", defaultValue: "Filtrar e ordenar histórico"))
                 .accessibilityValue("\(filter.label), \(sort.label)")
 
                 Button {
                     exportCSV()
                 } label: {
-                    Label("Exportar CSV", systemImage: "square.and.arrow.up")
+                    Label(LinkaCopy.value("history.exportCSV", defaultValue: "Exportar CSV"), systemImage: "square.and.arrow.up")
                 }
                 .disabled(filteredMeasurements.isEmpty)
-                .accessibilityHint(filteredMeasurements.isEmpty ? "Não há medições neste filtro para exportar" : "Exporta as medições mostradas em CSV")
+                .accessibilityHint(filteredMeasurements.isEmpty ? LinkaCopy.value("history.exportCSV.emptyHint", defaultValue: "Não há medições neste filtro para exportar") : LinkaCopy.value("history.exportCSV.hint", defaultValue: "Exporta as medições mostradas em CSV"))
             }
             #else
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     exportCSV()
                 } label: {
-                    Label("Exportar CSV", systemImage: "square.and.arrow.up")
+                    Label(LinkaCopy.value("history.exportCSV", defaultValue: "Exportar CSV"), systemImage: "square.and.arrow.up")
                 }
                 .disabled(filteredMeasurements.isEmpty)
-                .help("Exportar histórico de medições em CSV")
+                .help(LinkaCopy.value("history.exportCSV.help", defaultValue: "Exportar histórico de medições em CSV"))
             }
             #endif
         }
@@ -502,6 +503,7 @@ let linkaDownloadSeriesColor = Color.chartDownloadSeries
 struct HistoryWaveChartView: View {
     let measurements: [NetworkMeasurement]
     @State private var selectedIndex: Int? = nil
+    @AppStorage(LinkaLanguagePreference.storageKey) private var languagePreference = LinkaLanguagePreference.system.rawValue
 
     private var chronologicalMeasurements: [NetworkMeasurement] {
         measurements.sorted { $0.measuredAt < $1.measuredAt }
@@ -745,14 +747,14 @@ struct HistoryWaveChartView: View {
     /// o sistema escolher a ordem/conectivo corretos por idioma.
     private func formatHeaderDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.locale = LinkaLanguagePreference.currentLocale
+        formatter.locale = LinkaLanguagePreference.fromStoredValue(languagePreference).locale
         formatter.setLocalizedDateFormatFromTemplate("dMMMMHHmm")
         return formatter.string(from: date)
     }
 
     private func formatAxisDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.locale = LinkaLanguagePreference.currentLocale
+        formatter.locale = LinkaLanguagePreference.fromStoredValue(languagePreference).locale
         formatter.setLocalizedDateFormatFromTemplate("dMMM")
         return formatter.string(from: date)
     }
@@ -762,6 +764,7 @@ struct HistoryWaveChartView: View {
 
 struct AppleStyleHistoryRow: View {
     let measurement: NetworkMeasurement
+    @AppStorage(LinkaLanguagePreference.storageKey) private var languagePreference = LinkaLanguagePreference.system.rawValue
 
     var body: some View {
         HStack(spacing: 14) {
@@ -890,19 +893,20 @@ struct AppleStyleHistoryRow: View {
 
     private var formattedDate: String {
         let formatter = DateFormatter()
-        formatter.locale = LinkaLanguagePreference.currentLocale
+        formatter.locale = LinkaLanguagePreference.fromStoredValue(languagePreference).locale
         formatter.setLocalizedDateFormatFromTemplate("dMMMjm")
         return formatter.string(from: measurement.measuredAt)
     }
 
     private func formatSpeed(_ speed: Double?) -> String {
         guard let speed = speed else { return "—" }
-        return speed.formatted(.number.precision(.fractionLength(0)).locale(LinkaLanguagePreference.currentLocale))
+        return speed.formatted(.number.precision(.fractionLength(0)).locale(LinkaLanguagePreference.fromStoredValue(languagePreference).locale))
     }
 }
 
 struct HistoryRow: View {
     let measurement: NetworkMeasurement
+    @AppStorage(LinkaLanguagePreference.storageKey) private var languagePreference = LinkaLanguagePreference.system.rawValue
 
     var body: some View {
         HStack(spacing: 12) {
@@ -967,13 +971,13 @@ struct HistoryRow: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
-        formatter.locale = LinkaLanguagePreference.currentLocale
+        formatter.locale = LinkaLanguagePreference.fromStoredValue(languagePreference).locale
         return formatter.string(from: date)
     }
 
     private func formatSpeed(_ speed: Double?) -> String {
         guard let speed = speed else { return "--" }
-        return speed.formatted(.number.precision(.fractionLength(0)).locale(LinkaLanguagePreference.currentLocale))
+        return speed.formatted(.number.precision(.fractionLength(0)).locale(LinkaLanguagePreference.fromStoredValue(languagePreference).locale))
     }
 
     private func connectionIconName(for kind: NetworkConnectionKind?) -> String {

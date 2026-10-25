@@ -12,26 +12,26 @@ public enum HomeProblemCase: String, CaseIterable, Identifiable, Sendable {
     public var title: String {
         switch self {
         case .weakRoom:
-            return "Wi-Fi ruim em um cômodo"
+            return SpatialCopy.value("spatial.problem.weakRoom.title", defaultValue: "Wi-Fi ruim em um cômodo")
         case .videoCallsFreezing:
-            return "Chamadas e vídeos travando"
+            return SpatialCopy.value("spatial.problem.videoCalls.title", defaultValue: "Chamadas e vídeos travando")
         case .routerUpgrade:
-            return "Preciso trocar de roteador?"
+            return SpatialCopy.value("spatial.problem.routerUpgrade.title", defaultValue: "Preciso trocar de roteador?")
         case .planAdequacy:
-            return "Meu plano é suficiente?"
+            return SpatialCopy.value("spatial.problem.planAdequacy.title", defaultValue: "Meu plano é suficiente?")
         }
     }
 
     public var subtitle: String {
         switch self {
         case .weakRoom:
-            return "Investigar estabilidade e alcance no ponto com problema"
+            return SpatialCopy.value("spatial.problem.weakRoom.subtitle", defaultValue: "Investigar estabilidade e alcance no ponto com problema")
         case .videoCallsFreezing:
-            return "Detectar oscilação de latência e perda de pacotes"
+            return SpatialCopy.value("spatial.problem.videoCalls.subtitle", defaultValue: "Detectar oscilação de latência e perda de pacotes")
         case .routerUpgrade:
-            return "Avaliar antes de gastar dinheiro com equipamentos"
+            return SpatialCopy.value("spatial.problem.routerUpgrade.subtitle", defaultValue: "Avaliar antes de gastar dinheiro com equipamentos")
         case .planAdequacy:
-            return "Verificar resposta da rota externa e velocidade"
+            return SpatialCopy.value("spatial.problem.planAdequacy.subtitle", defaultValue: "Verificar resposta da rota externa e velocidade")
         }
     }
 
@@ -51,26 +51,26 @@ public enum HomeProblemCase: String, CaseIterable, Identifiable, Sendable {
     public var promptQuestion: String {
         switch self {
         case .weakRoom:
-            return "Em qual cômodo o sinal costuma falhar ou ficar lento?"
+            return SpatialCopy.value("spatial.problem.weakRoom.prompt", defaultValue: "Em qual cômodo o sinal costuma falhar ou ficar lento?")
         case .videoCallsFreezing:
-            return "Onde você costuma fazer chamadas de vídeo ou reuniões?"
+            return SpatialCopy.value("spatial.problem.videoCalls.prompt", defaultValue: "Onde você costuma fazer chamadas de vídeo ou reuniões?")
         case .routerUpgrade:
-            return "Em qual cômodo você mais sente necessidade de melhorar a internet?"
+            return SpatialCopy.value("spatial.problem.routerUpgrade.prompt", defaultValue: "Em qual cômodo você mais sente necessidade de melhorar a internet?")
         case .planAdequacy:
-            return "Onde você deseja avaliar a velocidade e estabilidade geral?"
+            return SpatialCopy.value("spatial.problem.planAdequacy.prompt", defaultValue: "Onde você deseja avaliar a velocidade e estabilidade geral?")
         }
     }
 
     public var diagnosticFocus: String {
         switch self {
         case .weakRoom:
-            return "Avaliando a resposta do roteador local e estabilidade do sinal Wi-Fi neste ponto."
+            return SpatialCopy.value("spatial.problem.weakRoom.focus", defaultValue: "Avaliando a resposta do roteador local e estabilidade do sinal Wi-Fi neste ponto.")
         case .videoCallsFreezing:
-            return "Medindo variação de atraso (jitter) e perda de pacotes críticos para chamadas em tempo real."
+            return SpatialCopy.value("spatial.problem.videoCalls.focus", defaultValue: "Medindo variação de atraso (jitter) e perda de pacotes críticos para chamadas em tempo real.")
         case .routerUpgrade:
-            return "Verificando se o gargalo real está no roteador doméstico ou na rota da operadora."
+            return SpatialCopy.value("spatial.problem.routerUpgrade.focus", defaultValue: "Verificando se o gargalo real está no roteador doméstico ou na rota da operadora.")
         case .planAdequacy:
-            return "Aferindo taxa de transferência e tempo de resposta externo da internet."
+            return SpatialCopy.value("spatial.problem.planAdequacy.focus", defaultValue: "Aferindo taxa de transferência e tempo de resposta externo da internet.")
         }
     }
 

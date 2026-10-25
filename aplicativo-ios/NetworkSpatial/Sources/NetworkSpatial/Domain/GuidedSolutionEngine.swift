@@ -7,6 +7,14 @@ public enum AnalysisConfidence: String, Codable, Sendable {
     case medium = "Média Confiança"
     case inconclusive = "Inconclusivo"
 
+    public var label: String {
+        switch self {
+        case .high: return SpatialCopy.value("spatial.confidence.high", defaultValue: rawValue)
+        case .medium: return SpatialCopy.value("spatial.confidence.medium", defaultValue: rawValue)
+        case .inconclusive: return SpatialCopy.value("spatial.confidence.inconclusive", defaultValue: rawValue)
+        }
+    }
+
     public var systemImage: String {
         switch self {
         case .high: return "checkmark.seal.fill"
@@ -21,6 +29,15 @@ public enum BottleneckType: String, Codable, Sendable {
     case ispProvider = "Instabilidade da Operadora de Internet"
     case localInterference = "Interferência ou Roteador Obstruído"
     case healthy = "Conexão Equilibrada"
+
+    public var label: String {
+        switch self {
+        case .localDistanceOrObstacle: return SpatialCopy.value("spatial.bottleneck.obstacle", defaultValue: rawValue)
+        case .ispProvider: return SpatialCopy.value("spatial.bottleneck.isp", defaultValue: rawValue)
+        case .localInterference: return SpatialCopy.value("spatial.bottleneck.interference", defaultValue: rawValue)
+        case .healthy: return SpatialCopy.value("spatial.bottleneck.healthy", defaultValue: rawValue)
+        }
+    }
 }
 
 public struct TwoPointAnalysis: Sendable, Equatable {

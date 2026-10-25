@@ -59,7 +59,7 @@ public struct WalkSessionView: View {
                     .fontWeight(.bold)
                     .foregroundStyle(WiFiCasaTheme.textPrimary)
 
-                Text("Vamos caminhar por \(totalRooms) cômodos na ordem mais eficiente pela sua casa.")
+                Text(SpatialCopy.format("spatial.walk.intro", totalRooms))
                     .font(.subheadline)
                     .foregroundStyle(WiFiCasaTheme.textSecondary)
                     .multilineTextAlignment(.center)
@@ -71,7 +71,7 @@ public struct WalkSessionView: View {
                     Image(systemName: "location.fill")
                         .foregroundStyle(WiFiCasaTheme.brandAccent)
                         .frame(width: 24)
-                    Text("1 toque por cômodo quando estiver no local")
+                    Text(SpatialCopy.value("spatial.walk.tip1", defaultValue: "1 toque por cômodo quando estiver no local"))
                         .font(.footnote)
                         .foregroundStyle(WiFiCasaTheme.textPrimary)
                     Spacer()
@@ -81,7 +81,7 @@ public struct WalkSessionView: View {
                     Image(systemName: "timer")
                         .foregroundStyle(WiFiCasaTheme.brandAccent)
                         .frame(width: 24)
-                    Text("Duração estimada: cerca de 2 minutos")
+                    Text(SpatialCopy.value("spatial.walk.tip2", defaultValue: "Duração estimada: cerca de 2 minutos"))
                         .font(.footnote)
                         .foregroundStyle(WiFiCasaTheme.textPrimary)
                     Spacer()
@@ -91,7 +91,7 @@ public struct WalkSessionView: View {
                     Image(systemName: "antenna.radiowaves.left.and.right")
                         .foregroundStyle(WiFiCasaTheme.brandAccent)
                         .frame(width: 24)
-                    Text("Detecção inteligente de pontos de acesso Wi-Fi")
+                    Text(SpatialCopy.value("spatial.walk.tip3", defaultValue: "Detecção inteligente de pontos de acesso Wi-Fi"))
                         .font(.footnote)
                         .foregroundStyle(WiFiCasaTheme.textPrimary)
                     Spacer()
@@ -108,7 +108,7 @@ public struct WalkSessionView: View {
                 viewModel.startWalk()
             } label: {
                 HStack(spacing: 8) {
-                    Text("Começar Caminhada")
+                    Text(SpatialCopy.value("spatial.walk.start", defaultValue: "Começar Caminhada"))
                     Image(systemName: "arrow.right")
                 }
                 .font(.headline.weight(.semibold))
@@ -193,7 +193,7 @@ public struct WalkSessionView: View {
             Spacer()
 
             VStack(spacing: 12) {
-                Text("📍 Quando estiver no local:")
+                Text(SpatialCopy.value("spatial.walk.whenThere", defaultValue: "📍 Quando estiver no local:"))
                     .font(.footnote)
                     .foregroundStyle(WiFiCasaTheme.textSecondary)
 
@@ -203,7 +203,7 @@ public struct WalkSessionView: View {
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "checkmark.circle.fill")
-                        Text("Estou aqui")
+                        Text(SpatialCopy.value("spatial.walk.imHere", defaultValue: "Estou aqui"))
                     }
                     .font(.headline.weight(.bold))
                     .frame(maxWidth: .infinity)
@@ -216,7 +216,7 @@ public struct WalkSessionView: View {
                 Button {
                     viewModel.skipCurrentRoom()
                 } label: {
-                    Text("Pular este cômodo")
+                    Text(SpatialCopy.value("spatial.walk.skip", defaultValue: "Pular este cômodo"))
                         .font(.subheadline)
                         .foregroundStyle(WiFiCasaTheme.textSecondary)
                         .frame(maxWidth: .infinity)
@@ -278,7 +278,7 @@ public struct WalkSessionView: View {
                     .fontWeight(.bold)
                     .foregroundStyle(WiFiCasaTheme.textPrimary)
 
-                Text(step.rawValue)
+                Text(step.label)
                     .font(.subheadline)
                     .foregroundStyle(WiFiCasaTheme.textSecondary)
                     .multilineTextAlignment(.center)
@@ -422,7 +422,7 @@ public struct WalkSessionView: View {
                 viewModel.continueWalk()
             } label: {
                 HStack(spacing: 8) {
-                    Text(nextRoom != nil ? "Continuar caminhada" : "Ver resultado final")
+                    Text(nextRoom != nil ? SpatialCopy.value("spatial.walk.continue", defaultValue: "Continuar caminhada") : SpatialCopy.value("spatial.walk.finish", defaultValue: "Ver resultado final"))
                     Image(systemName: "arrow.right")
                 }
                 .font(.headline.weight(.semibold))
@@ -455,12 +455,12 @@ public struct WalkSessionView: View {
             .accessibilityHidden(true)
 
             VStack(spacing: 8) {
-                Text("Mapeamento Concluído")
+                Text(SpatialCopy.value("spatial.walk.completed", defaultValue: "Mapeamento Concluído"))
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundStyle(WiFiCasaTheme.textPrimary)
 
-                Text("Qualidade Média nos Pontos Medidos")
+                Text(SpatialCopy.value("spatial.walk.averageQuality", defaultValue: "Qualidade Média nos Pontos Medidos"))
                     .font(.subheadline)
                     .foregroundStyle(WiFiCasaTheme.textSecondary)
 
@@ -551,7 +551,7 @@ public struct WalkSessionView: View {
                 viewModel.cancelSession()
                 dismiss()
             } label: {
-                Text("Ver resultado no mapa")
+                Text(SpatialCopy.value("spatial.walk.seeOnMap", defaultValue: "Ver resultado no mapa"))
                     .font(.headline.weight(.semibold))
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)

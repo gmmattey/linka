@@ -10,11 +10,11 @@ public enum WalkSessionMode: String, Codable, Sendable, CaseIterable {
     public var actionTitle: String {
         switch self {
         case .regular:
-            return "Mapear minha casa"
+            return SpatialCopy.value("spatial.walk.mapHome", defaultValue: "Mapear minha casa")
         case .baseline:
-            return "Gravar Baseline Inicial"
+            return SpatialCopy.value("spatial.walk.recordBaseline", defaultValue: "Gravar Baseline Inicial")
         case .comparison:
-            return "Nova caminhada de comparação"
+            return SpatialCopy.value("spatial.walk.newComparison", defaultValue: "Nova caminhada de comparação")
         }
     }
 }
