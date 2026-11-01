@@ -112,7 +112,7 @@ module LinkaLocalRelease
         "team" => settings.fetch("DEVELOPMENT_TEAM").to_s }
     end
     app, widget = targets
-    check(app["version"].match?(/\A\d+\.\d+\.\d+\z/), "invalid_version")
+    check(app["version"].match?(/\A\d+\.\d+(\.\d+)?\z/), "invalid_version")
     check(app["build"].match?(/\A[1-9]\d*\z/), "invalid_build")
     check(app["bundle_id"] == APP_ID && widget["bundle_id"] == WIDGET_ID, "unexpected_bundle_ids")
     check(app.values_at("version", "build", "team") == widget.values_at("version", "build", "team"), "widget_identity_mismatch")

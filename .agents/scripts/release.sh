@@ -21,7 +21,7 @@ try:
 except ImportError:
     sys.exit('Erro: python3 precisa de PyYAML para ler project.yml semanticamente.')
 
-VERSION = r'(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)'
+VERSION = r'(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*))?'
 KEYS = ('MARKETING_VERSION', 'CURRENT_PROJECT_VERSION')
 
 
@@ -48,7 +48,7 @@ UniqueLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, uni
 
 def version_pair(settings):
     pair = tuple(str(settings.get(k, '')) for k in KEYS)
-    require(re.fullmatch(VERSION, pair[0]), 'MARKETING_VERSION deve ser X.Y.Z estrito.')
+    require(re.fullmatch(VERSION, pair[0]), 'MARKETING_VERSION deve ser X.Y (ou X.Y.Z legado) estrito.')
     require(re.fullmatch(r'[1-9][0-9]*', pair[1]), 'CURRENT_PROJECT_VERSION deve ser inteiro positivo.')
     return pair
 
@@ -129,7 +129,7 @@ def replace_if_unchanged(path, expected, replacement):
 def run():
     args = sys.argv[1:]
     if args in (['--help'], ['-h']):
-        print('Uso: .agents/scripts/release.sh [patch|minor|major|X.Y.Z] — preparação local, sem upload.')
+        print('Uso: .agents/scripts/release.sh [patch|minor|major|X.Y] — preparação local, sem upload.')
         return
     require(len(args) <= 1, 'Aceito no máximo um argumento.')
     bump = args[0] if args else 'patch'
@@ -163,9 +163,16 @@ def run():
                 continue
             require(str(node.value) == wanted[KEYS.index(path[-1])], 'Override divergente: ' + '.'.join(path))
         verify_project(pbx(originals[project]), targets, current, mac_pairs)
-        major, minor, patch = map(int, current[0].split('.'))
-        version = {'patch': f'{major}.{minor}.{patch + 1}', 'minor': f'{major}.{minor + 1}.0',
-                   'major': f'{major + 1}.0.0'}.get(bump, bump)
+        parts = list(map(int, current[0].split('.')))
+        major, minor = parts[0], parts[1]
+        if len(parts) == 2:
+            # Convenção X.Y (build): patch só incrementa o build.
+            options = {'patch': f'{major}.{minor}', 'minor': f'{major}.{minor + 1}',
+                       'major': f'{major + 1}.0'}
+        else:
+            options = {'patch': f'{major}.{minor}.{parts[2] + 1}', 'minor': f'{major}.{minor + 1}.0',
+                       'major': f'{major + 1}.0.0'}
+        version = options.get(bump, bump)
         updated = (version, str(int(current[1]) + 1))
         edits = [(node.start_mark.index, node.end_mark.index,
                   json.dumps(updated[KEYS.index(path[-1])]))

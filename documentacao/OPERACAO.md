@@ -37,7 +37,7 @@ Não apagar caches como primeira reação, criar pastas com timestamp a cada tes
 ## Preparação, TestFlight e publicação
 
 1. Delimitar a mudança, testar e atualizar as seções afetadas e [RELEASE_NOTES](../RELEASE_NOTES.md).
-2. Preparar nova candidata com `.agents/scripts/release.sh patch`, `minor`, `major` ou `X.Y.Z`. Ele incrementa iOS, preserva Mac, gera em cópia isolada e aplica só versão/build, sem substituir customizações de projeto. Não repetir bump para promover a mesma build.
+2. Preparar nova candidata com `.agents/scripts/release.sh patch`, `minor`, `major` ou `X.Y`. A convenção de versão é **X.Y (build)**, por exemplo 2.0 (63); `patch` só incrementa o build. Versões antigas X.Y.Z (Mac 1.1.5) continuam aceitas. Ele incrementa iOS, preserva Mac, gera em cópia isolada e aplica só versão/build, sem substituir customizações de projeto. Não repetir bump para promover a mesma build.
 3. Conferir diff, commit/PR e merge dentro da autorização recebida. Beta exige `main` limpa e igual a `origin/main`; não ocultar WIP com limpeza.
 4. Depois de autorização para TestFlight daquela candidata, usar `bundle exec fastlane ios beta authorized:true` quando a chave da App Store Connect estiver configurada. Para envio direto pelo Xcode em linha de comando, arquivar a candidata interna e exportar com `destination=upload`, `testFlightInternalTestingOnly=true` e `-allowProvisioningUpdates`, usando a conta já adicionada em Xcode.
 
