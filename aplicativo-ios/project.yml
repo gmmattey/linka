@@ -9,7 +9,7 @@ configs:
 settings:
   base:
     MARKETING_VERSION: "2.0"
-    CURRENT_PROJECT_VERSION: "63"
+    CURRENT_PROJECT_VERSION: "64"
     DEVELOPMENT_LANGUAGE: pt-BR
   configs:
     InternalBeta:

@@ -1,6 +1,6 @@
-# Linka 2.0 (63) — candidata de produção
+# Linka 2.0 (64) — candidata de produção
 
-- Primeira versão na convenção X.Y (build). iOS/widget 2.0 (63); Mac permanece em 1.1.5 (54).
+- Primeira versão na convenção X.Y (build). iOS/widget 2.0 (64); a build 63 foi substituída por esta, com Minha Rede ativa no release público e a pesquisa de equipamentos apontando para o serviço dedicado; Mac permanece em 1.1.5 (54).
 - Navegação nativa por abas (Medir, Histórico, Minha Rede e Ajustes) e identidade visual unificada.
 - Assist na tela de resultado: envia somente os números do teste e o tipo de conexão, com autorização.
 - Minha Rede: equipamentos, plano contratado e comparação com as medições.

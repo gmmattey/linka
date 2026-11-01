@@ -14,7 +14,7 @@ enum InventoryBuildConfiguration {
         #endif
     }
 
-    static var isEnabled: Bool { channel != .publicRelease }
+    static var isEnabled: Bool { true }
 
     // Dedicated lookup deployment verified while disabled. Server activation is independent.
     // No provider credential belongs in this app. Keep the host allowlist explicit when activating.
@@ -24,9 +24,7 @@ enum InventoryBuildConfiguration {
 
     static var lookupEndpoint: URL? {
         switch channel {
-        case .publicRelease:
-            return nil
-        case .internalBeta:
+        case .publicRelease, .internalBeta:
             guard let value = internalBetaEndpointString else { return nil }
             return validatedEndpoint(value, allowedHosts: internalBetaAllowedHosts, requiredPath: lookupPath)
         case .development:
