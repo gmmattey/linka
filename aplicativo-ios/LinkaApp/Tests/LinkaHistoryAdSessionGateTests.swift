@@ -212,6 +212,10 @@ final class LinkaAdsCoordinatorMeasurementSuppressionTests: XCTestCase {
             events.append("application active")
             return true
         }
+        configuration.trackingAuthorizationStatus = {
+            events.append("tracking status")
+            return .authorized
+        }
         configuration.updateConsentInformation = {
             events.append("consent information")
             return true
@@ -220,8 +224,38 @@ final class LinkaAdsCoordinatorMeasurementSuppressionTests: XCTestCase {
         let coordinator = LinkaAdsCoordinator(dependencies: configuration)
         coordinator.prepareHomeAd(isEligibleForAds: true, isEntitlementResolved: true)
         await fulfillment(of: [finished], timeout: 1)
-        XCTAssertEqual(events, ["application active", "consent information"])
+        XCTAssertEqual(events, ["application active", "tracking status", "consent information"])
         XCTAssertEqual(recorder.presentedSurfaces, [.initialConsent])
+    }
+
+    func testTrackingAuthorizationIsRequestedBeforeGoogleConsent() async {
+        let pause = ConsentPresentationPause()
+        let recorder = AdFlowRecorder()
+        let finished = expectation(description: "ad flow finishes after consent")
+        await pause.releasePresentation()
+        var events: [String] = []
+        var configuration = dependencies(pause: pause, recorder: recorder, adFlowDidFinish: { finished.fulfill() })
+        configuration.trackingAuthorizationStatus = {
+            events.append("tracking status")
+            return .notDetermined
+        }
+        configuration.requestTrackingAuthorization = {
+            events.append("tracking request")
+            return .denied
+        }
+        configuration.updateConsentInformation = {
+            events.append("consent information")
+            return true
+        }
+        configuration.canRequestAds = { false }
+
+        let coordinator = LinkaAdsCoordinator(dependencies: configuration)
+        coordinator.prepareHomeAd(isEligibleForAds: true, isEntitlementResolved: true)
+
+        await fulfillment(of: [finished], timeout: 1)
+        XCTAssertEqual(events, ["tracking status", "tracking request", "consent information"])
+        XCTAssertEqual(recorder.presentedSurfaces, [.initialConsent])
+        XCTAssertEqual(recorder.nativeAdLoadStarts, 0)
     }
 
     func testInactiveApplicationDefersConsentAndAllowsRetryWhenActive() async {
@@ -280,6 +314,8 @@ final class LinkaAdsCoordinatorMeasurementSuppressionTests: XCTestCase {
         LinkaAdsCoordinatorDependencies(
             isEnabled: { true },
             isApplicationActive: { true },
+            trackingAuthorizationStatus: { .authorized },
+            requestTrackingAuthorization: { .authorized },
             updateConsentInformation: { true },
             presentConsentSurface: { surface, permit in
                 await pause.reachPresentationCheckpoint()

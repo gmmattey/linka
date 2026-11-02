@@ -9,7 +9,7 @@ configs:
 settings:
   base:
     MARKETING_VERSION: "2.0"
-    CURRENT_PROJECT_VERSION: "64"
+    CURRENT_PROJECT_VERSION: "65"
     DEVELOPMENT_LANGUAGE: pt-BR
   configs:
     InternalBeta:
@@ -85,6 +85,7 @@ targets:
         LinkaAdsEnabled: "$(LINKA_ADS_ENABLED)"
         FIREBASE_ANALYTICS_COLLECTION_ENABLED: false
         GOOGLE_ANALYTICS_IDFV_COLLECTION_ENABLED: false
+        NSUserTrackingUsageDescription: "O Linka usa este identificador para mostrar anúncios mais relevantes e medir seu desempenho."
         NSCameraUsageDescription: "Fotografe a etiqueta para preencher marca e modelo. A imagem é lida neste aparelho e não é enviada nem salva pelo Linka."
         NSLocationWhenInUseUsageDescription: "O Linka usa a localização apenas porque o iPhone exige essa autorização para informar o nome da rede Wi-Fi atual. Sua localização não é salva para identificar a rede."
         NSLocationTemporaryUsageDescriptionDictionary:

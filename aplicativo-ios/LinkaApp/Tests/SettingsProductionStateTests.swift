@@ -149,7 +149,7 @@ final class SettingsProductionStateTests: XCTestCase {
             let contents = try String(contentsOf: url)
             XCTAssertTrue(contents.contains("NSLocationWhenInUseUsageDescription"))
             XCTAssertTrue(contents.contains("NSLocalNetworkUsageDescription"))
-            XCTAssertFalse(contents.contains("NSUserTrackingUsageDescription"))
+            XCTAssertTrue(contents.contains("NSUserTrackingUsageDescription"))
         }
     }
 

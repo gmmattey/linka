@@ -1,6 +1,7 @@
 import Foundation
 #if os(iOS)
 import UIKit
+import AppTrackingTransparency
 import GoogleMobileAds
 import UserMessagingPlatform
 #endif
@@ -43,9 +44,28 @@ struct LinkaAdPresentationPermit {
 enum LinkaAdConsentSurface { case initialConsent, privacyOptions }
 
 #if os(iOS)
+enum LinkaTrackingAuthorizationStatus: Equatable {
+    case notDetermined
+    case restricted
+    case denied
+    case authorized
+
+    init(_ status: ATTrackingManager.AuthorizationStatus) {
+        switch status {
+        case .notDetermined: self = .notDetermined
+        case .restricted: self = .restricted
+        case .denied: self = .denied
+        case .authorized: self = .authorized
+        @unknown default: self = .denied
+        }
+    }
+}
+
 struct LinkaAdsCoordinatorDependencies {
     var isEnabled: () -> Bool
     var isApplicationActive: @MainActor () -> Bool
+    var trackingAuthorizationStatus: () -> LinkaTrackingAuthorizationStatus
+    var requestTrackingAuthorization: @MainActor () async -> LinkaTrackingAuthorizationStatus
     var updateConsentInformation: @MainActor () async -> Bool
     var presentConsentSurface: @MainActor (LinkaAdConsentSurface, LinkaAdPresentationPermit) async throws -> Void
     var canRequestAds: () -> Bool
@@ -56,6 +76,14 @@ struct LinkaAdsCoordinatorDependencies {
     static let live = LinkaAdsCoordinatorDependencies(
         isEnabled: { (Bundle.main.object(forInfoDictionaryKey: "LinkaAdsEnabled") as? String) == "YES" },
         isApplicationActive: { UIApplication.shared.applicationState == .active },
+        trackingAuthorizationStatus: { LinkaTrackingAuthorizationStatus(ATTrackingManager.trackingAuthorizationStatus) },
+        requestTrackingAuthorization: {
+            await withCheckedContinuation { continuation in
+                ATTrackingManager.requestTrackingAuthorization { status in
+                    continuation.resume(returning: LinkaTrackingAuthorizationStatus(status))
+                }
+            }
+        },
         updateConsentInformation: {
             do { try await ConsentInformation.shared.requestConsentInfoUpdate(with: RequestParameters()); return true }
             catch { return false }
@@ -199,6 +227,7 @@ final class LinkaAdsCoordinator: NSObject, ObservableObject {
             dependencies.adFlowDidFinish()
         }
         guard canLoadAds, requestGate.canContinue(requestGeneration: requestGeneration), dependencies.isApplicationActive() else { return }
+        guard await requestTrackingAuthorizationIfNeeded(requestGeneration: requestGeneration) else { return }
         if needsConsentRefresh {
             await refreshConsentInformation()
             guard canLoadAds, requestGate.canContinue(requestGeneration: requestGeneration), consentInformationWasUpdated else { return }
@@ -217,6 +246,20 @@ final class LinkaAdsCoordinator: NSObject, ObservableObject {
         let placements = pendingPlacements
         pendingPlacements.removeAll()
         for placement in placements { loadNativeAd(for: placement, generation: requestGeneration) }
+    }
+
+    /// ATT é a primeira conversa de publicidade: UMP e o SDK de anúncios só
+    /// podem ser alcançados depois que o sistema registrou a escolha da pessoa.
+    /// Recusar ATT não bloqueia o Linka nem os anúncios não personalizados.
+    private func requestTrackingAuthorizationIfNeeded(requestGeneration: Int) async -> Bool {
+        guard dependencies.trackingAuthorizationStatus() == .notDetermined else {
+            return canLoadAds && requestGate.canContinue(requestGeneration: requestGeneration)
+        }
+
+        _ = await dependencies.requestTrackingAuthorization()
+        return canLoadAds
+            && requestGate.canContinue(requestGeneration: requestGeneration)
+            && dependencies.isApplicationActive()
     }
 
     private func loadNativeAd(for placement: LinkaAdPlacement, generation: Int) {
