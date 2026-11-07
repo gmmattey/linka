@@ -1,3 +1,10 @@
+# Linka para Mac 1.2.1 (56)
+
+**Correções**
+
+- Chamada em vídeo e Jogo online voltam a ser avaliados em conexões rápidas.
+- O teste de download não é mais cortado pelo limite de requisições do servidor.
+
 # Linka para Mac 1.2.0 (55)
 
 **Novidades**
