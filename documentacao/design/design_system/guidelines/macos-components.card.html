@@ -1,0 +1,43 @@
+<!-- @dsCard group="macOS" viewport="1180x700" name="macOS · Componentes" subtitle="Cartão de métrica, banner, medidor, selo de estado, inspetor e janela" -->
+<html><head><link rel="stylesheet" href="../styles.css"></head>
+<body style="margin:0;padding:28px;background:var(--mac-page);font-family:-apple-system,'SF Pro Text',system-ui,sans-serif;color:var(--text-primary)">
+<style>
+.card{background:var(--mac-card);border-radius:var(--mac-radius-card);box-shadow:var(--mac-shadow-card);position:relative}
+.card:before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--mac-card-highlight);pointer-events:none;mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);-webkit-mask-composite:xor;mask-composite:exclude;padding:1px}
+.badge{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:15px}
+.tag{display:inline-block;padding:3px 10px;border-radius:99px;font-size:13px;font-weight:600}
+.num{font-family:ui-rounded,'SF Pro Rounded',system-ui;font-weight:700;font-variant-numeric:tabular-nums}
+h4{margin:0 0 10px;font-size:20px}
+</style>
+<div style="display:flex;gap:28px;align-items:flex-start">
+<div style="width:520px">
+<h4>MacMetricTile</h4>
+<div style="display:flex;gap:14px">
+<div class="card" style="padding:18px;flex:1"><div style="display:flex;gap:10px;align-items:center;color:var(--text-secondary);font-size:16px;font-weight:600"><span class="badge" style="background:color-mix(in srgb,var(--mac-download) 16%,transparent);color:var(--mac-download)">↓</span>Download</div><div class="num" style="font-size:38px;margin-top:12px">513<span style="font-size:18px;color:var(--text-secondary);font-weight:600"> Mbps</span></div></div>
+<div class="card" style="padding:18px;flex:1"><div style="display:flex;gap:10px;align-items:center;color:var(--text-secondary);font-size:16px;font-weight:600"><span class="badge" style="background:color-mix(in srgb,var(--mac-ping) 16%,transparent);color:var(--mac-ping)">◷</span>Ping</div><div class="num" style="font-size:38px;margin-top:12px">34<span style="font-size:18px;color:var(--text-secondary);font-weight:600"> ms</span></div></div>
+</div>
+<h4 style="margin-top:22px">MacBanner</h4>
+<div style="padding:18px;border-radius:18px;background:color-mix(in srgb,var(--mac-good) 10%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mac-good) 25%,transparent);display:flex;gap:14px;align-items:center"><span class="badge" style="width:44px;height:44px;background:color-mix(in srgb,var(--mac-good) 16%,transparent);color:var(--mac-good)">✓</span><div style="font-size:20px;font-weight:600">Sua conexão atende streaming em 4K e jogos online.</div></div>
+<h4 style="margin-top:22px">Selo de estado</h4>
+<span class="tag" style="background:color-mix(in srgb,var(--mac-good) 14%,transparent);color:var(--mac-good)">Adequada</span>
+<span class="tag" style="background:color-mix(in srgb,var(--mac-warn) 14%,transparent);color:var(--mac-warn)">Limitada</span>
+<span class="tag" style="background:color-mix(in srgb,var(--mac-crit) 14%,transparent);color:var(--mac-crit)">Insuficiente</span>
+</div>
+<div style="width:250px">
+<h4>MacGauge</h4>
+<div style="width:220px;height:220px;border-radius:50%;background:conic-gradient(from 225deg,var(--mac-upload),var(--mac-download) 120deg,#5B21B6 200deg,transparent 200deg);mask:radial-gradient(circle,transparent 78px,#000 79px,#000 100px,transparent 101px);-webkit-mask:radial-gradient(circle,transparent 78px,#000 79px,#000 100px,transparent 101px);filter:drop-shadow(0 0 12px color-mix(in srgb,var(--mac-download) 35%,transparent))"></div>
+<div class="num" style="font-size:44px;margin-top:-142px;text-align:center;position:relative;color:var(--mac-accent-ink)">263</div>
+<div style="text-align:center;color:var(--text-secondary);font-size:14px;position:relative">Mbps</div>
+</div>
+<div style="width:300px">
+<h4>Inspetor</h4>
+<div class="card" style="padding:16px;border-radius:0">
+<div style="font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px">Rede agora</div>
+<div style="display:flex;justify-content:space-between;font-size:15px;padding:7px 0"><span style="color:var(--text-secondary)">Rede</span><span>Luiz-5G</span></div>
+<div style="display:flex;justify-content:space-between;font-size:15px;padding:7px 0"><span style="color:var(--text-secondary)">Banda</span><span>5 GHz</span></div>
+<div style="background:var(--mac-well);border-radius:12px;padding:12px;margin-top:10px;color:var(--mac-accent-ink);font-size:15px">Ver histórico completo</div>
+</div>
+<p style="font-size:13px;color:var(--text-secondary)">Ações do inspetor são poços (superfície rebaixada), não linhas separadas por divisor.</p>
+</div>
+</div>
+</body></html>

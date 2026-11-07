@@ -758,7 +758,7 @@ private struct NetworkEquipmentListView: View {
     @State private var editing: RegisteredNetworkDevice?
 
     var body: some View {
-        List {
+        LinkaPage {
             Section {
                 ForEach(store.devices) { device in
                     NavigationLink {
@@ -807,7 +807,7 @@ private struct NetworkEquipmentListView: View {
     }
 }
 
-private struct NetworkConnectionsListView: View {
+struct NetworkConnectionsListView: View {
     @ObservedObject var store: LinkaInventoryStore
     @State private var sheet: Target?
 
@@ -824,7 +824,7 @@ private struct NetworkConnectionsListView: View {
     }
 
     var body: some View {
-        List {
+        LinkaPage {
             Section {
                 if store.connections.isEmpty {
                     Text(LinkaCopy.value("inventory.connections.guide.message"))
@@ -886,7 +886,7 @@ private struct NetworkConnectionsListView: View {
     }
 }
 
-private struct DeviceDetailView: View {
+struct DeviceDetailView: View {
     let deviceID: UUID
     @ObservedObject var store: LinkaInventoryStore
     @State private var editing: RegisteredNetworkDevice?
@@ -902,14 +902,14 @@ private struct DeviceDetailView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(device.inventoryTitle).font(.title2.bold()).accessibilityAddTraits(.isHeader)
+                            Text(device.inventoryTitle).font(LinkaFont.title).accessibilityAddTraits(.isHeader)
                             if device.nickname != nil {
                                 Text([device.identity.brand, device.identity.model].filter { !$0.isEmpty }.joined(separator: " "))
                                     .foregroundStyle(.secondary)
                             }
                             if device.kind != .other {
                                 Text(LinkaCopy.value(device.kind == .ont ? "inventory.kind.fiberEquipment" : "inventory.kind.\(device.kind.rawValue)"))
-                                    .font(.subheadline).foregroundStyle(.secondary)
+                                    .font(LinkaFont.label).foregroundStyle(.secondary)
                             }
                         }
                         Button(LinkaCopy.value("inventory.completeDetails")) { completing = device }
@@ -937,8 +937,8 @@ private struct DeviceDetailView: View {
                         connectionsSection(device)
                         if let snapshot = device.specifications {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text(LinkaCopy.value("inventory.specs.title")).font(.headline)
-                                ForEach(SpecificationDisplay.summary(snapshot), id: \.self) { Text($0).font(.subheadline) }
+                                Text(LinkaCopy.value("inventory.specs.title")).font(LinkaFont.headline)
+                                ForEach(SpecificationDisplay.summary(snapshot), id: \.self) { Text($0).font(LinkaFont.label) }
                                 DisclosureGroup(LinkaCopy.value("inventory.detailsAndSources")) {
                                     VStack(alignment: .leading, spacing: 12) {
                                         if let revision = device.identity.hardwareRevision { value("inventory.revision", revision) }
@@ -948,9 +948,9 @@ private struct DeviceDetailView: View {
                                 }
                             }
                             .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg))
+                            .linkaPanelBackground()
                         } else {
-                            Text(LinkaCopy.value("inventory.specs.empty")).font(.subheadline).foregroundStyle(.secondary)
+                            Text(LinkaCopy.value("inventory.specs.empty")).font(LinkaFont.label).foregroundStyle(.secondary)
                         }
                         if let error = store.error { Text(error).foregroundStyle(.red) }
                         Button(LinkaCopy.value("inventory.edit")) { editing = device }.frame(minHeight: 44)
@@ -958,7 +958,7 @@ private struct DeviceDetailView: View {
                     }
                     .padding(24).frame(maxWidth: 620, alignment: .leading).frame(maxWidth: .infinity)
                 }
-                .background(Color.surfacePage)
+                .linkaPageBackground()
                 .navigationTitle(device.inventoryTitle)
             } else { Text(LinkaCopy.value("inventory.deleted")) }
         }
@@ -1002,13 +1002,13 @@ private struct DeviceDetailView: View {
         let linkedConnections = store.connections(for: device.id)
         return VStack(alignment: .leading, spacing: 12) {
             Text(LinkaCopy.value("inventory.connection.section.title"))
-                .font(.headline)
+                .font(LinkaFont.headline)
 
             if linkedConnections.isEmpty && store.devices.count >= 2 && !dismissedConnectionPrompt {
                 connectionPromptCard(for: device)
             } else if linkedConnections.isEmpty {
                 Text(LinkaCopy.value("inventory.connection.empty"))
-                    .font(.subheadline)
+                    .font(LinkaFont.label)
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(linkedConnections) { conn in
@@ -1029,7 +1029,7 @@ private struct DeviceDetailView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg))
+        .linkaPanelBackground()
     }
 
     private func connectionPromptCard(for device: RegisteredNetworkDevice) -> some View {
@@ -1040,9 +1040,9 @@ private struct DeviceDetailView: View {
                     .foregroundStyle(Color.brandAccentWarmInk)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(LinkaCopy.value("inventory.connection.prompt.title"))
-                        .font(.headline)
+                        .font(LinkaFont.headline)
                     Text(LinkaCopy.value("inventory.connection.prompt.message"))
-                        .font(.subheadline)
+                        .font(LinkaFont.label)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -1064,7 +1064,7 @@ private struct DeviceDetailView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
-                .font(.footnote)
+                .font(LinkaFont.caption)
             }
             .padding(.top, 4)
         }
@@ -1083,16 +1083,16 @@ private struct DeviceDetailView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(otherTitle)
-                    .font(.subheadline.weight(.semibold))
+                    .font(LinkaFont.labelStrong)
                 HStack(spacing: 6) {
                     Text(LinkaCopy.value("inventory.medium.\(conn.medium.rawValue)"))
-                        .font(.caption)
+                        .font(LinkaFont.caption)
                         .foregroundStyle(.secondary)
                     Text("·")
-                        .font(.caption)
+                        .font(LinkaFont.caption)
                         .foregroundStyle(.secondary)
                     Text(directionLabel(conn, currentID: currentDevice.id, otherTitle: otherTitle))
-                        .font(.caption)
+                        .font(LinkaFont.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -1141,7 +1141,7 @@ private struct DeviceDetailView: View {
     }
     private func value(_ key: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(LinkaCopy.value(key)).font(.caption).foregroundStyle(.secondary)
+            Text(LinkaCopy.value(key)).font(LinkaFont.caption).foregroundStyle(.secondary)
             Text(value.isEmpty ? LinkaCopy.value("inventory.unknown") : value)
         }
     }
@@ -1177,7 +1177,7 @@ private struct DeviceSpecificationContent: View {
     }
 }
 
-private struct DeviceEditorView: View {
+struct DeviceEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ObservedObject var store: LinkaInventoryStore
@@ -1212,7 +1212,7 @@ private struct DeviceEditorView: View {
                 .frame(maxWidth: 620, alignment: .leading)
                 .frame(maxWidth: .infinity)
             }
-            .background(Color.surfacePage)
+            .linkaPageBackground()
             #if os(iOS)
             .scrollDismissesKeyboard(.interactively)
             #endif
@@ -1280,11 +1280,11 @@ private struct DeviceEditorView: View {
     }
     private var identificationSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(LinkaCopy.value("inventory.identify.title")).font(.title2.bold())
+            Text(LinkaCopy.value("inventory.identify.title")).font(LinkaFont.title)
                 .accessibilityAddTraits(.isHeader)
-            Text(LinkaCopy.value("inventory.identify.subtitle")).font(.subheadline).foregroundStyle(.secondary)
+            Text(LinkaCopy.value("inventory.identify.subtitle")).font(LinkaFont.label).foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 8) {
-                Text(LinkaCopy.value("inventory.identify.label")).font(.subheadline.weight(.medium))
+                Text(LinkaCopy.value("inventory.identify.label")).font(LinkaFont.labelStrong)
                 TextField(LinkaCopy.value("inventory.identify.placeholder"), text: $session.identification)
                     .textFieldStyle(.roundedBorder)
                     .focused($identificationFocused)
@@ -1318,7 +1318,7 @@ private struct DeviceEditorView: View {
             }
             if session.recognizing { ProgressView(LinkaCopy.value("inventory.ocr.progress")) }
             if !session.candidates.isEmpty {
-                Text(LinkaCopy.value("inventory.ocr.confirm")).font(.subheadline)
+                Text(LinkaCopy.value("inventory.ocr.confirm")).font(LinkaFont.label)
                 ForEach(Array(session.candidates.enumerated()), id: \.offset) { _, candidate in
                     Button(identityLabel(candidate)) { session.selectCandidate(candidate) }
                         .buttonStyle(.bordered).frame(minHeight: 44)
@@ -1373,9 +1373,9 @@ private struct DeviceEditorView: View {
                 .accessibilityIdentifier("inventory.saveWithoutResearch")
             }
             VStack(alignment: .leading, spacing: 4) {
-                Text(LinkaCopy.value("inventory.research.disclosure")).font(.footnote).foregroundStyle(.secondary)
+                Text(LinkaCopy.value("inventory.research.disclosure")).font(LinkaFont.caption).foregroundStyle(.secondary)
                 Button(LinkaCopy.value("inventory.privacy.title")) { showingPrivacy = true }
-                    .font(.footnote).frame(minHeight: 44)
+                    .font(LinkaFont.caption).frame(minHeight: 44)
             }
         }
     }
@@ -1389,16 +1389,16 @@ private struct DeviceEditorView: View {
     }
     private func confirmationCard(_ snapshot: DeviceSpecificationSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(LinkaCopy.value("inventory.confirm.title")).font(.headline)
+            Text(LinkaCopy.value("inventory.confirm.title")).font(LinkaFont.headline)
                 .accessibilityIdentifier("inventory.research.result")
                 .accessibilityAddTraits(.isHeader)
-            Text(identityLabel(snapshot.identity)).font(.title3.bold())
+            Text(identityLabel(snapshot.identity)).font(LinkaFont.section)
             if let kind = session.researchResult?.deviceKind {
                 Text(LinkaCopy.value(kind == .ont ? "inventory.kind.fiberEquipment" : "inventory.kind.\(kind.rawValue)"))
-                    .font(.subheadline).foregroundStyle(.secondary)
+                    .font(LinkaFont.label).foregroundStyle(.secondary)
             }
             ForEach(SpecificationDisplay.summary(snapshot), id: \.self) { line in
-                Text(line).font(.subheadline)
+                Text(line).font(LinkaFont.label)
             }
             Button(action: save) {
                 Text(LinkaCopy.value("inventory.save")).frame(maxWidth: .infinity, minHeight: 36)
@@ -1414,7 +1414,7 @@ private struct DeviceEditorView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: LinkaRadius.lg))
+        .linkaPanelBackground()
     }
     private func identityLabel(_ identity: DeviceIdentity) -> String {
         [identity.brand, identity.model, identity.hardwareRevision ?? "", identity.marketRegion ?? ""].filter { !$0.isEmpty }.joined(separator: " ")
@@ -1462,6 +1462,7 @@ private struct DeviceInstallationEditor: View {
             }
             #if os(macOS)
             .formStyle(.grouped)
+            .linkaMacForm()
             #endif
             .navigationTitle(LinkaCopy.value("inventory.completeDetails"))
             .toolbar {

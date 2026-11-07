@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(AppKit) && !canImport(UIKit)
+import AppKit
+#endif
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -15,7 +18,11 @@ public enum WiFiCasaTheme {
             traits.userInterfaceStyle == .dark ? UIColor.black : UIColor.systemGroupedBackground
         })
         #else
-        return Color(nsColor: .windowBackgroundColor)
+        return Color(nsColor: NSColor(name: nil) { appearance in
+            appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                ? NSColor(red: 0.075, green: 0.075, blue: 0.095, alpha: 1)
+                : NSColor(red: 0.925, green: 0.925, blue: 0.948, alpha: 1)
+        })
         #endif
     }
 
@@ -28,7 +35,11 @@ public enum WiFiCasaTheme {
                 : UIColor.secondarySystemGroupedBackground
         })
         #else
-        return Color.secondary.opacity(0.1)
+        return Color(nsColor: NSColor(name: nil) { appearance in
+            appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                ? NSColor(red: 0.165, green: 0.165, blue: 0.200, alpha: 1)
+                : NSColor.white
+        })
         #endif
     }
 
@@ -41,7 +52,11 @@ public enum WiFiCasaTheme {
                 : UIColor.tertiarySystemGroupedBackground
         })
         #else
-        return Color.secondary.opacity(0.18)
+        return Color(nsColor: NSColor(name: nil) { appearance in
+            appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+                ? NSColor(red: 0.225, green: 0.225, blue: 0.265, alpha: 1)
+                : NSColor(red: 0.93, green: 0.93, blue: 0.96, alpha: 1)
+        })
         #endif
     }
 

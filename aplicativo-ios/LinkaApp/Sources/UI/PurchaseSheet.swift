@@ -48,6 +48,103 @@ struct PurchaseSheet: View {
     }
 
     var body: some View {
+        if LinkaDistribution.isDirectDownload {
+            DirectDownloadPlusNotice()
+        } else {
+            #if os(macOS)
+            macStoreContent
+            #else
+            storeContent
+            #endif
+        }
+    }
+
+    #if os(macOS)
+    private var macStoreContent: some View {
+        MacSheetScaffold(
+            title: "Linka Plus",
+            subtitle: entryPoint.subtitle,
+            systemImage: "sparkles",
+            tint: MacPalette.download,
+            closeTitle: copy("common.close", "Close"),
+            onClose: { dismiss() }
+        ) {
+            if entryPoint != .settings {
+                Text(entryPoint.title).font(MacType.title)
+            }
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 16) {
+                ForEach(plusBenefits, id: \.self) { benefit in
+                    HStack(spacing: 14) {
+                        MacIconBadge(systemImage: "checkmark", tint: .statusGood, size: 38)
+                        Text(benefit).font(MacType.body).fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .linkaMacCard(padding: 16)
+                }
+            }
+
+            VStack(spacing: 6) {
+                switch entitlements.productState {
+                case .loaded(let product):
+                    Text(product.displayPrice).font(MacType.metric(44))
+                    Text(copy("purchase.annual.cancel", "Billed annually · Cancel anytime")).font(MacType.label).foregroundStyle(.secondary)
+                case .loading:
+                    ProgressView().controlSize(.large).padding(.vertical, 10)
+                case .unavailable, .error:
+                    Text(copy("purchase.unavailable", "Plan is not available right now")).font(MacType.body).foregroundStyle(.secondary)
+                    Button(copy("common.tryAgain", "Try again")) { Task { await entitlements.loadProduct() } }
+                        .controlSize(.large)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .linkaMacCard(padding: 24)
+
+            VStack(spacing: 12) {
+                if let errorMessage {
+                    Text(errorMessage).font(MacType.label).foregroundStyle(Color.statusAttention)
+                }
+                Button(action: purchase) {
+                    if isPurchasing {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        switch entitlements.productState {
+                        case .loaded(let product): Text(copy("purchase.subscribe.price", "Subscribe for %@/year", product.displayPrice))
+                        case .loading: Text(copy("purchase.loading.price", "Loading price…"))
+                        case .unavailable, .error: Text(copy("purchase.subscribe", "Subscribe"))
+                        }
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(Color.brandAccentWarm)
+                .disabled(isPurchasing || isRestoring || !isProductLoaded)
+
+                Button(action: restore) {
+                    if isRestoring { ProgressView().controlSize(.small) } else { Text(copy("purchase.restore", "Restore purchase")) }
+                }
+                .controlSize(.large)
+                .disabled(isPurchasing || isRestoring)
+
+                Text(disclaimerText).font(MacType.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                HStack(spacing: 6) {
+                    Link(copy("legal.terms", "Terms of Use"), destination: LinkaExternalLinks.terms)
+                    Text("·").foregroundStyle(.secondary)
+                    Link(copy("legal.privacy", "Privacy"), destination: LinkaExternalLinks.privacy)
+                }
+                .font(MacType.caption)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .onAppear {
+            guard !hasTrackedOffer else { return }
+            hasTrackedOffer = true
+            LinkaAnalytics.shared.track(.plusOfferViewed(entryPoint: entryPoint.analyticsIdentifier))
+        }
+    }
+    #endif
+
+    private var storeContent: some View {
         ZStack {
             LinkaScreenBackground(variant: .gradientOnly, showWaves: false)
                 .ignoresSafeArea()
@@ -276,5 +373,37 @@ struct PurchaseSheet: View {
         let bundle = Bundle(path: Bundle.main.path(forResource: locale.identifier, ofType: "lproj") ?? "") ?? .main
         let format = bundle.localizedString(forKey: key, value: fallback, table: nil)
         return arguments.isEmpty ? format : String(format: format, locale: locale, arguments: arguments)
+    }
+}
+
+
+/// Aviso exibido no lugar da compra quando o app vem do download direto.
+struct DirectDownloadPlusNotice: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        #if os(macOS)
+        MacSheetScaffold(
+            title: LinkaCopy.value("Linka Plus na App Store"),
+            systemImage: "sparkles",
+            tint: MacPalette.download,
+            closeTitle: LinkaCopy.value("Fechar"),
+            onClose: { dismiss() }
+        ) {
+            MacBanner(
+                systemImage: "bag.fill", tint: MacPalette.download,
+                title: LinkaCopy.value("Linka Plus na App Store"),
+                message: LinkaCopy.value("A assinatura do Linka Plus só funciona na versão do Linka baixada pela App Store. Esta versão do site inclui os recursos gratuitos.")
+            )
+            Button(LinkaCopy.value("Abrir na App Store")) { openURL(LinkaDistribution.appStoreListing) }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .tint(Color.brandAccentWarm)
+        }
+        .frame(minWidth: 520, minHeight: 320)
+        #else
+        EmptyView()
+        #endif
     }
 }

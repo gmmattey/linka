@@ -1,5 +1,5 @@
 {
-  "reviewed_at": "2026-10-04",
+  "reviewed_at": "2026-11-07",
   "base": "9eb1a094 + WIP local",
   "kind": "byte-identical exports from app asset catalog; not proof of distributed build",
   "assets": [
@@ -34,19 +34,69 @@
       "sha256": "f52a8b946334bcea4c0904f2096d84dd2feabbe744d0723e8529022b9a48f6ee"
     },
     {
+      "file": "brand/icons/AppIcon-Mac-128.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac-128.png",
+      "sha256": "da7aeb9566ade8e0d712b7a752b84eee27368863c0e4be57199d52c9789a7fd4"
+    },
+    {
+      "file": "brand/icons/AppIcon-Mac-128@2x.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac-128@2x.png",
+      "sha256": "8c28a669b10ea0a6b3e3fdf2bfa1e3bad75aa9ed38ca2202156e1d09430a4824"
+    },
+    {
+      "file": "brand/icons/AppIcon-Mac-16.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac-16.png",
+      "sha256": "9539d97f895d0672620f6685292b7feb70e338058e70dc1a1b85d7a128da62ff"
+    },
+    {
+      "file": "brand/icons/AppIcon-Mac-16@2x.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac-16@2x.png",
+      "sha256": "729f8358299233545a3e6839a509dea5b6ea39c26ecc6c97dc46874ead0ad023"
+    },
+    {
+      "file": "brand/icons/AppIcon-Mac-256.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac-256.png",
+      "sha256": "8c28a669b10ea0a6b3e3fdf2bfa1e3bad75aa9ed38ca2202156e1d09430a4824"
+    },
+    {
+      "file": "brand/icons/AppIcon-Mac-256@2x.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac-256@2x.png",
+      "sha256": "926b3f9db6b2eb8e34991716dca3c09eef47101a8898c6b8bef6d043ce8c542f"
+    },
+    {
+      "file": "brand/icons/AppIcon-Mac-32.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac-32.png",
+      "sha256": "729f8358299233545a3e6839a509dea5b6ea39c26ecc6c97dc46874ead0ad023"
+    },
+    {
+      "file": "brand/icons/AppIcon-Mac-32@2x.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac-32@2x.png",
+      "sha256": "62dc378e3e94a3bd29d3a0fe5c23bbbc3fae7de39bd3dee6168ecfb80e8ce5c8"
+    },
+    {
+      "file": "brand/icons/AppIcon-Mac-512.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac-512.png",
+      "sha256": "926b3f9db6b2eb8e34991716dca3c09eef47101a8898c6b8bef6d043ce8c542f"
+    },
+    {
+      "file": "brand/icons/AppIcon-Mac-512@2x.png",
+      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac-512@2x.png",
+      "sha256": "279118c2ba931f8a69e316c175de31fe2ced7a51bd8f17b93106119d99f766b5"
+    },
+    {
       "file": "brand/icons/AppIcon-iOS.png",
       "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-iOS.png",
-      "sha256": "2c4d916c48f706ec6b63c4aa8dd7987efe9337b75b847eefdc13b9aca22449f4"
+      "sha256": "c6a7c29983bee83ce6e227479d34f73e186782194414335d885c3e584b3aeb09"
     },
     {
-      "file": "brand/icons/AppIcon-Mac-1x.png",
-      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac-1x.png",
-      "sha256": "58f0e0a944072e69335fbc61682873383be3c2a905e70b00b7777e07071a55cc"
+      "file": "brand/icons/icon-source.svg",
+      "source": "fonte (não está no catálogo); exportações PNG de brand/icons/ saem deste arquivo",
+      "sha256": "12849e4f2507d2e55530066f5ad4011ce9fe106b1eaedbdf065afb6d67129fbd"
     },
     {
-      "file": "brand/icons/AppIcon-Mac@2x.png",
-      "source": "aplicativo-ios/LinkaApp/Sources/Assets.xcassets/AppIcon.appiconset/AppIcon-Mac@2x.png",
-      "sha256": "4eb259d4b390e0e94166e0839e5d22aec8e3a2b153d254d551889f90a717e2eb"
+      "file": "brand/icons/icon-source-ios-fullbleed.svg",
+      "source": "fonte (não está no catálogo); exportações PNG de brand/icons/ saem deste arquivo",
+      "sha256": "b66bb79e821210399a1e4fa3839cfd359a031c4c08dd90ed8ae8106db4e32b64"
     }
   ]
 }

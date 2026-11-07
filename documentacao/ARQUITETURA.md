@@ -176,8 +176,14 @@ Histórico completo da proposta, exemplos e sequência de PRs fica no [Git em 39
 ## 8. Interface e site: limites técnicos
 
 SwiftUI compartilha modelos/coordenadores, não exige interfaces idênticas. [DesignSystem.swift](../aplicativo-ios/LinkaApp/Sources/UI/DesignSystem.swift) implementa tokens semânticos e adaptação Apple; [tokens CSS](design/design_system/tokens/), [componentes](design/design_system/components/) e [protótipo](design/prototipo/) são recursos, não implementação do motor nem prova de conformidade.
-Não há geração automática garantindo equivalência CSS↔Swift. Preservar marca oficial, controles nativos, texto ampliado, teclado, VoiceOver e Reduzir Movimento; conformidade exige comparar todos os destinos/estados da build pretendida. Direção de produto Mac não autoriza redesign iOS por analogia.
+Não há geração automática garantindo equivalência CSS↔Swift. O ícone do app (AppIcon) vem de `brand/icons/` via manifesto, não de código Swift nem dos favicons CSS. Preservar marca oficial, controles nativos, texto ampliado, teclado, VoiceOver e Reduzir Movimento; conformidade exige comparar todos os destinos/estados da build pretendida. Direção de produto Mac não autoriza redesign iOS por analogia.
 O site institucional está no monorepo `~/Projetos/web/landings` (`sites/linka/`), separado do aplicativo nativo. Conteúdo, screenshots e rotas estáticas dele não comprovam comportamento nem publicação do app; mudanças web não pertencem a este repositório.
+
+### Mac: interface nativa própria
+
+O Mac não reaproveita as telas do iPhone. A interface vive em `aplicativo-ios/LinkaApp/Sources/UI/Mac/` e em `MacMainView.swift`, compilada só em macOS (`#if os(macOS)`); telas compartilhadas usam `LinkaFont`, `LinkaPage`, `linkaMacForm()` e `linkaPanelBackground()` de `MacPageKit.swift`, que não alteram iPhone nem iPad. Peças: `MacVisuals` (camadas de profundidade `macPage` < `macCard` > `macWell`, `MacType`, `MacPalette`), `MacComponents` (inspetor flutuante, sparkline, exportação CSV), `MacCommands` (menus Arquivo, Visualizar, Medição, Ir e Ajuda, com atalhos), `MacSettingsView` (janela Ajustes em abas), `MacHistoryView`, `MacMyNetworkView` e `MacNetworkDetails` (CoreWLAN e SystemConfiguration: rede, banda, canal, sinal; o BSSID não é lido).
+
+`MacFeatures` concentra as chaves que escondem ferramentas ainda não revisadas no padrão novo (Assist, Otimização, compra Plus, painel do roteador, cobertura residencial, Netscope); todas ficam desligadas até revisão visual e funcional. No Mac sem entitlement de iCloud embutido, o CloudKit não é tocado (verificação por `SecTaskCopyValueForEntitlement`) e o identificador do status de serviços fica em `UserDefaults`, sem Keychain, para não pedir senha a cada abertura. O alvo `LinkaAppTests_macOS` executa os testes do Assist legado (exclui `AssistV4*`). Tokens visuais: [macos.css](design/design_system/tokens/macos.css) e os cartões `macos-foundations` e `macos-components`.
 
 ## 9. Pendências que esta consolidação não encerra
 

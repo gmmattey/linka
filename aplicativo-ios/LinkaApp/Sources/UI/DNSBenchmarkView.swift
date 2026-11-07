@@ -76,42 +76,45 @@ struct DNSBenchmarkView: View {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Resposta de DNS")
-                        .font(.title.weight(.bold))
+                        .font(MacType.title)
                     Text("Compare a resposta DNS nesta conexão. Isso não muda sua velocidade contratada, ping ou Wi‑Fi.")
-                        .font(.body)
+                        .font(MacType.body)
                         .foregroundStyle(.secondary)
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("DNS atual do sistema")
-                        .font(.caption.weight(.semibold))
+                        .font(MacType.captionStrong)
                         .foregroundStyle(.secondary)
                     if let milliseconds = benchmark.systemHealth.milliseconds {
                         HStack(alignment: .firstTextBaseline) {
                             Text("Resposta")
-                                .font(.body.weight(.medium))
+                                .font(MacType.bodyStrong)
                             Spacer()
                             Text(Self.milliseconds(milliseconds))
-                                .font(.title3.weight(.semibold))
+                                .font(MacType.headline)
                                 .monospacedDigit()
                         }
                         .accessibilityLabel("DNS atual do sistema, resposta \(Self.milliseconds(milliseconds))")
                     } else {
                         Text("Não disponível nesta tentativa")
-                            .font(.title3.weight(.semibold))
+                            .font(MacType.headline)
                     }
                     Text("O sistema não expôs o IP do resolvedor nesta conexão.")
-                        .font(.body)
+                        .font(MacType.body)
                         .foregroundStyle(.secondary)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .linkaMacCard(padding: 20)
 
                 macBenchmarkSection
                 macConfigurationSection
             }
-            .frame(maxWidth: 680, alignment: .leading)
-            .padding(40)
+            .frame(maxWidth: 820, alignment: .leading)
+            .padding(28)
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
+        .background(Color.macPage)
         .tint(.brandAccentWarm)
         .navigationTitle("Resposta de DNS")
         .toolbar {
@@ -140,18 +143,18 @@ struct DNSBenchmarkView: View {
         case .idle:
             VStack(alignment: .leading, spacing: 12) {
                 Text("Comparar nesta conexão")
-                    .font(.title3.weight(.semibold))
+                    .font(MacType.headline)
                 Button("Iniciar comparação", action: benchmark.start)
                     .buttonStyle(.borderedProminent)
                     .tint(.brandAccentWarm)
                     .accessibilityHint("Envia consultas DNS sintéticas aos provedores comparados")
                 DisclosureGroup("Como funciona", isExpanded: $isMethodologyExpanded) {
                     Text("A comparação usa consultas sintéticas e não usa domínios da sua navegação. A resolução do sistema não entra no ranking porque pode usar cache, gateway, VPN ou perfil corporativo.")
-                        .font(.footnote)
+                        .font(MacType.label)
                         .foregroundStyle(.secondary)
                         .padding(.top, 4)
                 }
-                .font(.footnote)
+                .font(MacType.label)
                 .foregroundStyle(.secondary)
             }
         case .running:
@@ -162,26 +165,26 @@ struct DNSBenchmarkView: View {
                 }
                 .accessibilityElement(children: .combine)
                 Text("Três rodadas por provedor, com timeout de 2 segundos.")
-                    .font(.footnote)
+                    .font(MacType.label)
                     .foregroundStyle(.secondary)
             }
         case .completed(let result):
             macSection(title: "Comparação desta sessão") {
                 if let winner = result.winner {
                     Label("Menor mediana nesta comparação: \(winner.provider.name)", systemImage: "checkmark.circle.fill")
-                        .font(.body.weight(.semibold))
+                        .font(MacType.headline)
                         .foregroundStyle(Color.statusGood)
                 } else {
                     Text("Sem vencedor matemático nesta comparação")
-                        .font(.body.weight(.semibold))
+                        .font(MacType.headline)
                 }
-                Divider()
                 ForEach(result.orderedCandidates) { candidate in
                     macCandidateRow(candidate, winner: result.winner?.id == candidate.id)
+                        .linkaMacWell(padding: 14)
                     if candidate.id != result.orderedCandidates.last?.id { Divider() }
                 }
                 Text("O resultado vale só para esta tentativa. Menor mediana não é promessa de uma conexão melhor em todos os usos.")
-                    .font(.footnote)
+                    .font(MacType.label)
                     .foregroundStyle(.secondary)
             }
         case .cancelled:
@@ -238,15 +241,15 @@ struct DNSBenchmarkView: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(candidate.provider.name)
-                        .font(.body.weight(.semibold))
+                        .font(MacType.headline)
                     Spacer()
                     Text(Self.milliseconds(median))
-                        .font(.body.weight(.medium))
+                        .font(MacType.bodyStrong)
                         .monospacedDigit()
                 }
                 if winner {
                     Text("Menor mediana nesta comparação")
-                        .font(.caption)
+                        .font(MacType.caption)
                         .foregroundStyle(.secondary)
                 }
                 HStack(spacing: 12) {
@@ -260,7 +263,7 @@ struct DNSBenchmarkView: View {
                         .accessibilityLabel("Escolher \(candidate.provider.name), \(Self.milliseconds(median))")
                     }
                     Link("Política de privacidade", destination: candidate.provider.privacyURL)
-                        .font(.footnote)
+                        .font(MacType.label)
                         .foregroundColor(.brandAccentWarmInk)
                 }
             }
@@ -268,7 +271,7 @@ struct DNSBenchmarkView: View {
         } else {
             HStack {
                 Text(candidate.provider.name)
-                    .font(.body.weight(.semibold))
+                    .font(MacType.headline)
                 Spacer()
                 Text("Inconclusivo")
                     .foregroundStyle(.secondary)
@@ -279,12 +282,11 @@ struct DNSBenchmarkView: View {
 
     private func macSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title.uppercased())
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+            Text(title).font(MacType.section)
             VStack(alignment: .leading, spacing: 12, content: content)
-                .padding(18)
-                .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .font(MacType.body)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .linkaMacCard(padding: 20)
         }
     }
     #endif

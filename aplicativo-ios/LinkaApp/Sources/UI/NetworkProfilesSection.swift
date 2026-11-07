@@ -12,7 +12,10 @@ struct NetworkProfilesSection: View {
 
     var body: some View {
         #if os(macOS)
-        macOSCurrentMeasurementContent
+        VStack(alignment: .leading, spacing: 12) { macOSCurrentMeasurementContent }
+            .font(MacType.body)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .linkaMacCard(padding: 20)
         #else
         Group {
             if coordinator.hasStoreError || coordinator.partialRemoval {
@@ -39,7 +42,7 @@ struct NetworkProfilesSection: View {
             Label(LinkaCopy.value("environments.disabled.title"), systemImage: "wifi.slash")
                 .foregroundStyle(.secondary)
             Text(LinkaCopy.value("environments.disabled.message"))
-                .font(.footnote)
+                .font(MacType.label)
                 .foregroundStyle(.secondary)
             Button(LinkaCopy.value("environments.disabled.manage"), action: onManageIdentification)
                 .buttonStyle(.bordered)
@@ -48,13 +51,13 @@ struct NetworkProfilesSection: View {
             Label(LinkaCopy.value("environments.notWifi.title"), systemImage: "wifi")
                 .foregroundStyle(.secondary)
             Text(LinkaCopy.value("environments.notWifi.message"))
-                .font(.footnote)
+                .font(MacType.label)
                 .foregroundStyle(.secondary)
         case .ssidUnavailable:
             Label(LinkaCopy.value("environments.unavailable.title"), systemImage: "wifi.exclamationmark")
                 .foregroundStyle(.secondary)
             Text(LinkaCopy.value("environments.unavailable.message"))
-                .font(.footnote)
+                .font(MacType.label)
                 .foregroundStyle(.secondary)
         case .available:
             if !isPlusActive {
@@ -68,13 +71,12 @@ struct NetworkProfilesSection: View {
                 Label(LinkaCopy.format("environments.assigned", environment.name), systemImage: "checkmark.circle.fill")
                     .foregroundStyle(Color.statusGood)
                 Text(referenceLabel(for: environment))
-                    .font(.footnote)
+                    .font(MacType.label)
                     .foregroundStyle(.secondary)
                 macEnvironmentMenu
                 if let comparison = coordinator.comparison(for: environment) {
-                    Divider()
                     Text(LinkaCopy.value("environments.comparison.title"))
-                        .font(.footnote.weight(.semibold))
+                        .font(MacType.captionStrong)
                         .foregroundStyle(.secondary)
                     ForEach(comparison, id: \.metric.rawValue) { metric in
                         HStack(alignment: .firstTextBaseline) {
@@ -84,7 +86,7 @@ struct NetworkProfilesSection: View {
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.trailing)
                         }
-                        .font(.footnote)
+                        .font(MacType.label)
                         .accessibilityLabel("\(metricName(metric.metric)): \(LinkaCopy.value("environments.comparison.current")) \(formatted(metric.currentValue, metric: metric.metric)), \(LinkaCopy.value("environments.comparison.reference")) \(formatted(metric.baselineValue, metric: metric.metric))")
                     }
                 }
@@ -103,7 +105,6 @@ struct NetworkProfilesSection: View {
                     Task { _ = await coordinator.assignCurrentMeasurement(to: environment) }
                 }
             }
-            Divider()
             Button(LinkaCopy.value("environments.create.cta")) { isPresentingCreation = true }
         }
         .menuStyle(.borderlessButton)
@@ -242,7 +243,7 @@ struct NetworkProfilesManagementView: View {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(LinkaCopy.value("environments.saved.title"))
-                        .font(.title.weight(.bold))
+                        .font(MacType.title)
                     Text("Ambientes agrupam medições que você escolhe associar localmente.")
                         .foregroundStyle(.secondary)
                 }
@@ -252,9 +253,9 @@ struct NetworkProfilesManagementView: View {
                         if coordinator.environments.isEmpty {
                             VStack(alignment: .leading, spacing: 8) {
                                 Label(LinkaCopy.value("environments.empty.title"), systemImage: "mappin.and.ellipse")
-                                    .font(.body.weight(.semibold))
+                                    .font(MacType.headline)
                                 Text(LinkaCopy.value("environments.empty.message"))
-                                    .font(.footnote)
+                                    .font(MacType.label)
                                     .foregroundStyle(.secondary)
                             }
                         } else {
@@ -266,7 +267,7 @@ struct NetworkProfilesManagementView: View {
                                         Label(environment.name, systemImage: "mappin.and.ellipse")
                                         Spacer()
                                         Image(systemName: "chevron.right")
-                                            .font(.footnote.weight(.semibold))
+                                            .font(MacType.captionStrong)
                                             .foregroundStyle(.tertiary)
                                     }
                                 }
@@ -346,14 +347,14 @@ private struct NetworkEnvironmentDetailView: View {
                 removalError
                 VStack(alignment: .leading, spacing: 6) {
                     Text(environment.name)
-                        .font(.title.weight(.bold))
+                        .font(MacType.title)
                     Text("O ambiente e suas referências ficam somente neste Mac.")
                         .foregroundStyle(.secondary)
                 }
                 macCard(title: LinkaCopy.value("environments.reference.title")) {
                     Text(referenceLabel)
                     Text(LinkaCopy.value("environments.reference.message"))
-                        .font(.footnote)
+                        .font(MacType.label)
                         .foregroundStyle(.secondary)
                 }
                 macCard(title: LinkaCopy.value("environments.local.title")) {
@@ -395,13 +396,12 @@ private struct NetworkEnvironmentDetailView: View {
 private func macCard<Content: View>(title: String? = nil, @ViewBuilder content: () -> Content) -> some View {
     VStack(alignment: .leading, spacing: 12) {
         if let title {
-            Text(title.uppercased())
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+            Text(title).font(MacType.section)
         }
         VStack(alignment: .leading, spacing: 12, content: content)
-            .padding(18)
-            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .font(MacType.body)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .linkaMacCard(padding: 20)
     }
 }
 #endif
@@ -414,6 +414,7 @@ struct NetworkProfileNameEditor: View {
     var body: some View {
         NavigationStack { Form { Section(LinkaCopy.value("environments.name.title")) { TextField(LinkaCopy.value("environments.name.placeholder"), text: $name) } }
             .linkaGradientScreenBackground()
+            .linkaMacForm()
             .navigationTitle(title).toolbar { ToolbarItem(placement: .cancellationAction) { Button(LinkaCopy.value("common.cancel")) { dismiss() } }; ToolbarItem(placement: .confirmationAction) { Button(saveTitle) { onSave(name) }.disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) } }
         }
     }

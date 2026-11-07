@@ -143,16 +143,39 @@ struct OptimizationView: View {
     #if os(macOS)
     private var macOSContent: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(LinkaCopy.value("optimization.title"))
-                        .font(.title.weight(.bold))
-                    Text(LinkaCopy.value("optimization.intro"))
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                }
+            VStack(alignment: .leading, spacing: 24) {
+                MacBanner(
+                    systemImage: plan.opportunities.isEmpty ? "checkmark.seal.fill" : "slider.horizontal.3",
+                    tint: plan.opportunities.isEmpty ? .statusGood : MacPalette.download,
+                    title: plan.opportunities.isEmpty ? LinkaCopy.value("optimization.none.title") : LinkaCopy.value("optimization.title"),
+                    message: plan.opportunities.isEmpty ? LinkaCopy.value("optimization.none.message") : LinkaCopy.value("optimization.intro")
+                )
 
-                macVerdict
+                if !plan.opportunities.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(LinkaCopy.value("optimization.opportunities")).font(MacType.section)
+                        VStack(spacing: 16) {
+                            ForEach(plan.opportunities) { opportunity in
+                                HStack(alignment: .top, spacing: 16) {
+                                    MacIconBadge(systemImage: icon(for: opportunity.kind), tint: MacPalette.quality, size: 50)
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Text(title(for: opportunity.kind)).font(MacType.headline)
+                                        Text(detail(for: opportunity.kind)).font(MacType.label).foregroundStyle(.secondary)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                        Label(action(for: opportunity.action), systemImage: "lightbulb.fill")
+                                            .font(MacType.labelStrong)
+                                            .foregroundStyle(Color.brandAccentWarmInk)
+                                            .padding(.top, 4)
+                                    }
+                                    Spacer(minLength: 0)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .linkaMacCard()
+                                .accessibilityElement(children: .combine)
+                            }
+                        }
+                    }
+                }
 
                 Button(isPlusActive ? LinkaCopy.value("optimization.retest") : LinkaCopy.value("optimization.preview.cta")) {
                     if isPlusActive {
@@ -163,10 +186,12 @@ struct OptimizationView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .tint(.brandAccentWarm)
                 .accessibilityHint(isPlusActive ? LinkaCopy.value("optimization.retest.hint") : LinkaCopy.value("optimization.preview.hint"))
 
-                macSection(title: "Nesta medição") {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(LinkaCopy.value("Nesta medição")).font(MacType.section)
                     NetworkProfilesSection(
                         coordinator: profileCoordinator,
                         isPlusActive: isPlusActive,
@@ -174,8 +199,6 @@ struct OptimizationView: View {
                         onManageIdentification: onManageIdentification,
                         isPresentingCreation: $isPresentingEnvironmentCreation
                     )
-
-                    Divider()
                     if isPlusActive {
                         NavigationLink {
                             DNSBenchmarkView {
@@ -183,27 +206,22 @@ struct OptimizationView: View {
                                 onRetest()
                             }
                         } label: {
-                            macSecondaryAction(
-                                title: "Comparar resposta de DNS",
-                                detail: "Mede respostas DNS nesta conexão."
-                            )
+                            macToolCard(title: LinkaCopy.value("Comparar resposta de DNS"), detail: LinkaCopy.value("Mede respostas DNS nesta conexão."))
                         }
                         .buttonStyle(.plain)
                     } else {
                         Button(action: onRequestPurchase) {
-                            macSecondaryAction(
-                                title: "Comparar resposta de DNS",
-                                detail: "Disponível no Linka Plus."
-                            )
+                            macToolCard(title: LinkaCopy.value("Comparar resposta de DNS"), detail: LinkaCopy.value("Disponível no Linka Plus."))
                         }
                         .buttonStyle(.plain)
                     }
                 }
             }
-            .frame(maxWidth: 680, alignment: .leading)
-            .padding(40)
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .padding(28)
+            .frame(maxWidth: 820, alignment: .leading)
+            .frame(maxWidth: .infinity)
         }
+        .background(Color.macPage)
         .navigationTitle(LinkaCopy.value("optimization.title"))
         .sheet(isPresented: $isPresentingEnvironmentCreation) {
             NetworkProfileNameEditor(
@@ -224,55 +242,18 @@ struct OptimizationView: View {
         }
     }
 
-    @ViewBuilder private var macVerdict: some View {
-        if plan.opportunities.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Label(LinkaCopy.value("optimization.none.title"), systemImage: "checkmark.circle")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(Color.statusGood)
-                Text(LinkaCopy.value("optimization.none.message"))
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.vertical, 12)
-        } else {
-            macSection(title: LinkaCopy.value("optimization.opportunities")) {
-                ForEach(plan.opportunities) { opportunity in
-                    opportunityRow(opportunity)
-                    if opportunity.id != plan.opportunities.last?.id { Divider() }
-                }
-            }
-        }
-    }
-
-    private func macSecondaryAction(title: String, detail: String) -> some View {
-        HStack(spacing: 12) {
+    private func macToolCard(title: String, detail: String) -> some View {
+        HStack(spacing: 14) {
+            MacIconBadge(systemImage: "server.rack", tint: MacPalette.upload, size: 46)
             VStack(alignment: .leading, spacing: 3) {
-                Text(title)
-                    .font(.body.weight(.medium))
-                Text(detail)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                Text(title).font(MacType.headline)
+                Text(detail).font(MacType.label).foregroundStyle(.secondary)
             }
             Spacer()
-            Image(systemName: "chevron.right")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(.tertiary)
+            Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(.tertiary)
         }
+        .linkaMacCard()
         .contentShape(Rectangle())
-    }
-
-    private func macSection<Content: View>(title: String? = nil, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if let title {
-                Text(title.uppercased())
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
-            VStack(alignment: .leading, spacing: 12, content: content)
-                .padding(18)
-                .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }
     }
     #endif
 
@@ -329,6 +310,17 @@ struct OptimizationRetestResultView: View {
     let result: OptimizationRetestComparison
     @Environment(\.dismiss) private var dismiss
     var body: some View {
+        #if os(macOS)
+        MacSheetScaffold(
+            title: LinkaCopy.value("optimization.title"),
+            systemImage: symbol,
+            tint: symbolColor,
+            closeTitle: LinkaCopy.value("common.close"),
+            onClose: { dismiss() }
+        ) {
+            MacBanner(systemImage: symbol, tint: symbolColor, title: title, message: message)
+        }
+        #else
         NavigationStack {
             VStack(spacing: 16) {
                 Image(systemName: symbol).font(.largeTitle).foregroundStyle(symbolColor)
@@ -340,6 +332,7 @@ struct OptimizationRetestResultView: View {
             .navigationTitle(LinkaCopy.value("optimization.title"))
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button(LinkaCopy.value("common.close")) { dismiss() } } }
         }
+        #endif
     }
     private var symbolColor: Color {
         if case .improved = result { return .statusGood }

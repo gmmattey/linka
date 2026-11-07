@@ -19,6 +19,14 @@ struct ConnectivityTriageView: View {
     }
 
     var body: some View {
+        #if os(macOS)
+        macBody
+        #else
+        iOSBody
+        #endif
+    }
+
+    private var iOSBody: some View {
         NavigationStack {
             Group {
                 if isLoading {
@@ -62,27 +70,77 @@ struct ConnectivityTriageView: View {
             }
             .linkaStaticScreenBackground()
             .linkaSheetToolbar(title: LinkaCopy.value("triage.title")) { dismiss() }
-            .task {
-                LinkaAnalytics.shared.track(.diagnosticStarted(diagnosticType: "connectivity_triage"))
-                do {
-                    let result = try await service.run()
-                    guard !Task.isCancelled else { return }
-                    report = result
-                    isLoading = false
-                    LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "connectivity_triage", outcome: "success"))
-                } catch is CancellationError {
-                    LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "connectivity_triage", outcome: "cancelled"))
-                    return
-                } catch {
-                    guard !Task.isCancelled else { return }
-                    report = ConnectivityTriageReport(
-                        outcome: .inconclusive,
-                        path: ConnectivityPathSnapshot(status: .requiresConnection)
-                    )
-                    isLoading = false
-                    LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "connectivity_triage", outcome: "inconclusive"))
+            .task { await runTriage() }
+        }
+    }
+
+#if os(macOS)
+    private var macBody: some View {
+        MacSheetScaffold(
+            title: LinkaCopy.value("triage.title"),
+            systemImage: "stethoscope",
+            tint: MacPalette.ping,
+            closeTitle: LinkaCopy.value("common.close"),
+            onClose: { dismiss() }
+        ) {
+            if isLoading {
+                VStack(spacing: 14) {
+                    ProgressView().controlSize(.large)
+                    Text(LinkaCopy.value("triage.checking")).font(MacType.body).foregroundStyle(.secondary)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 60)
+                .accessibilityLabel(LinkaCopy.value("triage.checking.accessibility"))
+            } else if let report {
+                let reachable = report.outcome == .internetReachable
+                MacBanner(
+                    systemImage: reachable ? "checkmark.seal.fill" : "wifi.exclamationmark",
+                    tint: reachable ? .statusGood : .statusAttention,
+                    title: title(for: report),
+                    message: message(for: report)
+                )
+                Button {
+                    dismiss()
+                    onRetry()
+                } label: {
+                    Text(LinkaCopy.value("common.retry"))
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color.brandAccentWarm)
+                .controlSize(.large)
+                .accessibilityHint(LinkaCopy.value("triage.retry.hint"))
+            } else {
+                MacBanner(
+                    systemImage: "wifi.exclamationmark", tint: .statusAttention,
+                    title: LinkaCopy.value("triage.unavailable.title"),
+                    message: LinkaCopy.value("triage.unavailable.message")
+                )
             }
+        }
+        .task { await runTriage() }
+    }
+    #endif
+
+    @MainActor
+    private func runTriage() async {
+        LinkaAnalytics.shared.track(.diagnosticStarted(diagnosticType: "connectivity_triage"))
+        do {
+            let result = try await service.run()
+            guard !Task.isCancelled else { return }
+            report = result
+            isLoading = false
+            LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "connectivity_triage", outcome: "success"))
+        } catch is CancellationError {
+            LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "connectivity_triage", outcome: "cancelled"))
+            return
+        } catch {
+            guard !Task.isCancelled else { return }
+            report = ConnectivityTriageReport(
+                outcome: .inconclusive,
+                path: ConnectivityPathSnapshot(status: .requiresConnection)
+            )
+            isLoading = false
+            LinkaAnalytics.shared.track(.diagnosticCompleted(diagnosticType: "connectivity_triage", outcome: "inconclusive"))
         }
     }
 

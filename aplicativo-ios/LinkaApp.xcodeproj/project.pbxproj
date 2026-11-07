@@ -11,6 +11,7 @@
 		00A0E5D3AE63195FBF1E8B73 /* MeasurementHistoryCloudKit in Frameworks */ = {isa = PBXBuildFile; productRef = C544F31F0954FB38FEA92DAE /* MeasurementHistoryCloudKit */; };
 		01291A72D1AE05FDD8B56EAD /* UsageSuitabilityCopyQualityLevelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7936AC36AB6A238A31BCF85 /* UsageSuitabilityCopyQualityLevelTests.swift */; };
 		02437E814314C32A8CF02AA5 /* AssistConsultation in Frameworks */ = {isa = PBXBuildFile; productRef = D7AA3746412A7D173AA75974 /* AssistConsultation */; };
+		02DDEFAD4A460D374B44AC3D /* MacCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25A329E9FA5274929BB58E4E /* MacCommands.swift */; };
 		037E6DFA21B22DF88AD7F57F /* InventoryBuildConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9396CB175CFD73A1F7F5C6D0 /* InventoryBuildConfiguration.swift */; };
 		04D7EE043E89ADE50EE4E3A5 /* NetworkInventory in Frameworks */ = {isa = PBXBuildFile; productRef = DE47D2394644F8F74914E89E /* NetworkInventory */; };
 		074A78EB05FB73EAA13BFF42 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E86E6389194D1938B09BEE51 /* HistoryView.swift */; };
@@ -19,14 +20,17 @@
 		0892EB921BE9D4A82EC6B0D5 /* AssistConsultationTransport in Frameworks */ = {isa = PBXBuildFile; productRef = 105F9B3D31F676E3420C1B93 /* AssistConsultationTransport */; };
 		0BADFEDB706C8F4B6B4634B6 /* LinkaPushRegistrationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BE5DBF301620B59B53EAA9D /* LinkaPushRegistrationDelegate.swift */; };
 		0BB5E0DFD4239FB9F708C89E /* OptimizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67A921C4B0BDC839130F101C /* OptimizationView.swift */; };
+		0C7ACE6F1CADB442D21C1700 /* MacSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082E3CBCECEC462090EB82D4 /* MacSettingsView.swift */; };
 		0F3ED6A9C6284E4395B1DEB9 /* AssistConversationClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6FF4C75EBD83C7FE45BB587 /* AssistConversationClient.swift */; };
 		0F4DB2B24BB8E41F01C5DB90 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5322DEAA6F1693B771FF7DB2 /* InfoPlist.strings */; };
 		105821D3C05128AFEF44110F /* NetworkDiagnostics in Frameworks */ = {isa = PBXBuildFile; productRef = 8D030535C110C19E720EA384 /* NetworkDiagnostics */; };
 		10A56B40B0BCA9FE704AB194 /* LinkaAdsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FE9A266394C32859811ABA /* LinkaAdsCoordinator.swift */; };
+		1100A39FF6A445F79F9E88A1 /* MacSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 082E3CBCECEC462090EB82D4 /* MacSettingsView.swift */; };
 		11520F51B1719FD6C6C42B82 /* LinkaAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 574B1DFC8FD097A6E08DDD34 /* LinkaAnalytics.swift */; };
 		11E319E837EF1D52829FAA75 /* DNSBenchmarkCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E7BAC51017CB7F936040092 /* DNSBenchmarkCoordinator.swift */; };
 		12E02BB6A2E493EAC2C1D151 /* LinkaAppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8ADAB36D0CC32BA436AFE3 /* LinkaAppShortcuts.swift */; };
 		150054BB7218EF39FF3A2EF5 /* NetscopeEvidence in Frameworks */ = {isa = PBXBuildFile; productRef = 927C3E5CC67655EEB215DB10 /* NetscopeEvidence */; };
+		15066C8E3D3DD4B8EB73EF7F /* MacVisuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E2785D269C95E20BA59A06F /* MacVisuals.swift */; };
 		1568443AEBA6EA144DC7CEFF /* AssistConversationClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6FF4C75EBD83C7FE45BB587 /* AssistConversationClient.swift */; };
 		160D3B49EE71A6FB3D5EF829 /* LinkaHealthCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0805744453EDB0EA9AFEEEC0 /* LinkaHealthCheck.swift */; };
 		17E73DA323A120A6FECBD6A1 /* BannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F6C710FA9D415DDBB3316F9 /* BannerView.swift */; };
@@ -48,9 +52,13 @@
 		23420536540D697CCEA0CA0C /* OptimizationProfileCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B850E19211801E1038B746A /* OptimizationProfileCoordinator.swift */; };
 		251732D2D655E2FC6E8896B6 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8A27A3A416A9EAF5A075A2C /* FeatureFlags.swift */; };
 		2574CF886BC5569C37E8269F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8041784263895147F69C02D2 /* Assets.xcassets */; };
+		271F7B8D6A59A7DF7E4C9946 /* MacComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103064AB76AF2ED369215857 /* MacComponents.swift */; };
+		27989E5A016EC13A109BB7C5 /* MacPageKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA424D2F67C6BA4471A6FDC /* MacPageKit.swift */; };
+		290ED369F8028D502367663D /* NetworkCore in Frameworks */ = {isa = PBXBuildFile; productRef = 66F23E6BBB945FBD00BCB3B9 /* NetworkCore */; };
 		298D46799E8AF30465BAD989 /* SpeedTestViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E816515881C246C6E28B0653 /* SpeedTestViewModel.swift */; };
 		29D1966C2D441838367577DB /* VisionDeviceLabelOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD5C9B6AB18ABE1F047530FA /* VisionDeviceLabelOCR.swift */; };
 		2AFD031B79132D055356C33B /* NetworkConnectivityTriage in Frameworks */ = {isa = PBXBuildFile; productRef = 595A3968E32845EFFA683074 /* NetworkConnectivityTriage */; };
+		2B15B945E6708BE6259FFDC2 /* NetworkOptimization in Frameworks */ = {isa = PBXBuildFile; productRef = 4CB3E5B8A1FA20512B78560C /* NetworkOptimization */; };
 		2B3DCD7E78AA6F0075FD3899 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E928A5CC293B2782EED9CB90 /* PrivacyInfo.xcprivacy */; };
 		2B5EFD3E4A2688EED00ECCE3 /* MeasurementNetworkFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A6486EF1A67C9B3072BB6D /* MeasurementNetworkFlowView.swift */; };
 		2C787028BC6163D47B91B0CD /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D8AD73088BDF8E3580F1919 /* KeychainHelper.swift */; };
@@ -59,6 +67,7 @@
 		2E6771716E394442B8C1C36D /* NetworkProfiles in Frameworks */ = {isa = PBXBuildFile; productRef = A21A55A59C5CC2EA58754C0D /* NetworkProfiles */; };
 		2F7AC1D0FB4C81453B1B1EC7 /* PurchaseSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1056216026BABB240C8AC371 /* PurchaseSheet.swift */; };
 		301F89A56752A800E7E7227E /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43FDC4D087897BC1FC0C88DD /* DesignSystem.swift */; };
+		302B2878E84B58C617DC5532 /* AssistViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78285EB65890B076CF8D41D4 /* AssistViewModelTests.swift */; };
 		3100DA01DDDC0C72C96263E9 /* NetworkDNSBenchmark in Frameworks */ = {isa = PBXBuildFile; productRef = 6C8BDE84053191DD45F1B2D1 /* NetworkDNSBenchmark */; };
 		310AA78977C2F11FADDBC9D6 /* NetworkDiagnostics in Frameworks */ = {isa = PBXBuildFile; productRef = 8C1F5FB6C4EBFBE359500098 /* NetworkDiagnostics */; };
 		31151635ECCD32806E335BEB /* GoogleUserMessagingPlatform in Frameworks */ = {isa = PBXBuildFile; productRef = F04CDCD9285ED19C8D0E6E15 /* GoogleUserMessagingPlatform */; };
@@ -68,12 +77,17 @@
 		33A1A3874937A77D0033E6DF /* MyNetworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD55656FCAFAB8C1CAEE2E7E /* MyNetworkView.swift */; };
 		3448797354FD2923D4969804 /* AssistProblemSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA202D7A1FB600A3F43CD0ED /* AssistProblemSelectionView.swift */; };
 		362C5016416F51F09525DB39 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D8AD73088BDF8E3580F1919 /* KeychainHelper.swift */; };
+		372338B5F4AA68319ADA6708 /* MacNetworkDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7D3632EE68BE989FB14D15 /* MacNetworkDetails.swift */; };
 		3780733E2BDF1FB538D9CC35 /* SpeedTestViewModelScenePhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A955FDE679C032C5443EEF5D /* SpeedTestViewModelScenePhaseTests.swift */; };
 		382AE6C13FEE470B4DE2B445 /* BannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F6C710FA9D415DDBB3316F9 /* BannerView.swift */; };
 		38D0EA65ECE11E0AA69DD308 /* LinkaHistoryAdSessionGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEFE04BB75BFA7E561692BEE /* LinkaHistoryAdSessionGateTests.swift */; };
+		38D7E05FA2847573B8AB389A /* MacDesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57EDE7A7AE5DB05FC89470BE /* MacDesignSystem.swift */; };
+		396B6AF18F42CD03F0E457D3 /* MacHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82EC392463489BC730C3AF24 /* MacHistoryView.swift */; };
+		3B04ACF214A49BF20DE6A264 /* AssistOpportunityHandoffFactoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90D79DD30F467F20E3424599 /* AssistOpportunityHandoffFactoryTests.swift */; };
 		3B8D255B22C6A0738CFBCFB0 /* ConnectivityTriageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE87CDDD63F493ADD2C14B84 /* ConnectivityTriageView.swift */; };
 		3D4B5CCB6C9200F4417AA7FD /* LinkaWidgetShared in Frameworks */ = {isa = PBXBuildFile; productRef = 2E97FB5DC022FF2D8BD11658 /* LinkaWidgetShared */; };
 		3F1FE30B8D4141C2E5FBF9B0 /* DeviceEditorSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D6F549785C44A409881554D /* DeviceEditorSession.swift */; };
+		419FB8267AA804D4D79DF38C /* NetworkInventory in Frameworks */ = {isa = PBXBuildFile; productRef = 71110011029CBFD9436A2B4E /* NetworkInventory */; };
 		436C41D4CADEDDD7900D6836 /* PublicUniversalLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E5D7D25BDD538E3291F2280 /* PublicUniversalLink.swift */; };
 		4372E53F27B8B299B4B731AD /* MacMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC347BDA6A055081B31DC174 /* MacMainView.swift */; };
 		44C648122F593A279BF4190E /* AppIntentCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7921F180B5C7EC49B0B1D48 /* AppIntentCoordinator.swift */; };
@@ -83,6 +97,7 @@
 		486565208C4928D7B6789515 /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736F109DF0DF1C50DFAF202C /* SettingsSheet.swift */; };
 		48ECBA5F2BAFE438ED4250CF /* LinkaScreenBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AA319CBC0F321ED1449D88 /* LinkaScreenBackground.swift */; };
 		49438996C96BFB28DED35509 /* AssistProblemSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA202D7A1FB600A3F43CD0ED /* AssistProblemSelectionView.swift */; };
+		49965D172322FD3AC1D2ED9E /* AssistViewCloseSheetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA0EFE129DED2C73A20E81CA /* AssistViewCloseSheetTests.swift */; };
 		4A4DBE378115E20790D0DE74 /* AssistV4LocalContextAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E9ED762F1CA0A4337857D7 /* AssistV4LocalContextAdapterTests.swift */; };
 		4A6A54FB3C491F48F8CA9627 /* AppIntentCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7921F180B5C7EC49B0B1D48 /* AppIntentCoordinator.swift */; };
 		4CAA6BFF44943278FEF6699B /* AnalyticsCollectionPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = F50AADF3AC5FF512C88C3519 /* AnalyticsCollectionPreference.swift */; };
@@ -94,8 +109,10 @@
 		510301A83FEC870E80CE5C92 /* RouterDiscoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABDFE946268A5BA52007CFFA /* RouterDiscoveryView.swift */; };
 		518B836C28DC481311E4F8D0 /* AssistV4PresentationModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB509E33711C1EAAB7390AA /* AssistV4PresentationModelTests.swift */; };
 		521554E7FE11AE6B02C5CEC2 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8A27A3A416A9EAF5A075A2C /* FeatureFlags.swift */; };
+		52E87C06F243745326161241 /* MacComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 103064AB76AF2ED369215857 /* MacComponents.swift */; };
 		53670905412ED56AAB25F879 /* DeviceEditorSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F15D9DA4CAEB49F16D77132D /* DeviceEditorSessionTests.swift */; };
 		5434DD70ECE32A88055577EB /* PurchaseEntryPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44FD51918BF9314D06858F94 /* PurchaseEntryPoint.swift */; };
+		55DBE51017CAA52788605995 /* AssistConsultation in Frameworks */ = {isa = PBXBuildFile; productRef = 9219335BADABAD185BDF54FF /* AssistConsultation */; };
 		5635A345E660CC9EADBD21C3 /* UsageSuitabilityCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F8279085EE690722DC2381 /* UsageSuitabilityCopy.swift */; };
 		5788D2935FAB36DDED7F0FBA /* LinkaInventoryStoreV2Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EB59580B288EB3C0A12925E /* LinkaInventoryStoreV2Tests.swift */; };
 		5868E2B059BF07538C443E2E /* LinkaAdsCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FE9A266394C32859811ABA /* LinkaAdsCoordinator.swift */; };
@@ -131,7 +148,9 @@
 		810B4B27AA449A9F301E610E /* StatDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 240C677AB8218C3DE05600FB /* StatDisplay.swift */; };
 		824C3E2DEB0276AAE10CA8D6 /* NetworkInventory in Frameworks */ = {isa = PBXBuildFile; productRef = D8ED2025AEFBC989B7F73FA1 /* NetworkInventory */; };
 		83943FB778ADE5B23B4595E2 /* DeviceEditorSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D6F549785C44A409881554D /* DeviceEditorSession.swift */; };
+		83D304C21BD04B1869B61853 /* MacFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87CC66373CF4A93C544AA457 /* MacFeatures.swift */; };
 		847E859C6B4B4BC90D19D8BE /* LinkaEngine in Frameworks */ = {isa = PBXBuildFile; productRef = 86760C16968147ADE1D36961 /* LinkaEngine */; };
+		8767F922BEAD2EB780504E0D /* MacHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82EC392463489BC730C3AF24 /* MacHistoryView.swift */; };
 		8826FD67628F328D6818D0CB /* LiveUsageCasesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3812F37CC4BCB2060C4D8427 /* LiveUsageCasesView.swift */; };
 		88F9F1B61878EDF079606D60 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = DAF4C758A27DB86B27A8A164 /* GoogleMobileAds */; };
 		8983E8407EAE840970242C1B /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D5651BA532ACE94FE745A847 /* Localizable.strings */; };
@@ -157,6 +176,8 @@
 		9C4645788362507D8437E6F8 /* AppStoreReviewPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA2630F94D8B48154FD8F54 /* AppStoreReviewPolicy.swift */; };
 		9FFFA7A4330D0D605C30667E /* AssistFailureSignalMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E2413E81B1C0AF7D31BBC0 /* AssistFailureSignalMapping.swift */; };
 		A0CC5891DA43622BBD6D22C0 /* LinkaEngine in Frameworks */ = {isa = PBXBuildFile; productRef = 4DBDF7A405844E04CC1D5AF7 /* LinkaEngine */; };
+		A0D8B5EFE004DF236FF7C777 /* MacDesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57EDE7A7AE5DB05FC89470BE /* MacDesignSystem.swift */; };
+		A137E53C1C0931CDD4529F9D /* MacCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25A329E9FA5274929BB58E4E /* MacCommands.swift */; };
 		A1448C6403A7DFB5C5B2FE7F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8041784263895147F69C02D2 /* Assets.xcassets */; };
 		A475A78FD53F375ED48B3017 /* LinkaAppIntents in Frameworks */ = {isa = PBXBuildFile; productRef = AF94459C34286AD1C350EB80 /* LinkaAppIntents */; };
 		A5266CF76CCAFEAEE5EDE7DB /* AssistConsultationTransport in Frameworks */ = {isa = PBXBuildFile; productRef = B3F11366D1FE781BA270C624 /* AssistConsultationTransport */; };
@@ -181,6 +202,7 @@
 		BA26DE554BED919571A110BA /* NetworkInventory in Frameworks */ = {isa = PBXBuildFile; productRef = 6DB80E40BE9256CFE8D1674C /* NetworkInventory */; };
 		BBCD26A5CB7293C88A0A8577 /* LinkaPlusWordmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D579EFF3B620AD5DF92A3A87 /* LinkaPlusWordmarkView.swift */; };
 		C04339ACBC19EB3551BED7BA /* LinkaExternalLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8AF9B7DA6D4CDD2574E7338 /* LinkaExternalLinks.swift */; };
+		C4394253254F9A85D2B20121 /* NetworkProfiles in Frameworks */ = {isa = PBXBuildFile; productRef = 91E22FDE0D2452B2D819B132 /* NetworkProfiles */; };
 		C60712F038F34BAF07AEDEC6 /* MeasurementDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8549C59760252CA889B5156 /* MeasurementDetailView.swift */; };
 		C78DBB851266E55BA3E8BE87 /* MacMainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC347BDA6A055081B31DC174 /* MacMainView.swift */; };
 		C795EB7B3D3C235CC07EB505 /* AssistViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78285EB65890B076CF8D41D4 /* AssistViewModelTests.swift */; };
@@ -199,6 +221,7 @@
 		D023E595162ADE7D1452F5EC /* LinkaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72C35725E79C96780D745AB7 /* LinkaApp.swift */; };
 		D0716D6A4A358B964448A5DE /* MeasurementDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8549C59760252CA889B5156 /* MeasurementDetailView.swift */; };
 		D188691379C8139876B72CC4 /* AssistConsultation in Frameworks */ = {isa = PBXBuildFile; productRef = 4F10518DA36EB660317E4239 /* AssistConsultation */; };
+		D260F33404634A3004749BA9 /* MacFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87CC66373CF4A93C544AA457 /* MacFeatures.swift */; };
 		D503DB27820B79164ABBD90A /* AssistOpportunityHandoffFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C8949DE2B954BF11DDE2F66 /* AssistOpportunityHandoffFactory.swift */; };
 		D56E580B360BFB6CA8653118 /* ServicePlanEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1002043A934769A0090BD328 /* ServicePlanEditorView.swift */; };
 		D6446648E2A4A8652046EFC7 /* LinkaWidgetShared in Frameworks */ = {isa = PBXBuildFile; productRef = 5DF4E7D682987E0812DC7371 /* LinkaWidgetShared */; };
@@ -210,16 +233,20 @@
 		DEC4463032CC6437D3FD3FEE /* AssistV4LocalContextAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D2091C55A18806EFF42BEE /* AssistV4LocalContextAdapter.swift */; };
 		DFBAE558A49CA5513D880717 /* ApplePlatformSignalProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F59DF4C04B975718AB2E308A /* ApplePlatformSignalProvider.swift */; };
 		E3BA6001B4C3443808634056 /* AppShortcuts.strings in Resources */ = {isa = PBXBuildFile; fileRef = A7441EDE760EBFBE2B29269F /* AppShortcuts.strings */; };
+		E64461D0D5ADE90F7F0DAB47 /* NetworkSpatial in Frameworks */ = {isa = PBXBuildFile; productRef = 32FA9A0627EEE85AA105E95D /* NetworkSpatial */; };
+		E6B812E1CB5A7A4D7E510531 /* MacVisuals.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E2785D269C95E20BA59A06F /* MacVisuals.swift */; };
 		E775EAE8EF0692C4FD3E9D40 /* NetworkOptimization in Frameworks */ = {isa = PBXBuildFile; productRef = 50E1BD189EF2AF1A4041C1E8 /* NetworkOptimization */; };
 		E779F12809B6C62ED6E8E634 /* LinkaScreenBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7AA319CBC0F321ED1449D88 /* LinkaScreenBackground.swift */; };
 		E8738446F6E9EC9EAF2DFDE5 /* ApplePlatformSignalProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F59DF4C04B975718AB2E308A /* ApplePlatformSignalProvider.swift */; };
 		E8CBE34F981CB19F6A0F0BC2 /* NetworkCore in Frameworks */ = {isa = PBXBuildFile; productRef = 2E028050875D105EDBC73A9B /* NetworkCore */; };
 		EB421BFDB3D4D610383923F1 /* ApplePlatformSignalProviderCWChannelBandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0979A51676CC7785121587 /* ApplePlatformSignalProviderCWChannelBandTests.swift */; };
+		EB5B577A66C67CE82C21E2F4 /* MacMyNetworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D1802CBBA74283A71DD083D /* MacMyNetworkView.swift */; };
 		EDB56794300BC7672DA8F80B /* LinkaWidgetShared in Frameworks */ = {isa = PBXBuildFile; productRef = A80A78B4DB132E6B27081B7D /* LinkaWidgetShared */; };
 		EDEF20B20E5B665AE314BE04 /* LinkaExternalLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8AF9B7DA6D4CDD2574E7338 /* LinkaExternalLinks.swift */; };
 		EEB81B80D906ADD9CA3B81AF /* SpecificationDisplay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 395F4CCCFF125A14164AFD19 /* SpecificationDisplay.swift */; };
 		EF442CB97BE1BF88FF42EF35 /* DNSBenchmarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED819BC26A779177B1831C40 /* DNSBenchmarkView.swift */; };
 		F31AAD2D3D434C012CB03764 /* ServiceStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B426DC0C514BF31BA1FC78E0 /* ServiceStatusView.swift */; };
+		F483DBF5677B700FBCBE0462 /* MacPageKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA424D2F67C6BA4471A6FDC /* MacPageKit.swift */; };
 		F488F269AB22BB6F8840B4DE /* LinkaAnalyticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87932246DD490EF7AF8E7621 /* LinkaAnalyticsTests.swift */; };
 		F492A685388DF380C07F0B86 /* AssistViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD77BB89224BDA9466A65983 /* AssistViewModel.swift */; };
 		F6C6C9D28B6364A06D6FC900 /* MyNetworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD55656FCAFAB8C1CAEE2E7E /* MyNetworkView.swift */; };
@@ -235,7 +262,9 @@
 		FB97B0AECECD7CFE2CD38F4A /* AssistViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD77BB89224BDA9466A65983 /* AssistViewModel.swift */; };
 		FD6BAD30F4F388AEBF0AAB9F /* PurchaseEntryPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44FD51918BF9314D06858F94 /* PurchaseEntryPoint.swift */; };
 		FDAD333AA25BD490A8999E8C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E928A5CC293B2782EED9CB90 /* PrivacyInfo.xcprivacy */; };
+		FDF9F7B6FC6579B1E9AF47C1 /* MacNetworkDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7D3632EE68BE989FB14D15 /* MacNetworkDetails.swift */; };
 		FE61CA6DB278B399989419C4 /* ServiceStatusStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05F6216E8865C9903F201628 /* ServiceStatusStore.swift */; };
+		FF1B70F5941C028EEC579602 /* MacMyNetworkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D1802CBBA74283A71DD083D /* MacMyNetworkView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -252,6 +281,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 184D119CB06D3356F99CEDFE;
 			remoteInfo = LinkaWidgetExtension;
+		};
+		B8125683574CEA2E1A557167 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = ED928F4DB6D51F4BE84E816D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 86DF27BAA01897B036E86CFB;
+			remoteInfo = LinkaApp_macOS;
 		};
 		DED0A573BCFDF5B1A603A863 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -290,12 +326,15 @@
 		07C9F0FAD8D117DBD5A2BF80 /* es-419 */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "es-419"; path = "es-419.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		0805744453EDB0EA9AFEEEC0 /* LinkaHealthCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaHealthCheck.swift; sourceTree = "<group>"; };
 		08071384CA1E544927DDC928 /* NativeAdCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeAdCard.swift; sourceTree = "<group>"; };
+		082E3CBCECEC462090EB82D4 /* MacSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacSettingsView.swift; sourceTree = "<group>"; };
 		0BF377B5E1688176727142AF /* ConnectionPathView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionPathView.swift; sourceTree = "<group>"; };
 		0CE42362778ADDF2027A2B83 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		0D1802CBBA74283A71DD083D /* MacMyNetworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacMyNetworkView.swift; sourceTree = "<group>"; };
 		0E607975E4B121542E79DD68 /* LinkaApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LinkaApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E89ED6E204E31B8638B5679 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		0EB59580B288EB3C0A12925E /* LinkaInventoryStoreV2Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaInventoryStoreV2Tests.swift; sourceTree = "<group>"; };
 		1002043A934769A0090BD328 /* ServicePlanEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicePlanEditorView.swift; sourceTree = "<group>"; };
+		103064AB76AF2ED369215857 /* MacComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacComponents.swift; sourceTree = "<group>"; };
 		1056216026BABB240C8AC371 /* PurchaseSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchaseSheet.swift; sourceTree = "<group>"; };
 		17341010AD6A54D297DD1469 /* MeasurementHistoryCloudKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MeasurementHistoryCloudKit; path = MeasurementHistoryCloudKit; sourceTree = SOURCE_ROOT; };
 		179DA64F9C7059B7A140B92E /* MetricRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricRing.swift; sourceTree = "<group>"; };
@@ -304,6 +343,7 @@
 		1D6F549785C44A409881554D /* DeviceEditorSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceEditorSession.swift; sourceTree = "<group>"; };
 		1EAD1F6C3D7AA58F4C4BA80F /* AppStoreReviewPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreReviewPolicyTests.swift; sourceTree = "<group>"; };
 		240C677AB8218C3DE05600FB /* StatDisplay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatDisplay.swift; sourceTree = "<group>"; };
+		25A329E9FA5274929BB58E4E /* MacCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacCommands.swift; sourceTree = "<group>"; };
 		2763FED2D70911768491F83C /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		28283696C9F6FEBF0674EE17 /* AssistV4PresentationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistV4PresentationModel.swift; sourceTree = "<group>"; };
 		2C0AD568FBC4A919681763D6 /* LinkaAppIntents */ = {isa = PBXFileReference; lastKnownFileType = folder; name = LinkaAppIntents; path = LinkaAppIntents; sourceTree = SOURCE_ROOT; };
@@ -333,6 +373,7 @@
 		5306A9B9735CAA5118F099E0 /* LinkaAppTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LinkaAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		55521AF45A9C7EF8F0709A96 /* WiFiNetworkPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiNetworkPermission.swift; sourceTree = "<group>"; };
 		574B1DFC8FD097A6E08DDD34 /* LinkaAnalytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaAnalytics.swift; sourceTree = "<group>"; };
+		57EDE7A7AE5DB05FC89470BE /* MacDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacDesignSystem.swift; sourceTree = "<group>"; };
 		5A46A7355BDA5038DF7EF738 /* NetworkOptimization */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NetworkOptimization; path = NetworkOptimization; sourceTree = SOURCE_ROOT; };
 		5A6971747152D0754E5176E4 /* UsageDiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageDiagnosticsView.swift; sourceTree = "<group>"; };
 		5CA2630F94D8B48154FD8F54 /* AppStoreReviewPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreReviewPolicy.swift; sourceTree = "<group>"; };
@@ -356,10 +397,12 @@
 		7BE5DBF301620B59B53EAA9D /* LinkaPushRegistrationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaPushRegistrationDelegate.swift; sourceTree = "<group>"; };
 		7E7BAC51017CB7F936040092 /* DNSBenchmarkCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNSBenchmarkCoordinator.swift; sourceTree = "<group>"; };
 		8041784263895147F69C02D2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		82EC392463489BC730C3AF24 /* MacHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacHistoryView.swift; sourceTree = "<group>"; };
 		8307F86A4A74F9FB8F6BF796 /* NetworkCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = NetworkCore; path = NetworkCore; sourceTree = SOURCE_ROOT; };
 		8345F2C6AED5E260752371DA /* LinkaApp_macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LinkaApp_macOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		87445EA22AF7C3E9B58DDAB2 /* AssistConsultation */ = {isa = PBXFileReference; lastKnownFileType = folder; name = AssistConsultation; path = AssistConsultation; sourceTree = SOURCE_ROOT; };
 		87932246DD490EF7AF8E7621 /* LinkaAnalyticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaAnalyticsTests.swift; sourceTree = "<group>"; };
+		87CC66373CF4A93C544AA457 /* MacFeatures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacFeatures.swift; sourceTree = "<group>"; };
 		8B466168E5335F4FDD7C68E3 /* LinkaInventoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaInventoryStore.swift; sourceTree = "<group>"; };
 		8BB509E33711C1EAAB7390AA /* AssistV4PresentationModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistV4PresentationModelTests.swift; sourceTree = "<group>"; };
 		8CCCC92689E2EF1FC05A5CDE /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -369,6 +412,7 @@
 		9396CB175CFD73A1F7F5C6D0 /* InventoryBuildConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryBuildConfiguration.swift; sourceTree = "<group>"; };
 		9B850E19211801E1038B746A /* OptimizationProfileCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptimizationProfileCoordinator.swift; sourceTree = "<group>"; };
 		9CEBC5378F0F21833AE1AC70 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		9E2785D269C95E20BA59A06F /* MacVisuals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacVisuals.swift; sourceTree = "<group>"; };
 		9E32165DD4B81E22B4E1E148 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A41173010B41EF48DE2606B1 /* ExpertModeMigrationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpertModeMigrationBanner.swift; sourceTree = "<group>"; };
 		A8AF9B7DA6D4CDD2574E7338 /* LinkaExternalLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaExternalLinks.swift; sourceTree = "<group>"; };
@@ -387,6 +431,7 @@
 		BD5C9B6AB18ABE1F047530FA /* VisionDeviceLabelOCR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionDeviceLabelOCR.swift; sourceTree = "<group>"; };
 		BDC35768E7C77C8E90981EFE /* LinkaWidgetTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = LinkaWidgetTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4F8279085EE690722DC2381 /* UsageSuitabilityCopy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageSuitabilityCopy.swift; sourceTree = "<group>"; };
+		C594B121B6E5205F461AD1EF /* LinkaAppTests_macOS.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LinkaAppTests_macOS.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C60A040FE4E49231CD858102 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		C7A476675088C109C3FC7540 /* DeviceConnectionEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceConnectionEditorView.swift; sourceTree = "<group>"; };
 		CA202D7A1FB600A3F43CD0ED /* AssistProblemSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistProblemSelectionView.swift; sourceTree = "<group>"; };
@@ -412,7 +457,9 @@
 		E86B4E34E31AAC161BEF4E3C /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/AppShortcuts.strings"; sourceTree = "<group>"; };
 		E86E6389194D1938B09BEE51 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		E928A5CC293B2782EED9CB90 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		EA7D3632EE68BE989FB14D15 /* MacNetworkDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacNetworkDetails.swift; sourceTree = "<group>"; };
 		ED819BC26A779177B1831C40 /* DNSBenchmarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DNSBenchmarkView.swift; sourceTree = "<group>"; };
+		EEA424D2F67C6BA4471A6FDC /* MacPageKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacPageKit.swift; sourceTree = "<group>"; };
 		F15D9DA4CAEB49F16D77132D /* DeviceEditorSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceEditorSessionTests.swift; sourceTree = "<group>"; };
 		F3E5050B3CBDDCC2A9F2BA57 /* PhaseDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhaseDots.swift; sourceTree = "<group>"; };
 		F50AADF3AC5FF512C88C3519 /* AnalyticsCollectionPreference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsCollectionPreference.swift; sourceTree = "<group>"; };
@@ -482,6 +529,19 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CB0DC82D4DA09E193B44C025 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				290ED369F8028D502367663D /* NetworkCore in Frameworks */,
+				C4394253254F9A85D2B20121 /* NetworkProfiles in Frameworks */,
+				419FB8267AA804D4D79DF38C /* NetworkInventory in Frameworks */,
+				E64461D0D5ADE90F7F0DAB47 /* NetworkSpatial in Frameworks */,
+				2B15B945E6708BE6259FFDC2 /* NetworkOptimization in Frameworks */,
+				55DBE51017CAA52788605995 /* AssistConsultation in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E1D185F97EAADEA7044B006E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -516,6 +576,23 @@
 			);
 			name = Sources;
 			path = LinkaApp/Sources;
+			sourceTree = "<group>";
+		};
+		05E9575CE4C43A527E3BD0F6 /* Mac */ = {
+			isa = PBXGroup;
+			children = (
+				25A329E9FA5274929BB58E4E /* MacCommands.swift */,
+				103064AB76AF2ED369215857 /* MacComponents.swift */,
+				57EDE7A7AE5DB05FC89470BE /* MacDesignSystem.swift */,
+				87CC66373CF4A93C544AA457 /* MacFeatures.swift */,
+				82EC392463489BC730C3AF24 /* MacHistoryView.swift */,
+				0D1802CBBA74283A71DD083D /* MacMyNetworkView.swift */,
+				EA7D3632EE68BE989FB14D15 /* MacNetworkDetails.swift */,
+				EEA424D2F67C6BA4471A6FDC /* MacPageKit.swift */,
+				082E3CBCECEC462090EB82D4 /* MacSettingsView.swift */,
+				9E2785D269C95E20BA59A06F /* MacVisuals.swift */,
+			);
+			path = Mac;
 			sourceTree = "<group>";
 		};
 		10937898CCD45A4354EAA6CF /* UI */ = {
@@ -562,6 +639,7 @@
 				C4F8279085EE690722DC2381 /* UsageSuitabilityCopy.swift */,
 				55521AF45A9C7EF8F0709A96 /* WiFiNetworkPermission.swift */,
 				36680D653943FD0B9D2C99D5 /* AssistV4 */,
+				05E9575CE4C43A527E3BD0F6 /* Mac */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -694,6 +772,7 @@
 			children = (
 				8345F2C6AED5E260752371DA /* LinkaApp_macOS.app */,
 				0E607975E4B121542E79DD68 /* LinkaApp.app */,
+				C594B121B6E5205F461AD1EF /* LinkaAppTests_macOS.xctest */,
 				5306A9B9735CAA5118F099E0 /* LinkaAppTests.xctest */,
 				3BE450192B7DC663DC0F0F91 /* LinkaAppUITests.xctest */,
 				328D0AC42D7699A0B421F1F3 /* LinkaWidgetExtension.appex */,
@@ -845,6 +924,31 @@
 			productReference = 3BE450192B7DC663DC0F0F91 /* LinkaAppUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		40D0804C768BB066BCEB04B7 /* LinkaAppTests_macOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 576BB81F9D9E3791B78E42C8 /* Build configuration list for PBXNativeTarget "LinkaAppTests_macOS" */;
+			buildPhases = (
+				8E8258E7164C719C01E47AE4 /* Sources */,
+				CB0DC82D4DA09E193B44C025 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				281A5DA95090965E746F8FE2 /* PBXTargetDependency */,
+			);
+			name = LinkaAppTests_macOS;
+			packageProductDependencies = (
+				66F23E6BBB945FBD00BCB3B9 /* NetworkCore */,
+				91E22FDE0D2452B2D819B132 /* NetworkProfiles */,
+				71110011029CBFD9436A2B4E /* NetworkInventory */,
+				32FA9A0627EEE85AA105E95D /* NetworkSpatial */,
+				4CB3E5B8A1FA20512B78560C /* NetworkOptimization */,
+				9219335BADABAD185BDF54FF /* AssistConsultation */,
+			);
+			productName = LinkaAppTests_macOS;
+			productReference = C594B121B6E5205F461AD1EF /* LinkaAppTests_macOS.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		43879976A06AC9B70CC4365B /* LinkaApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 231EE6B5C1BE22932843EA67 /* Build configuration list for PBXNativeTarget "LinkaApp" */;
@@ -980,6 +1084,10 @@
 						ProvisioningStyle = Automatic;
 						TestTargetID = 43879976A06AC9B70CC4365B;
 					};
+					40D0804C768BB066BCEB04B7 = {
+						DevelopmentTeam = 2Z4T8228GR;
+						ProvisioningStyle = Automatic;
+					};
 					43879976A06AC9B70CC4365B = {
 						DevelopmentTeam = 2Z4T8228GR;
 						ProvisioningStyle = Automatic;
@@ -1035,6 +1143,7 @@
 				86DF27BAA01897B036E86CFB /* LinkaApp_macOS */,
 				3F2ED16AA6022DBB7650DAC5 /* LinkaAppUITests */,
 				57D0A290943F86C259A182B6 /* LinkaAppTests */,
+				40D0804C768BB066BCEB04B7 /* LinkaAppTests_macOS */,
 				184D119CB06D3356F99CEDFE /* LinkaWidgetExtension */,
 				6F0E83DD24583A059A8A3F41 /* LinkaWidgetTests */,
 			);
@@ -1153,7 +1262,17 @@
 				94D1D5801F0D25E7ADB7EBC3 /* LinkaPushRegistrationDelegate.swift in Sources */,
 				48ECBA5F2BAFE438ED4250CF /* LinkaScreenBackground.swift in Sources */,
 				1A2E68C74EC4FECDFBE180DC /* LiveUsageCasesView.swift in Sources */,
+				A137E53C1C0931CDD4529F9D /* MacCommands.swift in Sources */,
+				271F7B8D6A59A7DF7E4C9946 /* MacComponents.swift in Sources */,
+				A0D8B5EFE004DF236FF7C777 /* MacDesignSystem.swift in Sources */,
+				D260F33404634A3004749BA9 /* MacFeatures.swift in Sources */,
+				8767F922BEAD2EB780504E0D /* MacHistoryView.swift in Sources */,
 				C78DBB851266E55BA3E8BE87 /* MacMainView.swift in Sources */,
+				EB5B577A66C67CE82C21E2F4 /* MacMyNetworkView.swift in Sources */,
+				372338B5F4AA68319ADA6708 /* MacNetworkDetails.swift in Sources */,
+				F483DBF5677B700FBCBE0462 /* MacPageKit.swift in Sources */,
+				1100A39FF6A445F79F9E88A1 /* MacSettingsView.swift in Sources */,
+				15066C8E3D3DD4B8EB73EF7F /* MacVisuals.swift in Sources */,
 				7C80510290141EF10AA29DC8 /* MainView.swift in Sources */,
 				D0716D6A4A358B964448A5DE /* MeasurementDetailView.swift in Sources */,
 				B237F502D997C636A3DB7D99 /* MeasurementNetworkFlowView.swift in Sources */,
@@ -1184,6 +1303,16 @@
 				5635A345E660CC9EADBD21C3 /* UsageSuitabilityCopy.swift in Sources */,
 				29D1966C2D441838367577DB /* VisionDeviceLabelOCR.swift in Sources */,
 				CA6E277ED5CF8F30524C4974 /* WiFiNetworkPermission.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8E8258E7164C719C01E47AE4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B04ACF214A49BF20DE6A264 /* AssistOpportunityHandoffFactoryTests.swift in Sources */,
+				49965D172322FD3AC1D2ED9E /* AssistViewCloseSheetTests.swift in Sources */,
+				302B2878E84B58C617DC5532 /* AssistViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1262,7 +1391,17 @@
 				0BADFEDB706C8F4B6B4634B6 /* LinkaPushRegistrationDelegate.swift in Sources */,
 				E779F12809B6C62ED6E8E634 /* LinkaScreenBackground.swift in Sources */,
 				8826FD67628F328D6818D0CB /* LiveUsageCasesView.swift in Sources */,
+				02DDEFAD4A460D374B44AC3D /* MacCommands.swift in Sources */,
+				52E87C06F243745326161241 /* MacComponents.swift in Sources */,
+				38D7E05FA2847573B8AB389A /* MacDesignSystem.swift in Sources */,
+				83D304C21BD04B1869B61853 /* MacFeatures.swift in Sources */,
+				396B6AF18F42CD03F0E457D3 /* MacHistoryView.swift in Sources */,
 				4372E53F27B8B299B4B731AD /* MacMainView.swift in Sources */,
+				FF1B70F5941C028EEC579602 /* MacMyNetworkView.swift in Sources */,
+				FDF9F7B6FC6579B1E9AF47C1 /* MacNetworkDetails.swift in Sources */,
+				27989E5A016EC13A109BB7C5 /* MacPageKit.swift in Sources */,
+				0C7ACE6F1CADB442D21C1700 /* MacSettingsView.swift in Sources */,
+				E6B812E1CB5A7A4D7E510531 /* MacVisuals.swift in Sources */,
 				C60712F038F34BAF07AEDEC6 /* MeasurementDetailView.swift in Sources */,
 				2B5EFD3E4A2688EED00ECCE3 /* MeasurementNetworkFlowView.swift in Sources */,
 				22ACBF6A87B265E99D871533 /* MetricRing.swift in Sources */,
@@ -1298,6 +1437,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		281A5DA95090965E746F8FE2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 86DF27BAA01897B036E86CFB /* LinkaApp_macOS */;
+			targetProxy = B8125683574CEA2E1A557167 /* PBXContainerItemProxy */;
+		};
 		B0269C6CB5957D7F5CACBDB4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 184D119CB06D3356F99CEDFE /* LinkaWidgetExtension */;
@@ -1380,6 +1524,26 @@
 			};
 			name = InternalBeta;
 		};
+		0DCE34E21A2BE04CC66A6742 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 2Z4T8228GR;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.linka.LinkaAppTests-macOS";
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LinkaApp.app/Contents/MacOS/LinkaApp";
+			};
+			name = Release;
+		};
 		2169B39736F2098270285A1C /* InternalBeta */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1409,7 +1573,8 @@
 			buildSettings = {
 				APS_ENVIRONMENT = development;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "LinkaApp/LinkaApp-macOS.entitlements";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "LinkaApp/LinkaApp-macOS$(LINKA_ENTITLEMENTS_SUFFIX).entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 54;
@@ -1420,6 +1585,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LINKA_ENTITLEMENTS_SUFFIX = "";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.linka.assist;
@@ -1443,6 +1609,26 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
+		};
+		4B346D787BF918A4F09F0DB6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 2Z4T8228GR;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.linka.LinkaAppTests-macOS";
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LinkaApp.app/Contents/MacOS/LinkaApp";
+			};
+			name = Debug;
 		};
 		62C2407D057C908386165BF0 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1646,7 +1832,8 @@
 			buildSettings = {
 				APS_ENVIRONMENT = production;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "LinkaApp/LinkaApp-macOS.entitlements";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "LinkaApp/LinkaApp-macOS$(LINKA_ENTITLEMENTS_SUFFIX).entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 54;
@@ -1657,6 +1844,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LINKA_ENTITLEMENTS_SUFFIX = "";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.linka.assist;
@@ -1691,7 +1879,8 @@
 			buildSettings = {
 				APS_ENVIRONMENT = production;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "LinkaApp/LinkaApp-macOS.entitlements";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "LinkaApp/LinkaApp-macOS$(LINKA_ENTITLEMENTS_SUFFIX).entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 54;
@@ -1702,6 +1891,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LINKA_ENTITLEMENTS_SUFFIX = "";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 1.1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.linka.assist;
@@ -1777,6 +1967,26 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
+		};
+		C7E83D61C03A4F87B359D9F8 /* InternalBeta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 2Z4T8228GR;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.linka.LinkaAppTests-macOS";
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LinkaApp.app/Contents/MacOS/LinkaApp";
+			};
+			name = InternalBeta;
 		};
 		DE450D69DDFB95295519F2F0 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1971,6 +2181,16 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		576BB81F9D9E3791B78E42C8 /* Build configuration list for PBXNativeTarget "LinkaAppTests_macOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4B346D787BF918A4F09F0DB6 /* Debug */,
+				C7E83D61C03A4F87B359D9F8 /* InternalBeta */,
+				0DCE34E21A2BE04CC66A6742 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		C2CE0C2BCF81362355C11576 /* Build configuration list for PBXProject "LinkaApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -2120,6 +2340,10 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = NetworkSpatial;
 		};
+		32FA9A0627EEE85AA105E95D /* NetworkSpatial */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NetworkSpatial;
+		};
 		39577AC3D53FC846E0A71FB2 /* LinkaAppIntents */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LinkaAppIntents;
@@ -2127,6 +2351,10 @@
 		4B6F4EC1AA2912C485BBBA5D /* NetworkProfiles */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NetworkProfiles;
+		};
+		4CB3E5B8A1FA20512B78560C /* NetworkOptimization */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NetworkOptimization;
 		};
 		4DBDF7A405844E04CC1D5AF7 /* LinkaEngine */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -2157,6 +2385,10 @@
 			package = CB625A3158D800276148AB86 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
 		};
+		66F23E6BBB945FBD00BCB3B9 /* NetworkCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NetworkCore;
+		};
 		6C16385D59C93FAD8555D2E3 /* LinkaWidgetShared */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = LinkaWidgetShared;
@@ -2166,6 +2398,10 @@
 			productName = NetworkDNSBenchmark;
 		};
 		6DB80E40BE9256CFE8D1674C /* NetworkInventory */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NetworkInventory;
+		};
+		71110011029CBFD9436A2B4E /* NetworkInventory */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NetworkInventory;
 		};
@@ -2188,6 +2424,14 @@
 		8D030535C110C19E720EA384 /* NetworkDiagnostics */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NetworkDiagnostics;
+		};
+		91E22FDE0D2452B2D819B132 /* NetworkProfiles */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NetworkProfiles;
+		};
+		9219335BADABAD185BDF54FF /* AssistConsultation */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AssistConsultation;
 		};
 		927C3E5CC67655EEB215DB10 /* NetscopeEvidence */ = {
 			isa = XCSwiftPackageProductDependency;

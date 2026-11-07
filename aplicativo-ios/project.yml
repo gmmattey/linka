@@ -154,7 +154,9 @@ targets:
         MARKETING_VERSION: "1.1.5"
         CURRENT_PROJECT_VERSION: "54"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        CODE_SIGN_ENTITLEMENTS: LinkaApp/LinkaApp-macOS.entitlements
+        LINKA_ENTITLEMENTS_SUFFIX: ""
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_ENTITLEMENTS: LinkaApp/LinkaApp-macOS$(LINKA_ENTITLEMENTS_SUFFIX).entitlements
         CODE_SIGN_STYLE: Automatic
         COMBINE_HIDPI_IMAGES: YES
         DEVELOPMENT_TEAM: "2Z4T8228GR"
@@ -191,6 +193,10 @@ targets:
         LinkaAssistDirectEnabled: "YES"
         LinkaServiceStatusEndpoint: "https://linka-assist-relay.buildealabs.workers.dev/v1/service-status"
         NSLocalNetworkUsageDescription: "O Linka consulta o roteador da rede local para identificar o equipamento e diagnosticar a qualidade da conexão Wi-Fi."
+        NSLocationUsageDescription: "O Linka usa a localização apenas porque o macOS exige essa autorização para informar o nome da rede Wi-Fi atual. Sua localização não é salva para identificar a rede."
+        NSLocationWhenInUseUsageDescription: "O Linka usa a localização apenas porque o macOS exige essa autorização para informar o nome da rede Wi-Fi atual. Sua localização não é salva para identificar a rede."
+        NSLocationTemporaryUsageDescriptionDictionary:
+          WiFiIdentification: "O Linka precisa de localização precisa temporariamente para informar o nome da rede Wi-Fi atual."
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
     sources:
@@ -253,6 +259,33 @@ targets:
       - package: NetworkSpatial
       - package: AssistConsultation
       - package: AssistConsultationTransport
+  LinkaAppTests_macOS:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget:
+      macOS: 13.0
+    settings:
+      base:
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: "2Z4T8228GR"
+        GENERATE_INFOPLIST_FILE: YES
+        MACOSX_DEPLOYMENT_TARGET: "13.0"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/LinkaApp.app/Contents/MacOS/LinkaApp"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+    sources:
+      - path: LinkaApp/Tests
+        includes:
+          - "Assist*.swift"
+        excludes:
+          - "AssistV4*.swift"
+    dependencies:
+      - target: LinkaApp_macOS
+      - package: NetworkCore
+      - package: NetworkProfiles
+      - package: NetworkInventory
+      - package: NetworkSpatial
+      - package: NetworkOptimization
+      - package: AssistConsultation
   LinkaWidgetExtension:
     type: app-extension
     platform: iOS
@@ -329,8 +362,13 @@ schemes:
     build:
       targets:
         LinkaApp_macOS: all
+        LinkaAppTests_macOS: [test]
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - LinkaAppTests_macOS
     archive:
       config: Release
   LinkaApp_macOS-InternalBeta:

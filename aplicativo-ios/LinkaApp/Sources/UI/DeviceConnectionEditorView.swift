@@ -87,6 +87,7 @@ struct DeviceConnectionEditorView: View {
             }
             #if os(macOS)
             .formStyle(.grouped)
+            .linkaMacForm()
             #endif
             .navigationTitle(LinkaCopy.value(isNewConnection ? "inventory.connection.add" : "inventory.connection.edit"))
             #if os(iOS)
