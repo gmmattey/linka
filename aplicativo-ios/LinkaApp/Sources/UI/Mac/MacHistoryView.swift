@@ -91,6 +91,14 @@ struct MacHistoryView: View {
             Task { await load() }
         }
         .onChange(of: selection) { _ in updateCommandState() }
+        .onChange(of: filter) { MacAnalytics.shared.track(.historyFiltered(filter: String(describing: $0))) }
+        .onChange(of: sortOrder) { order in
+            let column = order.first.map { String(describing: $0.keyPath).split(separator: ".").last.map(String.init) ?? "unknown" } ?? "unknown"
+            MacAnalytics.shared.track(.historySorted(column: column))
+        }
+        .onChange(of: search) { text in
+            if !text.isEmpty { MacAnalytics.shared.track(.historySearched) }
+        }
         .onChange(of: center.deleteRequest) { requested in
             guard requested else { return }
             center.deleteRequest = false
@@ -414,6 +422,7 @@ struct MacHistoryView: View {
         Task { @MainActor in
             let repo = LinkaMeasurementHistory.makeRepository(entitlements: entitlements)
             for item in items { try? await repo.delete(id: item.id) }
+            MacAnalytics.shared.track(.measurementDeleted(scope: items.count > 1 ? "many" : "one"))
             selection.subtract(items.map(\.id))
             await load()
             NotificationCenter.default.post(name: .linkaHistoryDidChange, object: nil)

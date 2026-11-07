@@ -4,6 +4,8 @@ import Foundation
 /// e impede tanto os eventos automáticos do SDK quanto os eventos de produto.
 public final class AnalyticsCollectionPreference: @unchecked Sendable {
     public static let ownerExcludedDefaultsKey = "linka.analytics.owner_excluded"
+    /// Escolha da pessoa nos Ajustes do Mac ("Compartilhar dados de uso"). Vale só nesta instalação.
+    public static let userOptOutDefaultsKey = "linka.analytics.user_opt_out"
     public static let disableLaunchArgument = "-linka-analytics-disabled"
     public static let firebaseDebugLaunchArgument = "-linka-firebase-debug"
 
@@ -29,10 +31,19 @@ public final class AnalyticsCollectionPreference: @unchecked Sendable {
             && !isAutomatedTest
             && !arguments.contains(Self.disableLaunchArgument)
             && !isOwnerExcluded
+            && !isUserOptedOut
     }
 
     public var isOwnerExcluded: Bool {
         userDefaults.bool(forKey: Self.ownerExcludedDefaultsKey)
+    }
+
+    public var isUserOptedOut: Bool {
+        userDefaults.bool(forKey: Self.userOptOutDefaultsKey)
+    }
+
+    public func setUserOptedOut(_ optedOut: Bool) {
+        userDefaults.set(optedOut, forKey: Self.userOptOutDefaultsKey)
     }
 
     public func setOwnerExcluded(_ excluded: Bool) {

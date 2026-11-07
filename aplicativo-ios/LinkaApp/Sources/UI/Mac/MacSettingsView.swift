@@ -39,20 +39,26 @@ struct MacSettingsView: View {
     var body: some View {
         TabView {
             MacSettingsGeneralTab()
+                .macScreen(MacScreenName.settings("General"))
                 .tabItem { Label(LinkaCopy.value("Geral"), systemImage: "gearshape") }
             MacSettingsNetworkTab()
+                .macScreen(MacScreenName.settings("Network"))
                 .tabItem { Label(LinkaCopy.value("Wi-Fi e rede"), systemImage: "wifi") }
             MacSettingsPrivacyTab()
+                .macScreen(MacScreenName.settings("Privacy"))
                 .tabItem { Label(LinkaCopy.value("Privacidade"), systemImage: "hand.raised") }
             MacSettingsDataTab()
                 .environmentObject(entitlements)
+                .macScreen(MacScreenName.settings("Data"))
                 .tabItem { Label(LinkaCopy.value("Dados"), systemImage: "internaldrive") }
             MacSettingsAboutTab()
                 .environmentObject(entitlements)
+                .macScreen(MacScreenName.settings("About"))
                 .tabItem { Label(LinkaCopy.value("Sobre"), systemImage: "info.circle") }
         }
         .font(.system(size: 14))
         .frame(width: 640, height: 480)
+        .onAppear { MacAnalytics.shared.track(.settingsOpened) }
     }
 }
 
@@ -98,6 +104,15 @@ private struct MacSettingsGeneralTab: View {
             }
         }
         .formStyle(.grouped)
+        .onChange(of: appAppearance) { value in
+            MacAnalytics.shared.track(.settingChanged(setting: "appearance", value: value))
+            MacAnalytics.shared.setUserProperty(value, for: "appearance")
+        }
+        .onChange(of: languagePreference) { value in
+            MacAnalytics.shared.track(.settingChanged(setting: "language", value: value))
+            MacAnalytics.shared.setUserProperty(value, for: "app_language")
+        }
+        .onChange(of: confirmDelete) { MacAnalytics.shared.track(.settingChanged(setting: "confirm_delete", value: $0 ? "on" : "off")) }
         .alert(LinkaCopy.value("Restaurar os ajustes padrão?"), isPresented: $confirmReset) {
             Button(LinkaCopy.value("Restaurar"), role: .destructive) {
                 appAppearance = "system"
@@ -185,6 +200,7 @@ private struct MacSettingsNetworkTab: View {
             Section {
                 Toggle(LinkaCopy.value("Mostrar o nome da rede Wi-Fi"), isOn: $identificationEnabled)
                     .onChange(of: identificationEnabled) { enabled in
+                        MacAnalytics.shared.track(.settingChanged(setting: "wifi_name", value: enabled ? "on" : "off"))
                         if enabled { WiFiNetworkPermission.requestIdentification() }
                         refresh()
                     }
@@ -225,6 +241,8 @@ private struct MacSettingsNetworkTab: View {
 // MARK: - Privacidade
 
 private struct MacSettingsPrivacyTab: View {
+    @AppStorage(AnalyticsCollectionPreference.userOptOutDefaultsKey) private var optedOut = false
+
     var body: some View {
         Form {
             Section {
@@ -233,6 +251,19 @@ private struct MacSettingsPrivacyTab: View {
                 Label(LinkaCopy.value("O Linka não mostra anúncios no Mac."), systemImage: "nosign")
             } header: {
                 Text(LinkaCopy.value("Como o Linka trata seus dados"))
+            }
+
+            Section {
+                Toggle(LinkaCopy.value("Compartilhar dados de uso"), isOn: Binding(
+                    get: { !optedOut },
+                    set: { shares in
+                        if !shares { MacAnalytics.shared.track(.settingChanged(setting: "analytics", value: "off")) }
+                        optedOut = !shares
+                        LinkaAnalytics.shared.setCollectionEnabled(LinkaAnalytics.shared.preference.isCollectionEnabled)
+                        if shares { MacAnalytics.shared.track(.settingChanged(setting: "analytics", value: "on")) }
+                    }))
+            } footer: {
+                Text(LinkaCopy.value("Ajuda a melhorar o Linka com dados anônimos de uso, como telas abertas e se o teste terminou. Nunca inclui o nome da sua rede, endereços, localização ou o que você digita."))
             }
 
             Section(LinkaCopy.value("Permissões do sistema")) {
@@ -295,6 +326,7 @@ private struct MacSettingsDataTab: View {
                 Task { @MainActor in
                     let repo = LinkaMeasurementHistory.makeRepository(entitlements: entitlements)
                     try? await repo.deleteAll()
+                    MacAnalytics.shared.track(.measurementDeleted(scope: "all"))
                     NotificationCenter.default.post(name: .linkaHistoryDidChange, object: nil)
                 }
             }

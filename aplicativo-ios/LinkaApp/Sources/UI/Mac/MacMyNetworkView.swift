@@ -60,6 +60,8 @@ struct MacMyNetworkView: View {
             DeviceEditorView(device: device, store: store)
                 .frame(minWidth: 580, idealWidth: 640, minHeight: 520, idealHeight: 650)
         }
+        .onChange(of: editingPlan) { if $0 { MacAnalytics.shared.track(.myNetworkAction(action: "edit_plan")) } }
+        .onChange(of: managingEnvironments) { if $0 { MacAnalytics.shared.track(.myNetworkAction(action: "manage_environments")) } }
         .sheet(isPresented: $editingPlan) {
             ServicePlanEditorView(plan: store.activePlan, store: store)
                 .frame(minWidth: 520, idealWidth: 600, minHeight: 500)
@@ -435,6 +437,7 @@ struct MacMyNetworkView: View {
     // MARK: Ações e formatação
 
     private func addDevice() {
+        MacAnalytics.shared.track(.myNetworkAction(action: "add_device"))
         editingDevice = RegisteredNetworkDevice(kind: .other, identity: .init(model: ""))
     }
 
