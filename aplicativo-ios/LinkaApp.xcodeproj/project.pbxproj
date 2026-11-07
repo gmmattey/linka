@@ -14,6 +14,7 @@
 		02DDEFAD4A460D374B44AC3D /* MacCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25A329E9FA5274929BB58E4E /* MacCommands.swift */; };
 		037E6DFA21B22DF88AD7F57F /* InventoryBuildConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9396CB175CFD73A1F7F5C6D0 /* InventoryBuildConfiguration.swift */; };
 		04D7EE043E89ADE50EE4E3A5 /* NetworkInventory in Frameworks */ = {isa = PBXBuildFile; productRef = DE47D2394644F8F74914E89E /* NetworkInventory */; };
+		06571710C393A06C885B1F26 /* GoogleService-Info-macOS.plist in Resources */ = {isa = PBXBuildFile; fileRef = A02505E47AB5E95633D16A85 /* GoogleService-Info-macOS.plist */; };
 		074A78EB05FB73EAA13BFF42 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E86E6389194D1938B09BEE51 /* HistoryView.swift */; };
 		0794CAB9623C9907CA924D64 /* AppShortcuts.strings in Resources */ = {isa = PBXBuildFile; fileRef = A7441EDE760EBFBE2B29269F /* AppShortcuts.strings */; };
 		07FA5BACD537ACDC5E210496 /* SettingsProductionStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46F4505095861E3713A028A2 /* SettingsProductionStateTests.swift */; };
@@ -422,6 +423,7 @@
 		9CEBC5378F0F21833AE1AC70 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		9E2785D269C95E20BA59A06F /* MacVisuals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacVisuals.swift; sourceTree = "<group>"; };
 		9E32165DD4B81E22B4E1E148 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A02505E47AB5E95633D16A85 /* GoogleService-Info-macOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info-macOS.plist"; sourceTree = "<group>"; };
 		A41173010B41EF48DE2606B1 /* ExpertModeMigrationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpertModeMigrationBanner.swift; sourceTree = "<group>"; };
 		A8AF9B7DA6D4CDD2574E7338 /* LinkaExternalLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkaExternalLinks.swift; sourceTree = "<group>"; };
 		A955FDE679C032C5443EEF5D /* SpeedTestViewModelScenePhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedTestViewModelScenePhaseTests.swift; sourceTree = "<group>"; };
@@ -805,6 +807,7 @@
 		A5CEA60FFC5F577867D45339 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				A02505E47AB5E95633D16A85 /* GoogleService-Info-macOS.plist */,
 				8CCCC92689E2EF1FC05A5CDE /* GoogleService-Info.plist */,
 				E928A5CC293B2782EED9CB90 /* PrivacyInfo.xcprivacy */,
 				A7441EDE760EBFBE2B29269F /* AppShortcuts.strings */,
@@ -1179,6 +1182,7 @@
 			files = (
 				0794CAB9623C9907CA924D64 /* AppShortcuts.strings in Resources */,
 				A1448C6403A7DFB5C5B2FE7F /* Assets.xcassets in Resources */,
+				06571710C393A06C885B1F26 /* GoogleService-Info-macOS.plist in Resources */,
 				1C493BF062E36FBAE9608433 /* InfoPlist.strings in Resources */,
 				B1B19632A149CD3F95EF967A /* Localizable.strings in Resources */,
 				FDAD333AA25BD490A8999E8C /* PrivacyInfo.xcprivacy in Resources */,
