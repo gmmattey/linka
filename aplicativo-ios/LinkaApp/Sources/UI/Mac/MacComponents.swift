@@ -231,7 +231,10 @@ enum MacMeasurementFormat {
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do {
             try data.write(to: url, options: .atomic)
+            MacAnalytics.shared.track(.historyExported(rows: measurements.count, success: true))
         } catch {
+            MacAnalytics.shared.track(.historyExported(rows: measurements.count, success: false))
+            MacAnalytics.shared.track(.error(area: "history_export", kind: "write_failed"))
             let alert = NSAlert()
             alert.alertStyle = .warning
             alert.messageText = LinkaCopy.value("Não foi possível salvar o arquivo")
