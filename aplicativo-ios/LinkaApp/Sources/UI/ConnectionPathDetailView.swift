@@ -52,44 +52,64 @@ struct ConnectionPathDetailView: View {
 
     #if os(macOS)
     private var macOSContent: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(LinkaCopy.value("connectionPath.title"))
-                            .font(.title.weight(.bold))
-                        Text(ConnectionPathCopy.conclusion(for: report))
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    macCard(title: LinkaCopy.value("connectionPath.stages")) {
-                        ForEach(visibleStages, id: \.self) { stage in
-                            if let verdict = report.verdict(for: stage) {
-                                stageRow(verdict: verdict, isHighlighted: report.highlightedStage == stage)
-                                if stage != visibleStages.last { Divider() }
-                            }
+        MacSheetScaffold(
+            title: LinkaCopy.value("connectionPath.title"),
+            systemImage: "point.3.connected.trianglepath.dotted",
+            tint: MacPalette.upload,
+            onClose: { dismiss() }
+        ) {
+            MacBanner(
+                systemImage: "stethoscope",
+                tint: MacPalette.upload,
+                title: LinkaCopy.value("connectionPath.diagnosis"),
+                message: ConnectionPathCopy.conclusion(for: report)
+            )
+            VStack(alignment: .leading, spacing: 12) {
+                Text(LinkaCopy.value("connectionPath.stages")).font(MacType.section)
+                VStack(spacing: 16) {
+                    ForEach(Array(visibleStages.enumerated()), id: \.element) { index, stage in
+                        if let verdict = report.verdict(for: stage) {
+                            macStageCard(index: index + 1, verdict: verdict, isHighlighted: report.highlightedStage == stage)
                         }
                     }
                 }
-                .frame(maxWidth: 680, alignment: .leading)
-                .padding(40)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
-            .background(Color.surfacePage)
-            .linkaSheetToolbar(title: LinkaCopy.value("connectionPath.title")) { dismiss() }
         }
     }
 
-    private func macCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title.uppercased())
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-            VStack(alignment: .leading, spacing: 12, content: content)
-                .padding(18)
-                .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    private func macStageCard(index: Int, verdict: ConnectionPathStageVerdict, isHighlighted: Bool) -> some View {
+        let tint = statusColor(verdict.status)
+        return HStack(alignment: .top, spacing: 16) {
+            ZStack {
+                Circle().fill(tint.opacity(0.16))
+                Image(systemName: ConnectionPathCopy.icon(for: verdict.stage))
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(tint)
+            }
+            .frame(width: 52, height: 52)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("\(index). \(ConnectionPathCopy.title(for: verdict.stage))").font(MacType.headline)
+                    Spacer()
+                    Image(systemName: ConnectionPathCopy.statusSymbol(for: verdict.status))
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(tint)
+                }
+                Text(ConnectionPathCopy.explanation(for: verdict))
+                    .font(MacType.label)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .linkaMacCard()
+        .overlay(alignment: .topTrailing) {
+            if isHighlighted {
+                MacStatusTag(label: LinkaCopy.value("Ponto de atenção"), color: tint).padding(12).offset(y: -2)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(ConnectionPathCopy.title(for: verdict.stage)): \(ConnectionPathCopy.statusAccessibilityLabel(verdict.status)). \(ConnectionPathCopy.explanation(for: verdict))")
     }
     #endif
 

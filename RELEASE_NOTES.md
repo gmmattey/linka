@@ -1,3 +1,11 @@
+# Linka para Mac 1.1.5 (54) — interface nativa e download direto
+
+- Interface do Mac refeita como app nativo (não mais iOS migrado): cartões com profundidade, fontes maiores, violeta da marca, resultado simplificado, inspetor flutuante, Histórico em tabela com gráfico, Minha Rede com equipamentos e plano, janela de Ajustes completa (claro, escuro e automático) e menus com atalhos.
+- Detalhes da rede no velocímetro (Wi-Fi, banda, canal, sinal, endereços), sem ler o BSSID.
+- Ferramentas ainda não revisadas no padrão novo ficam ocultas até a revisão.
+- Novo ícone do Linka no iPhone, iPad e Mac.
+- Correções: abrir sem iCloud não fecha o app; sem pedido de senha do Keychain a cada abertura.
+- Preparado para download direto notarizado; publicação depende de autorização.
 # Linka 1.1.8 (62) — candidata TestFlight interno
 
 - **Integração Firebase Analytics (iOS):**

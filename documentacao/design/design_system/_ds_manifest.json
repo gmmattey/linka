@@ -1,1 +1,1249 @@
-{"namespace":"LinkaDesignSystem_60151f","components":[{"name":"Wordmark","sourcePath":"components/brand/Wordmark.jsx"},{"name":"ComparisonTable","sourcePath":"components/content/ComparisonTable.jsx"},{"name":"LegalSection","sourcePath":"components/content/LegalSection.jsx"},{"name":"StepItem","sourcePath":"components/content/StepItem.jsx"},{"name":"ValueCard","sourcePath":"components/content/ValueCard.jsx"},{"name":"Button","sourcePath":"components/core/Button.jsx"},{"name":"Card","sourcePath":"components/core/Card.jsx"},{"name":"Eyebrow","sourcePath":"components/core/Eyebrow.jsx"},{"name":"Icon","sourcePath":"components/core/Icon.jsx"},{"name":"StatusLabel","sourcePath":"components/core/StatusLabel.jsx"},{"name":"TextLink","sourcePath":"components/core/TextLink.jsx"},{"name":"PageHero","sourcePath":"components/layout/PageHero.jsx"},{"name":"SiteFooter","sourcePath":"components/layout/SiteFooter.jsx"},{"name":"SiteHeader","sourcePath":"components/layout/SiteHeader.jsx"},{"name":"AdSlot","sourcePath":"components/speedtest/AdSlot.jsx"},{"name":"DetailsDisclosure","sourcePath":"components/speedtest/DetailsDisclosure.jsx"},{"name":"MetricRing","sourcePath":"components/speedtest/MetricRing.jsx"},{"name":"PhaseDots","sourcePath":"components/speedtest/PhaseDots.jsx"},{"name":"StatDisplay","sourcePath":"components/speedtest/StatDisplay.jsx"}],"startingPoints":[],"cards":[{"path":"guidelines/brand-icons.card.html","group":"Brand","viewport":"1180x560","subtitle":"Marca inteira dentro do espaço — set Apple (iOS/iPadOS/macOS) e set Desktop/webapp","name":"App Icons & Favicons"},{"path":"guidelines/brand-logo-mark.card.html","group":"Brand","viewport":"760x200","subtitle":"assets/logo.svg — apenas o 'i' do logotipo com o pingo laranja, centralizado na tile","name":"Logo Mark"},{"path":"guidelines/brand-wordmark.card.html","group":"Brand","viewport":"760x260","subtitle":"Drawn logotype — round-terminal strokes, descending i-bar, warm-orange tittle","name":"Wordmark Showcase"},{"path":"guidelines/colors-accent.card.html","group":"Colors","viewport":"760x150","subtitle":"Navy ink primary + a single restrained warm-orange pop (the i-dot only)","name":"Accent"},{"path":"guidelines/colors-neutral.card.html","group":"Colors","viewport":"760x160","subtitle":"bg / grouped-bg / surface / fg / muted / border","name":"Surface & Text"},{"path":"components/brand/brand.card.html","group":"Components","viewport":"760x160","subtitle":"Wordmark (sm/md/lg) + logo mark — o mesmo desenho do Wordmark Showcase","name":"Brand"},{"path":"components/content/content.card.html","group":"Components","viewport":"900x520","subtitle":"ValueCard, StepItem, ComparisonTable and LegalSection — the page-body vocabulary","name":"Content blocks"},{"path":"components/core/core.card.html","group":"Components","viewport":"760x220","subtitle":"Button (plain/subtle/tinted/filled) and Card (solid/dashed)","name":"Core"},{"path":"components/core/primitives.card.html","group":"Components","viewport":"760x260","subtitle":"Eyebrow, Icon, TextLink and StatusLabel — the small parts every screen repeats","name":"Text primitives"},{"path":"components/layout/layout.card.html","group":"Components","viewport":"900x420","subtitle":"SiteHeader, PageHero and SiteFooter — the frame every content page shares","name":"Page shell"},{"path":"components/speedtest/speedtest.card.html","group":"Components","viewport":"700x420","subtitle":"MetricRing, PhaseDots, StatDisplay, DetailsDisclosure","name":"Speedtest"},{"path":"guidelines/platforms.card.html","group":"Components","viewport":"1180x760","subtitle":"One design, native everywhere — iPhone, iPad, MacBook and desktop web","name":"Platforms"},{"path":"guidelines/prototype-gaps.card.html","group":"Guidelines","viewport":"1100x780","subtitle":"O que o protótipo usava e o sistema ainda não cobria — e o que ficou de fora","name":"Extraído do protótipo"},{"path":"guidelines/theme-modes.card.html","group":"Guidelines","viewport":"1180x820","subtitle":"Dois temas, mesmos nomes semânticos — com auditoria de contraste WCAG AA ao vivo","name":"Modo claro e escuro"},{"path":"guidelines/motion.card.html","group":"Spacing","viewport":"760x180","subtitle":"Spring for interactive feedback, standard ease for fades — hover to preview","name":"Motion"},{"path":"guidelines/radius-border.card.html","group":"Spacing","viewport":"760x180","subtitle":"Continuous-corner scale: 10 / 14 / 20 / 28, hairline separators","name":"Radius & Border"},{"path":"guidelines/spacing-scale.card.html","group":"Spacing","viewport":"760x160","subtitle":"8pt grid: xs 8 · sm 12 · md 20 · lg 32 · xl 56 · touch target 44","name":"Scale"},{"path":"guidelines/type-display-body.card.html","group":"Type","viewport":"700x260","subtitle":"Native system fonts everywhere — ui-rounded for display, SF Pro Text for body, same stack renders correctly on iOS, iPadOS, macOS, Windows and Android","name":"Display / Body"},{"path":"guidelines/type-mono.card.html","group":"Type","viewport":"700x220","subtitle":"ui-monospace for every number — labels, results, metadata","name":"Mono / Numeric"},{"path":"guidelines/type-scale.card.html","group":"Type","viewport":"760x420","subtitle":"HIG type ladder — largeTitle through caption2, rendered in the native system stack","name":"Apple Text Styles"}],"templates":[],"hasThumbnailHtml":true,"globalCssPaths":["tokens/colors.css","tokens/typography.css","tokens/spacing.css","tokens/motion.css","styles.css"],"tokens":[{"name":"--color-bg","value":"#000000","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-surface","value":"oklch(16% 0.006 262)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-ink","value":"oklch(97% 0.004 262)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-ink-deep","value":"oklch(100% 0 0)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-accent-warm","value":"#FF9552","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-accent-warm-ink","value":"#FF9552","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-fg","value":"var(--color-ink)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-muted","value":"var(--color-fg)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-border","value":"var(--color-border-strong)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-border-strong","value":"#5C6577","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-accent","value":"var(--color-ink)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-accent-soft","value":"color-mix(in oklch, var(--color-ink) 14%, transparent)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-fg-soft","value":"color-mix(in oklch, var(--color-ink) 7%, transparent)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-on-accent","value":"#000000","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-bg-grouped","value":"#000000","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-separator","value":"var(--color-border-strong)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-fill","value":"color-mix(in oklch, var(--color-ink) 10%, transparent)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--surface-page","value":"var(--color-bg)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--surface-card","value":"var(--color-surface)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--surface-grouped","value":"var(--color-surface)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--text-primary","value":"var(--color-fg)","kind":"font","definedIn":"tokens/colors.css"},{"name":"--text-secondary","value":"var(--color-muted)","kind":"font","definedIn":"tokens/colors.css"},{"name":"--text-on-accent","value":"var(--color-on-accent)","kind":"font","definedIn":"tokens/colors.css"},{"name":"--border-default","value":"var(--color-border)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--border-strong","value":"var(--color-border-strong)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--brand-accent","value":"var(--color-accent)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--brand-accent-soft","value":"var(--color-accent-soft)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--brand-accent-warm","value":"var(--color-accent-warm)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--brand-accent-warm-ink","value":"var(--color-accent-warm-ink)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--focus-ring","value":"var(--color-accent)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--tint","value":"var(--brand-accent)","kind":"color","definedIn":"tokens/colors.css"},{"name":"--color-bg","value":"oklch(99% 0.002 240)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-surface","value":"oklch(100% 0 0)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-ink","value":"#102245","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-ink-deep","value":"color-mix(in oklch, var(--color-ink) 80%, black)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-accent-warm","value":"#E0701F","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-accent-warm-ink","value":"#A34A00","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-fg","value":"var(--color-ink)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-muted","value":"#5F6C88","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-border","value":"color-mix(in oklch, var(--color-ink) 10%, white)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-border-strong","value":"#7C859B","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-accent","value":"var(--color-ink)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-accent-soft","value":"color-mix(in oklch, var(--color-ink) 10%, transparent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-fg-soft","value":"color-mix(in oklch, var(--color-ink) 5%, transparent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-on-accent","value":"#FFFFFF","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-bg-grouped","value":"color-mix(in oklch, var(--color-bg) 96%, var(--color-ink) 4%)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-separator","value":"color-mix(in oklch, var(--color-ink) 12%, transparent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-fill","value":"color-mix(in oklch, var(--color-ink) 7%, transparent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--surface-page","value":"var(--color-bg)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--surface-card","value":"var(--color-surface)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--surface-grouped","value":"var(--color-bg-grouped)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--text-primary","value":"var(--color-fg)","kind":"font","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--text-secondary","value":"var(--color-muted)","kind":"font","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--text-on-accent","value":"var(--color-on-accent)","kind":"font","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--border-default","value":"var(--color-border)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--border-strong","value":"var(--color-border-strong)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--brand-accent","value":"var(--color-accent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--brand-accent-soft","value":"var(--color-accent-soft)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--brand-accent-warm","value":"var(--color-accent-warm)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--brand-accent-warm-ink","value":"var(--color-accent-warm-ink)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--focus-ring","value":"var(--color-accent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--tint","value":"var(--brand-accent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"light\"]"},{"name":"--color-bg","value":"#000000","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-surface","value":"oklch(16% 0.006 262)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-ink","value":"oklch(97% 0.004 262)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-ink-deep","value":"oklch(100% 0 0)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-accent-warm","value":"#FF9552","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-accent-warm-ink","value":"#FF9552","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-fg","value":"var(--color-ink)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-muted","value":"#9BA3B4","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-border","value":"color-mix(in oklch, var(--color-ink) 16%, var(--color-bg))","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-border-strong","value":"#5C6577","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-accent","value":"var(--color-ink)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-accent-soft","value":"color-mix(in oklch, var(--color-ink) 14%, transparent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-fg-soft","value":"color-mix(in oklch, var(--color-ink) 7%, transparent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-on-accent","value":"#000000","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-bg-grouped","value":"#000000","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-separator","value":"color-mix(in oklch, var(--color-ink) 18%, transparent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--color-fill","value":"color-mix(in oklch, var(--color-ink) 10%, transparent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--surface-page","value":"var(--color-bg)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--surface-card","value":"var(--color-surface)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--surface-grouped","value":"var(--color-surface)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--text-primary","value":"var(--color-fg)","kind":"font","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--text-secondary","value":"var(--color-muted)","kind":"font","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--text-on-accent","value":"var(--color-on-accent)","kind":"font","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--border-default","value":"var(--color-border)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--border-strong","value":"var(--color-border-strong)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--brand-accent","value":"var(--color-accent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--brand-accent-soft","value":"var(--color-accent-soft)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--brand-accent-warm","value":"var(--color-accent-warm)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--brand-accent-warm-ink","value":"var(--color-accent-warm-ink)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--focus-ring","value":"var(--color-accent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--tint","value":"var(--brand-accent)","kind":"color","definedIn":"tokens/colors.css","scope":"[data-theme=\"dark\"]"},{"name":"--font-display","value":"ui-rounded,-apple-system,BlinkMacSystemFont,system-ui,sans-serif","kind":"font","definedIn":"tokens/typography.css"},{"name":"--font-body","value":"-apple-system,BlinkMacSystemFont,system-ui,sans-serif","kind":"font","definedIn":"tokens/typography.css"},{"name":"--font-mono","value":"ui-monospace,'SF Mono',Menlo,Consolas,monospace","kind":"font","definedIn":"tokens/typography.css"},{"name":"--tracking-brand","value":"-0.01em","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-xs","value":"12px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-sm","value":"14px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-base","value":"16px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-md","value":"17px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-lg","value":"20px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-xl","value":"24px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-2xl","value":"28px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-display-sm","value":"44px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-display-md","value":"64px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-display-lg","value":"96px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-large-title","value":"34px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-title1","value":"28px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-title2","value":"22px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-title3","value":"20px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-headline","value":"17px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-callout","value":"16px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-subheadline","value":"15px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-footnote","value":"13px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-caption1","value":"12px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--text-caption2","value":"11px","kind":"font","definedIn":"tokens/typography.css"},{"name":"--tracking-tight","value":"-0.03em","kind":"font","definedIn":"tokens/typography.css"},{"name":"--tracking-snug","value":"-0.015em","kind":"font","definedIn":"tokens/typography.css"},{"name":"--tracking-wide","value":"0.06em","kind":"font","definedIn":"tokens/typography.css"},{"name":"--tracking-wider","value":"0.1em","kind":"font","definedIn":"tokens/typography.css"},{"name":"--leading-tight","value":"1","kind":"font","definedIn":"tokens/typography.css"},{"name":"--leading-body","value":"1.5","kind":"font","definedIn":"tokens/typography.css"},{"name":"--leading-relaxed","value":"1.9","kind":"font","definedIn":"tokens/typography.css"},{"name":"--weight-regular","value":"400","kind":"font","definedIn":"tokens/typography.css"},{"name":"--weight-medium","value":"500","kind":"font","definedIn":"tokens/typography.css"},{"name":"--weight-semibold","value":"600","kind":"font","definedIn":"tokens/typography.css"},{"name":"--weight-bold","value":"700","kind":"font","definedIn":"tokens/typography.css"},{"name":"--space-xs","value":"8px","kind":"spacing","definedIn":"tokens/spacing.css"},{"name":"--space-sm","value":"12px","kind":"spacing","definedIn":"tokens/spacing.css"},{"name":"--space-md","value":"20px","kind":"spacing","definedIn":"tokens/spacing.css"},{"name":"--space-lg","value":"32px","kind":"spacing","definedIn":"tokens/spacing.css"},{"name":"--space-xl","value":"56px","kind":"spacing","definedIn":"tokens/spacing.css"},{"name":"--radius-sm","value":"10px","kind":"radius","definedIn":"tokens/spacing.css"},{"name":"--radius","value":"14px","kind":"radius","definedIn":"tokens/spacing.css"},{"name":"--radius-lg","value":"20px","kind":"radius","definedIn":"tokens/spacing.css"},{"name":"--radius-xl","value":"28px","kind":"radius","definedIn":"tokens/spacing.css"},{"name":"--container","value":"1120px","kind":"spacing","definedIn":"tokens/spacing.css"},{"name":"--gutter","value":"24px","kind":"spacing","definedIn":"tokens/spacing.css"},{"name":"--border-width","value":"1px","kind":"spacing","definedIn":"tokens/spacing.css"},{"name":"--hairline","value":"0.5px","kind":"spacing","definedIn":"tokens/spacing.css"},{"name":"--touch-target","value":"44px","kind":"spacing","definedIn":"tokens/spacing.css"},{"name":"--ease-spring","value":"cubic-bezier(0.32,0.72,0,1)","kind":"other","definedIn":"tokens/motion.css","annotation":"other"},{"name":"--ease-standard","value":"cubic-bezier(0.4,0,0.2,1)","kind":"other","definedIn":"tokens/motion.css","annotation":"other"},{"name":"--duration-fast","value":"0.15s","kind":"other","definedIn":"tokens/motion.css","annotation":"other"},{"name":"--duration-base","value":"0.25s","kind":"other","definedIn":"tokens/motion.css","annotation":"other"},{"name":"--duration-slow","value":"0.35s","kind":"other","definedIn":"tokens/motion.css","annotation":"other"},{"name":"--press-scale","value":"0.96","kind":"other","definedIn":"tokens/motion.css","annotation":"other"}],"themes":[{"selector":"[data-theme=\"light\"]","label":"Light"},{"selector":"[data-theme=\"dark\"]","label":"Dark"}],"fonts":[],"brandFonts":[],"source":"spa"}
+{
+ "namespace": "LinkaDesignSystem_60151f",
+ "components": [
+  {
+   "name": "Wordmark",
+   "sourcePath": "components/brand/Wordmark.jsx"
+  },
+  {
+   "name": "ComparisonTable",
+   "sourcePath": "components/content/ComparisonTable.jsx"
+  },
+  {
+   "name": "LegalSection",
+   "sourcePath": "components/content/LegalSection.jsx"
+  },
+  {
+   "name": "StepItem",
+   "sourcePath": "components/content/StepItem.jsx"
+  },
+  {
+   "name": "ValueCard",
+   "sourcePath": "components/content/ValueCard.jsx"
+  },
+  {
+   "name": "Button",
+   "sourcePath": "components/core/Button.jsx"
+  },
+  {
+   "name": "Card",
+   "sourcePath": "components/core/Card.jsx"
+  },
+  {
+   "name": "Eyebrow",
+   "sourcePath": "components/core/Eyebrow.jsx"
+  },
+  {
+   "name": "Icon",
+   "sourcePath": "components/core/Icon.jsx"
+  },
+  {
+   "name": "StatusLabel",
+   "sourcePath": "components/core/StatusLabel.jsx"
+  },
+  {
+   "name": "TextLink",
+   "sourcePath": "components/core/TextLink.jsx"
+  },
+  {
+   "name": "PageHero",
+   "sourcePath": "components/layout/PageHero.jsx"
+  },
+  {
+   "name": "SiteFooter",
+   "sourcePath": "components/layout/SiteFooter.jsx"
+  },
+  {
+   "name": "SiteHeader",
+   "sourcePath": "components/layout/SiteHeader.jsx"
+  },
+  {
+   "name": "AdSlot",
+   "sourcePath": "components/speedtest/AdSlot.jsx"
+  },
+  {
+   "name": "DetailsDisclosure",
+   "sourcePath": "components/speedtest/DetailsDisclosure.jsx"
+  },
+  {
+   "name": "MetricRing",
+   "sourcePath": "components/speedtest/MetricRing.jsx"
+  },
+  {
+   "name": "PhaseDots",
+   "sourcePath": "components/speedtest/PhaseDots.jsx"
+  },
+  {
+   "name": "StatDisplay",
+   "sourcePath": "components/speedtest/StatDisplay.jsx"
+  }
+ ],
+ "startingPoints": [],
+ "cards": [
+  {
+   "path": "guidelines/brand-icons.card.html",
+   "group": "Brand",
+   "viewport": "1180x560",
+   "subtitle": "Marca inteira dentro do espaço — set Apple (iOS/iPadOS/macOS) e set Desktop/webapp",
+   "name": "App Icons & Favicons"
+  },
+  {
+   "path": "guidelines/brand-logo-mark.card.html",
+   "group": "Brand",
+   "viewport": "760x200",
+   "subtitle": "assets/logo.svg — apenas o 'i' do logotipo com o pingo laranja, centralizado na tile",
+   "name": "Logo Mark"
+  },
+  {
+   "path": "guidelines/brand-wordmark.card.html",
+   "group": "Brand",
+   "viewport": "760x260",
+   "subtitle": "Drawn logotype — round-terminal strokes, descending i-bar, warm-orange tittle",
+   "name": "Wordmark Showcase"
+  },
+  {
+   "path": "guidelines/colors-accent.card.html",
+   "group": "Colors",
+   "viewport": "760x150",
+   "subtitle": "Navy ink primary + a single restrained warm-orange pop (the i-dot only)",
+   "name": "Accent"
+  },
+  {
+   "path": "guidelines/colors-neutral.card.html",
+   "group": "Colors",
+   "viewport": "760x160",
+   "subtitle": "bg / grouped-bg / surface / fg / muted / border",
+   "name": "Surface & Text"
+  },
+  {
+   "path": "components/brand/brand.card.html",
+   "group": "Components",
+   "viewport": "760x160",
+   "subtitle": "Wordmark (sm/md/lg) + logo mark — o mesmo desenho do Wordmark Showcase",
+   "name": "Brand"
+  },
+  {
+   "path": "components/content/content.card.html",
+   "group": "Components",
+   "viewport": "900x520",
+   "subtitle": "ValueCard, StepItem, ComparisonTable and LegalSection — the page-body vocabulary",
+   "name": "Content blocks"
+  },
+  {
+   "path": "components/core/core.card.html",
+   "group": "Components",
+   "viewport": "760x220",
+   "subtitle": "Button (plain/subtle/tinted/filled) and Card (solid/dashed)",
+   "name": "Core"
+  },
+  {
+   "path": "components/core/primitives.card.html",
+   "group": "Components",
+   "viewport": "760x260",
+   "subtitle": "Eyebrow, Icon, TextLink and StatusLabel — the small parts every screen repeats",
+   "name": "Text primitives"
+  },
+  {
+   "path": "components/layout/layout.card.html",
+   "group": "Components",
+   "viewport": "900x420",
+   "subtitle": "SiteHeader, PageHero and SiteFooter — the frame every content page shares",
+   "name": "Page shell"
+  },
+  {
+   "path": "components/speedtest/speedtest.card.html",
+   "group": "Components",
+   "viewport": "700x420",
+   "subtitle": "MetricRing, PhaseDots, StatDisplay, DetailsDisclosure",
+   "name": "Speedtest"
+  },
+  {
+   "path": "guidelines/platforms.card.html",
+   "group": "Components",
+   "viewport": "1180x760",
+   "subtitle": "One design, native everywhere — iPhone, iPad, MacBook and desktop web",
+   "name": "Platforms"
+  },
+  {
+   "path": "guidelines/prototype-gaps.card.html",
+   "group": "Guidelines",
+   "viewport": "1100x780",
+   "subtitle": "O que o protótipo usava e o sistema ainda não cobria — e o que ficou de fora",
+   "name": "Extraído do protótipo"
+  },
+  {
+   "path": "guidelines/theme-modes.card.html",
+   "group": "Guidelines",
+   "viewport": "1180x820",
+   "subtitle": "Dois temas, mesmos nomes semânticos — com auditoria de contraste WCAG AA ao vivo",
+   "name": "Modo claro e escuro"
+  },
+  {
+   "path": "guidelines/motion.card.html",
+   "group": "Spacing",
+   "viewport": "760x180",
+   "subtitle": "Spring for interactive feedback, standard ease for fades — hover to preview",
+   "name": "Motion"
+  },
+  {
+   "path": "guidelines/radius-border.card.html",
+   "group": "Spacing",
+   "viewport": "760x180",
+   "subtitle": "Continuous-corner scale: 10 / 14 / 20 / 28, hairline separators",
+   "name": "Radius & Border"
+  },
+  {
+   "path": "guidelines/spacing-scale.card.html",
+   "group": "Spacing",
+   "viewport": "760x160",
+   "subtitle": "8pt grid: xs 8 · sm 12 · md 20 · lg 32 · xl 56 · touch target 44",
+   "name": "Scale"
+  },
+  {
+   "path": "guidelines/type-display-body.card.html",
+   "group": "Type",
+   "viewport": "700x260",
+   "subtitle": "Native system fonts everywhere — ui-rounded for display, SF Pro Text for body, same stack renders correctly on iOS, iPadOS, macOS, Windows and Android",
+   "name": "Display / Body"
+  },
+  {
+   "path": "guidelines/type-mono.card.html",
+   "group": "Type",
+   "viewport": "700x220",
+   "subtitle": "ui-monospace for every number — labels, results, metadata",
+   "name": "Mono / Numeric"
+  },
+  {
+   "path": "guidelines/type-scale.card.html",
+   "group": "Type",
+   "viewport": "760x420",
+   "subtitle": "HIG type ladder — largeTitle through caption2, rendered in the native system stack",
+   "name": "Apple Text Styles"
+  },
+  {
+   "path": "guidelines/macos-foundations.card.html",
+   "group": "macOS",
+   "viewport": "1180x640",
+   "subtitle": "Profundidade em vez de linhas, escala tipográfica maior e paleta de dados",
+   "name": "macOS · Fundamentos"
+  },
+  {
+   "path": "guidelines/macos-components.card.html",
+   "group": "macOS",
+   "viewport": "1180x700",
+   "subtitle": "Cartão de métrica, banner, medidor, selo de estado, inspetor e janela",
+   "name": "macOS · Componentes"
+  }
+ ],
+ "templates": [],
+ "hasThumbnailHtml": true,
+ "globalCssPaths": [
+  "tokens/colors.css",
+  "tokens/typography.css",
+  "tokens/spacing.css",
+  "tokens/motion.css",
+  "tokens/macos.css",
+  "styles.css"
+ ],
+ "tokens": [
+  {
+   "name": "--color-bg",
+   "value": "#000000",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-surface",
+   "value": "oklch(16% 0.006 262)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-ink",
+   "value": "oklch(97% 0.004 262)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-ink-deep",
+   "value": "oklch(100% 0 0)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-accent-warm",
+   "value": "#FF9552",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-accent-warm-ink",
+   "value": "#FF9552",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-fg",
+   "value": "var(--color-ink)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-muted",
+   "value": "var(--color-fg)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-border",
+   "value": "var(--color-border-strong)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-border-strong",
+   "value": "#5C6577",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-accent",
+   "value": "var(--color-ink)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-accent-soft",
+   "value": "color-mix(in oklch, var(--color-ink) 14%, transparent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-fg-soft",
+   "value": "color-mix(in oklch, var(--color-ink) 7%, transparent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-on-accent",
+   "value": "#000000",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-bg-grouped",
+   "value": "#000000",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-separator",
+   "value": "var(--color-border-strong)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-fill",
+   "value": "color-mix(in oklch, var(--color-ink) 10%, transparent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--surface-page",
+   "value": "var(--color-bg)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--surface-card",
+   "value": "var(--color-surface)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--surface-grouped",
+   "value": "var(--color-surface)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--text-primary",
+   "value": "var(--color-fg)",
+   "kind": "font",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--text-secondary",
+   "value": "var(--color-muted)",
+   "kind": "font",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--text-on-accent",
+   "value": "var(--color-on-accent)",
+   "kind": "font",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--border-default",
+   "value": "var(--color-border)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--border-strong",
+   "value": "var(--color-border-strong)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--brand-accent",
+   "value": "var(--color-accent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--brand-accent-soft",
+   "value": "var(--color-accent-soft)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--brand-accent-warm",
+   "value": "var(--color-accent-warm)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--brand-accent-warm-ink",
+   "value": "var(--color-accent-warm-ink)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--focus-ring",
+   "value": "var(--color-accent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--tint",
+   "value": "var(--brand-accent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css"
+  },
+  {
+   "name": "--color-bg",
+   "value": "oklch(99% 0.002 240)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-surface",
+   "value": "oklch(100% 0 0)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-ink",
+   "value": "#102245",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-ink-deep",
+   "value": "color-mix(in oklch, var(--color-ink) 80%, black)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-accent-warm",
+   "value": "#E0701F",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-accent-warm-ink",
+   "value": "#A34A00",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-fg",
+   "value": "var(--color-ink)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-muted",
+   "value": "#5F6C88",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-border",
+   "value": "color-mix(in oklch, var(--color-ink) 10%, white)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-border-strong",
+   "value": "#7C859B",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-accent",
+   "value": "var(--color-ink)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-accent-soft",
+   "value": "color-mix(in oklch, var(--color-ink) 10%, transparent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-fg-soft",
+   "value": "color-mix(in oklch, var(--color-ink) 5%, transparent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-on-accent",
+   "value": "#FFFFFF",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-bg-grouped",
+   "value": "color-mix(in oklch, var(--color-bg) 96%, var(--color-ink) 4%)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-separator",
+   "value": "color-mix(in oklch, var(--color-ink) 12%, transparent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-fill",
+   "value": "color-mix(in oklch, var(--color-ink) 7%, transparent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--surface-page",
+   "value": "var(--color-bg)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--surface-card",
+   "value": "var(--color-surface)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--surface-grouped",
+   "value": "var(--color-bg-grouped)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--text-primary",
+   "value": "var(--color-fg)",
+   "kind": "font",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--text-secondary",
+   "value": "var(--color-muted)",
+   "kind": "font",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--text-on-accent",
+   "value": "var(--color-on-accent)",
+   "kind": "font",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--border-default",
+   "value": "var(--color-border)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--border-strong",
+   "value": "var(--color-border-strong)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--brand-accent",
+   "value": "var(--color-accent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--brand-accent-soft",
+   "value": "var(--color-accent-soft)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--brand-accent-warm",
+   "value": "var(--color-accent-warm)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--brand-accent-warm-ink",
+   "value": "var(--color-accent-warm-ink)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--focus-ring",
+   "value": "var(--color-accent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--tint",
+   "value": "var(--brand-accent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"light\"]"
+  },
+  {
+   "name": "--color-bg",
+   "value": "#000000",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-surface",
+   "value": "oklch(16% 0.006 262)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-ink",
+   "value": "oklch(97% 0.004 262)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-ink-deep",
+   "value": "oklch(100% 0 0)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-accent-warm",
+   "value": "#FF9552",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-accent-warm-ink",
+   "value": "#FF9552",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-fg",
+   "value": "var(--color-ink)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-muted",
+   "value": "#9BA3B4",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-border",
+   "value": "color-mix(in oklch, var(--color-ink) 16%, var(--color-bg))",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-border-strong",
+   "value": "#5C6577",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-accent",
+   "value": "var(--color-ink)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-accent-soft",
+   "value": "color-mix(in oklch, var(--color-ink) 14%, transparent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-fg-soft",
+   "value": "color-mix(in oklch, var(--color-ink) 7%, transparent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-on-accent",
+   "value": "#000000",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-bg-grouped",
+   "value": "#000000",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-separator",
+   "value": "color-mix(in oklch, var(--color-ink) 18%, transparent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--color-fill",
+   "value": "color-mix(in oklch, var(--color-ink) 10%, transparent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--surface-page",
+   "value": "var(--color-bg)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--surface-card",
+   "value": "var(--color-surface)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--surface-grouped",
+   "value": "var(--color-surface)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--text-primary",
+   "value": "var(--color-fg)",
+   "kind": "font",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--text-secondary",
+   "value": "var(--color-muted)",
+   "kind": "font",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--text-on-accent",
+   "value": "var(--color-on-accent)",
+   "kind": "font",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--border-default",
+   "value": "var(--color-border)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--border-strong",
+   "value": "var(--color-border-strong)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--brand-accent",
+   "value": "var(--color-accent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--brand-accent-soft",
+   "value": "var(--color-accent-soft)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--brand-accent-warm",
+   "value": "var(--color-accent-warm)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--brand-accent-warm-ink",
+   "value": "var(--color-accent-warm-ink)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--focus-ring",
+   "value": "var(--color-accent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--tint",
+   "value": "var(--brand-accent)",
+   "kind": "color",
+   "definedIn": "tokens/colors.css",
+   "scope": "[data-theme=\"dark\"]"
+  },
+  {
+   "name": "--font-display",
+   "value": "ui-rounded,-apple-system,BlinkMacSystemFont,system-ui,sans-serif",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--font-body",
+   "value": "-apple-system,BlinkMacSystemFont,system-ui,sans-serif",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--font-mono",
+   "value": "ui-monospace,'SF Mono',Menlo,Consolas,monospace",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--tracking-brand",
+   "value": "-0.01em",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-xs",
+   "value": "12px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-sm",
+   "value": "14px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-base",
+   "value": "16px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-md",
+   "value": "17px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-lg",
+   "value": "20px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-xl",
+   "value": "24px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-2xl",
+   "value": "28px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-display-sm",
+   "value": "44px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-display-md",
+   "value": "64px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-display-lg",
+   "value": "96px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-large-title",
+   "value": "34px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-title1",
+   "value": "28px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-title2",
+   "value": "22px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-title3",
+   "value": "20px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-headline",
+   "value": "17px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-callout",
+   "value": "16px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-subheadline",
+   "value": "15px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-footnote",
+   "value": "13px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-caption1",
+   "value": "12px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--text-caption2",
+   "value": "11px",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--tracking-tight",
+   "value": "-0.03em",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--tracking-snug",
+   "value": "-0.015em",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--tracking-wide",
+   "value": "0.06em",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--tracking-wider",
+   "value": "0.1em",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--leading-tight",
+   "value": "1",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--leading-body",
+   "value": "1.5",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--leading-relaxed",
+   "value": "1.9",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--weight-regular",
+   "value": "400",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--weight-medium",
+   "value": "500",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--weight-semibold",
+   "value": "600",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--weight-bold",
+   "value": "700",
+   "kind": "font",
+   "definedIn": "tokens/typography.css"
+  },
+  {
+   "name": "--space-xs",
+   "value": "8px",
+   "kind": "spacing",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--space-sm",
+   "value": "12px",
+   "kind": "spacing",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--space-md",
+   "value": "20px",
+   "kind": "spacing",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--space-lg",
+   "value": "32px",
+   "kind": "spacing",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--space-xl",
+   "value": "56px",
+   "kind": "spacing",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--radius-sm",
+   "value": "10px",
+   "kind": "radius",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--radius",
+   "value": "14px",
+   "kind": "radius",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--radius-lg",
+   "value": "20px",
+   "kind": "radius",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--radius-xl",
+   "value": "28px",
+   "kind": "radius",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--container",
+   "value": "1120px",
+   "kind": "spacing",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--gutter",
+   "value": "24px",
+   "kind": "spacing",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--border-width",
+   "value": "1px",
+   "kind": "spacing",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--hairline",
+   "value": "0.5px",
+   "kind": "spacing",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--touch-target",
+   "value": "44px",
+   "kind": "spacing",
+   "definedIn": "tokens/spacing.css"
+  },
+  {
+   "name": "--ease-spring",
+   "value": "cubic-bezier(0.32,0.72,0,1)",
+   "kind": "other",
+   "definedIn": "tokens/motion.css",
+   "annotation": "other"
+  },
+  {
+   "name": "--ease-standard",
+   "value": "cubic-bezier(0.4,0,0.2,1)",
+   "kind": "other",
+   "definedIn": "tokens/motion.css",
+   "annotation": "other"
+  },
+  {
+   "name": "--duration-fast",
+   "value": "0.15s",
+   "kind": "other",
+   "definedIn": "tokens/motion.css",
+   "annotation": "other"
+  },
+  {
+   "name": "--duration-base",
+   "value": "0.25s",
+   "kind": "other",
+   "definedIn": "tokens/motion.css",
+   "annotation": "other"
+  },
+  {
+   "name": "--duration-slow",
+   "value": "0.35s",
+   "kind": "other",
+   "definedIn": "tokens/motion.css",
+   "annotation": "other"
+  },
+  {
+   "name": "--press-scale",
+   "value": "0.96",
+   "kind": "other",
+   "definedIn": "tokens/motion.css",
+   "annotation": "other"
+  },
+  {
+   "name": "--mac-page",
+   "value": "#ECECF2",
+   "kind": "color",
+   "definedIn": "tokens/macos.css"
+  },
+  {
+   "name": "--mac-card",
+   "value": "#FFFFFF",
+   "kind": "color",
+   "definedIn": "tokens/macos.css"
+  },
+  {
+   "name": "--mac-well",
+   "value": "#F2F2F7",
+   "kind": "color",
+   "definedIn": "tokens/macos.css"
+  },
+  {
+   "name": "--mac-accent",
+   "value": "#7C3AED",
+   "kind": "color",
+   "definedIn": "tokens/macos.css"
+  },
+  {
+   "name": "--mac-shadow-card",
+   "value": "0 12px 22px rgba(0,0,0,.22),0 1px 3px rgba(0,0,0,.14)",
+   "kind": "shadow",
+   "definedIn": "tokens/macos.css"
+  }
+ ],
+ "themes": [
+  {
+   "selector": "[data-theme=\"light\"]",
+   "label": "Light"
+  },
+  {
+   "selector": "[data-theme=\"dark\"]",
+   "label": "Dark"
+  }
+ ],
+ "fonts": [],
+ "brandFonts": [],
+ "source": "spa"
+}

@@ -167,7 +167,12 @@ enum ConnectionPathCopy {
 
     static func title(for stage: ConnectionPathStage) -> String {
         switch stage {
-        case .device: return LinkaCopy.value("connectionPath.stage.device")
+        case .device:
+            #if os(macOS)
+            return LinkaCopy.value("connectionPath.stage.device.mac")
+            #else
+            return LinkaCopy.value("connectionPath.stage.device")
+            #endif
         case .wifi: return LinkaCopy.value("connectionPath.stage.wifi")
         case .router: return LinkaCopy.value("connectionPath.stage.router")
         case .carrier: return LinkaCopy.value("connectionPath.stage.carrier")
@@ -177,7 +182,12 @@ enum ConnectionPathCopy {
 
     static func icon(for stage: ConnectionPathStage) -> String {
         switch stage {
-        case .device: return "iphone"
+        case .device:
+            #if os(macOS)
+            return "laptopcomputer"
+            #else
+            return "iphone"
+            #endif
         case .wifi: return "wifi"
         case .router: return "wifi.router"
         case .carrier: return "antenna.radiowaves.left.and.right"

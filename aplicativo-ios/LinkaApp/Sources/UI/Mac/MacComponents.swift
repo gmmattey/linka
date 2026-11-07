@@ -11,22 +11,43 @@ import MeasurementHistory
 struct MacInspectorRow: View {
     let label: String
     let value: String
+    var systemImage: String? = nil
+    var tint: Color = MacPalette.download
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Text(label)
-                .foregroundStyle(.secondary)
-            Spacer(minLength: 8)
-            Text(value)
-                .monospacedDigit()
-                .multilineTextAlignment(.trailing)
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                icon
+                Text(label).foregroundStyle(.secondary).lineLimit(1)
+                Spacer(minLength: 8)
+                Text(value).monospacedDigit().lineLimit(1)
+            }
+            HStack(alignment: .top, spacing: 10) {
+                icon
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(label).foregroundStyle(.secondary).font(MacType.label)
+                    Text(value).monospacedDigit().fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+            }
         }
-        .font(.callout)
-        .padding(.vertical, 5)
+        .font(MacType.body)
+        .padding(.vertical, 6)
         .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder private var icon: some View {
+        if let systemImage {
+            Image(systemName: systemImage)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: 22)
+                .accessibilityHidden(true)
+        }
     }
 }
 
+/// Seção do inspetor: título e um poço com as linhas.
 struct MacInspectorSection<Content: View>: View {
     let title: String?
     @ViewBuilder let content: Content
@@ -37,33 +58,57 @@ struct MacInspectorSection<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 8) {
             if let title {
                 Text(title)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-                    .padding(.bottom, 4)
+                    .font(MacType.captionStrong)
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 6)
             }
-            content
+            VStack(alignment: .leading, spacing: 0) { content }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .linkaMacWell(padding: 14, radius: 18)
         }
     }
 }
 
-/// Contêiner do painel de detalhes à direita (inspetor).
+/// Painel de detalhes à direita (inspetor): um cartão flutuante, afastado das
+/// bordas da janela, como a barra lateral da esquerda.
 struct MacInspectorPanel<Content: View>: View {
     @ViewBuilder let content: Content
 
+    private var card: some View {
+        VStack(alignment: .leading, spacing: 18) { content }
+            .padding(16)
+            .frame(width: 300, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    .fill(Color.macCard)
+                    .shadow(color: .black.opacity(0.22), radius: 22, x: 0, y: 12)
+                    .shadow(color: .black.opacity(0.14), radius: 3, x: 0, y: 1)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    .strokeBorder(
+                        LinearGradient(colors: [Color.white.opacity(0.16), Color.white.opacity(0)], startPoint: .top, endPoint: .center),
+                        lineWidth: 1)
+            )
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                content
+        // O cartão tem a altura do conteúdo; só rola se não couber na janela.
+        VStack(spacing: 0) {
+            ViewThatFits(in: .vertical) {
+                card
+                ScrollView(showsIndicators: false) { card.padding(.vertical, 2) }
             }
-            .padding(18)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Spacer(minLength: 0)
         }
-        .frame(width: 248)
-        .background(Color.surfaceCard)
-        .overlay(alignment: .leading) { Divider() }
+        .padding(.top, 8)
+        .padding(.bottom, 14)
+        .padding(.leading, 6)
+        .padding(.trailing, 14)
+        .frame(width: 320)
     }
 }
 
@@ -73,10 +118,10 @@ struct MacStatusTag: View {
 
     var body: some View {
         Text(label)
-            .font(.caption.weight(.semibold))
+            .font(MacType.captionStrong)
             .foregroundStyle(color)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 3)
             .background(color.opacity(0.14), in: Capsule())
     }
 }
@@ -94,15 +139,15 @@ struct MacInspectorAction: View {
                 Text(title)
                 Spacer()
                 if let shortcut {
-                    Text(shortcut).font(.caption).foregroundStyle(.tertiary)
+                    Text(shortcut).font(MacType.caption).foregroundStyle(.tertiary)
                 }
             }
-            .padding(.vertical, 5)
+            .padding(.vertical, 8)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .foregroundStyle(role == .destructive ? Color.statusCritical : Color.brandAccentWarmInk)
-        .font(.callout)
+        .font(MacType.body)
     }
 }
 

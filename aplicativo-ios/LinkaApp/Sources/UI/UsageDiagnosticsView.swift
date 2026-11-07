@@ -80,59 +80,85 @@ struct UsageDiagnosticsView: View {
 
     #if os(macOS)
     private var macOSContent: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(LinkaCopy.value("usage.title"))
-                            .font(.title.weight(.bold))
-                        Text(summarySubtitle)
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    if let report {
-                        macCard(title: LinkaCopy.value("usage.cases")) {
-                            ForEach(UsageCase.allCases, id: \.self) { usageCase in
-                                if let verdict = report.verdict(for: usageCase) {
-                                    UsageVerdictRow(usageCase: usageCase, verdict: verdict)
-                                    if usageCase != UsageCase.allCases.last { Divider() }
-                                }
+        MacSheetScaffold(
+            title: LinkaCopy.value("usage.title"),
+            systemImage: "speedometer",
+            onClose: { dismiss() }
+        ) {
+            if let report {
+                let quality = UsageSuitabilityCopy.qualityLevel(for: report)
+                MacBanner(
+                    systemImage: quality == .poor ? "exclamationmark.triangle.fill" : "checkmark.seal.fill",
+                    tint: quality == .poor ? .statusAttention : (quality == .medium ? .statusAttention : .statusGood),
+                    title: summarySubtitle
+                )
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(LinkaCopy.value("usage.cases")).font(MacType.section)
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 16, alignment: .top), GridItem(.flexible(), spacing: 16, alignment: .top)], spacing: 16) {
+                        ForEach(UsageCase.allCases, id: \.self) { usageCase in
+                            if let verdict = report.verdict(for: usageCase) {
+                                MacUsageVerdictCard(usageCase: usageCase, verdict: verdict)
                             }
-                        }
-                    } else {
-                        macCard(title: LinkaCopy.value("usage.summary.title")) {
-                            LinkaUnavailableState(
-                                title: LinkaCopy.value("usage.noMeasurement.title"),
-                                message: LinkaCopy.value("usage.noMeasurement.message"),
-                                systemImage: "speedometer"
-                            )
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
                         }
                     }
                 }
-                .frame(maxWidth: 680, alignment: .leading)
-                .padding(40)
-                .frame(maxWidth: .infinity, alignment: .topLeading)
+            } else {
+                MacBanner(
+                    systemImage: "speedometer", tint: MacPalette.download,
+                    title: LinkaCopy.value("usage.noMeasurement.title"),
+                    message: LinkaCopy.value("usage.noMeasurement.message")
+                )
             }
-            .background(Color.surfacePage)
-            .linkaSheetToolbar(title: LinkaCopy.value("usage.title")) { dismiss() }
-        }
-    }
-
-    private func macCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title.uppercased())
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-            VStack(alignment: .leading, spacing: 12, content: content)
-                .padding(18)
-                .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
     }
     #endif
 }
+
+#if os(macOS)
+private struct MacUsageVerdictCard: View {
+    let usageCase: UsageCase
+    let verdict: UsageCaseVerdict
+
+    private var tint: Color {
+        switch verdict.level {
+        case .adequate: return .statusGood
+        case .limited: return .statusAttention
+        case .notAssessed: return .textSecondary
+        }
+    }
+
+    private var label: String {
+        switch verdict.level {
+        case .adequate: return LinkaCopy.value("usage.status.adequate")
+        case .limited: return LinkaCopy.value("usage.status.limited")
+        case .notAssessed: return LinkaCopy.value("usage.status.notAssessed")
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                MacIconBadge(systemImage: UsageSuitabilityCopy.iconName(for: usageCase), tint: tint, size: 44)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(UsageSuitabilityCopy.title(for: usageCase)).font(MacType.headline)
+                    MacStatusTag(label: label, color: tint)
+                }
+                Spacer(minLength: 0)
+            }
+            let detail = UsageSuitabilityCopy.detail(for: verdict)
+            if !detail.isEmpty {
+                Text(detail)
+                    .font(MacType.label)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .linkaMacCard()
+        .accessibilityElement(children: .combine)
+    }
+}
+#endif
 
 private struct UsageVerdictRow: View {
     let usageCase: UsageCase

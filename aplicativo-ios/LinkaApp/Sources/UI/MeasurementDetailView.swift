@@ -61,6 +61,14 @@ struct MeasurementDetailView: View {
     }
 
     var body: some View {
+        #if os(macOS)
+        macBody
+        #else
+        iOSBody
+        #endif
+    }
+
+    private var iOSBody: some View {
         List {
             // SEÇÃO VELOCIDADES
             if let measurement {
@@ -328,6 +336,177 @@ struct MeasurementDetailView: View {
                 .environmentObject(entitlements)
         }
     }
+
+
+    #if os(macOS)
+    private var macBody: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                if let measurement {
+                    HStack(spacing: 16) {
+                        MacMetricTile(title: "Download", value: MacMeasurementFormat.mbps(measurement.downloadMbps), unit: "Mbps",
+                                      systemImage: "arrow.down.circle.fill", tint: MacPalette.download, valueSize: 46)
+                        MacMetricTile(title: "Upload", value: MacMeasurementFormat.mbps(measurement.uploadMbps), unit: "Mbps",
+                                      systemImage: "arrow.up.circle.fill", tint: MacPalette.upload, valueSize: 46)
+                        MacMetricTile(title: "Ping", value: measurement.latencyMs.map { String(Int(round($0))) } ?? "—", unit: "ms",
+                                      systemImage: "timer", tint: MacPalette.ping, valueSize: 46)
+                    }
+
+                    if let onStartNewMeasurement {
+                        Button(LinkaCopy.value("Testar novamente")) { onStartNewMeasurement() }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .tint(Color.brandAccentWarm)
+                    }
+
+                    MacCardSection(LinkaCopy.value("detail.connection")) {
+                        if measurement.connectionKind == .wifi {
+                            if let ssid = measurement.wifiContext?.ssid {
+                                MacCardRow(label: LinkaCopy.value("detail.wifiNetwork"), value: ssid)
+                                if let security = measurement.wifiContext?.securityType {
+                                    MacCardRow(label: LinkaCopy.value("detail.security"), value: security.displayLabel)
+                                }
+                            } else {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(LinkaCopy.value("detail.wifiNetwork")).font(MacType.body)
+                                        Text(LinkaCopy.value("detail.unidentified")).font(MacType.label).foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Button(LinkaCopy.value("detail.identify")) { WiFiNetworkPermission.requestIdentification() }
+                                        .controlSize(.large)
+                                }
+                                .linkaMacWell(padding: 12, radius: 12)
+                                .padding(.vertical, 3)
+                            }
+                        }
+                        MacCardRow(label: LinkaCopy.value("detail.dateTime"), value: formattedDateTime(measurement.measuredAt))
+                        MacCardRow(label: LinkaCopy.value("detail.networkType"), value: networkKindLabel(measurement))
+                        if let provider = measurement.networkIdentifier, !provider.isEmpty {
+                            MacCardRow(label: LinkaCopy.value("detail.provider"), value: provider)
+                        }
+                        if let duration, !duration.isEmpty {
+                            MacCardRow(label: LinkaCopy.value("detail.duration"), value: duration)
+                        } else if let durationMs = measurement.durationMs {
+                            MacCardRow(label: LinkaCopy.value("detail.duration"), value: seconds(Double(durationMs) / 1000.0))
+                        }
+                    }
+
+                    if canUseExpertMode || MacFeatures.plusPurchase {
+                    MacCardSection(LinkaCopy.value("detail.quality")) {
+                        if canUseExpertMode {
+                            if let jitter = measurement.jitterMs { MacCardRow(label: LinkaCopy.value("detail.jitter"), value: milliseconds(jitter)) }
+                            if let loss = measurement.packetLossPercent {
+                                MacCardRow(label: LinkaCopy.value("detail.packetLoss"), value: loss == 0 ? "0%" : String(format: "%.1f%%", loss))
+                            }
+                            if let dns = measurement.dnsResolutionMs { MacCardRow(label: LinkaCopy.value("detail.dns"), value: milliseconds(dns)) }
+                        } else {
+                            Button {
+                                purchaseEntryPoint = .settings
+                                showPurchase = true
+                            } label: {
+                                HStack {
+                                    Text(LinkaCopy.value("detail.advancedQuality")).font(MacType.body)
+                                    Spacer()
+                                    LinkaPlusBadge()
+                                    Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(.tertiary)
+                                }
+                                .linkaMacWell(padding: 14, radius: 12)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    }
+
+                    if measurement.connectionKind == .wifi,
+                       measurement.wifiContext?.gatewayIP != nil || canUseAdvancedWiFiDiagnostics || MacFeatures.plusPurchase {
+                        MacCardSection(LinkaCopy.value("network.wifi")) {
+                            if let gatewayIP = measurement.wifiContext?.gatewayIP {
+                                MacCardRow(label: measurement.wifiContext?.gatewayVendor ?? LinkaCopy.value("router.defaultName"), value: gatewayIP)
+                            }
+                            if canUseAdvancedWiFiDiagnostics {
+                                if let advanced = measurement.advancedWiFiDiagnostics {
+                                    if let standard = advanced.wifiStandard { MacCardRow(label: LinkaCopy.value("detail.wifi.standard"), value: standard) }
+                                    if let rssi = advanced.rssiDbm { MacCardRow(label: LinkaCopy.value("detail.wifi.signal"), value: decibels(rssi, unit: "dBm")) }
+                                    if let noise = advanced.noiseDbm { MacCardRow(label: LinkaCopy.value("detail.wifi.noise"), value: decibels(noise, unit: "dBm")) }
+                                    if let snr = advanced.snrDb { MacCardRow(label: LinkaCopy.value("detail.wifi.snr"), value: decibels(snr, unit: "dB")) }
+                                    if let channel = advanced.channelNumber { MacCardRow(label: LinkaCopy.value("detail.wifi.channel"), value: "\(channel)") }
+                                    if let band = advanced.bandGHz {
+                                        MacCardRow(label: LinkaCopy.value("network.wifiBand"), value: band == floor(band) ? String(format: "%.0f GHz", band) : String(format: "%.1f GHz", band))
+                                    }
+                                    if advanced.txRateMbps != nil || advanced.rxRateMbps != nil {
+                                        let tx = advanced.txRateMbps.map { wifiRate("detail.wifi.txRate", $0) }
+                                        let rx = advanced.rxRateMbps.map { wifiRate("detail.wifi.rxRate", $0) }
+                                        MacCardRow(label: LinkaCopy.value("detail.wifi.rate"), value: [tx, rx].compactMap { $0 }.joined(separator: " · "))
+                                    }
+                                } else {
+                                    MacCardRow(label: LinkaCopy.value("detail.wifi.diagnostics"), value: LinkaCopy.value("detail.wifi.notCollected"))
+                                    if let onStartNewMeasurementWithAdvancedWiFi {
+                                        Button(LinkaCopy.value("detail.wifi.measureAgain")) { onStartNewMeasurementWithAdvancedWiFi() }
+                                            .controlSize(.large)
+                                            .padding(.top, 6)
+                                        Text(LinkaCopy.value("detail.wifi.measureAgain.hint"))
+                                            .font(MacType.caption).foregroundStyle(.secondary).padding(.top, 4)
+                                    }
+                                }
+                            } else if MacFeatures.plusPurchase {
+                                Button {
+                                    purchaseEntryPoint = .advancedWiFi
+                                    showPurchase = true
+                                } label: {
+                                    HStack {
+                                        Text(LinkaCopy.value("detail.wifi.advanced")).font(MacType.body)
+                                        Spacer()
+                                        LinkaPlusBadge()
+                                        Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(.tertiary)
+                                    }
+                                    .linkaMacWell(padding: 14, radius: 12)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+
+                    if measurement.loadedLatencyMs != nil || measurement.loadedLatencyUploadMs != nil || responsivenessResult != nil {
+                        MacCardSection(LinkaCopy.value("detail.loadPerformance")) {
+                            if let result = responsivenessResult {
+                                MacCardRow(label: LinkaCopy.value("detail.responsiveness"), value: LoadResponsivenessCopy.label(for: result.category))
+                                Text(LoadResponsivenessCopy.explanation(for: result.category))
+                                    .font(MacType.label).foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .padding(.vertical, 8)
+                            }
+                            MacCardRow(label: LinkaCopy.value("detail.idle"), value: measurement.latencyMs.map(milliseconds) ?? LinkaCopy.value("detail.notAssessed"))
+                            MacCardRow(label: LinkaCopy.value("detail.duringDownload"), value: measurement.loadedLatencyMs.map(milliseconds) ?? LinkaCopy.value("detail.notAssessed"))
+                            MacCardRow(label: LinkaCopy.value("detail.duringUpload"), value: measurement.loadedLatencyUploadMs.map(milliseconds) ?? LinkaCopy.value("detail.notAssessed"))
+                        }
+                    }
+                } else {
+                    MacBanner(systemImage: "speedometer", tint: MacPalette.download, title: LinkaCopy.value("detail.noMeasurement"))
+                }
+            }
+            .padding(28)
+            .frame(maxWidth: 800, alignment: .leading)
+            .frame(maxWidth: .infinity)
+        }
+        .background(Color.macPage)
+        .navigationTitle(LinkaCopy.value("detail.title"))
+        .toolbar {
+            if let measurement, measurement.outcome == .complete {
+                ToolbarItem(placement: .primaryAction) {
+                    Button { showShareSheet = true } label: { Image(systemName: "square.and.arrow.up") }
+                        .accessibilityLabel(LinkaCopy.value("detail.share.accessibility"))
+                }
+            }
+        }
+        .shareMeasurementSheet(isPresented: $showShareSheet, measurement: measurement)
+        .sheet(isPresented: $showPurchase) {
+            PurchaseSheet(entryPoint: purchaseEntryPoint)
+                .environmentObject(entitlements)
+                .frame(minWidth: 520, minHeight: 360)
+        }
+    }
+    #endif
 
     private func formattedDateTime(_ date: Date) -> String {
         let formatter = DateFormatter()

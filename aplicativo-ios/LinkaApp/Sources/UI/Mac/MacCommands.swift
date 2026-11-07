@@ -24,7 +24,8 @@ final class MacCommandCenter: ObservableObject {
     @Published var isMeasuring = false
     @Published var canShare = false
     @Published var canDelete = false
-    @Published var showsTools = false
+    @Published var showsAssist = false
+    @Published var showsOptimization = false
 }
 
 /// Chaves de preferência de janela.
@@ -81,12 +82,16 @@ struct LinkaMacCommands: Commands {
                 Button(LinkaCopy.value("inventory.title")) { center.navigationRequest = .myNetwork }
                     .keyboardShortcut("3", modifiers: .command)
             }
-            if center.showsTools {
+            if center.showsAssist || center.showsOptimization {
                 Divider()
-                Button("Assist") { center.navigationRequest = .assist }
-                    .keyboardShortcut("4", modifiers: .command)
-                Button(LinkaCopy.value("optimization.title")) { center.navigationRequest = .optimization }
-                    .keyboardShortcut("5", modifiers: .command)
+                if center.showsAssist {
+                    Button("Assist") { center.navigationRequest = .assist }
+                        .keyboardShortcut("4", modifiers: .command)
+                }
+                if center.showsOptimization {
+                    Button(LinkaCopy.value("optimization.title")) { center.navigationRequest = .optimization }
+                        .keyboardShortcut("5", modifiers: .command)
+                }
             }
             Divider()
             Button(LinkaCopy.value("Último resultado")) { center.latestResultRequest = true }

@@ -473,73 +473,79 @@ struct MacRouterPanelView: View {
     @State private var showOpenConfirmation = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("Painel do roteador")
-                .font(.title2.weight(.semibold))
-
-            Group {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
                 switch state {
                 case .idle, .locating:
-                    HStack(spacing: 10) {
-                        ProgressView()
-                        Text("Procurando o roteador nesta rede…")
+                    HStack(spacing: 14) {
+                        ProgressView().controlSize(.large)
+                        Text(LinkaCopy.value("Procurando o roteador nesta rede…")).font(MacType.body).foregroundStyle(.secondary)
                     }
-                    .foregroundColor(.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .linkaMacCard(padding: 22)
                 case .found(let gateway):
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("Painel encontrado", systemImage: "checkmark.circle.fill")
-                            .foregroundColor(.statusGood)
-                        Text(gateway.ip)
-                            .font(.bodySmallStrong)
-                            .foregroundColor(.textPrimary)
-                        if gateway.adminURL?.scheme?.lowercased() == "http" {
-                            Text("Esta página não usa conexão segura.")
-                                .font(.bodySmall)
-                                .foregroundColor(.textSecondary)
+                    MacBanner(
+                        systemImage: "checkmark.seal.fill", tint: .statusGood,
+                        title: LinkaCopy.value("Painel encontrado"),
+                        message: gateway.adminURL?.scheme?.lowercased() == "http" ? LinkaCopy.value("Esta página não usa conexão segura.") : nil
+                    )
+                    HStack(spacing: 16) {
+                        MacIconBadge(systemImage: "wifi.router.fill", tint: MacPalette.download, size: 52)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(LinkaCopy.value("Endereço do roteador")).font(MacType.label).foregroundStyle(.secondary)
+                            Text(gateway.ip).font(MacType.metric(26)).monospacedDigit()
                         }
-                        Button("Abrir painel no navegador") { showOpenConfirmation = true }
-                            .buttonStyle(.linkaPrimary)
+                        Spacer()
+                        Button(LinkaCopy.value("Abrir painel no navegador")) { showOpenConfirmation = true }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .tint(Color.brandAccentWarm)
                     }
+                    .linkaMacCard(padding: 20)
                 case .unreachable(let gatewayIP):
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("Roteador encontrado, painel bloqueado", systemImage: "exclamationmark.shield")
-                            .foregroundColor(.statusAttention)
-                        Text(gatewayIP)
-                            .font(.bodySmallStrong)
-                            .foregroundColor(.textPrimary)
-                        Text("O Linka identificou o roteador desta rede, mas não conseguiu confirmar o painel. O motivo mais comum é a permissão de Rede Local negada para o Linka nos Ajustes do Sistema.")
-                            .font(.bodySmall)
-                            .foregroundColor(.textSecondary)
-                        Button("Abrir Ajustes do Sistema") { openSystemLocalNetworkSettings() }
-                            .buttonStyle(.linkaSecondary)
+                    MacBanner(
+                        systemImage: "exclamationmark.shield.fill", tint: .statusAttention,
+                        title: LinkaCopy.value("Roteador encontrado, painel bloqueado"),
+                        message: LinkaCopy.value("O Linka identificou o roteador desta rede, mas não conseguiu confirmar o painel. O motivo mais comum é a permissão de Rede Local negada para o Linka nos Ajustes do Sistema.")
+                    )
+                    HStack(spacing: 16) {
+                        MacIconBadge(systemImage: "wifi.router.fill", tint: .statusAttention, size: 52)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(LinkaCopy.value("Endereço do roteador")).font(MacType.label).foregroundStyle(.secondary)
+                            Text(gatewayIP).font(MacType.metric(26)).monospacedDigit()
+                        }
+                        Spacer()
+                        Button(LinkaCopy.value("Abrir Ajustes do Sistema")) { openSystemLocalNetworkSettings() }
+                            .controlSize(.large)
                     }
+                    .linkaMacCard(padding: 20)
                 case .unavailable:
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Não foi possível localizar um painel nesta rede.")
-                            .foregroundColor(.textPrimary)
-                        Text("O Linka confirma o painel antes de oferecer a abertura.")
-                            .font(.bodySmall)
-                            .foregroundColor(.textSecondary)
-                    }
+                    MacBanner(
+                        systemImage: "wifi.exclamationmark", tint: .statusAttention,
+                        title: LinkaCopy.value("Não foi possível localizar um painel nesta rede."),
+                        message: LinkaCopy.value("O Linka confirma o painel antes de oferecer a abertura.")
+                    )
                 }
-            }
 
-            Spacer()
-            Button(state == .locating ? "Procurando…" : "Localizar painel") {
-                Task { await locatePanel() }
+                Button(state == .locating ? LinkaCopy.value("Procurando…") : LinkaCopy.value("Localizar painel")) {
+                    Task { await locatePanel() }
+                }
+                .controlSize(.large)
+                .disabled(state == .locating)
             }
-            .buttonStyle(.linkaSecondary)
-            .disabled(state == .locating)
+            .padding(28)
+            .frame(maxWidth: 780, alignment: .leading)
+            .frame(maxWidth: .infinity)
         }
-        .padding(24)
-        .frame(minWidth: 480, minHeight: 360, alignment: .topLeading)
-        .navigationTitle("Painel do roteador")
+        .background(Color.macPage)
+        .frame(minWidth: 480, minHeight: 360)
+        .navigationTitle(LinkaCopy.value("Painel do roteador"))
         .task { await locatePanel() }
-        .confirmationDialog("Abrir o painel do roteador?", isPresented: $showOpenConfirmation, titleVisibility: .visible) {
+        .confirmationDialog(LinkaCopy.value("Abrir o painel do roteador?"), isPresented: $showOpenConfirmation, titleVisibility: .visible) {
             if case .found(let gateway) = state, let url = gateway.adminURL {
-                Button("Abrir no navegador") { openURL(url) }
+                Button(LinkaCopy.value("Abrir no navegador")) { openURL(url) }
             }
-            Button("Cancelar", role: .cancel) {}
+            Button(LinkaCopy.value("Cancelar"), role: .cancel) {}
         } message: {
             if case .found(let gateway) = state {
                 Text(String(format: LinkaCopy.value("router.panel.confirmation.message"), locale: LinkaLanguagePreference.currentLocale, gateway.ip))
@@ -577,6 +583,42 @@ struct SubscriptionManagementSheet: View {
     @State private var isRestoring = false
     @State private var message: String?
     var body: some View {
+        #if os(macOS)
+        MacSheetScaffold(
+            title: LinkaCopy.value("linka.plus"),
+            systemImage: "sparkles",
+            tint: MacPalette.download,
+            closeTitle: LinkaCopy.value("common.close"),
+            onClose: { dismiss() }
+        ) {
+            HStack(spacing: 16) {
+                MacIconBadge(systemImage: "creditcard.fill", tint: MacPalette.upload, size: 52)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(LinkaCopy.value("settings.subscription.manage")).font(MacType.headline)
+                    Text(LinkaCopy.value("settings.subscription.footer")).font(MacType.label).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Link(LinkaCopy.value("settings.subscription.manage"), destination: LinkaExternalLinks.subscriptionManagement)
+                    .controlSize(.large)
+            }
+            .linkaMacCard(padding: 20)
+            HStack(spacing: 16) {
+                MacIconBadge(systemImage: "arrow.clockwise.circle.fill", tint: MacPalette.ping, size: 52)
+                Text(LinkaCopy.value("settings.subscription.restore")).font(MacType.headline)
+                Spacer()
+                Button(isRestoring ? LinkaCopy.value("settings.subscription.restoring") : LinkaCopy.value("settings.subscription.restore"), action: restore)
+                    .controlSize(.large)
+                    .disabled(isRestoring)
+            }
+            .linkaMacCard(padding: 20)
+            if let message { MacBanner(systemImage: "info.circle.fill", tint: MacPalette.download, title: message) }
+        }
+        #else
+        iOSBody
+        #endif
+    }
+
+    private var iOSBody: some View {
         NavigationStack {
             List {
                 Section {

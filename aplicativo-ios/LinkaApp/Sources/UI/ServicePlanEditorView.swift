@@ -61,6 +61,7 @@ struct ServicePlanEditorView: View {
             }
             #if os(macOS)
             .formStyle(.grouped)
+            .linkaMacForm()
             #endif
             .navigationTitle(LinkaCopy.value(isNewPlan ? "inventory.plan.add" : "inventory.plan.edit"))
             #if os(iOS)

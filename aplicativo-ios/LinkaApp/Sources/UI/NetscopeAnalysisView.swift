@@ -130,6 +130,80 @@ struct NetscopeAnalysisView: View {
     }
 
     var body: some View {
+        #if os(macOS)
+        macBody
+        #else
+        iOSBody
+        #endif
+    }
+
+    #if os(macOS)
+    private var macBody: some View {
+        MacSheetScaffold(
+            title: LinkaCopy.value("netscope.title"),
+            systemImage: "text.magnifyingglass",
+            tint: MacPalette.upload,
+            closeTitle: LinkaCopy.value("netscope.close"),
+            onClose: { dismiss() }
+        ) {
+            switch model.state {
+            case .idle, .loading:
+                VStack(spacing: 14) {
+                    ProgressView().controlSize(.large)
+                    Text(LinkaCopy.value("netscope.loading")).font(MacType.body).foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 60)
+            case .reading(let reading):
+                let copy = NetscopeReadingCopy(reading: reading)
+                MacBanner(
+                    systemImage: copy.symbol,
+                    tint: reading == .inconclusive ? .statusAttention : MacPalette.upload,
+                    title: copy.title,
+                    message: copy.message
+                )
+                if case .completed(let presentation) = reading {
+                    macPresentation(presentation)
+                }
+                HStack(spacing: 12) {
+                    if reading == .unavailable {
+                        Button(LinkaCopy.value("netscope.retry")) { Task { await model.load() } }
+                            .controlSize(.large)
+                            .accessibilityHint(LinkaCopy.value("netscope.retry.hint"))
+                    }
+                    Button(LinkaCopy.value("netscope.backToResult")) { dismiss() }
+                        .controlSize(.large)
+                        .accessibilityHint(LinkaCopy.value("netscope.backToResult.hint"))
+                }
+            }
+        }
+        .task { await model.load() }
+    }
+
+    @ViewBuilder
+    private func macPresentation(_ presentation: NetscopeAnalysisPresentation) -> some View {
+        let evidence = presentation.displayableObservedEvidence
+        let context = presentation.displayableDeclaredContext
+        let limitations = presentation.displayableLimitations
+        if !evidence.isEmpty {
+            MacCardSection(LinkaCopy.value("netscope.evidence.title")) {
+                ForEach(evidence, id: \.label) { MacCardRow(label: $0.label, value: $0.value) }
+            }
+        }
+        if !limitations.isEmpty {
+            MacCardSection(LinkaCopy.value("netscope.limitations.title")) {
+                ForEach(limitations, id: \.self) { Text($0).font(MacType.label).foregroundStyle(.secondary).padding(.vertical, 4) }
+            }
+        }
+        if !context.isEmpty {
+            MacCardSection(LinkaCopy.value("netscope.context.title")) {
+                ForEach(context, id: \.label) { MacCardRow(label: $0.label, value: $0.value) }
+            }
+        }
+    }
+    #endif
+
+    private var iOSBody: some View {
         NavigationStack {
             // A leitura concluída pode ter evidência, limites e contexto. A
             // rolagem evita que Dynamic Type grande esconda ações no iPhone,

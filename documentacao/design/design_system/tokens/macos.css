@@ -1,0 +1,43 @@
+/* Linka for Mac — Design System nativo.
+   Espelha as peças em aplicativo-ios/LinkaApp/Sources/UI/Mac/ (Swift).
+   Princípio: profundidade em vez de linhas. Cartões são superfícies elevadas
+   sobre um fundo mais escuro (claro: mais cinza), com sombras em camadas e brilho
+   na borda superior. Divisores e contornos de 1 px não separam conteúdo. */
+:root{
+/* superfícies */
+--mac-page:#ECECF2;
+--mac-card:#FFFFFF;
+--mac-well:#F2F2F7;
+/* marca e dados (mesma paleta nos dois temas) */
+--mac-accent:#7C3AED;
+--mac-accent-ink:#5B21B6;
+--mac-download:#7C3AED;
+--mac-upload:#8C66F5;
+--mac-ping:#1AB89E;
+--mac-quality:#F59E1A;
+--mac-network:#DB479E;
+/* estado */
+--mac-good:#22C55E;
+--mac-warn:#F59E0B;
+--mac-crit:#FF5A36;
+/* forma */
+--mac-radius-card:20px;
+--mac-radius-well:14px;
+--mac-radius-tile-icon:50%;
+/* profundidade: duas sombras (difusa + contato) e brilho superior */
+--mac-shadow-card:0 12px 22px rgba(0,0,0,.22),0 1px 3px rgba(0,0,0,.14);
+--mac-card-highlight:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 50%);
+/* tipografia: o macOS tem estilos pequenos (corpo 13, legenda 10); o Linka sobe a escala */
+--mac-type-caption:13px;
+--mac-type-label:14px;
+--mac-type-body:15px;
+--mac-type-headline:16px;   /* semibold */
+--mac-type-section:20px;    /* bold */
+--mac-type-title:26px;      /* bold */
+--mac-type-metric:34px;     /* 34, 38, 46, 52, 84; arredondada, bold, dígitos tabulares */
+}
+[data-theme="dark"]{
+--mac-page:#131318;
+--mac-card:#2A2A33;
+--mac-well:#1D1D25;
+}
