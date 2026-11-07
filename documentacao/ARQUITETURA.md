@@ -176,7 +176,7 @@ Histórico completo da proposta, exemplos e sequência de PRs fica no [Git em 39
 ## 8. Interface e site: limites técnicos
 
 SwiftUI compartilha modelos/coordenadores, não exige interfaces idênticas. [DesignSystem.swift](../aplicativo-ios/LinkaApp/Sources/UI/DesignSystem.swift) implementa tokens semânticos e adaptação Apple; [tokens CSS](design/design_system/tokens/), [componentes](design/design_system/components/) e [protótipo](design/prototipo/) são recursos, não implementação do motor nem prova de conformidade.
-Não há geração automática garantindo equivalência CSS↔Swift. Preservar marca oficial, controles nativos, texto ampliado, teclado, VoiceOver e Reduzir Movimento; conformidade exige comparar todos os destinos/estados da build pretendida. Direção de produto Mac não autoriza redesign iOS por analogia.
+Não há geração automática garantindo equivalência CSS↔Swift. O ícone do app (AppIcon) vem de `brand/icons/` via manifesto, não de código Swift nem dos favicons CSS. Preservar marca oficial, controles nativos, texto ampliado, teclado, VoiceOver e Reduzir Movimento; conformidade exige comparar todos os destinos/estados da build pretendida. Direção de produto Mac não autoriza redesign iOS por analogia.
 O site institucional está no monorepo `~/Projetos/web/landings` (`sites/linka/`), separado do aplicativo nativo. Conteúdo, screenshots e rotas estáticas dele não comprovam comportamento nem publicação do app; mudanças web não pertencem a este repositório.
 
 ## 9. Pendências que esta consolidação não encerra
