@@ -61,9 +61,20 @@ O script e Fastlane compartilham `build/.release.lock`; preparação usa substit
 
 Beta cobre iOS/TestFlight. App Review, publicação e release Mac são operações separadas, não lanes implementadas aqui. Uma autorização não se estende automaticamente à seguinte; usar a autorização existente quando seu escopo cobrir a ação. Build processada não prova distribuição a grupo, aprovação ou publicação.
 
-## Mac: download direto (fora da App Store)
+## Mac: versões, notas e download direto
 
-O Mac pode ser distribuído como DMG notarizado em linka.signallq.com, versão 1.1.5 (54), gratuito (sem compra Plus). Build com `LINKA_DIRECT_DOWNLOAD` e `LINKA_ENTITLEMENTS_SUFFIX=-Direct` (sandbox, rede, arquivos e localização), hardened runtime e Developer ID. Fluxo: `.agents/scripts/build-mac-direct.sh` (`--unsigned` para checar a build; assinado usa as credenciais do ambiente), arquivo com `xcodebuild archive`, exportação com `-exportArchive` (destino `upload`) para notarizar, `-exportNotarizedApp`, grampeamento e DMG. Teste do Mac: `xcodebuild test -scheme LinkaApp_macOS -destination 'platform=macOS'` (13 testes do Assist legado). Publicação no GitHub Releases e botão no site são operações separadas e dependem de autorização; o DMG já gerado anterior à interface nativa está desatualizado e deve ser refeito antes de publicar.
+**Onde fica cada coisa.** Versão em `aplicativo-ios/project.yml` (target `LinkaApp_macOS`, independente do iOS); notas em [RELEASE_NOTES](../RELEASE_NOTES.md); binário só no GitHub Release da tag `mac-vX.Y.Z`, nunca no Git. Arquivos locais da build ficam em `build/releases/mac/<versão>-<build>/` (fora do Git): DMG, `SHA256SUMS`, `latest.json` (versão, build, macOS mínimo, hash, tamanho, commit) e `NOTES.md`. O site lê o `latest.json` e o DMG do release; o nome do arquivo é `Linka-X.Y.Z-B.dmg`.
+
+**Versionamento (padrão Apple).** `MARKETING_VERSION` é SemVer `X.Y.Z` e só cresce; `CURRENT_PROJECT_VERSION` é um inteiro que só cresce e nunca se repete, nem entre versões, porque a App Store Connect recusa build repetido. DMG e Mac App Store usam o mesmo bundle id e o mesmo contador, então enviar à App Store no futuro é gerar o arquivo do scheme `LinkaApp_macOS` sem `LINKA_DIRECT_DOWNLOAD` (com perfil da loja), sem mudar a numeração. Regra de salto: `feat` sobe a minor, `fix`/melhoria sobe a patch, `!` ou `BREAKING CHANGE` sobe a major.
+
+**Notas automáticas.** Saem dos commits (Conventional Commits) desde a última tag `mac-v*`, só dos que mexem no Mac ou nos pacotes compartilhados. `feat` vira Novidades, `perf`/`refactor`/`style` viram Melhorias e `fix` vira Correções; `docs`, `chore`, `test`, `ci` e `build` ficam de fora. Para texto pensado para a pessoa, escrever no corpo do commit (ou do squash do PR) uma ou mais linhas `Notas: texto curto e direto`; `Notas: -` deixa o commit de fora. Revisar o texto gerado antes do merge.
+
+**Fluxo** (`.agents/scripts/release-mac.py`):
+1. `release-mac.py prepare` (ou `minor`, `patch`, `major`, `build`, `X.Y.Z`; `--dry-run` só mostra) sobe versão e build, regenera o projeto e escreve a seção em RELEASE_NOTES. Commit, PR e merge normais.
+2. `release-mac.py build` exige commit limpo e roda `build-mac-direct.sh` (Developer ID, notarização, grampo e DMG com `DEVELOPER_ID_IDENTITY` e `NOTARY_PROFILE`), depois guarda DMG, hash e manifesto. `build-mac-direct.sh --unsigned` serve só para testar a compilação.
+3. `release-mac.py publish --authorized` cria a tag e um **rascunho** no GitHub Release; `--public` publica de vez. Exige o commit da build em `origin/main`. Autorização do Luiz vale por release; botão no site fica no repositório `web/landings`.
+
+`release-mac.py status` mostra a versão atual e a última tag. Teste do Mac: `xcodebuild test -scheme LinkaApp_macOS -destination 'platform=macOS'` (13 testes do Assist legado). O primeiro DMG público ainda não existe; o gerado antes da interface nativa está desatualizado.
 
 ## Marca e capturas
 
