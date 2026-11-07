@@ -7,7 +7,8 @@ import FirebaseAnalytics
 
 public enum LinkaAnalyticsEvent: Sendable {
     case speedtestStarted(connectionType: String)
-    case speedtestCompleted(connectionType: String, durationSeconds: Int, hasUpload: Bool, hasPing: Bool)
+    case speedtestCompleted(connectionType: String, durationSeconds: Int, hasUpload: Bool, hasPing: Bool,
+                            downloadMbps: Double? = nil, uploadMbps: Double? = nil, pingMs: Double? = nil)
     case speedtestFailed(reason: String, connectionType: String)
     case diagnosticStarted(diagnosticType: String)
     case diagnosticCompleted(diagnosticType: String, outcome: String)
@@ -30,7 +31,9 @@ public final class LinkaAnalytics: @unchecked Sendable {
     }
 
     public func configure() {
-        #if os(iOS)
+        #if os(macOS)
+        MacAnalytics.shared.configure(collectionEnabled: preference.isCollectionEnabled)
+        #elseif os(iOS)
         let collectionEnabled = preference.isCollectionEnabled
 
         guard FirebaseApp.app() == nil else {
@@ -51,7 +54,9 @@ public final class LinkaAnalytics: @unchecked Sendable {
     }
 
     public func setCollectionEnabled(_ enabled: Bool) {
-        #if os(iOS)
+        #if os(macOS)
+        MacAnalytics.shared.setCollectionEnabled(enabled)
+        #elseif os(iOS)
         guard FirebaseApp.app() != nil else { return }
         Analytics.setAnalyticsCollectionEnabled(enabled)
         Self.logger.info("Coleta do Firebase atualizada em tempo de execução: \(enabled, privacy: .public)")
@@ -59,7 +64,9 @@ public final class LinkaAnalytics: @unchecked Sendable {
     }
 
     public func track(_ event: LinkaAnalyticsEvent) {
-        #if os(iOS)
+        #if os(macOS)
+        if let mapped = MacAnalyticsEvent(shared: event) { MacAnalytics.shared.track(mapped) }
+        #elseif os(iOS)
         guard preference.isCollectionEnabled else { return }
         guard let payload = FirebaseAnalyticsPayload(event: event) else { return }
         Analytics.logEvent(payload.name, parameters: payload.parameters)
@@ -81,7 +88,7 @@ private struct FirebaseAnalyticsPayload {
                 "connection_type": Self.sanitize(connectionType)
             ]
 
-        case let .speedtestCompleted(connectionType, durationSeconds, hasUpload, hasPing):
+        case let .speedtestCompleted(connectionType, durationSeconds, hasUpload, hasPing, _, _, _):
             name = "speedtest_completed"
             parameters = [
                 "connection_type": Self.sanitize(connectionType),
@@ -140,6 +147,37 @@ private struct FirebaseAnalyticsPayload {
     private static func sanitize(_ value: String) -> String {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? "unknown" : trimmed
+    }
+}
+#endif
+
+#if os(macOS)
+extension MacAnalyticsEvent {
+    /// Traduz os eventos que o motor compartilhado já emite para o vocabulário do Mac.
+    init?(shared event: LinkaAnalyticsEvent) {
+        switch event {
+        case let .speedtestStarted(connectionType):
+            self = .speedtestStarted(connectionType: connectionType, trigger: MacAnalytics.shared.consumeTestTrigger())
+        case let .speedtestCompleted(connectionType, duration, hasUpload, hasPing, down, up, ping):
+            self = .speedtestCompleted(connectionType: connectionType, durationSeconds: duration, hasUpload: hasUpload,
+                                       hasPing: hasPing, downloadMbps: down, uploadMbps: up, pingMs: ping)
+        case let .speedtestFailed(reason, connectionType):
+            self = .speedtestFailed(reason: reason, connectionType: connectionType)
+        case let .diagnosticStarted(type):
+            self = .diagnosticStarted(type: type)
+        case let .diagnosticCompleted(type, outcome):
+            self = .diagnosticCompleted(type: type, outcome: outcome)
+        case let .resultViewed(source):
+            self = .resultViewed(source: source)
+        case let .plusOfferViewed(entryPoint):
+            self = .plusOfferViewed(entryPoint: entryPoint)
+        case .myNetworkViewed:
+            self = .screenView(MacScreenName.myNetwork)
+        case .serviceStatusViewed:
+            self = .serviceStatusViewed
+        case .resultShared:
+            self = .resultShared(method: "share_sheet")
+        }
     }
 }
 #endif

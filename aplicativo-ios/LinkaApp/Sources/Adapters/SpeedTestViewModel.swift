@@ -535,7 +535,10 @@ public class SpeedTestViewModel: ObservableObject {
                         connectionType: connectionType,
                         durationSeconds: durationSeconds,
                         hasUpload: self.hasMeasuredUpload,
-                        hasPing: self.hasMeasuredPing
+                        hasPing: self.hasMeasuredPing,
+                        downloadMbps: m.downloadMbps,
+                        uploadMbps: m.uploadMbps,
+                        pingMs: m.latencyMs
                     ))
                     self.publishThroughputBaselineIfEligible(from: m)
                     await self.refreshLiveUsageSuitability()

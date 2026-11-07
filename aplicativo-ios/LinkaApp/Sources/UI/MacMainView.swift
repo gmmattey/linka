@@ -63,6 +63,8 @@ struct MacMainView: View {
     @State private var speedSamples: [Double] = []
     @State private var gaugeScale = 100.0
     @State private var networkDetails = MacNetworkDetails()
+    @State private var navigationMethod = "sidebar"
+    @State private var lastScreen = ""
 
     // MARK: Estado derivado
 
@@ -239,6 +241,7 @@ struct MacMainView: View {
             center.isMeasuring = isMeasuring
             intentCoordinator.setMeasurementActive(isMeasuring)
             if phase == .connecting { speedSamples = []; gaugeScale = 100 }
+            trackScreen()
             if phase == .done || phase == .idle { networkDetails = MacNetworkDetails.capture() }
             if phase == .done { inspectedMeasurement = nil }
             updateShareState()
@@ -247,11 +250,20 @@ struct MacMainView: View {
             pendingAssistMeasurement = false
             showAssistResult = true
         }
-        .onChange(of: destination) { _ in updateShareState() }
+        .onChange(of: destination) { new in
+            updateShareState()
+            MacAnalytics.shared.track(.navigate(to: Self.analyticsName(new), method: navigationMethod))
+            navigationMethod = "sidebar"
+            trackScreen()
+        }
+        .onChange(of: inspectorVisible) { MacAnalytics.shared.track(.inspectorToggled(visible: $0)) }
+        .onChange(of: showShareSheet) { if $0 { MacAnalytics.shared.track(.resultShared(method: "share_sheet")) } }
         .onChange(of: intentCoordinator.pendingStartSpeedTest) { pending in
             guard pending else { return }
             guard !isMeasuring else { intentCoordinator.consumeStartSpeedTestRequest(); return }
+            navigationMethod = "menu_or_intent"
             destination = .speedTest
+            MacAnalytics.shared.markNextTestTrigger("menu_or_intent")
             startMeasurement()
             intentCoordinator.consumeStartSpeedTestRequest()
         }
@@ -272,7 +284,7 @@ struct MacMainView: View {
         }
         .onChange(of: intentCoordinator.pendingCancelMeasurement) { pending in
             guard pending else { return }
-            if isMeasuring { viewModel.skipOrCancel() }
+            if isMeasuring { cancelMeasurement() }
             intentCoordinator.consumeCancelMeasurement()
         }
         .onChange(of: intentCoordinator.pendingOpenSettings) { pending in
@@ -286,6 +298,7 @@ struct MacMainView: View {
         .onChange(of: center.navigationRequest) { request in
             guard let request else { return }
             center.navigationRequest = nil
+            navigationMethod = "menu"
             destination = request
         }
         .onChange(of: center.exportHistoryRequest) { requested in
@@ -316,11 +329,13 @@ struct MacMainView: View {
             // O macOS só informa o nome da rede Wi-Fi com Serviços de Localização autorizados.
             WiFiNetworkPermission.requestIdentification()
             viewModel.refreshLiveNetwork()
+            trackScreen()
             handlePublicUniversalLink(intentCoordinator.pendingPublicUniversalLink)
         }
         .onReceive(NotificationCenter.default.publisher(for: .wiFiAuthorizationDidChange)) { _ in
             viewModel.refreshLiveNetwork()
             networkDetails = MacNetworkDetails.capture()
+            MacAnalytics.shared.track(.locationPermission(status: Self.analyticsName(WiFiNetworkPermission.state(enabled: true))))
         }
         .task {
             while !Task.isCancelled {
@@ -583,7 +598,7 @@ struct MacMainView: View {
                               systemImage: "arrow.up.circle.fill", tint: MacPalette.upload, valueSize: 34)
             }
 
-            Button(LinkaCopy.value("Cancelar")) { viewModel.skipOrCancel() }
+            Button(LinkaCopy.value("Cancelar")) { cancelMeasurement() }
                 .controlSize(.large)
         }
     }
@@ -1036,6 +1051,47 @@ struct MacMainView: View {
 
     // MARK: Ações
 
+    private static func analyticsName(_ destination: MacDestination) -> String {
+        switch destination {
+        case .speedTest: return "speedtest"
+        case .history: return "history"
+        case .myNetwork: return "my_network"
+        case .assist: return "assist"
+        case .optimization: return "optimization"
+        }
+    }
+
+    private static func analyticsName(_ state: WiFiNetworkIdentificationState) -> String {
+        switch state {
+        case .active: return "granted"
+        case .disabledByUser: return "disabled_by_user"
+        case .permissionRequired: return "not_determined"
+        case .permissionDenied: return "denied"
+        case .unavailable: return "unavailable"
+        }
+    }
+
+    /// Nome de tela do Firebase para o que está visível agora; só registra quando muda.
+    private func trackScreen() {
+        let name: String
+        switch destination {
+        case .speedTest:
+            switch viewModel.uiPhase {
+            case .idle: name = MacScreenName.speedtest
+            case .done: name = MacScreenName.result
+            case .error, .connectionChanged: name = MacScreenName.error
+            default: name = MacScreenName.measuring
+            }
+        case .history: name = MacScreenName.history
+        case .myNetwork: name = MacScreenName.myNetwork
+        case .assist: name = MacScreenName.sheet("Assist")
+        case .optimization: name = MacScreenName.sheet("Optimization")
+        }
+        guard name != lastScreen else { return }
+        lastScreen = name
+        MacAnalytics.shared.track(.screenView(name))
+    }
+
     private func startMeasurement() {
         guard !isMeasuring else { return }
         inspectedMeasurement = nil
@@ -1045,8 +1101,14 @@ struct MacMainView: View {
         viewModel.startTest(advancedWiFiDiagnostics: diagnostics)
     }
 
+    private func cancelMeasurement() {
+        MacAnalytics.shared.track(.speedtestCancelled(phase: String(describing: viewModel.uiPhase)))
+        viewModel.skipOrCancel()
+    }
+
     private func startMeasurementFromHistory() {
         selectedHistoricalMeasurement = nil
+        MacAnalytics.shared.markNextTestTrigger("history")
         destination = .speedTest
         DispatchQueue.main.async { startMeasurement() }
     }

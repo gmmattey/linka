@@ -116,6 +116,8 @@ targets:
       - path: LinkaApp/Sources
       - path: LinkaApp/Resources
         buildPhase: resources
+        excludes:
+          - GoogleService-Info-macOS.plist
     dependencies:
       - package: LinkaEngine
       - package: LinkaModules
@@ -220,6 +222,10 @@ targets:
       - package: NetworkProfiles
       - package: NetworkInventory
       - package: NetworkDNSBenchmark
+      - package: Firebase
+        product: FirebaseCore
+      - package: Firebase
+        product: FirebaseAnalytics
       - package: NetworkSpatial
   LinkaAppUITests:
     type: bundle.ui-testing
@@ -276,6 +282,7 @@ targets:
       - path: LinkaApp/Tests
         includes:
           - "Assist*.swift"
+          - "MacAnalytics*.swift"
         excludes:
           - "AssistV4*.swift"
     dependencies:
