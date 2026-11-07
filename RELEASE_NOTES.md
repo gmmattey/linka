@@ -6,6 +6,7 @@
 - Novo ícone do Linka no iPhone, iPad e Mac.
 - Correções: abrir sem iCloud não fecha o app; sem pedido de senha do Keychain a cada abertura.
 - Preparado para download direto notarizado; publicação depende de autorização.
+
 # Linka 1.1.8 (62) — candidata TestFlight interno
 
 - **Integração Firebase Analytics (iOS):**
