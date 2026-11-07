@@ -3,6 +3,7 @@
 // É mantido coeso para não espalhar o tratamento de chaves, limites e tokens do CloudKit em vários arquivos.
 import Foundation
 import CloudKit
+import Security
 import NetworkCore
 
 // MARK: - Identificadores canônicos
@@ -355,7 +356,17 @@ public final class CloudKitMeasurementRemoteStore: MeasurementRemoteStore, @unch
             return false
         }
         
-        #if targetEnvironment(simulator)
+        #if os(macOS)
+        // No Mac não existe `embedded.mobileprovision`; lê o entitlement
+        // realmente embarcado no binário. Build sem assinatura (CLI, CI,
+        // teste local) e download direto não têm iCloud e não podem criar
+        // `CKContainer` (SIGTRAP).
+        guard let task = SecTaskCreateFromSelf(nil),
+              let value = SecTaskCopyValueForEntitlement(task, "com.apple.developer.icloud-container-identifiers" as CFString, nil)
+        else { return false }
+        if let ids = value as? [String] { return ids.contains(id) }
+        return false
+        #elseif targetEnvironment(simulator)
         // No simulador sem assinatura de entitlements CloudKit (build de CLI/dev sem provisioning profile),
         // CKContainer(identifier:) crasha com SIGTRAP. Degradamos com segurança para evitar crash em tempo de execução.
         guard Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision") != nil ||

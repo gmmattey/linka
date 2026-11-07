@@ -53,6 +53,19 @@ private enum ServiceStatusDeviceIdentity {
     private static let account = "installation-id"
 
     static func installationID() -> String {
+        #if os(macOS)
+        // No Mac o Keychain legado prende o item à assinatura do app e pede a
+        // senha de login a cada build/versão com assinatura diferente. Este
+        // identificador é anônimo (não é segredo), então fica em UserDefaults.
+        let defaults = UserDefaults.standard
+        let key = "\(service).\(account)"
+        if let id = defaults.string(forKey: key), UUID(uuidString: id) != nil {
+            return id
+        }
+        let id = UUID().uuidString.lowercased()
+        defaults.set(id, forKey: key)
+        return id
+        #else
         let query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword, kSecAttrService: service,
             kSecAttrAccount: account, kSecReturnData: true,
@@ -71,6 +84,7 @@ private enum ServiceStatusDeviceIdentity {
         ]
         _ = SecItemAdd(item as CFDictionary, nil)
         return id
+        #endif
     }
 }
 
