@@ -302,8 +302,13 @@ struct MacMainView: View {
         }
         .onAppear {
             intentCoordinator.setMeasurementActive(isMeasuring)
+            // O macOS só informa o nome da rede Wi-Fi com Serviços de Localização autorizados.
+            WiFiNetworkPermission.requestIdentification()
             viewModel.refreshLiveNetwork()
             handlePublicUniversalLink(intentCoordinator.pendingPublicUniversalLink)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .wiFiAuthorizationDidChange)) { _ in
+            viewModel.refreshLiveNetwork()
         }
         .onDisappear { intentCoordinator.setMeasurementActive(false) }
     }
@@ -1630,7 +1635,15 @@ struct MacMainView: View {
         panel.allowedContentTypes = [.commaSeparatedText]
         panel.canCreateDirectories = true
         if panel.runModal() == .OK, let url = panel.url {
-            try? data.write(to: url)
+            do {
+                try data.write(to: url, options: .atomic)
+            } catch {
+                let alert = NSAlert()
+                alert.alertStyle = .warning
+                alert.messageText = "Não foi possível salvar o arquivo"
+                alert.informativeText = error.localizedDescription
+                alert.runModal()
+            }
         }
     }
 

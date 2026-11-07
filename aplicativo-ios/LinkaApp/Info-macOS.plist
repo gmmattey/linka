@@ -43,12 +43,12 @@
 	<array>
 		<string>shortcuts</string>
 	</array>
-	<key>LinkaServiceStatusEndpoint</key>
-	<string>https://linka-assist-relay.buildealabs.workers.dev/v1/service-status</string>
 	<key>LinkaAssistDirectEnabled</key>
 	<string>YES</string>
 	<key>LinkaAssistDirectEndpoint</key>
 	<string>https://netscope-api.gmmattey.workers.dev/v1/linka/assist</string>
+	<key>LinkaServiceStatusEndpoint</key>
+	<string>https://linka-assist-relay.buildealabs.workers.dev/v1/service-status</string>
 	<key>NDAssistRelayEndpoint</key>
 	<string>https://linka-assist-relay.buildealabs.workers.dev/v2/assist</string>
 	<key>NSAppTransportSecurity</key>
@@ -58,5 +58,14 @@
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>O Linka consulta o roteador da rede local para identificar o equipamento e diagnosticar a qualidade da conexão Wi-Fi.</string>
+	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
+	<dict>
+		<key>WiFiIdentification</key>
+		<string>O Linka precisa de localização precisa temporariamente para informar o nome da rede Wi-Fi atual.</string>
+	</dict>
+	<key>NSLocationUsageDescription</key>
+	<string>O Linka usa a localização apenas porque o macOS exige essa autorização para informar o nome da rede Wi-Fi atual. Sua localização não é salva para identificar a rede.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>O Linka usa a localização apenas porque o macOS exige essa autorização para informar o nome da rede Wi-Fi atual. Sua localização não é salva para identificar a rede.</string>
 </dict>
 </plist>

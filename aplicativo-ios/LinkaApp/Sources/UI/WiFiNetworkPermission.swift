@@ -1,6 +1,6 @@
 import SwiftUI
 import NetworkCore
-#if canImport(CoreLocation) && os(iOS)
+#if canImport(CoreLocation) && (os(iOS) || os(macOS))
 import CoreLocation
 #endif
 #if canImport(UIKit)
@@ -31,7 +31,7 @@ public extension Notification.Name {
     static let wiFiAuthorizationDidChange = Notification.Name("linka.wifi.authorizationDidChange")
 }
 
-#if canImport(CoreLocation) && os(iOS)
+#if canImport(CoreLocation) && (os(iOS) || os(macOS))
 private final class LocationPermissionDelegate: NSObject, CLLocationManagerDelegate {
     static let shared = LocationPermissionDelegate()
 
@@ -42,12 +42,22 @@ private final class LocationPermissionDelegate: NSObject, CLLocationManagerDeleg
 #endif
 
 enum WiFiNetworkPermission {
-    #if canImport(CoreLocation) && os(iOS)
+    #if canImport(CoreLocation) && (os(iOS) || os(macOS))
     private static let manager: CLLocationManager = {
         let m = CLLocationManager()
         m.delegate = LocationPermissionDelegate.shared
         return m
     }()
+
+    /// No macOS a autorização concedida é sempre `.authorizedAlways`;
+    /// `.authorizedWhenInUse` existe apenas no iOS.
+    private static func isGranted(_ status: CLAuthorizationStatus) -> Bool {
+        #if os(iOS)
+        return status == .authorizedWhenInUse || status == .authorizedAlways
+        #else
+        return status == .authorizedAlways
+        #endif
+    }
 
     static func state(enabled: Bool) -> WiFiNetworkIdentificationState {
         state(
@@ -63,9 +73,10 @@ enum WiFiNetworkPermission {
         accuracyAuthorization: CLAccuracyAuthorization
     ) -> WiFiNetworkIdentificationState {
         guard enabled else { return .disabledByUser }
-        switch authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
+        if isGranted(authorizationStatus) {
             return accuracyAuthorization == .fullAccuracy ? .active : .permissionRequired
+        }
+        switch authorizationStatus {
         case .denied, .restricted:
             return .permissionDenied
         case .notDetermined:
@@ -80,16 +91,22 @@ enum WiFiNetworkPermission {
     }
     static var canOpenSystemSettings: Bool { manager.authorizationStatus == .denied || manager.authorizationStatus == .restricted }
     static var isAuthorized: Bool {
-        manager.authorizationStatus == .authorizedWhenInUse || manager.authorizationStatus == .authorizedAlways
+        isGranted(manager.authorizationStatus)
     }
     @MainActor static func requestIdentification() {
-        switch manager.authorizationStatus {
-        case .notDetermined:
-            manager.requestWhenInUseAuthorization()
-        case .authorizedWhenInUse, .authorizedAlways:
+        if isGranted(manager.authorizationStatus) {
             if manager.accuracyAuthorization != .fullAccuracy {
                 manager.requestTemporaryFullAccuracyAuthorization(withPurposeKey: "WiFiIdentification")
             }
+            return
+        }
+        switch manager.authorizationStatus {
+        case .notDetermined:
+            #if os(iOS)
+            manager.requestWhenInUseAuthorization()
+            #else
+            manager.requestAlwaysAuthorization()
+            #endif
         case .denied, .restricted:
             openSystemSettings()
         @unknown default:
@@ -97,8 +114,13 @@ enum WiFiNetworkPermission {
         }
     }
     @MainActor static func openSystemSettings() {
+        #if os(iOS)
         guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
         UIApplication.shared.open(url)
+        #else
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") else { return }
+        NSWorkspace.shared.open(url)
+        #endif
     }
     #else
     static func state(enabled: Bool) -> WiFiNetworkIdentificationState { .unavailable }

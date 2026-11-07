@@ -328,7 +328,15 @@ struct HistoryView: View {
         panel.allowedContentTypes = [.commaSeparatedText]
         panel.canCreateDirectories = true
         if panel.runModal() == .OK, let url = panel.url {
-            try? data.write(to: url)
+            do {
+                try data.write(to: url, options: .atomic)
+            } catch {
+                let alert = NSAlert()
+                alert.alertStyle = .warning
+                alert.messageText = "Não foi possível salvar o arquivo"
+                alert.informativeText = error.localizedDescription
+                alert.runModal()
+            }
         }
         #elseif os(iOS)
         let csvString = MeasurementCSVExporter.generateCSV(from: targetList)
