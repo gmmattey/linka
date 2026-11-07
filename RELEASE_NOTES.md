@@ -1,11 +1,21 @@
-# Linka para Mac 1.1.5 (54) — interface nativa e download direto
+# Linka para Mac 1.2.0 (55)
 
-- Interface do Mac refeita como app nativo (não mais iOS migrado): cartões com profundidade, fontes maiores, violeta da marca, resultado simplificado, inspetor flutuante, Histórico em tabela com gráfico, Minha Rede com equipamentos e plano, janela de Ajustes completa (claro, escuro e automático) e menus com atalhos.
-- Detalhes da rede no velocímetro (Wi-Fi, banda, canal, sinal, endereços), sem ler o BSSID.
-- Ferramentas ainda não revisadas no padrão novo ficam ocultas até a revisão.
-- Novo ícone do Linka no iPhone, iPad e Mac.
-- Correções: abrir sem iCloud não fecha o app; sem pedido de senha do Keychain a cada abertura.
-- Preparado para download direto notarizado; publicação depende de autorização.
+**Novidades**
+
+- Novo visual feito para o Mac: cartões com profundidade, textos maiores e a cor violeta do Linka.
+- Resultado do teste mais limpo, com um painel de detalhes que você mostra ou esconde (⌥⌘I).
+- Histórico em tabela, com gráfico, filtro por Wi-Fi ou cabo, busca, ordenação e exportação para CSV.
+- Minha Rede: seus equipamentos, o plano contratado e a comparação com as medições.
+- Detalhes da sua rede no velocímetro: Wi-Fi, banda, canal, sinal e endereços.
+- Janela de Ajustes completa, com modo claro, escuro ou automático e escolha de idioma.
+- Menus com atalhos para tudo: iniciar teste (⌘R), cancelar (⌘.), ir para cada tela (⌘1 a ⌘3) e exportar (⇧⌘E).
+- Novo ícone do Linka.
+- Você escolhe se compartilha dados anônimos de uso, em Ajustes > Privacidade.
+
+**Correções**
+
+- O Linka não fecha mais ao abrir sem iCloud.
+- O Mac deixou de pedir a senha do Keychain a cada abertura.
 
 # Linka 1.1.8 (62) — candidata TestFlight interno
 
