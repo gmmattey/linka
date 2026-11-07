@@ -48,6 +48,14 @@ struct PurchaseSheet: View {
     }
 
     var body: some View {
+        if LinkaDistribution.isDirectDownload {
+            DirectDownloadPlusNotice()
+        } else {
+            storeContent
+        }
+    }
+
+    private var storeContent: some View {
         ZStack {
             LinkaScreenBackground(variant: .gradientOnly, showWaves: false)
                 .ignoresSafeArea()
@@ -276,5 +284,34 @@ struct PurchaseSheet: View {
         let bundle = Bundle(path: Bundle.main.path(forResource: locale.identifier, ofType: "lproj") ?? "") ?? .main
         let format = bundle.localizedString(forKey: key, value: fallback, table: nil)
         return arguments.isEmpty ? format : String(format: format, locale: locale, arguments: arguments)
+    }
+}
+
+
+/// Aviso exibido no lugar da compra quando o app vem do download direto.
+struct DirectDownloadPlusNotice: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Text(LinkaCopy.value("Linka Plus na App Store"))
+                .font(.title2.weight(.semibold))
+            Text("A assinatura do Linka Plus só funciona na versão do Linka baixada pela App Store. Esta versão do site inclui os recursos gratuitos.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 420)
+            HStack(spacing: 12) {
+                Button("Fechar") { dismiss() }
+                Button("Abrir na App Store") {
+                    openURL(LinkaDistribution.appStoreListing)
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+            .padding(.top, 8)
+        }
+        .padding(32)
+        .frame(minWidth: 480, minHeight: 260)
     }
 }

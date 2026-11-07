@@ -198,10 +198,13 @@ struct SettingsView: View {
     private var macOSContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text("Ajustes")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(.textPrimary)
-                    .padding(.bottom, 4)
+                // Inline no Mac a barra de título da janela já mostra "Ajustes".
+                if onPurchaseRequest == nil {
+                    Text("Ajustes")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.textPrimary)
+                        .padding(.bottom, 4)
+                }
 
                 macSection {
                     Button(action: openSubscription) {

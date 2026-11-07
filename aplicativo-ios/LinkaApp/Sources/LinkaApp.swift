@@ -173,8 +173,18 @@ struct LinkaApp: App {
             .onChange(of: languagePreference) { _ in syncWidgetLanguagePreference() }
         }
         #if os(macOS)
-        .defaultSize(width: 980, height: 680)
+        .defaultSize(width: 1180, height: 740)
         .commands { LinkaMacCommands() }
+        #endif
+
+        #if os(macOS)
+        Settings {
+            MacSettingsView()
+                .environmentObject(entitlements)
+                .tint(Color.brandAccentWarm)
+                .preferredColorScheme(preferredColorScheme)
+                .environment(\.locale, effectiveLocale)
+        }
         #endif
     }
 
@@ -230,25 +240,3 @@ struct LinkaApp: App {
     }
 }
 
-#if os(macOS)
-private struct LinkaMacCommands: Commands {
-    @ObservedObject private var coordinator = AppIntentCoordinator.shared
-
-    var body: some Commands {
-        CommandGroup(replacing: .newItem) {
-            if coordinator.isMeasurementActive {
-                Button("Cancelar medição") { coordinator.requestCancelMeasurement() }
-                    .keyboardShortcut(".", modifiers: .command)
-            } else {
-                Button("Testar velocidade") { coordinator.requestStartSpeedTest() }
-                    .keyboardShortcut("r", modifiers: .command)
-            }
-        }
-        CommandGroup(after: .appSettings) {
-            Button("Ajustes…") { coordinator.requestOpenSettings() }
-                .keyboardShortcut(",", modifiers: .command)
-                .disabled(coordinator.isMeasurementActive)
-        }
-    }
-}
-#endif

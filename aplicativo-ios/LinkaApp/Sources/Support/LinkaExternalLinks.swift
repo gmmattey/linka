@@ -15,6 +15,21 @@ enum LinkaExternalLinks {
     static let subscriptionManagement = URL(string: "https://apps.apple.com/account/subscriptions")!
 }
 
+/// Canal de distribuição do binário. O Mac baixado direto do site
+/// (`LINKA_DIRECT_DOWNLOAD`) não passa pela App Store, então não vende nem
+/// restaura o Linka Plus; a compra continua exclusiva da versão da loja.
+enum LinkaDistribution {
+    static var isDirectDownload: Bool {
+        #if LINKA_DIRECT_DOWNLOAD
+        true
+        #else
+        false
+        #endif
+    }
+
+    static let appStoreListing = URL(string: "https://apps.apple.com/br/app/linka-wi-fi-e-internet/id6808479321")!
+}
+
 enum LinkaWiFiPreferences {
     static let identificationEnabledKey = "linka.wifi-identification.enabled.v1"
     static let advancedDiagnosticsEnabledKey = "linka.advanced-wifi.enabled.v1"

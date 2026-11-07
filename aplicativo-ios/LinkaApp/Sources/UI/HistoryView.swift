@@ -54,6 +54,7 @@ struct HistoryView: View {
     var onSelectMeasurement: ((NetworkMeasurement) -> Void)? = nil
 
     @State private var measurements: [NetworkMeasurement] = []
+    @State private var measurementPendingDeletion: NetworkMeasurement?
     @State private var isLoading = true
     @Environment(\.scenePhase) private var scenePhase
     @State private var hasPlus = false
@@ -178,7 +179,7 @@ struct HistoryView: View {
                                 .buttonStyle(.plain)
                                 .contextMenu {
                                     Button(role: .destructive) {
-                                        deleteMeasurement(measurement)
+                                        requestDeletion(measurement)
                                     } label: {
                                         Label(LinkaCopy.value("common.delete"), systemImage: "trash")
                                     }
@@ -197,14 +198,14 @@ struct HistoryView: View {
                                     .buttonStyle(.plain)
                                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                         Button(role: .destructive) {
-                                            deleteMeasurement(measurement)
+                                            requestDeletion(measurement)
                                         } label: {
                                             Label(LinkaCopy.value("common.delete"), systemImage: "trash")
                                         }
                                     }
                                     .contextMenu {
                                         Button(role: .destructive) {
-                                            deleteMeasurement(measurement)
+                                            requestDeletion(measurement)
                                         } label: {
                                             Label(LinkaCopy.value("common.delete"), systemImage: "trash")
                                         }
@@ -276,6 +277,15 @@ struct HistoryView: View {
             }
             #endif
         }
+        .alert(LinkaCopy.value("history.delete.title"), isPresented: Binding(
+            get: { measurementPendingDeletion != nil },
+            set: { if !$0 { measurementPendingDeletion = nil } }
+        ), presenting: measurementPendingDeletion) { measurement in
+            Button(LinkaCopy.value("common.delete"), role: .destructive) { deleteMeasurement(measurement) }
+            Button(LinkaCopy.value("common.cancel"), role: .cancel) {}
+        } message: { _ in
+            Text(LinkaCopy.value("history.delete.message"))
+        }
         .sheet(isPresented: $showPurchase) {
             PurchaseSheet(entryPoint: purchaseEntryPoint) {
                 loadData()
@@ -298,6 +308,16 @@ struct HistoryView: View {
         .onChange(of: sort) { _ in
             prepareHistoryAdIfEligible()
         }
+    }
+
+    /// No Mac, excluir pede confirmação (a ação não tem como desfazer);
+    /// no iPhone/iPad o gesto de deslizar já é a confirmação padrão.
+    private func requestDeletion(_ measurement: NetworkMeasurement) {
+        #if os(macOS)
+        measurementPendingDeletion = measurement
+        #else
+        deleteMeasurement(measurement)
+        #endif
     }
 
     private func deleteMeasurement(_ measurement: NetworkMeasurement) {
@@ -323,7 +343,7 @@ struct HistoryView: View {
         #if os(macOS)
         let data = MeasurementCSVExporter.generateCSVData(from: targetList)
         let panel = NSSavePanel()
-        panel.title = "Exportar Histórico em CSV"
+        panel.title = LinkaCopy.value("Exportar histórico em CSV")
         panel.nameFieldStringValue = "linka-historico.csv"
         panel.allowedContentTypes = [.commaSeparatedText]
         panel.canCreateDirectories = true
@@ -333,7 +353,7 @@ struct HistoryView: View {
             } catch {
                 let alert = NSAlert()
                 alert.alertStyle = .warning
-                alert.messageText = "Não foi possível salvar o arquivo"
+                alert.messageText = LinkaCopy.value("Não foi possível salvar o arquivo")
                 alert.informativeText = error.localizedDescription
                 alert.runModal()
             }
