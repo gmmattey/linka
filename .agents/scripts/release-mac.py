@@ -90,6 +90,7 @@ def write_version(version, build):
 
 
 def tags():
+    run('git', 'fetch', '--tags', '--quiet', 'origin', check=False)
     out = run('git', 'tag', '--list', f'{TAG_PREFIX}*', '--sort=-v:refname')
     return [t for t in out.splitlines() if SEMVER.match(t[len(TAG_PREFIX):])]
 

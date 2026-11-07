@@ -65,31 +65,59 @@ public final class URLSessionSpeedTestTransport: SpeedTestTransport, @unchecked 
         self.session = URLSession(configuration: configuration)
     }
 
-    public func execute(_ request: SpeedTestTransportRequest) async throws -> SpeedTestTransportResponse {
+    /// Monta o pedido HTTP de cada tipo de transporte.
+    ///
+    /// O endpoint público `speed.cloudflare.com/__down` responde 429 a pedidos
+    /// sem contexto de origem depois de poucos segundos de carga, o que
+    /// encerrava a fase de download no meio e deixava a medição sob carga
+    /// inconclusiva. Com `Origin` e `Referer` do próprio site (como o teste web
+    /// da Cloudflare envia) e um parâmetro anti-cache por pedido, 105 downloads
+    /// seguidos passaram sem recusa. O SignallQ Android usa a mesma técnica.
+    /// O `User-Agent` continua sendo o do sistema, sem se passar por navegador.
+    static func makeRequest(for request: SpeedTestTransportRequest, cacheBuster: String = UUID().uuidString) -> URLRequest {
+        let url: URL
+        let method: String
         switch request {
-        case .download(let url):
-            let (data, response) = try await session.data(from: url)
+        case .download(let value): url = value; method = "GET"
+        case .upload(let value, _): url = value; method = "POST"
+        case .probe(let value): url = value; method = "HEAD"
+        }
+        var result = URLRequest(url: Self.withCacheBuster(url, cacheBuster: cacheBuster, enabled: method != "POST"))
+        result.httpMethod = method
+        result.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        result.setValue("*/*", forHTTPHeaderField: "Accept")
+        result.setValue("no-store", forHTTPHeaderField: "Cache-Control")
+        if url.host == SpeedTestEnvironment.cloudflare.downloadEndpoint.host {
+            result.setValue("https://speed.cloudflare.com", forHTTPHeaderField: "Origin")
+            result.setValue("https://speed.cloudflare.com/", forHTTPHeaderField: "Referer")
+        }
+        if case .probe = request { result.timeoutInterval = 1 }
+        return result
+    }
+
+    private static func withCacheBuster(_ url: URL, cacheBuster: String, enabled: Bool) -> URL {
+        guard enabled, var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return url }
+        var items = components.queryItems ?? []
+        items.removeAll { $0.name == "_cb" }
+        items.append(URLQueryItem(name: "_cb", value: cacheBuster))
+        components.queryItems = items
+        return components.url ?? url
+    }
+
+    public func execute(_ request: SpeedTestTransportRequest) async throws -> SpeedTestTransportResponse {
+        let urlRequest = Self.makeRequest(for: request)
+        switch request {
+        case .download, .probe:
+            let (data, response) = try await session.data(for: urlRequest)
             return SpeedTestTransportResponse(
                 statusCode: (response as? HTTPURLResponse)?.statusCode ?? 0,
                 byteCount: data.count
             )
-        case .upload(let url, let payload):
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            let (_, response) = try await session.upload(for: request, from: payload)
+        case .upload(_, let payload):
+            let (_, response) = try await session.upload(for: urlRequest, from: payload)
             return SpeedTestTransportResponse(
                 statusCode: (response as? HTTPURLResponse)?.statusCode ?? 0,
                 byteCount: payload.count
-            )
-        case .probe(let url):
-            var request = URLRequest(url: url)
-            request.httpMethod = "HEAD"
-            request.timeoutInterval = 1
-            request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-            let (data, response) = try await session.data(for: request)
-            return SpeedTestTransportResponse(
-                statusCode: (response as? HTTPURLResponse)?.statusCode ?? 0,
-                byteCount: data.count
             )
         }
     }
