@@ -36,16 +36,27 @@ linka/
 ├── aplicativo-ios/            # Projeto nativo Apple (iOS, iPadOS, macOS)
 │   ├── project.yml            # Definição canônica do XcodeGen
 │   ├── LinkaApp.xcodeproj     # Projeto gerado
-│   ├── LinkaApp/              # Target de aplicação e telas SwiftUI
-│   ├── LinkaEngine/           # Motor puro de medição (Download, Upload, Ping, Bufferbloat)
-│   ├── NetworkCore/           # Modelos fundamentais e contratos de medição
-│   ├── NetworkInventory/      # Minha Rede (Equipamentos, Topologia, Roteadores)
-│   ├── AssistConsultation/    # Núcleo tipado da consultoria Assist V4
-│   ├── MeasurementHistory/    # Histórico e persistência local
-│   ├── MeasurementHistoryCloudKit/ # Sincronização em nuvem via CloudKit privado
-│   ├── LinkaWidget/           # Extensão de Widgets (WidgetKit)
-│   ├── LinkaAppIntents/       # Integração com Atalhos da Siri (App Intents)
-│   └── NetworkDiagnostics/    # Probes e diagnósticos avançados de rota e DNS
+│   ├── LinkaApp/              # Target de aplicação, telas e adaptadores por produto
+│   │   ├── Sources/
+│   │   │   ├── UI/            # Telas separadas por produto (SpeedTest, MinhaRede, Assist, etc.)
+│   │   │   └── Adapters/      # Adaptadores separados por produto
+│   │   └── Resources/         # Assets, strings e ícones
+│   ├── Core/                  # Fundação compartilhada e motor de velocidade
+│   │   ├── LinkaEngine/       # Motor puro de medição (Download, Upload, Ping, Bufferbloat)
+│   │   ├── NetworkCore/       # Modelos fundamentais e contratos de medição
+│   │   ├── MeasurementHistory/# Histórico e persistência local
+│   │   ├── MeasurementHistoryCloudKit/ # Sincronização em nuvem via CloudKit privado
+│   │   ├── LinkaEntitlements/ # Regras de acesso, Plus e Free
+│   │   └── LinkaModules/      # Composição, containers e factories
+│   ├── Features/              # Módulos organizados por PRODUTO
+│   │   ├── MinhaRede/         # Inventário de rede, roteadores e topologia (NetworkInventory)
+│   │   ├── Assist/            # Consultoria e diagnósticos assistidos (NetworkAssist, AssistConsultation)
+│   │   ├── Otimizacao/        # Perfis de ambiente, DNS Benchmark e spatial (NetworkProfiles, NetworkOptimization)
+│   │   └── Diagnosticos/      # Triagem, integridade e probes (NetworkDiagnostics, NetscopeEvidence, NetworkInsights)
+│   └── Extensions/            # Extensões do sistema Apple
+│       ├── LinkaAppIntents/   # Integração com Atalhos da Siri (App Intents)
+│       ├── LinkaWidget/       # Extensão de Widgets (WidgetKit)
+│       └── LinkaWidgetShared/ # Dados compartilhados via App Group
 ├── documentacao/              # Os 4 Pilares Canônicos normativos
 │   ├── PRODUTO.md             # Pilar 1: Capacidades, métricas e jornadas do usuário
 │   ├── ARQUITETURA.md         # Pilar 2: Módulos, dependências e contratos

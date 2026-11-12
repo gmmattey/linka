@@ -204,7 +204,7 @@ targets:
     sources:
       - path: LinkaApp/Sources
         excludes:
-          - UI/MainView.swift
+          - UI/SpeedTest/MainView.swift
       - path: LinkaApp/Resources
         buildPhase: resources
         excludes:
@@ -254,7 +254,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
     sources:
       - path: LinkaApp/Tests
-      - path: AssistConsultationTransport/Tests
+      - path: Features/Assist/AssistConsultationTransport/Tests
     dependencies:
       - target: LinkaApp
       # Os testes V4 exercitam o contrato sem herdar symbols dinamicamente do
@@ -307,11 +307,11 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         PRODUCT_BUNDLE_IDENTIFIER: com.linka.assist.Widget
         PRODUCT_NAME: LinkaWidget
-        CODE_SIGN_ENTITLEMENTS: LinkaWidget/LinkaWidget.entitlements
+        CODE_SIGN_ENTITLEMENTS: Extensions/LinkaWidget/LinkaWidget.entitlements
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: "2Z4T8228GR"
     info:
-      path: LinkaWidget/Info.plist
+      path: Extensions/LinkaWidget/Info.plist
       properties:
         CFBundleDisplayName: Speedtest by Linka
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
@@ -319,9 +319,9 @@ targets:
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     sources:
-      - path: LinkaWidget/Sources
-      - path: LinkaApp/Sources/UI/DesignSystem.swift
-      - path: LinkaWidget/Resources
+      - path: Extensions/LinkaWidget/Sources
+      - path: LinkaApp/Sources/UI/Common/DesignSystem.swift
+      - path: Extensions/LinkaWidget/Resources
         buildPhase: resources
     dependencies:
       - package: LinkaAppIntents
@@ -335,7 +335,7 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
     sources:
-      - path: LinkaWidget/Tests
+      - path: Extensions/LinkaWidget/Tests
     dependencies:
       - target: LinkaWidgetExtension
       - package: LinkaWidgetShared
@@ -390,37 +390,37 @@ schemes:
       config: InternalBeta
 packages:
   NetworkCore:
-    path: NetworkCore
+    path: Core/NetworkCore
   NetworkInventory:
-    path: NetworkInventory
+    path: Features/MinhaRede/NetworkInventory
   LinkaEngine:
-    path: LinkaEngine
+    path: Core/LinkaEngine
   LinkaModules:
-    path: LinkaModules
+    path: Core/LinkaModules
   NetworkConnectivityTriage:
-    path: NetworkConnectivityTriage
+    path: Features/Diagnosticos/NetworkConnectivityTriage
   LinkaAppIntents:
-    path: LinkaAppIntents
+    path: Extensions/LinkaAppIntents
   NetscopeEvidence:
-    path: NetscopeEvidence
+    path: Features/Diagnosticos/NetscopeEvidence
   MeasurementHistoryCloudKit:
-    path: MeasurementHistoryCloudKit
+    path: Core/MeasurementHistoryCloudKit
   LinkaWidgetShared:
-    path: LinkaWidgetShared
+    path: Extensions/LinkaWidgetShared
   NetworkDiagnostics:
-    path: NetworkDiagnostics
+    path: Features/Diagnosticos/NetworkDiagnostics
   NetworkOptimization:
-    path: NetworkOptimization
+    path: Features/Otimizacao/NetworkOptimization
   NetworkProfiles:
-    path: NetworkProfiles
+    path: Features/Otimizacao/NetworkProfiles
   NetworkDNSBenchmark:
-    path: NetworkDNSBenchmark
+    path: Features/Otimizacao/NetworkDNSBenchmark
   NetworkSpatial:
-    path: NetworkSpatial
+    path: Features/Otimizacao/NetworkSpatial
   AssistConsultation:
-    path: AssistConsultation
+    path: Features/Assist/AssistConsultation
   AssistConsultationTransport:
-    path: AssistConsultationTransport
+    path: Features/Assist/AssistConsultationTransport
   GoogleMobileAds:
     url: https://github.com/googleads/swift-package-manager-google-mobile-ads.git
     from: 12.0.0

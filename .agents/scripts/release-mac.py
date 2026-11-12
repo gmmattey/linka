@@ -42,7 +42,7 @@ SEMVER = re.compile(r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$')
 # Caminhos que afetam o app do Mac: o que mexe só no iPhone fica fora das notas.
 MAC_PATHS = re.compile(
     r'(UI/Mac/|MacMainView|macOS|-macOS|LinkaApp\.swift|Info-macOS|'
-    r'aplicativo-ios/(LinkaEngine|NetworkCore|NetworkDiagnostics|NetworkInventory|NetworkProfiles|'
+    r'aplicativo-ios/(Core/|Features/|Extensions/|LinkaEngine|NetworkCore|NetworkDiagnostics|NetworkInventory|NetworkProfiles|'
     r'NetworkInsights|NetworkOptimization|NetworkDNSBenchmark|NetworkConnectivityTriage|'
     r'MeasurementHistory|MeasurementHistoryCloudKit|AssistConsultation)/|'
     r'LinkaApp/Resources/.*Localizable|AppIcon|brand/icons)')

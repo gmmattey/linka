@@ -20,9 +20,21 @@ module LinkaLocalRelease
   ROOT = File.expand_path("..", __dir__).freeze
   APP_ID = "com.linka.assist"
   WIDGET_ID = "com.linka.assist.Widget"
-  PACKAGES = %w[NetworkCore MeasurementHistory NetworkInsights NetworkAssist
-                NetworkDiagnostics NetworkConnectivityTriage NetworkProfiles NetworkInventory LinkaEntitlements
-                LinkaAppIntents LinkaModules LinkaEngine LinkaWidgetShared].freeze
+  PACKAGE_PATHS = {
+    "NetworkCore" => "Core/NetworkCore",
+    "MeasurementHistory" => "Core/MeasurementHistory",
+    "NetworkInsights" => "Features/Diagnosticos/NetworkInsights",
+    "NetworkAssist" => "Features/Assist/NetworkAssist",
+    "NetworkDiagnostics" => "Features/Diagnosticos/NetworkDiagnostics",
+    "NetworkConnectivityTriage" => "Features/Diagnosticos/NetworkConnectivityTriage",
+    "NetworkProfiles" => "Features/Otimizacao/NetworkProfiles",
+    "NetworkInventory" => "Features/MinhaRede/NetworkInventory",
+    "LinkaEntitlements" => "Core/LinkaEntitlements",
+    "LinkaAppIntents" => "Extensions/LinkaAppIntents",
+    "LinkaModules" => "Core/LinkaModules",
+    "LinkaEngine" => "Core/LinkaEngine",
+    "LinkaWidgetShared" => "Extensions/LinkaWidgetShared"
+  }.freeze
 
   class ControlError < StandardError
     attr_reader :code
@@ -153,8 +165,8 @@ module LinkaLocalRelease
             expected.values_at("version", "build") + [bundle, expected["team"]], "project_identity_mismatch_regenerate_separately:#{target}")
     end
     completed = []
-    PACKAGES.each do |package|
-      validation_command("package-#{package}", "swift", "test", "--package-path", File.join(root, "aplicativo-ios", package))
+    PACKAGE_PATHS.each do |package, relative_path|
+      validation_command("package-#{package}", "swift", "test", "--package-path", File.join(root, "aplicativo-ios", relative_path))
       completed << package
     end
     app_directory = File.join(root, "aplicativo-ios")
