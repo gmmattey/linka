@@ -1,36 +1,39 @@
-/* Linka — cor em dois modos.
-   Claro é o padrão; escuro é preto total (#000, OLED).
-   Só as PRIMITIVAS mudam entre temas — os nomes semânticos (--surface-page,
-   --text-primary, --border-default…) são idênticos nos dois, então nenhum
-   componente precisa saber que o tema existe.
-   Ativação: sem atributo segue o sistema; <html data-theme="dark"> força
-   escuro e <html data-theme="light"> força claro (as três opções que a tela
-   de Ajustes do app já oferece).
-   Contraste: todos os pares texto/fundo abaixo passam WCAG 2.2 AA — corpo e
-   texto secundário ≥ 4.5:1, bordas de controle e indicadores ≥ 3:1.
-   Card de verificação: Guidelines → Modo claro e escuro. */
+/* Linka — cor em dois modos, espelhando DesignSystem.swift do app.
+   Marca: Roxo Gamer #7C3AED (brandSurface / brandAccentWarm), profundo #5B21B6
+   e claro #A78BFA (texto e bordas de destaque). Superfícies e texto seguem as
+   cores semânticas nativas da Apple (systemGroupedBackground,
+   secondarySystemGroupedBackground, label, secondaryLabel, separator).
+   Estados: bom #22C55E, atenção #F59E0B, crítico #FF5A36, neutro #8A93A0.
+   Nomes semânticos (--surface-page, --text-primary…) iguais nos dois temas.
+   Nota: --color-accent-warm é alias histórico e agora é roxo, como no código.
+   Ativação: sem atributo segue o sistema; data-theme="dark"|"light" força. */
 :root{
---color-bg:oklch(99% 0.002 240);
---color-surface:oklch(100% 0 0);
---color-ink:#102245;
---color-ink-deep:color-mix(in oklch, var(--color-ink) 80%, black);
-/* laranja de marca: 3.2:1 sobre branco — passa AA para elemento gráfico (1.4.11) */
---color-accent-warm:#E0701F;
-/* variante para o laranja usado como TEXTO: 4.8:1 sobre branco */
---color-accent-warm-ink:#A34A00;
---color-fg:var(--color-ink);
-/* secundário 5.1:1 sobre branco (era 52% de tinta ≈ 4.0:1, abaixo de AA) */
---color-muted:#5F6C88;
---color-border:color-mix(in oklch, var(--color-ink) 10%, white);
-/* borda de controle interativo: 3.5:1 sobre branco */
---color-border-strong:#7C859B;
---color-accent:var(--color-ink);
---color-accent-soft:color-mix(in oklch, var(--color-ink) 10%, transparent);
---color-fg-soft:color-mix(in oklch, var(--color-ink) 5%, transparent);
+--color-bg:#F2F2F7;
+--color-surface:#FFFFFF;
+--color-ink:#000000;
+--color-ink-deep:#000000;
+--color-brand:#7C3AED;
+--color-brand-deep:#5B21B6;
+--color-brand-light:#A78BFA;
+--color-accent-warm:#7C3AED;
+--color-accent-warm-ink:#5B21B6;
+--color-fg:#000000;
+--color-muted:#6C6C70;
+--color-border:#C6C6C8;
+--color-border-strong:#5B21B6;
+--color-accent:#7C3AED;
+--color-accent-soft:color-mix(in oklch, #7C3AED 12%, transparent);
+--color-fg-soft:color-mix(in oklch, #000000 5%, transparent);
 --color-on-accent:#FFFFFF;
---color-bg-grouped:color-mix(in oklch, var(--color-bg) 96%, var(--color-ink) 4%);
---color-separator:color-mix(in oklch, var(--color-ink) 12%, transparent);
---color-fill:color-mix(in oklch, var(--color-ink) 7%, transparent);
+--color-bg-grouped:#F2F2F7;
+--color-separator:rgba(60,60,67,.29);
+--color-fill:rgba(120,120,128,.16);
+--status-good:#22C55E;
+--status-attention:#F59E0B;
+--status-critical:#FF5A36;
+--status-neutral:#8A93A0;
+--chart-download:#5B21B6;
+--chart-upload:#7C3AED;
 --surface-page:var(--color-bg);
 --surface-card:var(--color-surface);
 --surface-grouped:var(--color-bg-grouped);
@@ -39,6 +42,8 @@
 --text-on-accent:var(--color-on-accent);
 --border-default:var(--color-border);
 --border-strong:var(--color-border-strong);
+--brand-surface:#7C3AED;
+--brand-on-surface:#FFFFFF;
 --brand-accent:var(--color-accent);
 --brand-accent-soft:var(--color-accent-soft);
 --brand-accent-warm:var(--color-accent-warm);
@@ -50,23 +55,31 @@ color-scheme:light;
 @media (prefers-color-scheme:dark){
 :root{
 --color-bg:#000000;
---color-surface:oklch(16% 0.006 262);
---color-ink:oklch(97% 0.004 262);
---color-ink-deep:oklch(100% 0 0);
-/* laranja clareado para o preto: 8.6:1 — texto e gráfico com o mesmo valor */
---color-accent-warm:#FF9552;
---color-accent-warm-ink:#FF9552;
---color-fg:var(--color-ink);
---color-muted:#9BA3B4;
---color-border:color-mix(in oklch, var(--color-ink) 16%, var(--color-bg));
---color-border-strong:#5C6577;
---color-accent:var(--color-ink);
---color-accent-soft:color-mix(in oklch, var(--color-ink) 14%, transparent);
---color-fg-soft:color-mix(in oklch, var(--color-ink) 7%, transparent);
---color-on-accent:#000000;
+--color-surface:#1C1C1E;
+--color-ink:#FFFFFF;
+--color-ink-deep:#FFFFFF;
+--color-brand:#7C3AED;
+--color-brand-deep:#5B21B6;
+--color-brand-light:#A78BFA;
+--color-accent-warm:#7C3AED;
+--color-accent-warm-ink:#A78BFA;
+--color-fg:#FFFFFF;
+--color-muted:#98989F;
+--color-border:#38383A;
+--color-border-strong:#A78BFA;
+--color-accent:#A78BFA;
+--color-accent-soft:color-mix(in oklch, #A78BFA 18%, transparent);
+--color-fg-soft:color-mix(in oklch, #FFFFFF 7%, transparent);
+--color-on-accent:#FFFFFF;
 --color-bg-grouped:#000000;
---color-separator:color-mix(in oklch, var(--color-ink) 18%, transparent);
---color-fill:color-mix(in oklch, var(--color-ink) 10%, transparent);
+--color-separator:rgba(84,84,88,.6);
+--color-fill:rgba(120,120,128,.36);
+--status-good:#22C55E;
+--status-attention:#F59E0B;
+--status-critical:#FF5A36;
+--status-neutral:#8A93A0;
+--chart-download:#A78BFA;
+--chart-upload:#7C3AED;
 --surface-page:var(--color-bg);
 --surface-card:var(--color-surface);
 --surface-grouped:var(--color-surface);
@@ -75,6 +88,8 @@ color-scheme:light;
 --text-on-accent:var(--color-on-accent);
 --border-default:var(--color-border);
 --border-strong:var(--color-border-strong);
+--brand-surface:#7C3AED;
+--brand-on-surface:#FFFFFF;
 --brand-accent:var(--color-accent);
 --brand-accent-soft:var(--color-accent-soft);
 --brand-accent-warm:var(--color-accent-warm);
@@ -85,23 +100,32 @@ color-scheme:dark;
 }
 }
 [data-theme="light"]{
---color-bg:oklch(99% 0.002 240);
---color-surface:oklch(100% 0 0);
---color-ink:#102245;
---color-ink-deep:color-mix(in oklch, var(--color-ink) 80%, black);
---color-accent-warm:#E0701F;
---color-accent-warm-ink:#A34A00;
---color-fg:var(--color-ink);
---color-muted:#5F6C88;
---color-border:color-mix(in oklch, var(--color-ink) 10%, white);
---color-border-strong:#7C859B;
---color-accent:var(--color-ink);
---color-accent-soft:color-mix(in oklch, var(--color-ink) 10%, transparent);
---color-fg-soft:color-mix(in oklch, var(--color-ink) 5%, transparent);
+--color-bg:#F2F2F7;
+--color-surface:#FFFFFF;
+--color-ink:#000000;
+--color-ink-deep:#000000;
+--color-brand:#7C3AED;
+--color-brand-deep:#5B21B6;
+--color-brand-light:#A78BFA;
+--color-accent-warm:#7C3AED;
+--color-accent-warm-ink:#5B21B6;
+--color-fg:#000000;
+--color-muted:#6C6C70;
+--color-border:#C6C6C8;
+--color-border-strong:#5B21B6;
+--color-accent:#7C3AED;
+--color-accent-soft:color-mix(in oklch, #7C3AED 12%, transparent);
+--color-fg-soft:color-mix(in oklch, #000000 5%, transparent);
 --color-on-accent:#FFFFFF;
---color-bg-grouped:color-mix(in oklch, var(--color-bg) 96%, var(--color-ink) 4%);
---color-separator:color-mix(in oklch, var(--color-ink) 12%, transparent);
---color-fill:color-mix(in oklch, var(--color-ink) 7%, transparent);
+--color-bg-grouped:#F2F2F7;
+--color-separator:rgba(60,60,67,.29);
+--color-fill:rgba(120,120,128,.16);
+--status-good:#22C55E;
+--status-attention:#F59E0B;
+--status-critical:#FF5A36;
+--status-neutral:#8A93A0;
+--chart-download:#5B21B6;
+--chart-upload:#7C3AED;
 --surface-page:var(--color-bg);
 --surface-card:var(--color-surface);
 --surface-grouped:var(--color-bg-grouped);
@@ -110,6 +134,8 @@ color-scheme:dark;
 --text-on-accent:var(--color-on-accent);
 --border-default:var(--color-border);
 --border-strong:var(--color-border-strong);
+--brand-surface:#7C3AED;
+--brand-on-surface:#FFFFFF;
 --brand-accent:var(--color-accent);
 --brand-accent-soft:var(--color-accent-soft);
 --brand-accent-warm:var(--color-accent-warm);
@@ -120,22 +146,31 @@ color-scheme:light;
 }
 [data-theme="dark"]{
 --color-bg:#000000;
---color-surface:oklch(16% 0.006 262);
---color-ink:oklch(97% 0.004 262);
---color-ink-deep:oklch(100% 0 0);
---color-accent-warm:#FF9552;
---color-accent-warm-ink:#FF9552;
---color-fg:var(--color-ink);
---color-muted:#9BA3B4;
---color-border:color-mix(in oklch, var(--color-ink) 16%, var(--color-bg));
---color-border-strong:#5C6577;
---color-accent:var(--color-ink);
---color-accent-soft:color-mix(in oklch, var(--color-ink) 14%, transparent);
---color-fg-soft:color-mix(in oklch, var(--color-ink) 7%, transparent);
---color-on-accent:#000000;
+--color-surface:#1C1C1E;
+--color-ink:#FFFFFF;
+--color-ink-deep:#FFFFFF;
+--color-brand:#7C3AED;
+--color-brand-deep:#5B21B6;
+--color-brand-light:#A78BFA;
+--color-accent-warm:#7C3AED;
+--color-accent-warm-ink:#A78BFA;
+--color-fg:#FFFFFF;
+--color-muted:#98989F;
+--color-border:#38383A;
+--color-border-strong:#A78BFA;
+--color-accent:#A78BFA;
+--color-accent-soft:color-mix(in oklch, #A78BFA 18%, transparent);
+--color-fg-soft:color-mix(in oklch, #FFFFFF 7%, transparent);
+--color-on-accent:#FFFFFF;
 --color-bg-grouped:#000000;
---color-separator:color-mix(in oklch, var(--color-ink) 18%, transparent);
---color-fill:color-mix(in oklch, var(--color-ink) 10%, transparent);
+--color-separator:rgba(84,84,88,.6);
+--color-fill:rgba(120,120,128,.36);
+--status-good:#22C55E;
+--status-attention:#F59E0B;
+--status-critical:#FF5A36;
+--status-neutral:#8A93A0;
+--chart-download:#A78BFA;
+--chart-upload:#7C3AED;
 --surface-page:var(--color-bg);
 --surface-card:var(--color-surface);
 --surface-grouped:var(--color-surface);
@@ -144,6 +179,8 @@ color-scheme:light;
 --text-on-accent:var(--color-on-accent);
 --border-default:var(--color-border);
 --border-strong:var(--color-border-strong);
+--brand-surface:#7C3AED;
+--brand-on-surface:#FFFFFF;
 --brand-accent:var(--color-accent);
 --brand-accent-soft:var(--color-accent-soft);
 --brand-accent-warm:var(--color-accent-warm);
@@ -152,7 +189,6 @@ color-scheme:light;
 --tint:var(--brand-accent);
 color-scheme:dark;
 }
-/* Alto contraste do SO: hairlines viram bordas legíveis, secundário vira tinta cheia. */
 @media (prefers-contrast:more){
 :root,[data-theme="light"],[data-theme="dark"]{
 --color-muted:var(--color-fg);
@@ -160,7 +196,6 @@ color-scheme:dark;
 --color-separator:var(--color-border-strong);
 }
 }
-/* Foco sempre visível, nunca só por cor (2.4.7 / 2.4.13). */
 :where(a,button,[role="button"],input,select,textarea,summary,[tabindex]):focus-visible{
 outline:2px solid var(--focus-ring);
 outline-offset:2px;
