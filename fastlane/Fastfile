@@ -115,7 +115,7 @@ module LinkaLocalRelease
   end
 
   def self.identity
-    document = YAML.safe_load(File.read(File.join(root, "aplicativo-ios/project.yml")), aliases: false)
+    document = YAML.safe_load(File.read(File.join(root, "apple/project.yml")), aliases: false)
     targets = %w[LinkaApp LinkaWidgetExtension].map do |target|
       settings = release_settings(document, target)
       { "version" => settings.fetch("MARKETING_VERSION").to_s,
@@ -154,10 +154,10 @@ module LinkaLocalRelease
     toolchain = command("xcodebuild", "-version").strip
     swift = command("swift", "--version").strip
     expected = identity
-    check(command("git", "diff", "HEAD", "--", "aplicativo-ios/project.yml").strip.empty?, "spec_changed_regenerate_and_review_separately")
+    check(command("git", "diff", "HEAD", "--", "apple/project.yml").strip.empty?, "spec_changed_regenerate_and_review_separately")
     %w[LinkaApp LinkaWidgetExtension].each do |target|
       output = command("xcodebuild", "-showBuildSettings", "-json", "-project",
-                       File.join(root, "aplicativo-ios/LinkaApp.xcodeproj"), "-target", target, "-configuration", "Release")
+                       File.join(root, "apple/LinkaApp.xcodeproj"), "-target", target, "-configuration", "Release")
       settings = JSON.parse(output).find { |item| item["target"] == target }&.fetch("buildSettings")
       check(!settings.nil?, "project_target_missing:#{target}")
       bundle = target == "LinkaApp" ? APP_ID : WIDGET_ID
@@ -166,10 +166,10 @@ module LinkaLocalRelease
     end
     completed = []
     PACKAGE_PATHS.each do |package, relative_path|
-      validation_command("package-#{package}", "swift", "test", "--package-path", File.join(root, "aplicativo-ios", relative_path))
+      validation_command("package-#{package}", "swift", "test", "--package-path", File.join(root, "apple", relative_path))
       completed << package
     end
-    app_directory = File.join(root, "aplicativo-ios")
+    app_directory = File.join(root, "apple")
     # XcodeGen é uma etapa separada e revisada; nunca sobrescrever PBX/schemes/Info WIP.
     common = ["-project", File.join(app_directory, "LinkaApp.xcodeproj"), "-scheme", "LinkaApp",
               "-derivedDataPath", File.join(app_directory, "build/DerivedData"),
@@ -336,9 +336,9 @@ platform :ios do
           authentication = ["-allowProvisioningUpdates", "-authenticationKeyPath", key_path,
                             "-authenticationKeyID", ENV.fetch("ASC_KEY_ID"), "-authenticationKeyIssuerID", ENV.fetch("ASC_ISSUER_ID")]
           LinkaLocalRelease.stage(evidence_path, evidence, "archive") do
-            LinkaLocalRelease.command("xcodebuild", "archive", "-project", File.join(LinkaLocalRelease.root, "aplicativo-ios/LinkaApp.xcodeproj"),
+            LinkaLocalRelease.command("xcodebuild", "archive", "-project", File.join(LinkaLocalRelease.root, "apple/LinkaApp.xcodeproj"),
                                       "-scheme", "LinkaApp", "-configuration", "Release", "-destination", "generic/platform=iOS",
-                                      "-derivedDataPath", File.join(LinkaLocalRelease.root, "aplicativo-ios/build/DerivedData"),
+                                      "-derivedDataPath", File.join(LinkaLocalRelease.root, "apple/build/DerivedData"),
                                       "-archivePath", archive, *authentication)
           end
           archive_identity = LinkaLocalRelease.stage(evidence_path, evidence, "archive_identity") do

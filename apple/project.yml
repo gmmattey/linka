@@ -204,7 +204,7 @@ targets:
     sources:
       - path: LinkaApp/Sources
         excludes:
-          - UI/SpeedTest/MainView.swift
+          - iOS/MainView.swift
       - path: LinkaApp/Resources
         buildPhase: resources
         excludes:
@@ -320,7 +320,7 @@ targets:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     sources:
       - path: Extensions/LinkaWidget/Sources
-      - path: LinkaApp/Sources/UI/Common/DesignSystem.swift
+      - path: LinkaApp/Sources/Shared/UI/Common/DesignSystem.swift
       - path: Extensions/LinkaWidget/Resources
         buildPhase: resources
     dependencies:

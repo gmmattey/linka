@@ -32,7 +32,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-PROJECT = ROOT / 'aplicativo-ios' / 'project.yml'
+PROJECT = ROOT / 'apple' / 'project.yml'
 NOTES = ROOT / 'RELEASE_NOTES.md'
 OUT = ROOT / 'build' / 'releases' / 'mac'
 TAG_PREFIX = 'mac-v'
@@ -41,8 +41,8 @@ SEMVER = re.compile(r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$')
 
 # Caminhos que afetam o app do Mac: o que mexe só no iPhone fica fora das notas.
 MAC_PATHS = re.compile(
-    r'(UI/Mac/|MacMainView|macOS|-macOS|LinkaApp\.swift|Info-macOS|'
-    r'aplicativo-ios/(Core/|Features/|Extensions/|LinkaEngine|NetworkCore|NetworkDiagnostics|NetworkInventory|NetworkProfiles|'
+    r'(macOS/|MacMainView|macOS|-macOS|LinkaApp\.swift|Info-macOS|'
+    r'(apple|aplicativo-ios)/(Core/|Features/|Extensions/|LinkaEngine|NetworkCore|NetworkDiagnostics|NetworkInventory|NetworkProfiles|'
     r'NetworkInsights|NetworkOptimization|NetworkDNSBenchmark|NetworkConnectivityTriage|'
     r'MeasurementHistory|MeasurementHistoryCloudKit|AssistConsultation)/|'
     r'LinkaApp/Resources/.*Localizable|AppIcon|brand/icons)')
@@ -233,7 +233,7 @@ def cmd_prepare(a):
         fail('project.yml ou RELEASE_NOTES.md têm mudanças não commitadas; commite antes.')
     write_version(nv, nb)
     insert_notes(nv, section)
-    run('xcodegen', 'generate', cwd=ROOT / 'aplicativo-ios')
+    run('xcodegen', 'generate', cwd=ROOT / 'apple')
     print('Atualizados: project.yml, projeto Xcode e RELEASE_NOTES.md. Revise o texto, '
           'commite e faça merge antes de rodar build.')
 

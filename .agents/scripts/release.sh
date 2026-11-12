@@ -135,8 +135,8 @@ def run():
     bump = args[0] if args else 'patch'
     require(bump in ('patch', 'minor', 'major') or re.fullmatch(VERSION, bump), 'Argumento inválido.')
     root = Path.cwd()
-    yml = root / 'aplicativo-ios/project.yml'
-    project = root / 'aplicativo-ios/LinkaApp.xcodeproj/project.pbxproj'
+    yml = root / 'apple/project.yml'
+    project = root / 'apple/LinkaApp.xcodeproj/project.pbxproj'
     require(yml.is_file() and project.is_file(), 'Execute na raiz do checkout ios.')
     with release_lock(root):
         originals = {p: p.read_bytes() for p in (yml, project)}
@@ -177,7 +177,7 @@ def run():
         # Copiar em vez de symlinks: XcodeGen também escreve Info.plist/schemes.
         with tempfile.TemporaryDirectory(prefix='linka-release-') as directory:
             staging = Path(directory)
-            shutil.copytree(root / 'aplicativo-ios', staging / 'aplicativo-ios',
+            shutil.copytree(root / 'apple', staging / 'apple',
                             ignore=shutil.ignore_patterns('.build', 'build', 'DerivedData', '.git', '.swiftpm'))
             # Ambos são sources explícitos do target de UI tests no project.yml.
             for filename in ('AppStoreScreenshotsUITests.swift', 'MyNetworkUITests.swift'):
@@ -186,9 +186,9 @@ def run():
                     dest = staging / test_source.relative_to(root)
                     dest.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copy2(test_source, dest)
-            (staging / 'aplicativo-ios/project.yml').write_text(next_text)
-            subprocess.run(['xcodegen', 'generate'], cwd=staging / 'aplicativo-ios', check=True)
-            generated = (staging / 'aplicativo-ios/LinkaApp.xcodeproj/project.pbxproj').read_bytes()
+            (staging / 'apple/project.yml').write_text(next_text)
+            subprocess.run(['xcodegen', 'generate'], cwd=staging / 'apple', check=True)
+            generated = (staging / 'apple/LinkaApp.xcodeproj/project.pbxproj').read_bytes()
             verify_project(pbx(generated), targets, updated, mac_pairs)
         # Preservar configurações/schemes WIP: não copiar o projeto gerado.
         original_project = pbx(originals[project])

@@ -20,7 +20,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-APP_DIR="$REPO_ROOT/aplicativo-ios"
+APP_DIR="$REPO_ROOT/apple"
 OUT="$REPO_ROOT/build/macos-direct.noindex"
 DD="$OUT/derivedData"
 TEAM=2Z4T8228GR

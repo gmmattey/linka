@@ -33,13 +33,16 @@ O repositório é estritamente focado no ecossistema nativo Apple (**iPhone, iPa
 
 ```text
 linka/
-├── aplicativo-ios/            # Projeto nativo Apple (iOS, iPadOS, macOS)
+├── apple/                     # Ecossistema nativo Apple unificado (iPhone, iPad e Mac)
 │   ├── project.yml            # Definição canônica do XcodeGen
 │   ├── LinkaApp.xcodeproj     # Projeto gerado
-│   ├── LinkaApp/              # Target de aplicação, telas e adaptadores por produto
+│   ├── LinkaApp/              # Target de aplicação, telas e adaptadores
 │   │   ├── Sources/
-│   │   │   ├── UI/            # Telas separadas por produto (SpeedTest, MinhaRede, Assist, etc.)
-│   │   │   └── Adapters/      # Adaptadores separados por produto
+│   │   │   ├── iOS/           # Interfaces exclusivas de iPhone e iPad
+│   │   │   ├── macOS/         # Interfaces e comandos exclusivos de Mac
+│   │   │   └── Shared/        # Componentes compartilhados por produto
+│   │   │       ├── UI/        # Telas por produto (SpeedTest, MinhaRede, Assist, etc.)
+│   │   │       └── Adapters/  # Adaptadores por produto (SpeedTest, MinhaRede, etc.)
 │   │   └── Resources/         # Assets, strings e ícones
 │   ├── Core/                  # Fundação compartilhada e motor de velocidade
 │   │   ├── LinkaEngine/       # Motor puro de medição (Download, Upload, Ping, Bufferbloat)
@@ -57,6 +60,7 @@ linka/
 │       ├── LinkaAppIntents/   # Integração com Atalhos da Siri (App Intents)
 │       ├── LinkaWidget/       # Extensão de Widgets (WidgetKit)
 │       └── LinkaWidgetShared/ # Dados compartilhados via App Group
+├── aplicativo-ios -> apple/   # Symlink de retrocompatibilidade
 ├── documentacao/              # Os 4 Pilares Canônicos normativos
 │   ├── PRODUTO.md             # Pilar 1: Capacidades, métricas e jornadas do usuário
 │   ├── ARQUITETURA.md         # Pilar 2: Módulos, dependências e contratos

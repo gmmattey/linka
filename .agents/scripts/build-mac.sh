@@ -13,7 +13,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-APP_DIR="$REPO_ROOT/aplicativo-ios"
+APP_DIR="$REPO_ROOT/apple"
 OUTPUT_DIR="$REPO_ROOT/build/macos.noindex"
 DERIVED_DATA_DIR="$REPO_ROOT/build/macos-derivedData.noindex"
 LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
